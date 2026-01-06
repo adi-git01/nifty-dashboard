@@ -1,0 +1,6 @@
+@echo off
+echo Checking if dependencies are installed...
+timeout /t 2 >nul
+echo Starting Nifty 500 Dashboard...
+python -m streamlit run main.py
+pause

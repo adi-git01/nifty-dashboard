@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache files
+nifty500_cache.csv
+*.cache
+
+# Sensitive data - DON'T COMMIT THESE
+config.json
+tracker_data.json
+alerts.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
