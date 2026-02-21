@@ -506,6 +506,90 @@ elif page == "🚀 Live Trading Desk":
                 else:
                     st.info("⚠️ Scanner found absolutely zero safe momentum setups today. Stay in Cash.")
                     
+            # 3. Advanced Alpha Scanners (VCP, RS Divergence, Day-0 Shocks)
+            st.markdown("---")
+            st.markdown("### 🔬 ADVANCED QUANTITATIVE SCANNERS")
+            
+            from utils.advanced_scanners import find_vcp_setups, find_rs_divergence, find_live_earnings_shocks
+            
+            # For VCP and Shocks we need full history, which is slow to fetch individually. 
+            # We will use the cached market_data if it has valid columns, else we just show a placeholder warning.
+            
+            # In a production environment with a persistent DB, we would pass the full history dict here.
+            # For this Streamlit demo, we'll try to fetch a localized batch for the top 100 stocks to keep it fast.
+            # We will use a cached helper to get histories quickly.
+            
+            @st.cache_data(ttl=3600)
+            def get_fast_histories(tickers):
+                d = yf.download(tickers, period="3mo", group_by='ticker', threads=True, progress=False)
+                hists = {}
+                for t in tickers:
+                    if t in d.columns.get_level_values(0):
+                        sub_df = d[t].dropna(how='all')
+                        if not sub_df.empty:
+                            hists[t] = sub_df
+                return hists
+            
+            with st.spinner("Running Advanced Pattern Recognition..."):
+                top_150_tickers = df.nlargest(150, 'trend_score')['ticker'].tolist()
+                hist_dict = get_fast_histories(top_150_tickers)
+                
+                vcp_list = find_vcp_setups(df[df['ticker'].isin(top_150_tickers)], hist_dict)
+                rs_list = find_rs_divergence(df, nifty_live)
+                shock_list = find_live_earnings_shocks(df[df['ticker'].isin(top_150_tickers)], hist_dict)
+            
+            col_adv1, col_adv2, col_adv3 = st.columns(3)
+            
+            with col_adv1:
+                with st.expander(f"🗜️ Volatility Contraction (VCP) [{len(vcp_list)}]", expanded=True):
+                    st.caption("Extremely tight 10D range + Volume dried up < 50% of 60D Avg. Indicates supply exhaustion before breakout.")
+                    if vcp_list:
+                        vcp_df = pd.DataFrame(vcp_list)
+                        st.dataframe(
+                            vcp_df[['Ticker', 'Price', 'Compression', 'Vol_Ratio']],
+                            column_config={
+                                "Compression": st.column_config.NumberColumn("10D ATR%", format="%.1f%%"),
+                                "Vol_Ratio": st.column_config.NumberColumn("Vol vs 60D", format="%.0f%%")
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                    else:
+                        st.info("No pure VCP setups found today.")
+                        
+            with col_adv2:
+                with st.expander(f"🟢 RS Divergence [{len(rs_list)}]", expanded=True):
+                    st.caption("Green in a sea of Red. Stocks closing positive > 0.5% while Nifty fell > -0.5% today.")
+                    if rs_list:
+                        rs_df = pd.DataFrame(rs_list)
+                        st.dataframe(
+                            rs_df[['Ticker', 'Stock_Ret', 'Delta_RS', 'Dist_52W']],
+                            column_config={
+                                "Stock_Ret": st.column_config.NumberColumn("Today %", format="%+.1f%%"),
+                                "Delta_RS": st.column_config.NumberColumn("vs Nifty %", format="%+.1f%%"),
+                                "Dist_52W": st.column_config.NumberColumn("Dist to 52W", format="%.1f%%")
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                    else:
+                        st.info("Nifty is not falling today, or no divergences found.")
+                        
+            with col_adv3:
+                with st.expander(f"⚡ Zero-Lag Earnings Shocks [{len(shock_list)}]", expanded=True):
+                    st.caption("Day-0 >5% Gap on >300% Volume. Use PEAD Edge to Buy vs Fade.")
+                    if shock_list:
+                        shk_df = pd.DataFrame(shock_list)
+                        st.dataframe(
+                            shk_df[['Ticker', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
+                            column_config={
+                                "Jump_Pct": st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
+                                "Vol_Mult": st.column_config.NumberColumn("Vol Ratio", format="%.1fx average"),
+                                "PEAD_Action": "Playbook Action"
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                    else:
+                        st.info("No massive >5% on >3x volume earnings shocks detected today.")
+                        
         else:
             st.error("Failed to connect to NSE index to calculate regime.")
 
