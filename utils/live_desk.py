@@ -7,6 +7,7 @@ Regime Detector into the Streamlit dashboard for daily actionable scanning.
 
 import pandas as pd
 import numpy as np
+import os
 from datetime import datetime
 import json
 
@@ -109,7 +110,57 @@ def get_seasonal_overlay(sector_str, month_num):
     return 'NEUTRAL'
 
 # ======================================================================
-# 3. LIVE DNA3-V3.1 SCANNER (With Seasonal Indicators)
+# 3. PLAYBOOK: CYCLICITY & PEAD PROFILING
+# ======================================================================
+LONG_CYCLE_KWS = ['auto', 'farm', 'heavy', 'metal', 'medical', 'conglomerates', 'machinery', 'agricultural', 'electric', 'software', 'aluminum', 'coal', 'defense', 'aerospace', 'cement', 'power', 'infrastructure', 'equipment', 'engineering', 'construction', 'minerals']
+SHORT_CYCLE_KWS = ['insurance', 'capital market', 'chemical', 'tobacco', 'power producer', 'gas', 'tools', 'real estate', 'realty', 'lodging', 'diagnostic', 'broker', 'fmcg', 'consumer', 'retail', 'textile', 'apparel', 'food', 'beverage', 'leisure', 'media', 'entertainment', 'finance', 'banks']
+
+def get_cyclicity(sector_str):
+    s = str(sector_str).lower()
+    for kw in LONG_CYCLE_KWS:
+        if kw in s: return "🕰️ Long (-20%)"
+    for kw in SHORT_CYCLE_KWS:
+        if kw in s: return "⚡ Short (-8%)"
+    return "⚖️ Mid (-12%)"
+
+_pead_df = None
+def get_pead_edge(sector_str):
+    global _pead_df
+    if _pead_df is None:
+        path = "analysis_2026/earnings_shocks/industry_drift_analysis.csv"
+        if os.path.exists(path):
+            _pead_df = pd.read_csv(path)
+        else:
+            return "Unknown"
+            
+    if _pead_df is None or _pead_df.empty: return "Unknown"
+    
+    s = str(sector_str).lower()
+    matches = _pead_df[_pead_df['Industry'].str.lower().str.contains(s.split()[0][:4], case=False, na=False)] 
+    
+    if "bank" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Bank", case=False, na=False)]
+    elif "auto" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Auto", case=False, na=False)]
+    elif "pharma" in s or "biotech" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Drug|Biotech", case=False, na=False)]
+    elif "it -" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Software|Information Tech", case=False, na=False)]
+    elif "fmcg" in s or "consumer durables" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Household|Packaged Food", case=False, na=False)]
+    elif "chemical" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Chemical", case=False, na=False)]
+    elif "telecom" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Telecom", case=False, na=False)]
+    elif "construction" in s or "engineering" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Infrastructure|Engineering", case=False, na=False)]
+    elif "metal" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Steel|Aluminum|Metal", case=False, na=False)]
+    elif "healthcare" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Medical|Diagnostics", case=False, na=False)]
+    
+    if not matches.empty:
+        c = matches.iloc[0]['Classification']
+        behavior = c.split('(')[0].strip()
+        if "FRONT" in behavior: return "🔴 Fade (Front-Run)"
+        elif "DRIFT" in behavior: return "🟢 Buy (Drifter)"
+        else: return "🟡 Neutral (Priced-In)"
+        
+    return "Unknown"
+
+
+# ======================================================================
+# 4. LIVE DNA3-V3.1 SCANNER (With Seasonal Indicators)
 # ======================================================================
 def generate_v3_watchlist(market_df, max_results=15):
     """
@@ -149,13 +200,19 @@ def generate_v3_watchlist(market_df, max_results=15):
         else:
             season_display = "Neutral"
             
+        # Identify Sub-Industry metrics
+        risk_profile = get_cyclicity(sector)
+        pead_edge = get_pead_edge(sector)
+            
         results.append({
             'Ticker': row['ticker'],
             'Target': row.get('name', row['ticker']),
             'Sector': sector,
             'Price': price,
             'V3_Score': score,
+            'Cyclicity': risk_profile,
             'Seasonality': season_display,
+            'PEAD_Edge': pead_edge,
             'Volume_Rating': volume_status / 10.0
         })
         

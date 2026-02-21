@@ -489,14 +489,16 @@ elif page == "🚀 Live Trading Desk":
                 
                 if not v3_watchlist.empty:
                     st.dataframe(
-                        v3_watchlist,
+                        v3_watchlist[['Ticker', 'Target', 'Sector', 'Price', 'V3_Score', 'Cyclicity', 'Seasonality', 'PEAD_Edge']],
                         column_config={
                             "Ticker": st.column_config.TextColumn("Ticker", width="small"),
                             "Target": "Company Name",
                             "Sector": "Industry Theme",
                             "Price": st.column_config.NumberColumn("CMP", format="₹%.0f"),
-                            "Seasonality": st.column_config.TextColumn("Historical Month Odds", help="Warning indicator only based on 15Y odds"),
-                            "V3_Score": st.column_config.ProgressColumn("Trend Conviction", format="%.0f", min_value=0, max_value=100)
+                            "V3_Score": st.column_config.ProgressColumn("Trend Conviction", format="%.0f", min_value=0, max_value=100),
+                            "Cyclicity": st.column_config.TextColumn("Risk Policy", help="Determines wide (-20%) vs tight (-8%) trailing stops"),
+                            "Seasonality": st.column_config.TextColumn("Seasonality", help="Warning indicator only based on 15Y odds"),
+                            "PEAD_Edge": st.column_config.TextColumn("Earnings Edge", help="Historical Post-Earnings Reaction")
                         },
                         hide_index=True,
                         use_container_width=True
