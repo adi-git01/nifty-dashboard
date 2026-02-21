@@ -76,7 +76,7 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
         info = {}
     if scores is None:
         scores = {'quality': 5, 'value': 5, 'growth': 5, 
-                  'momentum': 5, 'overall': 5}
+                  'momentum': 5, 'volume_signal_score': 5, 'overall': 5}
     
     # Extract key data
     company_name = info.get('longName', ticker.replace('.NS', ''))
@@ -135,6 +135,13 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
         strengths.append("Strong price momentum with positive trend across timeframes")
     elif scores.get('momentum', 5) <= 4:
         concerns.append("Weak price action - technical setup is negative")
+
+    # Volume Pillar
+    vol_score = scores.get('volume_signal_score', 5)
+    if vol_score >= 7:
+        strengths.append("High volume score indicates strong institutional accumulation")
+    elif vol_score <= 3:
+        concerns.append("Low volume/distribution signals - institutional participation is weak")
     
     # Growth metrics for report
     rev_growth = safe_get(info, 'revenueGrowth', 0) * 100
@@ -184,6 +191,7 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | **💰 Value** | {scores.get('value', 5):.1f}/10 | {get_score_bar(scores.get('value', 5))} | PE vs Sector, PEG, Forward PE |
 | **📈 Growth** | {scores.get('growth', 5):.1f}/10 | {get_score_bar(scores.get('growth', 5))} | Revenue & Earnings Trend |
 | **🚀 Momentum** | {scores.get('momentum', 5):.1f}/10 | {get_score_bar(scores.get('momentum', 5))} | Price Action (1W/1M/3M) |
+| **📊 Volume** | {scores.get('volume_signal_score', 5):.1f}/10 | {get_score_bar(scores.get('volume_signal_score', 5))} | Accumulation vs Distribution |
 | **═══════════════════** | **═══════** | **═══════════════════** | |
 | **OVERALL SCORE** | **{overall:.1f}/10** | **{get_score_bar(overall)}** | Equal-weighted average |
 

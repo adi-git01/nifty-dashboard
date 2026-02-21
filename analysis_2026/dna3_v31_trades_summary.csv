@@ -1,0 +1,4 @@
+Strategy,Trades,WinRate%,AvgWin%,AvgLoss%,MaxWin%,MaxLoss%,AvgHold,Expectancy%
+DNA3-V2.1,539,59.9,25.2,-13.9,551.0,-37.4,61,9.55
+DNA3-V3,545,47.5,31.2,-9.0,401.0,-18.8,57,10.09
+DNA3-V3.1,603,46.3,33.5,-9.3,401.0,-25.5,52,10.52

@@ -1,0 +1,221 @@
+Period,Sector,Window,Avg_2M%,Win%
+15Y,Consumer Electronics,Jan-Feb,0.31,40.0
+15Y,Consumer Electronics,Feb-Mar,2.99,50.0
+15Y,Consumer Electronics,Mar-Apr,5.94,70.0
+15Y,Consumer Electronics,Apr-May,9.91,50.0
+15Y,Consumer Electronics,May-Jun,5.34,40.0
+15Y,Consumer Electronics,Jun-Jul,5.34,60.0
+15Y,Consumer Electronics,Jul-Aug,8.44,60.0
+15Y,Consumer Electronics,Aug-Sep,11.49,60.0
+15Y,Consumer Electronics,Sep-Oct,6.32,70.0
+15Y,Consumer Electronics,Oct-Nov,6.7,60.0
+15Y,Consumer Electronics,Nov-Dec,14.5,60.0
+15Y,Aerospace & Defense,Jan-Feb,-2.46,56.0
+15Y,Aerospace & Defense,Feb-Mar,-1.2,67.0
+15Y,Aerospace & Defense,Mar-Apr,11.76,56.0
+15Y,Aerospace & Defense,Apr-May,17.48,78.0
+15Y,Aerospace & Defense,May-Jun,16.95,67.0
+15Y,Aerospace & Defense,Jun-Jul,12.31,56.0
+15Y,Aerospace & Defense,Jul-Aug,7.24,44.0
+15Y,Aerospace & Defense,Aug-Sep,1.71,56.0
+15Y,Aerospace & Defense,Sep-Oct,0.43,44.0
+15Y,Aerospace & Defense,Oct-Nov,5.93,89.0
+15Y,Aerospace & Defense,Nov-Dec,5.19,44.0
+15Y,Exchange and Data Platform,Jan-Feb,-4.58,40.0
+15Y,Exchange and Data Platform,Feb-Mar,-1.82,40.0
+15Y,Exchange and Data Platform,Mar-Apr,10.83,70.0
+15Y,Exchange and Data Platform,Apr-May,12.63,60.0
+15Y,Exchange and Data Platform,May-Jun,4.88,60.0
+15Y,Exchange and Data Platform,Jun-Jul,6.06,50.0
+15Y,Exchange and Data Platform,Jul-Aug,8.59,60.0
+15Y,Exchange and Data Platform,Aug-Sep,7.53,50.0
+15Y,Exchange and Data Platform,Sep-Oct,10.15,60.0
+15Y,Exchange and Data Platform,Oct-Nov,10.99,70.0
+15Y,Exchange and Data Platform,Nov-Dec,7.14,60.0
+15Y,Cables - Electricals,Jan-Feb,-2.58,50.0
+15Y,Cables - Electricals,Feb-Mar,-3.71,38.0
+15Y,Cables - Electricals,Mar-Apr,2.82,62.0
+15Y,Cables - Electricals,Apr-May,12.13,88.0
+15Y,Cables - Electricals,May-Jun,14.33,75.0
+15Y,Cables - Electricals,Jun-Jul,9.61,75.0
+15Y,Cables - Electricals,Jul-Aug,6.41,50.0
+15Y,Cables - Electricals,Aug-Sep,9.44,62.0
+15Y,Cables - Electricals,Sep-Oct,6.26,62.0
+15Y,Cables - Electricals,Oct-Nov,6.02,75.0
+15Y,Cables - Electricals,Nov-Dec,8.3,62.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Jan-Feb,-9.45,20.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Feb-Mar,-3.06,0.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Mar-Apr,11.8,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Apr-May,14.91,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,May-Jun,12.38,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Jun-Jul,12.81,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Jul-Aug,6.72,40.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Aug-Sep,7.77,40.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Sep-Oct,6.21,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Oct-Nov,13.34,60.0
+15Y,Depositories Clearing Houses and Other Intermediaries,Nov-Dec,10.88,40.0
+15Y,Specialty Chemicals,Jan-Feb,-0.49,38.0
+15Y,Specialty Chemicals,Feb-Mar,3.54,44.0
+15Y,Specialty Chemicals,Mar-Apr,11.98,94.0
+15Y,Specialty Chemicals,Apr-May,9.46,81.0
+15Y,Specialty Chemicals,May-Jun,4.73,69.0
+15Y,Specialty Chemicals,Jun-Jul,7.78,69.0
+15Y,Specialty Chemicals,Jul-Aug,7.9,75.0
+15Y,Specialty Chemicals,Aug-Sep,6.17,81.0
+15Y,Specialty Chemicals,Sep-Oct,4.95,62.0
+15Y,Specialty Chemicals,Oct-Nov,3.93,56.0
+15Y,Specialty Chemicals,Nov-Dec,4.58,62.0
+15Y,IT Enabled Services,Jan-Feb,-0.29,50.0
+15Y,IT Enabled Services,Feb-Mar,-5.5,38.0
+15Y,IT Enabled Services,Mar-Apr,-2.68,38.0
+15Y,IT Enabled Services,Apr-May,4.11,62.0
+15Y,IT Enabled Services,May-Jun,6.33,62.0
+15Y,IT Enabled Services,Jun-Jul,11.52,75.0
+15Y,IT Enabled Services,Jul-Aug,14.41,62.0
+15Y,IT Enabled Services,Aug-Sep,12.49,88.0
+15Y,IT Enabled Services,Sep-Oct,4.33,50.0
+15Y,IT Enabled Services,Oct-Nov,7.06,88.0
+15Y,IT Enabled Services,Nov-Dec,11.99,75.0
+15Y,Electrodes & Refractories,Jan-Feb,-5.14,27.0
+15Y,Electrodes & Refractories,Feb-Mar,0.76,47.0
+15Y,Electrodes & Refractories,Mar-Apr,12.05,73.0
+15Y,Electrodes & Refractories,Apr-May,10.24,67.0
+15Y,Electrodes & Refractories,May-Jun,3.96,53.0
+15Y,Electrodes & Refractories,Jun-Jul,7.59,67.0
+15Y,Electrodes & Refractories,Jul-Aug,5.82,53.0
+15Y,Electrodes & Refractories,Aug-Sep,4.22,60.0
+15Y,Electrodes & Refractories,Sep-Oct,7.62,60.0
+15Y,Electrodes & Refractories,Oct-Nov,8.36,67.0
+15Y,Electrodes & Refractories,Nov-Dec,7.99,67.0
+15Y,Tyres & Rubber Products,Jan-Feb,-1.36,38.0
+15Y,Tyres & Rubber Products,Feb-Mar,0.78,38.0
+15Y,Tyres & Rubber Products,Mar-Apr,9.58,69.0
+15Y,Tyres & Rubber Products,Apr-May,6.96,75.0
+15Y,Tyres & Rubber Products,May-Jun,2.55,50.0
+15Y,Tyres & Rubber Products,Jun-Jul,6.88,75.0
+15Y,Tyres & Rubber Products,Jul-Aug,4.32,50.0
+15Y,Tyres & Rubber Products,Aug-Sep,5.79,69.0
+15Y,Tyres & Rubber Products,Sep-Oct,8.99,69.0
+15Y,Tyres & Rubber Products,Oct-Nov,6.56,62.0
+15Y,Tyres & Rubber Products,Nov-Dec,6.84,62.0
+15Y,Plastic Products - Industrial,Jan-Feb,3.62,56.0
+15Y,Plastic Products - Industrial,Feb-Mar,5.06,62.0
+15Y,Plastic Products - Industrial,Mar-Apr,7.46,81.0
+15Y,Plastic Products - Industrial,Apr-May,11.46,81.0
+15Y,Plastic Products - Industrial,May-Jun,9.47,75.0
+15Y,Plastic Products - Industrial,Jun-Jul,4.84,56.0
+15Y,Plastic Products - Industrial,Jul-Aug,4.63,62.0
+15Y,Plastic Products - Industrial,Aug-Sep,4.67,56.0
+15Y,Plastic Products - Industrial,Sep-Oct,2.33,50.0
+15Y,Plastic Products - Industrial,Oct-Nov,2.06,50.0
+15Y,Plastic Products - Industrial,Nov-Dec,3.17,44.0
+15Y,Holding Company,Jan-Feb,1.98,38.0
+15Y,Holding Company,Feb-Mar,0.93,38.0
+15Y,Holding Company,Mar-Apr,3.19,62.0
+15Y,Holding Company,Apr-May,8.12,75.0
+15Y,Holding Company,May-Jun,6.95,62.0
+15Y,Holding Company,Jun-Jul,10.45,81.0
+15Y,Holding Company,Jul-Aug,9.38,75.0
+15Y,Holding Company,Aug-Sep,4.99,62.0
+15Y,Holding Company,Sep-Oct,5.35,81.0
+15Y,Holding Company,Oct-Nov,5.27,69.0
+15Y,Holding Company,Nov-Dec,3.66,56.0
+15Y,Stockbroking & Allied,Jan-Feb,-8.48,29.0
+15Y,Stockbroking & Allied,Feb-Mar,1.92,43.0
+15Y,Stockbroking & Allied,Mar-Apr,11.96,71.0
+15Y,Stockbroking & Allied,Apr-May,8.22,43.0
+15Y,Stockbroking & Allied,May-Jun,7.06,43.0
+15Y,Stockbroking & Allied,Jun-Jul,15.34,71.0
+15Y,Stockbroking & Allied,Jul-Aug,10.42,57.0
+15Y,Stockbroking & Allied,Aug-Sep,2.9,57.0
+15Y,Stockbroking & Allied,Sep-Oct,10.04,71.0
+15Y,Stockbroking & Allied,Oct-Nov,11.76,71.0
+15Y,Stockbroking & Allied,Nov-Dec,4.25,57.0
+15Y,Passenger Cars & Utility Vehicles,Jan-Feb,1.41,31.0
+15Y,Passenger Cars & Utility Vehicles,Feb-Mar,-1.29,44.0
+15Y,Passenger Cars & Utility Vehicles,Mar-Apr,6.09,62.0
+15Y,Passenger Cars & Utility Vehicles,Apr-May,8.46,69.0
+15Y,Passenger Cars & Utility Vehicles,May-Jun,7.03,62.0
+15Y,Passenger Cars & Utility Vehicles,Jun-Jul,8.18,81.0
+15Y,Passenger Cars & Utility Vehicles,Jul-Aug,6.68,56.0
+15Y,Passenger Cars & Utility Vehicles,Aug-Sep,6.97,69.0
+15Y,Passenger Cars & Utility Vehicles,Sep-Oct,4.4,69.0
+15Y,Passenger Cars & Utility Vehicles,Oct-Nov,2.29,56.0
+15Y,Passenger Cars & Utility Vehicles,Nov-Dec,4.02,50.0
+15Y,Auto Components & Equipments,Jan-Feb,1.4,44.0
+15Y,Auto Components & Equipments,Feb-Mar,1.87,44.0
+15Y,Auto Components & Equipments,Mar-Apr,5.52,62.0
+15Y,Auto Components & Equipments,Apr-May,7.1,81.0
+15Y,Auto Components & Equipments,May-Jun,6.22,56.0
+15Y,Auto Components & Equipments,Jun-Jul,7.16,75.0
+15Y,Auto Components & Equipments,Jul-Aug,6.65,69.0
+15Y,Auto Components & Equipments,Aug-Sep,5.32,75.0
+15Y,Auto Components & Equipments,Sep-Oct,3.69,62.0
+15Y,Auto Components & Equipments,Oct-Nov,4.76,62.0
+15Y,Auto Components & Equipments,Nov-Dec,5.37,75.0
+15Y,Industrial Products,Jan-Feb,-10.02,20.0
+15Y,Industrial Products,Feb-Mar,4.52,40.0
+15Y,Industrial Products,Mar-Apr,11.56,60.0
+15Y,Industrial Products,Apr-May,19.15,60.0
+15Y,Industrial Products,May-Jun,23.91,60.0
+15Y,Industrial Products,Jun-Jul,13.26,60.0
+15Y,Industrial Products,Jul-Aug,6.91,20.0
+15Y,Industrial Products,Aug-Sep,2.99,40.0
+15Y,Industrial Products,Sep-Oct,0.13,40.0
+15Y,Industrial Products,Oct-Nov,2.02,60.0
+15Y,Industrial Products,Nov-Dec,3.1,60.0
+15Y,Non Banking Financial Company (NBFC),Jan-Feb,3.54,44.0
+15Y,Non Banking Financial Company (NBFC),Feb-Mar,1.73,50.0
+15Y,Non Banking Financial Company (NBFC),Mar-Apr,3.57,62.0
+15Y,Non Banking Financial Company (NBFC),Apr-May,4.94,62.0
+15Y,Non Banking Financial Company (NBFC),May-Jun,6.18,69.0
+15Y,Non Banking Financial Company (NBFC),Jun-Jul,7.85,75.0
+15Y,Non Banking Financial Company (NBFC),Jul-Aug,5.34,69.0
+15Y,Non Banking Financial Company (NBFC),Aug-Sep,4.27,75.0
+15Y,Non Banking Financial Company (NBFC),Sep-Oct,5.34,75.0
+15Y,Non Banking Financial Company (NBFC),Oct-Nov,6.0,69.0
+15Y,Non Banking Financial Company (NBFC),Nov-Dec,3.72,69.0
+15Y,Industrial Minerals,Jan-Feb,0.11,31.0
+15Y,Industrial Minerals,Feb-Mar,-1.93,38.0
+15Y,Industrial Minerals,Mar-Apr,5.63,75.0
+15Y,Industrial Minerals,Apr-May,4.49,56.0
+15Y,Industrial Minerals,May-Jun,2.17,50.0
+15Y,Industrial Minerals,Jun-Jul,4.88,62.0
+15Y,Industrial Minerals,Jul-Aug,5.48,56.0
+15Y,Industrial Minerals,Aug-Sep,5.61,69.0
+15Y,Industrial Minerals,Sep-Oct,7.77,81.0
+15Y,Industrial Minerals,Oct-Nov,5.04,62.0
+15Y,Industrial Minerals,Nov-Dec,5.6,69.0
+15Y,Packaged Foods,Jan-Feb,-2.17,25.0
+15Y,Packaged Foods,Feb-Mar,0.73,25.0
+15Y,Packaged Foods,Mar-Apr,7.74,81.0
+15Y,Packaged Foods,Apr-May,8.83,81.0
+15Y,Packaged Foods,May-Jun,5.55,69.0
+15Y,Packaged Foods,Jun-Jul,7.02,62.0
+15Y,Packaged Foods,Jul-Aug,7.23,69.0
+15Y,Packaged Foods,Aug-Sep,5.69,69.0
+15Y,Packaged Foods,Sep-Oct,5.9,62.0
+15Y,Packaged Foods,Oct-Nov,4.35,62.0
+15Y,Packaged Foods,Nov-Dec,1.98,56.0
+15Y,Computers - Software & Consulting,Jan-Feb,1.25,62.0
+15Y,Computers - Software & Consulting,Feb-Mar,-1.46,56.0
+15Y,Computers - Software & Consulting,Mar-Apr,0.79,56.0
+15Y,Computers - Software & Consulting,Apr-May,4.57,69.0
+15Y,Computers - Software & Consulting,May-Jun,6.32,69.0
+15Y,Computers - Software & Consulting,Jun-Jul,7.97,69.0
+15Y,Computers - Software & Consulting,Jul-Aug,6.82,69.0
+15Y,Computers - Software & Consulting,Aug-Sep,3.3,69.0
+15Y,Computers - Software & Consulting,Sep-Oct,3.66,62.0
+15Y,Computers - Software & Consulting,Oct-Nov,5.96,69.0
+15Y,Computers - Software & Consulting,Nov-Dec,7.39,69.0
+15Y,Iron & Steel Products,Jan-Feb,-1.14,38.0
+15Y,Iron & Steel Products,Feb-Mar,-0.17,56.0
+15Y,Iron & Steel Products,Mar-Apr,9.65,69.0
+15Y,Iron & Steel Products,Apr-May,6.63,56.0
+15Y,Iron & Steel Products,May-Jun,3.74,44.0
+15Y,Iron & Steel Products,Jun-Jul,7.62,62.0
+15Y,Iron & Steel Products,Jul-Aug,3.32,44.0
+15Y,Iron & Steel Products,Aug-Sep,1.67,56.0
+15Y,Iron & Steel Products,Sep-Oct,5.35,69.0
+15Y,Iron & Steel Products,Oct-Nov,5.57,75.0
+15Y,Iron & Steel Products,Nov-Dec,4.91,56.0

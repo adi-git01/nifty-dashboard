@@ -1,0 +1,101 @@
+{
+  "Banking": {
+    "best_regime": "Strong_Bull",
+    "best_setup": "0-20_Flat",
+    "optimal_horizon": 60,
+    "expected_return": 10.14,
+    "sharpe": 3.86,
+    "win_rate": 94.7,
+    "n_signals": 19
+  },
+  "IT_Services": {
+    "best_regime": "Mild_Bear",
+    "best_setup": "80-100_Flat",
+    "optimal_horizon": 60,
+    "expected_return": 12.51,
+    "sharpe": 2.26,
+    "win_rate": 90.6,
+    "n_signals": 32
+  },
+  "Pharma": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "80-100_Flat",
+    "optimal_horizon": 90,
+    "expected_return": 15.4,
+    "sharpe": 2.32,
+    "win_rate": 90.7,
+    "n_signals": 43
+  },
+  "Industrials": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "0-20_Drop",
+    "optimal_horizon": 60,
+    "expected_return": 13.25,
+    "sharpe": 3.95,
+    "win_rate": 95.8,
+    "n_signals": 24
+  },
+  "Metals": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "0-20_Flat",
+    "optimal_horizon": 60,
+    "expected_return": 23.79,
+    "sharpe": 2.38,
+    "win_rate": 92.5,
+    "n_signals": 40
+  },
+  "Auto": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "40-60_Flat",
+    "optimal_horizon": 60,
+    "expected_return": 18.86,
+    "sharpe": 2.52,
+    "win_rate": 88.2,
+    "n_signals": 17
+  },
+  "Consumer": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "0-20_Big_Drop",
+    "optimal_horizon": 60,
+    "expected_return": 10.52,
+    "sharpe": 3.16,
+    "win_rate": 94.4,
+    "n_signals": 18
+  },
+  "Energy": {
+    "best_regime": "Mild_Bear",
+    "best_setup": "0-20_Flat",
+    "optimal_horizon": 90,
+    "expected_return": 14.5,
+    "sharpe": 2.19,
+    "win_rate": 86.7,
+    "n_signals": 15
+  },
+  "Telecom": {
+    "best_regime": "Mild_Bull",
+    "best_setup": "80-100_Drop",
+    "optimal_horizon": 60,
+    "expected_return": 13.05,
+    "sharpe": 1.88,
+    "win_rate": 82.8,
+    "n_signals": 29
+  },
+  "Realty": {
+    "best_regime": "Strong_Bear",
+    "best_setup": "0-20_Big_Drop",
+    "optimal_horizon": 60,
+    "expected_return": 16.7,
+    "sharpe": 2.44,
+    "win_rate": 94.1,
+    "n_signals": 17
+  },
+  "Defense": {
+    "best_regime": "Mild_Bull",
+    "best_setup": "60-80_Drop",
+    "optimal_horizon": 60,
+    "expected_return": 23.65,
+    "sharpe": 2.37,
+    "win_rate": 86.7,
+    "n_signals": 15
+  }
+}

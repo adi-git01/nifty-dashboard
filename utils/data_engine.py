@@ -173,6 +173,11 @@ def get_stock_info(ticker):
             "twoHundredDayAverage": info.get("twoHundredDayAverage", 0),
             "fiftyTwoWeekHigh": info.get("fiftyTwoWeekHigh", 0),
             "fiftyTwoWeekLow": info.get("fiftyTwoWeekLow", 0),
+            # === VOLUME DATA FOR VOLUME SIGNAL SCORE ===
+            "averageVolume": info.get("averageVolume", 0),
+            "averageVolume10days": info.get("averageVolume10days", 0),
+            "volume": info.get("volume", 0),
+            "averageDailyVolume10Day": info.get("averageDailyVolume10Day", 0),
             # === GROWTH METRICS ===
             "earningsQuarterlyGrowth": info.get("earningsQuarterlyGrowth"),  # QoQ
             "operatingMargins": info.get("operatingMargins"),      # Operating margin

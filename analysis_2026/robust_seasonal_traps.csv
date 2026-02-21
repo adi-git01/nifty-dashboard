@@ -1,0 +1,11 @@
+Period_10Y,Sector,Month,Month_Name_10Y,Avg%_10Y,Median%_10Y,StdDev%_10Y,Win%_10Y,Best%_10Y,Worst%_10Y,Alpha%_10Y,Consistency%_10Y,Score_10Y,N_Years_10Y,Period_15Y,Month_Name_15Y,Avg%_15Y,Median%_15Y,StdDev%_15Y,Win%_15Y,Best%_15Y,Worst%_15Y,Alpha%_15Y,Consistency%_15Y,Score_15Y,N_Years_15Y,Both_Positive,Both_Negative
+10Y,Depositories Clearing Houses and Other Intermediaries,1,Jan,-6.68,-5.29,16.29,25.0,11.72,-27.87,-5.15,50.0,-0.835,4,15Y,Jan,-6.68,-5.29,16.29,25.0,11.72,-27.87,-5.15,50.0,-0.835,4,False,True
+10Y,Industrial Products,1,Jan,-6.42,-5.6,9.3,25.0,3.96,-18.44,-4.88,50.0,-0.802,4,15Y,Jan,-6.42,-5.6,9.3,25.0,3.96,-18.44,-4.88,50.0,-0.802,4,False,True
+10Y,Stockbroking & Allied,1,Jan,-6.24,-2.4,12.72,33.0,9.24,-22.8,-4.79,50.0,-1.04,6,15Y,Jan,-6.24,-2.4,12.72,33.0,9.24,-22.8,-4.79,50.0,-1.04,6,False,True
+10Y,Consumer Electronics,1,Jan,-4.07,-9.04,11.0,33.0,14.31,-14.3,-3.41,78.0,-1.056,9,15Y,Jan,-4.07,-9.04,11.0,33.0,14.31,-14.3,-3.41,78.0,-1.056,9,False,True
+10Y,Exchange and Data Platform,2,Feb,-4.02,-4.68,5.19,22.0,3.33,-12.1,-2.47,56.0,-0.496,9,15Y,Feb,-4.02,-4.68,5.19,22.0,3.33,-12.1,-2.47,56.0,-0.496,9,False,True
+10Y,Electrodes & Refractories,1,Jan,-3.16,-3.68,11.4,30.0,17.15,-23.85,-3.02,60.0,-0.569,10,15Y,Jan,-4.15,-3.56,10.14,21.0,17.15,-23.85,-4.08,64.0,-0.572,14,False,True
+10Y,Stockbroking & Allied,2,Feb,-2.24,-2.33,5.88,33.0,5.74,-11.44,-1.85,67.0,-0.497,6,15Y,Feb,-2.24,-2.33,5.88,33.0,5.74,-11.44,-1.85,67.0,-0.497,6,False,True
+10Y,Iron & Steel Products,5,May,-1.85,-4.75,7.51,40.0,9.67,-11.56,-3.2,60.0,-0.444,10,15Y,May,-1.17,-4.92,11.88,33.0,33.9,-11.66,-2.14,93.0,-0.365,15,False,True
+10Y,Cables - Electricals,2,Feb,-1.71,-1.4,12.83,43.0,11.29,-22.86,-0.47,57.0,-0.418,7,15Y,Feb,-1.71,-1.4,12.83,43.0,11.29,-22.86,-0.47,57.0,-0.418,7,False,True
+10Y,Industrial Products,10,Oct,-1.01,-0.94,2.02,25.0,1.24,-3.42,-1.22,50.0,-0.127,4,15Y,Oct,-1.01,-0.94,2.02,25.0,1.24,-3.42,-1.22,50.0,-0.127,4,False,True

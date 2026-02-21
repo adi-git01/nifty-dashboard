@@ -22,7 +22,7 @@ def calculate_multi_period_returns(ticker):
             return {
                 'return_1d': 0, 'return_1w': 0, 'return_1m': 0,
                 'return_3m': 0, 'return_6m': 0, 'return_1y': 0
-            }
+            }, pd.DataFrame()
         
         current_price = hist['Close'].iloc[-1]
         
@@ -65,14 +65,14 @@ def calculate_multi_period_returns(ticker):
         else:
             returns['return_1y'] = ((current_price / hist['Close'].iloc[0]) - 1) * 100
             
-        return returns
+        return returns, hist
         
     except Exception as e:
         print(f"Error calculating returns for {ticker}: {e}")
         return {
             'return_1d': 0, 'return_1w': 0, 'return_1m': 0,
             'return_3m': 0, 'return_6m': 0, 'return_1y': 0
-        }
+        }, pd.DataFrame()
 
 
 def calculate_sector_breadth(df, sector):

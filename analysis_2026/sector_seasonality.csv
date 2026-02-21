@@ -1,0 +1,181 @@
+Sector,Month,Month_Name,Avg_Return%
+Consumer Electronics,1,Jan,-4.07
+Consumer Electronics,2,Feb,4.38
+Consumer Electronics,3,Mar,-1.39
+Consumer Electronics,4,Apr,7.34
+Consumer Electronics,5,May,2.57
+Consumer Electronics,6,Jun,2.77
+Consumer Electronics,7,Jul,2.57
+Consumer Electronics,8,Aug,5.87
+Consumer Electronics,9,Sep,5.62
+Consumer Electronics,10,Oct,0.7
+Consumer Electronics,11,Nov,6.0
+Consumer Electronics,12,Dec,8.5
+Aerospace & Defense,1,Jan,1.83
+Aerospace & Defense,2,Feb,-4.29
+Aerospace & Defense,3,Mar,3.1
+Aerospace & Defense,4,Apr,8.66
+Aerospace & Defense,5,May,8.82
+Aerospace & Defense,6,Jun,8.13
+Aerospace & Defense,7,Jul,4.17
+Aerospace & Defense,8,Aug,3.07
+Aerospace & Defense,9,Sep,-1.36
+Aerospace & Defense,10,Oct,1.79
+Aerospace & Defense,11,Nov,4.14
+Aerospace & Defense,12,Dec,1.05
+Exchange and Data Platform,1,Jan,-0.56
+Exchange and Data Platform,2,Feb,-4.02
+Exchange and Data Platform,3,Mar,2.2
+Exchange and Data Platform,4,Apr,8.63
+Exchange and Data Platform,5,May,4.0
+Exchange and Data Platform,6,Jun,0.88
+Exchange and Data Platform,7,Jul,5.18
+Exchange and Data Platform,8,Aug,3.4
+Exchange and Data Platform,9,Sep,4.12
+Exchange and Data Platform,10,Oct,6.03
+Exchange and Data Platform,11,Nov,4.96
+Exchange and Data Platform,12,Dec,2.18
+Cables - Electricals,1,Jan,-0.88
+Cables - Electricals,2,Feb,-1.71
+Cables - Electricals,3,Mar,-2.0
+Cables - Electricals,4,Apr,4.82
+Cables - Electricals,5,May,7.31
+Cables - Electricals,6,Jun,7.02
+Cables - Electricals,7,Jul,2.59
+Cables - Electricals,8,Aug,3.82
+Cables - Electricals,9,Sep,5.62
+Cables - Electricals,10,Oct,0.64
+Cables - Electricals,11,Nov,5.38
+Cables - Electricals,12,Dec,2.92
+Depositories Clearing Houses and Other Intermediaries,1,Jan,-6.68
+Depositories Clearing Houses and Other Intermediaries,2,Feb,-2.77
+Depositories Clearing Houses and Other Intermediaries,3,Mar,-0.29
+Depositories Clearing Houses and Other Intermediaries,4,Apr,12.1
+Depositories Clearing Houses and Other Intermediaries,5,May,2.81
+Depositories Clearing Houses and Other Intermediaries,6,Jun,9.57
+Depositories Clearing Houses and Other Intermediaries,7,Jul,3.24
+Depositories Clearing Houses and Other Intermediaries,8,Aug,3.48
+Depositories Clearing Houses and Other Intermediaries,9,Sep,4.3
+Depositories Clearing Houses and Other Intermediaries,10,Oct,1.91
+Depositories Clearing Houses and Other Intermediaries,11,Nov,11.43
+Depositories Clearing Houses and Other Intermediaries,12,Dec,-0.55
+Specialty Chemicals,1,Jan,-0.03
+Specialty Chemicals,2,Feb,-0.47
+Specialty Chemicals,3,Mar,4.01
+Specialty Chemicals,4,Apr,7.97
+Specialty Chemicals,5,May,1.49
+Specialty Chemicals,6,Jun,3.24
+Specialty Chemicals,7,Jul,4.54
+Specialty Chemicals,8,Aug,3.37
+Specialty Chemicals,9,Sep,2.8
+Specialty Chemicals,10,Oct,2.14
+Specialty Chemicals,11,Nov,1.79
+Specialty Chemicals,12,Dec,2.79
+IT Enabled Services,1,Jan,0.01
+IT Enabled Services,2,Feb,-0.3
+IT Enabled Services,3,Mar,-5.2
+IT Enabled Services,4,Apr,2.51
+IT Enabled Services,5,May,1.6
+IT Enabled Services,6,Jun,4.74
+IT Enabled Services,7,Jul,6.78
+IT Enabled Services,8,Aug,7.63
+IT Enabled Services,9,Sep,4.86
+IT Enabled Services,10,Oct,-0.53
+IT Enabled Services,11,Nov,7.59
+IT Enabled Services,12,Dec,4.4
+Electrodes & Refractories,1,Jan,-4.15
+Electrodes & Refractories,2,Feb,-0.98
+Electrodes & Refractories,3,Mar,1.74
+Electrodes & Refractories,4,Apr,10.32
+Electrodes & Refractories,5,May,-0.07
+Electrodes & Refractories,6,Jun,4.03
+Electrodes & Refractories,7,Jul,3.56
+Electrodes & Refractories,8,Aug,2.25
+Electrodes & Refractories,9,Sep,1.97
+Electrodes & Refractories,10,Oct,5.64
+Electrodes & Refractories,11,Nov,2.71
+Electrodes & Refractories,12,Dec,5.28
+Tyres & Rubber Products,1,Jan,0.94
+Tyres & Rubber Products,2,Feb,-2.3
+Tyres & Rubber Products,3,Mar,3.08
+Tyres & Rubber Products,4,Apr,6.5
+Tyres & Rubber Products,5,May,0.46
+Tyres & Rubber Products,6,Jun,2.09
+Tyres & Rubber Products,7,Jul,4.79
+Tyres & Rubber Products,8,Aug,-0.47
+Tyres & Rubber Products,9,Sep,6.26
+Tyres & Rubber Products,10,Oct,2.73
+Tyres & Rubber Products,11,Nov,3.82
+Tyres & Rubber Products,12,Dec,3.02
+Plastic Products - Industrial,1,Jan,0.57
+Plastic Products - Industrial,2,Feb,3.05
+Plastic Products - Industrial,3,Mar,2.01
+Plastic Products - Industrial,4,Apr,5.44
+Plastic Products - Industrial,5,May,6.02
+Plastic Products - Industrial,6,Jun,3.45
+Plastic Products - Industrial,7,Jul,1.38
+Plastic Products - Industrial,8,Aug,3.25
+Plastic Products - Industrial,9,Sep,1.42
+Plastic Products - Industrial,10,Oct,0.91
+Plastic Products - Industrial,11,Nov,1.15
+Plastic Products - Industrial,12,Dec,2.02
+Holding Company,1,Jan,-0.92
+Holding Company,2,Feb,2.89
+Holding Company,3,Mar,-1.96
+Holding Company,4,Apr,5.16
+Holding Company,5,May,2.96
+Holding Company,6,Jun,3.99
+Holding Company,7,Jul,6.46
+Holding Company,8,Aug,2.92
+Holding Company,9,Sep,2.07
+Holding Company,10,Oct,3.28
+Holding Company,11,Nov,1.99
+Holding Company,12,Dec,1.67
+Stockbroking & Allied,1,Jan,-6.24
+Stockbroking & Allied,2,Feb,-2.24
+Stockbroking & Allied,3,Mar,4.15
+Stockbroking & Allied,4,Apr,7.81
+Stockbroking & Allied,5,May,0.41
+Stockbroking & Allied,6,Jun,6.64
+Stockbroking & Allied,7,Jul,8.69
+Stockbroking & Allied,8,Aug,1.73
+Stockbroking & Allied,9,Sep,1.16
+Stockbroking & Allied,10,Oct,8.88
+Stockbroking & Allied,11,Nov,2.88
+Stockbroking & Allied,12,Dec,1.37
+Other Industrial Products,1,Jan,-5.93
+Other Industrial Products,2,Feb,-9.78
+Other Industrial Products,3,Mar,19.96
+Other Industrial Products,4,Apr,-4.52
+Other Industrial Products,5,May,21.63
+Other Industrial Products,6,Jun,1.24
+Other Industrial Products,7,Jul,-3.31
+Other Industrial Products,8,Aug,8.98
+Other Industrial Products,9,Sep,5.67
+Other Industrial Products,10,Oct,11.83
+Other Industrial Products,11,Nov,-2.7
+Other Industrial Products,12,Dec,1.08
+Passenger Cars & Utility Vehicles,1,Jan,2.67
+Passenger Cars & Utility Vehicles,2,Feb,-1.27
+Passenger Cars & Utility Vehicles,3,Mar,-0.02
+Passenger Cars & Utility Vehicles,4,Apr,6.11
+Passenger Cars & Utility Vehicles,5,May,2.35
+Passenger Cars & Utility Vehicles,6,Jun,4.68
+Passenger Cars & Utility Vehicles,7,Jul,3.5
+Passenger Cars & Utility Vehicles,8,Aug,3.18
+Passenger Cars & Utility Vehicles,9,Sep,3.78
+Passenger Cars & Utility Vehicles,10,Oct,0.61
+Passenger Cars & Utility Vehicles,11,Nov,1.67
+Passenger Cars & Utility Vehicles,12,Dec,2.35
+Auto Components & Equipments,1,Jan,0.48
+Auto Components & Equipments,2,Feb,0.93
+Auto Components & Equipments,3,Mar,0.94
+Auto Components & Equipments,4,Apr,4.58
+Auto Components & Equipments,5,May,2.52
+Auto Components & Equipments,6,Jun,3.7
+Auto Components & Equipments,7,Jul,3.46
+Auto Components & Equipments,8,Aug,3.19
+Auto Components & Equipments,9,Sep,2.13
+Auto Components & Equipments,10,Oct,1.56
+Auto Components & Equipments,11,Nov,3.2
+Auto Components & Equipments,12,Dec,2.16

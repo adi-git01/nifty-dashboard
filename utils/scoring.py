@@ -278,6 +278,47 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     elif r1w < -7 and r3m > 20:
         momentum = max(0, momentum - 1.0)
 
+    # ================================
+    # PILLAR 5: VOLUME SIGNAL 
+    # ================================
+    # Priority: Use Advanced M2 Score (VPT+A/D) if calculated in main loop
+    if "volume_signal_score" in data:
+        volume_signal_score = data["volume_signal_score"]
+    else:
+        # Fallback: Simple Volume Ratio (Method 1)
+        avg_vol = safe_num(data.get("averageVolume"), 0)
+        avg_vol_10d = safe_num(data.get("averageVolume10days") or data.get("averageDailyVolume10Day"), 0)
+        current_vol = safe_num(data.get("volume"), 0)
+        
+        # Use current_vol as fallback if 10d average missing
+        if avg_vol_10d == 0 and current_vol > 0:
+            avg_vol_10d = current_vol
+        
+        # Volume ratio: recent vs longer-term average
+        if avg_vol > 0 and avg_vol_10d > 0:
+            vol_ratio = avg_vol_10d / avg_vol
+            
+            # FIXED NORMALIZATION: 1.0x = 5.0 (neutral), centered properly
+            # Range: 0.7x = 0, 1.0x = 5, 1.5x = 10
+            if vol_ratio <= 0.7:
+                volume_signal_score = 0
+            elif vol_ratio >= 1.5:
+                volume_signal_score = 10
+            elif vol_ratio < 1.0:
+                # Below average: 0.7 -> 0, 1.0 -> 5
+                volume_signal_score = ((vol_ratio - 0.7) / 0.3) * 5
+            else:
+                # Above average: 1.0 -> 5, 1.5 -> 10
+                volume_signal_score = 5 + ((vol_ratio - 1.0) / 0.5) * 5
+            
+            # Bonus for consistent volume + price action
+            if vol_ratio > 1.15 and r1m > 0:  # Volume up + price up = bullish
+                volume_signal_score = min(10, volume_signal_score + 1.0)
+            elif vol_ratio > 1.3 and r1m < -5:  # High volume selloff = bearish
+                volume_signal_score = max(0, volume_signal_score - 1.5)
+        else:
+            volume_signal_score = 5.0  # Neutral if no data
+
     # ===============
     # OVERALL SCORE
     # ===============
@@ -288,6 +329,7 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
         "value": round(value, 1),
         "growth": round(growth, 1),
         "momentum": round(momentum, 1),
+        "volume_signal_score": round(volume_signal_score, 1),
         "overall": round(overall, 1),
         "sector_profile": profile
     }

@@ -1,0 +1,41 @@
+Regime,Rank,Sector,Avg_Return%,Alpha%,Pct_Positive
+BULL,1,Depositories Clearing Houses and Other Intermediaries,7.1,4.37,77.0
+BULL,2,Passenger Cars & Utility Vehicles,6.64,3.23,84.0
+BULL,3,Civil Construction,6.61,3.2,78.0
+BULL,4,Residential Commercial Projects,6.59,3.17,81.0
+BULL,5,Holding Company,6.45,3.04,86.0
+BULL,6,Housing Finance Company,6.42,2.96,72.0
+BULL,7,Financial Institution,6.39,2.98,66.0
+BULL,8,Iron & Steel,6.2,2.79,74.0
+BULL,9,Iron & Steel Products,6.16,2.75,76.0
+BULL,10,Electrodes & Refractories,6.08,2.67,66.0
+MILD_BULL,1,Other Electrical Equipment,10.82,7.59,100.0
+MILD_BULL,2,Other Industrial Products,9.65,6.41,67.0
+MILD_BULL,3,Cables - Electricals,9.26,5.45,88.0
+MILD_BULL,4,Industrial Products,8.67,5.95,100.0
+MILD_BULL,5,Aerospace & Defense,8.09,4.88,75.0
+MILD_BULL,6,IT Enabled Services,6.75,2.64,81.0
+MILD_BULL,7,Exchange and Data Platform,6.6,3.48,59.0
+MILD_BULL,8,Depositories Clearing Houses and Other Intermediaries,6.19,3.56,88.0
+MILD_BULL,9,Holding Company,5.65,2.92,75.0
+MILD_BULL,10,Plastic Products - Industrial,5.6,2.88,78.0
+SIDEWAYS,1,Other Industrial Products,3.69,3.58,50.0
+SIDEWAYS,2,Other Electrical Equipment,2.7,3.43,62.0
+SIDEWAYS,3,2/3 Wheelers,2.59,2.61,60.0
+SIDEWAYS,4,Consumer Electronics,2.55,3.05,53.0
+SIDEWAYS,5,Stockbroking & Allied,2.0,3.1,57.0
+SIDEWAYS,6,Industrial Minerals,1.93,1.95,56.0
+SIDEWAYS,7,Cables - Electricals,1.92,2.36,68.0
+SIDEWAYS,8,Aerospace & Defense,1.89,2.24,53.0
+SIDEWAYS,9,Edible Oil,1.87,3.15,53.0
+SIDEWAYS,10,Exchange and Data Platform,1.74,2.22,51.0
+BEAR,1,Paints,-0.95,3.82,41.0
+BEAR,2,Personal Care,-2.56,2.21,26.0
+BEAR,3,Specialty Chemicals,-2.61,2.16,30.0
+BEAR,4,Pesticides & Agrochemicals,-2.64,2.13,31.0
+BEAR,5,Pharmaceuticals,-2.69,2.07,22.0
+BEAR,6,Packaged Foods,-2.78,1.98,30.0
+BEAR,7,2/3 Wheelers,-3.02,1.75,33.0
+BEAR,8,Restaurants,-3.03,0.04,17.0
+BEAR,9,Breweries & Distilleries,-3.4,-0.58,33.0
+BEAR,10,Tyres & Rubber Products,-3.77,1.0,37.0

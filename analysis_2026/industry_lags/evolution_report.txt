@@ -1,0 +1,45 @@
+STRUCTURAL BREAKS IN LEAD/LAG
+                                        Industry  Pre-COVID_Lag  Post-COVID_Lag                        Shift
+                             Aerospace & Defense             -1               0   Leads by 1mo -> Concurrent
+              Agricultural Food & other Products             -4              -2 Leads by 4mo -> Leads by 2mo
+Agricultural, Commercial & Construction Vehicles             -3               0   Leads by 3mo -> Concurrent
+                                 Auto Components             -3              -4 Leads by 3mo -> Leads by 4mo
+                                           Banks             -3              -6 Leads by 3mo -> Leads by 6mo
+                                       Beverages              0              -4   Concurrent -> Leads by 4mo
+                                 Capital Markets             -6              -3 Leads by 6mo -> Leads by 3mo
+                        Cement & Cement Products             -4               0   Leads by 4mo -> Concurrent
+                      Chemicals & Petrochemicals             -3              -1 Leads by 3mo -> Leads by 1mo
+                                    Construction             -3              -4 Leads by 3mo -> Leads by 4mo
+                               Consumer Durables             -1              -4 Leads by 1mo -> Leads by 4mo
+                                     Diversified             -1              -6 Leads by 1mo -> Leads by 6mo
+                            Electrical Equipment             -1              -3 Leads by 1mo -> Leads by 3mo
+                                  Ferrous Metals             -2              -3 Leads by 2mo -> Leads by 3mo
+                                         Finance             -6              -3 Leads by 6mo -> Leads by 3mo
+                                             Gas             -1              -5 Leads by 1mo -> Leads by 5mo
+                                   IT - Services              0              -3   Concurrent -> Leads by 3mo
+                                   IT - Software             -6              -5 Leads by 6mo -> Leads by 5mo
+                        Industrial Manufacturing             -1               0   Leads by 1mo -> Concurrent
+                             Industrial Products             -6              -5 Leads by 6mo -> Leads by 5mo
+                                       Insurance             -5               0   Leads by 5mo -> Concurrent
+                                Leisure Services             -6               0   Leads by 6mo -> Concurrent
+                                           Media              0              -2   Concurrent -> Leads by 2mo
+                               Minerals & Mining             -3              -1 Leads by 3mo -> Leads by 1mo
+                            Non - Ferrous Metals             -1              -5 Leads by 1mo -> Leads by 5mo
+                               Personal Products             -5               0   Leads by 5mo -> Concurrent
+                              Petroleum Products              0              -2   Concurrent -> Leads by 2mo
+                 Pharmaceuticals & Biotechnology             -2              -1 Leads by 2mo -> Leads by 1mo
+                                           Power             -1              -5 Leads by 1mo -> Leads by 5mo
+                                          Realty             -1              -2 Leads by 1mo -> Leads by 2mo
+                                       Retailing              0              -1   Concurrent -> Leads by 1mo
+                              Telecom - Services             -1              -4 Leads by 1mo -> Leads by 4mo
+                             Textiles & Apparels              0              -2   Concurrent -> Leads by 2mo
+                        Transport Infrastructure              0              -6   Concurrent -> Leads by 6mo
+                              Transport Services              0              -1   Concurrent -> Leads by 1mo
+
+STRATEGY EVALUATION (SECTOR MOMENTUM)
+ Horizon   Strategy     Nifty      Alpha
+15 Years  29.008919 11.001399  18.007520
+10 Years  33.276369 13.856507  19.419862
+ 5 Years  28.552320 11.945072  16.607248
+  1 Year -11.482068 14.445173 -32.465774
+6 Months   2.678945  3.659092  -0.980147

@@ -1,0 +1,41 @@
+Industry,Cycle_Length_Mo,Cycle_Amplitude%,Price_Leads_Mo,Bull_Alpha%,Bear_Alpha%,Best_Month,Worst_Month
+Automobiles,30.0,115.6,3,1.23,1.21,Apr,Feb
+Finance,26.5,128.7,3,1.86,-0.12,Apr,Jan
+Minerals & Mining,44.0,489.7,2,2.92,1.05,Apr,Feb
+Telecom - Services,24.3,122.7,3,1.56,-0.42,Apr,Feb
+Banks,28.0,93.5,3,1.0,-1.44,Oct,Aug
+Construction,28.4,240.0,3,1.96,-1.45,Apr,Feb
+Industrial Manufacturing,33.6,553.8,1,2.21,-0.32,Jun,Feb
+Auto Components,42.7,232.3,3,2.29,-0.41,Apr,Jan
+Leisure Services,23.0,94.5,6,-0.16,-1.93,Dec,Feb
+Healthcare Services,42.4,167.2,0,-0.1,0.83,Jul,Dec
+Chemicals & Petrochemicals,28.2,184.9,3,2.51,-0.29,Apr,Feb
+Petroleum Products,24.7,83.8,1,0.25,0.96,Apr,Aug
+Consumer Durables,20.0,85.4,6,1.96,-0.85,Jul,Jan
+Personal Products,26.4,82.9,0,-0.24,0.43,Jul,Feb
+Industrial Products,38.3,334.4,3,1.51,-0.66,Apr,Feb
+Cement & Cement Products,23.3,72.0,4,1.07,0.67,Mar,Jan
+Fertilizers & Agrochemicals,34.8,181.4,0,0.95,-0.14,Apr,Feb
+Pharmaceuticals & Biotechnology,39.0,149.5,2,0.02,1.55,Apr,Jan
+Electrical Equipment,30.3,633.8,3,2.26,-1.53,Apr,Aug
+Ferrous Metals,31.4,166.0,3,2.68,0.22,Apr,Feb
+Agricultural Food & other Products,24.0,101.1,6,0.45,2.51,Apr,Jan
+Food Products,29.8,100.4,0,-0.2,1.08,Apr,Feb
+Non - Ferrous Metals,39.5,393.2,3,2.8,-0.2,Dec,Feb
+"Agricultural, Commercial & Construction Vehicles",18.0,79.3,1,2.0,-0.31,Apr,Feb
+IT - Services,24.0,116.3,1,4.4,2.38,Aug,Mar
+Capital Markets,25.6,270.7,6,3.49,-1.16,Oct,Dec
+Power,23.8,122.1,2,1.38,0.32,Apr,Feb
+Transport Services,19.4,69.9,0,0.99,-0.85,Mar,Feb
+Entertainment,24.6,210.4,0,2.76,-0.08,Jul,Jan
+Textiles & Apparels,34.4,609.8,2,2.51,-1.32,Apr,Feb
+Diversified,26.6,142.8,2,1.18,0.62,Jun,Feb
+Gas,25.5,72.8,2,0.04,-0.0,Apr,Feb
+Realty,23.3,136.1,6,1.66,-2.33,Sep,Feb
+Media,27.2,213.9,2,2.48,-2.62,Nov,Feb
+Aerospace & Defense,27.9,352.0,0,1.36,0.61,Jun,Feb
+Beverages,25.2,118.6,0,1.07,-0.64,Oct,Feb
+Insurance,15.8,36.1,6,-1.03,-0.58,Jul,Sep
+Retailing,26.9,164.1,0,0.44,-0.29,Jul,Jan
+Transport Infrastructure,25.2,83.9,6,1.4,-0.67,Apr,Jan
+IT - Software,36.0,253.4,6,1.31,0.37,Jul,Feb

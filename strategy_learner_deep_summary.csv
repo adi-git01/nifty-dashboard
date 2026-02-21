@@ -1,0 +1,16 @@
+metric,value,insight
+Avg Max Drawdown,-27.6%,Average pain during rallies - set stops accordingly
+Drawdown Range,-46.5% to -11.6%,Wide range suggests stock-specific risk management needed
+Avg Volume Increase,22%,Winners show volume confirmation during rally
+Avg Volume Spike Days,38 days,Number of 2x volume days during rally
+Avg Consolidation %,3%,Portion of rally spent in sideways movement
+-10% Trailing Stop,109 triggers avg,How often a -10% trailing stop hits during rally
+-15% Trailing Stop,73 triggers avg,How often a -15% trailing stop hits during rally
+-20% Trailing Stop,48 triggers avg,How often a -20% trailing stop hits during rally
+Early Phase Return,-2.4%,Average return in early phase of rally
+Mid Phase Return,49.8%,Average return in mid phase of rally
+Late Phase Return,28.3%,Average return in late phase of rally
+Quality Range,0.5 - 10.0 (avg: 6.2),Current quality scores among winners
+Value Range,0.0 - 7.4 (avg: 4.6),Current value scores among winners
+Growth Range,0.0 - 10.0 (avg: 6.4),Current growth scores among winners
+Momentum Range,2.8 - 10.0 (avg: 7.7),Current momentum scores among winners

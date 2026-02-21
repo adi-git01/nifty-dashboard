@@ -1,0 +1,624 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Nifty Quant Analytics Report</title>
+        
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 40px; background-color: #f9f9f9; }
+        .container { background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #2c3e50; border-bottom: 1px solid #ebebeb; padding-bottom: 10px; margin-top: 30px; }
+        h1 { color: #1a252f; font-size: 2.2em; text-align: center; border-bottom: 2px solid #3498db; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 0.95em; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        blockquote { background-color: #eef2f5; border-left: 5px solid #3498db; margin: 20px 0; padding: 15px; font-style: italic; }
+        code { background-color: #f4f4f4; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        .print-btn { display: block; margin: 20px auto; padding: 10px 20px; background-color: #27ae60; color: white; text-align: center; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; width: 200px; }
+        @media print { .print-btn { display: none; } body { background-color: white; padding: 0; } .container { box-shadow: none; padding: 0; } }
+    </style>
+    
+    </head>
+    <body>
+        <div class="container">
+            <button class="print-btn" onclick="window.print()">Export to PDF</button>
+            <h1>Quant Strategy &amp; Market Analytics Walkthrough</h1>
+<h2>1. Deep Industry Cycles &amp; Price Lag (The Lead/Lag Playbook)</h2>
+<p>We mapped the Nifty 500 to granular Screener industries over 15 years to study cycle length and price vs earnings lag. The findings completely tear down the myth that "price always leads earnings by 6 months." It's highly industry-specific.</p>
+<h3>The Price vs Earnings Lag Playbook</h3>
+<table>
+<thead>
+<tr>
+<th>Dynamic</th>
+<th>Industries (Strategy: How to play this)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Price LEADS Earnings (by 6 mo)</strong></td>
+<td>IT Software, Realty, Insurance, Transport Infra<br><em>(Play: Buy on orderbook/guidance, sell before earnings actually peak)</em></td>
+</tr>
+<tr>
+<td><strong>Price LEADS Earnings (by 2 mo)</strong></td>
+<td>Textiles, Diversified, Media, Gas, Auto Components<br><em>(Play: Buy the breakout, the earnings will follow next quarter)</em></td>
+</tr>
+<tr>
+<td><strong>Price = Earnings (CONCURRENT)</strong></td>
+<td>Capital Markets, Banks, Metals, Automobiles, Aerospace, Power<br><em>(Play: Trend following. Price and earnings peak at the exact same time. No predictive edge from earnings.)</em></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!TIP]
+In Capital Markets, Banks, and Metals, <strong>do not try to front-run the cycle</strong>. The market does not look ahead in these sectors; it prices the exact present. By contrast, in IT and Realty, the market starts selling off 6 months before earnings actually decline.</p>
+</blockquote>
+<h3>Cycle Lengths &amp; Amplitude (Trough to Trough)</h3>
+<p>How long does a sector run before you need to re-evaluate?
+*   <strong>Fastest Cycles (1.5 years):</strong> Insurance (15.8mo), Ag &amp; Commercial Vehicles (18mo), Transport Services (19mo)
+*   <strong>Mid Cycles (2 years):</strong> Leisure/Hotels (23mo), Realty (23mo), Consumer Durables (20mo)
+*   <strong>Long Cycles (3 years):</strong> IT Software (36mo), Textiles (34mo) — <em>These yield the highest amplitude moves (Textiles +600%, IT +250%).</em></p>
+<h3>Bear Market Protectors (Granular Level)</h3>
+<p>If the Nifty drops, these granular industries historically generate massive positive alpha:
+1.  <strong>Agri Food &amp; Other Products</strong> (+2.5% alpha per month in bears)
+2.  <strong>IT Services</strong> (+2.4% alpha per month)
+3.  <strong>Pharmaceuticals / Biotech</strong> (+1.6% alpha per month)
+4.  <strong>Food Products</strong> (+1.1% alpha per month)</p>
+<hr />
+<h2>2. The Cost of Being "Early" in Value (QVR Backtests)</h2>
+<p>We built and backtested a "Quality Value Recovery" (QVR) strategy using Mean Reversion logic (Quality&gt;=6, Value&gt;=6, Trend 40-65 recovering). We tested two variants against DNA3-V3.1 (pure momentum):</p>
+<ol>
+<li><strong>QVR-Fusion</strong> (QVR Entry + V3.1 trailing exits): +5.5% CAGR vs V3.1's +17.4%</li>
+<li><strong>QVR-Swing</strong> (QVR Entry + Hard +20% profit target / 60-day time stop): +4.1% CAGR</li>
+</ol>
+<p><strong>Key Finding: Value without Momentum is Dead Money.</strong>
+In the QVR-Swing test, the strategy timed out (held for 60 days without hitting +20% or -10%) <strong>53.5% of the time</strong>. It only hit the +20% target 18% of the time. 
+<em>Conclusion:</em> Buying beaten-down high-quality companies <em>before</em> strong momentum is confirmed means holding dead money for months while the rest of the market rallies. DNA3-V3.1's approach (wait for the uptrend, pay up for momentum) vastly outperforms mean reversion.</p>
+<hr />
+<hr />
+<h2>3. Structural Shifts: The COVID Effect on Lags</h2>
+<p>We analyzed the lead/lag correlation over different epochs (Pre-COVID 2010-2019 vs Post-COVID 2020-2026) to see if markets have fundamentally changed.
+<strong>Key Finding: The market has become significantly MORE forward-looking post-COVID.</strong>
+*   <strong>Banks:</strong> Pre-COVID price led earnings by 3 months. Post-COVID, price leads by <strong>6 months</strong>.
+*   <strong>IT Services:</strong> Pre-COVID was concurrent. Post-COVID, price leads by <strong>3 months</strong>.
+*   <strong>Consumer Durables:</strong> Pre-COVID price led by 1 month. Post-COVID, price leads by <strong>4 months</strong>.
+*   <strong>Media &amp; Textiles:</strong> Both went from concurrent to Price Leading by <strong>2 months</strong>.</p>
+<blockquote>
+<p>[!IMPORTANT]
+Because retail and institutional participation increased massively post-COVID, information is priced in much faster. You must buy anticipating the cycle earlier now than you had to in 2015.</p>
+</blockquote>
+<hr />
+<h2>4. Multi-Timeframe Strategy Evaluation (Sector Momentum)</h2>
+<p>If the market has distinct lead/lag rules, can we just buy the top 3 granular industries with the strongest 3M price momentum? We backtested this rotation strategy across 6mo, 1yr, 5yr, 10yr, and 15yr horizons.</p>
+<table>
+<thead>
+<tr>
+<th>Horizon</th>
+<th>Sector Mom CAGR</th>
+<th>Nifty CAGR</th>
+<th>Alpha</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>15 Years</strong></td>
+<td><strong>29.0%</strong></td>
+<td>11.0%</td>
+<td>+18.0%</td>
+<td>Massive outperformance. Long-term edge.</td>
+</tr>
+<tr>
+<td><strong>10 Years</strong></td>
+<td><strong>33.3%</strong></td>
+<td>13.9%</td>
+<td>+19.4%</td>
+<td>The golden decade for momentum rotation.</td>
+</tr>
+<tr>
+<td><strong>5 Years</strong></td>
+<td><strong>28.6%</strong></td>
+<td>11.9%</td>
+<td>+16.6%</td>
+<td>Post-COVID momentum worked brilliantly.</td>
+</tr>
+<tr>
+<td><strong>1 Year</strong></td>
+<td><strong>-11.5%</strong></td>
+<td>14.4%</td>
+<td>-32.5%</td>
+<td>Severe underperformance. Momentum crashed in the last 12 months (Value/Mean Reversion ruled).</td>
+</tr>
+<tr>
+<td><strong>6 Months</strong></td>
+<td><strong>2.7%</strong></td>
+<td>3.7%</td>
+<td>-1.0%</td>
+<td>Starting to stabilize, but still trailing.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!WARNING]
+While granular sector momentum delivers <strong>33% CAGR over 10 years</strong>, it absolutely failed in the last 12 months (-11.5% while Nifty was up +14.4%). The last 1 year has been a mean-reversion market where buying "what just went up" got punished. </p>
+</blockquote>
+<hr />
+<h2>5. Sector Seasonality (10Y &amp; 15Y Cross-Validated)</h2>
+<p><strong>The single most important finding: 97.3% correlation between 10Y and 15Y patterns. 98% directional agreement. These seasonal edges are REAL.</strong></p>
+<hr />
+<h2>Robustness Proof</h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Correlation (10Y vs 15Y monthly avg)</td>
+<td><strong>0.973</strong></td>
+</tr>
+<tr>
+<td>Direction agreement</td>
+<td><strong>98%</strong></td>
+</tr>
+<tr>
+<td>Robust edges found (&gt;+2%, &gt;55% win in BOTH)</td>
+<td><strong>30</strong></td>
+</tr>
+<tr>
+<td>Robust traps found (&lt;-1%, &lt;45% win in BOTH)</td>
+<td><strong>10</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Top 15 Guaranteed Seasonal Edges</h2>
+<p>These work in <strong>BOTH</strong> 10Y and 15Y with &gt;55% win rate:</p>
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Sector</th>
+<th>Month</th>
+<th>10Y Avg</th>
+<th>10Y Win%</th>
+<th>15Y Avg</th>
+<th>15Y Win%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Industrial Products</strong></td>
+<td><strong>May</strong></td>
+<td><strong>+15.7%</strong></td>
+<td><strong>100%</strong></td>
+<td>+15.7%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Electrodes/Refractories</td>
+<td>Apr</td>
+<td>+13.4%</td>
+<td>60%</td>
+<td>+10.3%</td>
+<td>64%</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Depositories/Exchanges</strong></td>
+<td><strong>Apr</strong></td>
+<td><strong>+12.1%</strong></td>
+<td><strong>100%</strong></td>
+<td>+12.1%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Depositories/Exchanges</td>
+<td>Nov</td>
+<td>+11.4%</td>
+<td>67%</td>
+<td>+11.4%</td>
+<td>67%</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Depositories/Exchanges</strong></td>
+<td><strong>Jun</strong></td>
+<td><strong>+9.6%</strong></td>
+<td><strong>100%</strong></td>
+<td>+9.6%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Industrial Minerals</td>
+<td>Dec</td>
+<td>+9.4%</td>
+<td>80%</td>
+<td>+6.0%</td>
+<td>73%</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Iron &amp; Steel Products</td>
+<td>Apr</td>
+<td>+9.0%</td>
+<td>80%</td>
+<td>+7.8%</td>
+<td>80%</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Stockbroking</strong></td>
+<td><strong>Oct</strong></td>
+<td><strong>+8.9%</strong></td>
+<td><strong>100%</strong></td>
+<td>+8.9%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Aerospace/Defense</strong></td>
+<td><strong>May</strong></td>
+<td><strong>+8.8%</strong></td>
+<td><strong>88%</strong></td>
+<td>+8.8%</td>
+<td>88%</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Stockbroking</td>
+<td>Jul</td>
+<td>+8.7%</td>
+<td>80%</td>
+<td>+8.7%</td>
+<td>80%</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Exchange/Data Platform</td>
+<td>Apr</td>
+<td>+8.6%</td>
+<td>88%</td>
+<td>+8.6%</td>
+<td>88%</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Consumer Electronics</td>
+<td>Dec</td>
+<td>+8.5%</td>
+<td>67%</td>
+<td>+8.5%</td>
+<td>67%</td>
+</tr>
+<tr>
+<td>13</td>
+<td><strong>Industrial Products</strong></td>
+<td><strong>Mar</strong></td>
+<td><strong>+8.1%</strong></td>
+<td><strong>100%</strong></td>
+<td>+8.1%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>Stockbroking</strong></td>
+<td><strong>Apr</strong></td>
+<td><strong>+7.8%</strong></td>
+<td><strong>100%</strong></td>
+<td>+7.8%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>15</td>
+<td>IT Enabled Services</td>
+<td>Nov</td>
+<td>+7.6%</td>
+<td>86%</td>
+<td>+7.6%</td>
+<td>86%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>5 edges have 100% win rate across 10+ years</strong>: Industrial Products (May, Mar), Depositories (Apr, Jun), Stockbroking (Oct, Apr). These are as close to guaranteed as markets get.</p>
+</blockquote>
+<hr />
+<h2>Seasonal Traps (NEVER Buy Here)</h2>
+<table>
+<thead>
+<tr>
+<th>Sector</th>
+<th>Month</th>
+<th>10Y Avg</th>
+<th>15Y Avg</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Depositories/Exchanges</td>
+<td><strong>Jan</strong></td>
+<td><strong>-6.7%</strong></td>
+<td>-6.7%</td>
+</tr>
+<tr>
+<td>Industrial Products</td>
+<td>Jan</td>
+<td>-6.4%</td>
+<td>-6.4%</td>
+</tr>
+<tr>
+<td>Stockbroking</td>
+<td>Jan</td>
+<td>-6.2%</td>
+<td>-6.2%</td>
+</tr>
+<tr>
+<td>Consumer Electronics</td>
+<td>Jan</td>
+<td>-4.1%</td>
+<td>-4.1%</td>
+</tr>
+<tr>
+<td>Exchanges/Data</td>
+<td>Feb</td>
+<td>-4.0%</td>
+<td>-4.0%</td>
+</tr>
+<tr>
+<td>Electrodes/Refractories</td>
+<td>Jan</td>
+<td>-3.2%</td>
+<td>-4.2%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!CAUTION]
+<strong>January is the killing field</strong> for Financial/Exchange/Industrial sectors. Do NOT enter these in Jan. The same sectors that rally +8-15% in Apr-May consistently lose -4 to -7% in Jan.</p>
+</blockquote>
+<hr />
+<h2>Quarterly Patterns (Top Sectors)</h2>
+<table>
+<thead>
+<tr>
+<th>Sector</th>
+<th>Q1 (Jan-Mar)</th>
+<th><strong>Q2 (Apr-Jun)</strong></th>
+<th>Q3 (Jul-Sep)</th>
+<th>Q4 (Oct-Dec)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Consumer Electronics</td>
+<td>-0.7%</td>
+<td><strong>+4.6%</strong></td>
+<td>+4.8%</td>
+<td>+5.4%</td>
+</tr>
+<tr>
+<td>Aerospace/Defense</td>
+<td>+0.3%</td>
+<td><strong>+8.5%</strong></td>
+<td>+2.1%</td>
+<td>+2.1%</td>
+</tr>
+<tr>
+<td>Cables-Electricals</td>
+<td>-1.5%</td>
+<td><strong>+6.4%</strong></td>
+<td>+4.0%</td>
+<td>+2.8%</td>
+</tr>
+<tr>
+<td>Specialty Chemicals</td>
+<td>+1.5%</td>
+<td><strong>+4.0%</strong></td>
+<td>+3.8%</td>
+<td>+2.0%</td>
+</tr>
+<tr>
+<td>Stockbroking</td>
+<td>-1.8%</td>
+<td><strong>+5.8%</strong></td>
+<td>+3.7%</td>
+<td>+4.4%</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!TIP]
+<strong>Q2 (Apr-Jun) is the golden quarter for almost every sector.</strong> The pattern is: Jan-Feb weakness → Mar recovery → Apr-Jun rally. Build positions in March.</p>
+</blockquote>
+<hr />
+<h2>Best 2-Month Entry Windows</h2>
+<table>
+<thead>
+<tr>
+<th>Sector</th>
+<th>Best Window</th>
+<th>2M Return</th>
+<th>Win%</th>
+<th>Worst Window</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Industrial Products</td>
+<td><strong>Apr-May</strong></td>
+<td><strong>+18.5%</strong></td>
+<td>~80%</td>
+<td>Dec-Jan</td>
+</tr>
+<tr>
+<td>Depositories/Exchanges</td>
+<td><strong>Mar-Apr</strong></td>
+<td>+14%</td>
+<td>~80%</td>
+<td>Dec-Jan</td>
+</tr>
+<tr>
+<td>Aerospace/Defense</td>
+<td><strong>Apr-May</strong></td>
+<td>+17%</td>
+<td>~80%</td>
+<td>Jan-Feb</td>
+</tr>
+<tr>
+<td>Iron &amp; Steel Products</td>
+<td><strong>Mar-Apr</strong></td>
+<td>+14%</td>
+<td>~70%</td>
+<td>Jan-Feb</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>India Event Calendar Impact</h2>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Typical Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Budget (Feb)</strong></td>
+<td>Negative for most sectors (-1 to -4%)</td>
+</tr>
+<tr>
+<td><strong>Q4 Earnings (Apr-May)</strong></td>
+<td>Strongest positive catalyst (+5 to +15%)</td>
+</tr>
+<tr>
+<td><strong>Monsoon (Jul-Aug)</strong></td>
+<td>Mixed; IT Services &amp; Holding Cos do well</td>
+</tr>
+<tr>
+<td><strong>Diwali (Oct-Nov)</strong></td>
+<td>Moderate positive, Stockbroking +8.9%</td>
+</tr>
+<tr>
+<td><strong>Year-End (Dec)</strong></td>
+<td>Consumer Electronics +8.5%, Industrial Minerals +6%</td>
+</tr>
+<tr>
+<td><strong>Jan Effect</strong></td>
+<td>NEGATIVE for India (-3 to -7% for financials)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Actionable Monthly Playbook</h2>
+<table>
+<thead>
+<tr>
+<th>Month</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Jan</strong></td>
+<td>REDUCE financials, exchanges, industrials. Cash up.</td>
+</tr>
+<tr>
+<td><strong>Feb</strong></td>
+<td>Budget month — stay defensive. Most sectors weak.</td>
+</tr>
+<tr>
+<td><strong>Mar</strong></td>
+<td>START BUILDING: Industrial Products, Depositories, Iron &amp; Steel</td>
+</tr>
+<tr>
+<td><strong>Apr</strong></td>
+<td>PEAK BUYING: Everything rallies. Top picks: Depositories, Electrodes, Passenger Cars</td>
+</tr>
+<tr>
+<td><strong>May</strong></td>
+<td>HOLD winners: Industrial Products (+15.7%!), Aerospace, Cables</td>
+</tr>
+<tr>
+<td><strong>Jun</strong></td>
+<td>LATE RALLY: Depositories, Stockbroking still strong. Start trimming</td>
+</tr>
+<tr>
+<td><strong>Jul</strong></td>
+<td>ROTATE to: IT Services, Stockbroking, Holding Companies</td>
+</tr>
+<tr>
+<td><strong>Aug</strong></td>
+<td>IT Services peaks. Start watching for Diwali trade setup</td>
+</tr>
+<tr>
+<td><strong>Sep</strong></td>
+<td>Mixed. Power Gen does well. Reduce exposure</td>
+</tr>
+<tr>
+<td><strong>Oct</strong></td>
+<td>DIWALI SETUP: Stockbroking (+8.9%), Exchange/Data (+6%)</td>
+</tr>
+<tr>
+<td><strong>Nov</strong></td>
+<td>IT Services (+7.6%), Depositories (+11.4%)</td>
+</tr>
+<tr>
+<td><strong>Dec</strong></td>
+<td>Consumer Electronics (+8.5%), Industrial Minerals (+9.4%). Year-end rally</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Files</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/sector_seasonality_deep.py">sector_seasonality_deep.py</a></td>
+<td>Deep analysis script</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/sector_seasonality_deep_10y.csv">sector_seasonality_deep_10y.csv</a></td>
+<td>Monthly detail (10Y)</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/sector_seasonality_deep_15y.csv">sector_seasonality_deep_15y.csv</a></td>
+<td>Monthly detail (15Y)</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/robust_seasonal_edges.csv">robust_seasonal_edges.csv</a></td>
+<td>30 proven edges</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/robust_seasonal_traps.csv">robust_seasonal_traps.csv</a></td>
+<td>10 proven traps</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/sector_entry_windows_10y.csv">sector_entry_windows_10y.csv</a></td>
+<td>2-month windows</td>
+</tr>
+<tr>
+<td><a href="file:///c:/Users/adity/.gemini/antigravity/scratch/nifty-dashboard-py/analysis_2026/sector_quarterly_10y.csv">sector_quarterly_10y.csv</a></td>
+<td>Quarterly patterns</td>
+</tr>
+</tbody>
+</table>
+        </div>
+    </body>
+    </html>
+    

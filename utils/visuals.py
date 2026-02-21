@@ -95,12 +95,50 @@ def chart_price_history(hist_df):
     if hist_df is None or hist_df.empty:
         return None
         
-    fig = go.Figure(data=[go.Candlestick(x=hist_df.index,
+    fig = go.Figure()
+
+    # Price Candlestick
+    fig.add_trace(go.Candlestick(x=hist_df.index,
                 open=hist_df['Open'],
                 high=hist_df['High'],
                 low=hist_df['Low'],
                 close=hist_df['Close'],
-                name='Price')])
+                name='Price',
+                increasing_line_color='#00C853',
+                decreasing_line_color='#FF5252'
+    ))
+
+    # Add Smart Volume if available
+    if 'Volume' in hist_df.columns:
+        # Calculate colors
+        colors = []
+        avg_vol = hist_df['Volume'].rolling(20).mean()
+        
+        for i in range(len(hist_df)):
+            close = hist_df['Close'].iloc[i]
+            open_p = hist_df['Open'].iloc[i]
+            vol = hist_df['Volume'].iloc[i]
+            ma = avg_vol.iloc[i] if i >= 19 else vol
+            
+            is_up = close >= open_p
+            is_surge = vol > (2 * ma)
+            is_panic = vol > (4 * ma)
+            
+            if is_panic:
+                colors.append('#D50000' if not is_up else '#00E676') # Brightest
+            elif is_surge:
+                colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
+            else:
+                colors.append('rgba(255, 82, 82, 0.3)' if not is_up else 'rgba(0, 200, 83, 0.3)') # Dim
+
+        fig.add_trace(go.Bar(
+            x=hist_df.index,
+            y=hist_df['Volume'],
+            name='Smart Volume',
+            marker_color=colors,
+            yaxis='y2',
+            opacity=0.8
+        ))
 
     fig.update_layout(
         xaxis_rangeslider_visible=False,
@@ -108,8 +146,11 @@ def chart_price_history(hist_df):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=0, r=0, t=0, b=0),
-        height=350,
-        font=dict(family="Inter, sans-serif")
+        height=400,
+        font=dict(family="Inter, sans-serif"),
+        yaxis=dict(title="Price", side="right"),
+        yaxis2=dict(title="Volume", overlaying='y', side='left', showgrid=False, range=[0, hist_df['Volume'].max() * 4]),
+        showlegend=False
     )
     return fig
 
@@ -201,11 +242,12 @@ def chart_stock_cycle(trend_df):
     if trend_df.empty:
         return None
         
-    # Create subplots - Trend Score on top (main), Price on bottom (secondary)
+    # Create subplots - Trend Score (top), Price (mid), Volume (bottom)
     from plotly.subplots import make_subplots
-    fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
-                        vertical_spacing=0.08, row_heights=[0.65, 0.35],
-                        subplot_titles=("📊 Trend Score Evolution", "📈 Price Reference"))
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, 
+                        vertical_spacing=0.05, 
+                        row_heights=[0.50, 0.30, 0.20],
+                        subplot_titles=("📊 Trend Score Evolution", "📈 Price Action", "b📊 Smart Volume"))
 
     # 1. MAIN CHART: Trend Score Area with gradient coloring
     # Color the area based on trend score zones
@@ -257,7 +299,8 @@ def chart_stock_cycle(trend_df):
                 hovertemplate='%{x}<br>Score: %{y:.0f}<extra></extra>'
             ), row=1, col=1)
     
-    # 2. SECONDARY CHART: Price Reference (simplified line chart)
+
+    # 2. SECONDARY CHART: Price Reference
     if 'Close' in trend_df.columns:
         fig.add_trace(go.Scatter(
             x=trend_df.index,
@@ -282,17 +325,49 @@ def chart_stock_cycle(trend_df):
                 name='200 DMA'
             ), row=2, col=1)
 
+    # 3. TERTIARY CHART: Smart Volume
+    if 'Volume' in trend_df.columns:
+        # Calculate Volume Colors (same logic as price chart)
+        vol_colors = []
+        avg_vol = trend_df['Volume'].rolling(20).mean()
+        
+        for i in range(len(trend_df)):
+            close = trend_df['Close'].iloc[i] if 'Close' in trend_df.columns else 0
+            open_p = trend_df['Open'].iloc[i] if 'Open' in trend_df.columns else close
+            vol = trend_df['Volume'].iloc[i]
+            ma = avg_vol.iloc[i] if i >= 19 else vol
+            
+            is_up = close >= open_p
+            is_surge = vol > (2 * ma)
+            is_panic = vol > (4 * ma)
+            
+            if is_panic:
+                vol_colors.append('#D50000' if not is_up else '#00E676') # Brightest
+            elif is_surge:
+                vol_colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
+            else:
+                vol_colors.append('rgba(255, 82, 82, 0.3)' if not is_up else 'rgba(0, 200, 83, 0.3)') # Dim
+
+        fig.add_trace(go.Bar(
+            x=trend_df.index,
+            y=trend_df['Volume'],
+            name='Smart Volume',
+            marker_color=vol_colors,
+            hovertemplate='Volume: %{y:.2s}<extra></extra>'
+        ), row=3, col=1)
+
     fig.update_layout(
         xaxis_rangeslider_visible=False,
         template="plotly_dark",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=0, r=60, t=40, b=0),
-        height=600,
+        height=700,
         font=dict(family="Inter, sans-serif"),
         showlegend=False,
         yaxis=dict(range=[0, 100], title="Trend Score"),
-        yaxis2=dict(title="Price (₹)")
+        yaxis2=dict(title="Price (₹)"),
+        yaxis3=dict(title="Volume", showgrid=False)
     )
     
     return fig
@@ -385,6 +460,82 @@ def chart_score_history(hist_df, current_scores=None):
         yaxis=dict(range=[0, 10], title="Score"),
         xaxis_title=None,
         height=400,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    return fig
+
+def chart_volume_analysis(trend_df):
+    """
+    Dedicated Multi-Factor Volume Analysis Chart.
+    Shows:
+    1. Volume Bars (Color coded by 'Smart' logic)
+    2. Price Line overlay
+    3. Volume MA
+    """
+    if trend_df is None or trend_df.empty or 'Volume' not in trend_df.columns:
+        return None
+        
+    fig = go.Figure()
+    
+    # Calculate Colors
+    vol_colors = []
+    avg_vol = trend_df['Volume'].rolling(20).mean()
+    
+    for i in range(len(trend_df)):
+        close = trend_df['Close'].iloc[i] if 'Close' in trend_df.columns else 0
+        open_p = trend_df['Open'].iloc[i] if 'Open' in trend_df.columns else close
+        vol = trend_df['Volume'].iloc[i]
+        ma = avg_vol.iloc[i] if i >= 19 else vol
+        
+        is_up = close >= open_p
+        is_surge = vol > (2 * ma)
+        is_panic = vol > (4 * ma)
+        
+        if is_panic:
+            vol_colors.append('#D50000' if not is_up else '#00E676') # Brightest (Panic/Smart Buy)
+        elif is_surge:
+            vol_colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
+        else:
+            vol_colors.append('rgba(255, 255, 255, 0.1)' if not is_up else 'rgba(255, 255, 255, 0.1)') # Dim/Neutral
+
+    # 1. Volume Bars
+    fig.add_trace(go.Bar(
+        x=trend_df.index,
+        y=trend_df['Volume'],
+        name='Volume',
+        marker_color=vol_colors,
+        yaxis='y'
+    ))
+    
+    # 2. Volume MA
+    fig.add_trace(go.Scatter(
+        x=trend_df.index,
+        y=avg_vol,
+        mode='lines',
+        name='20 DMA',
+        line=dict(color='yellow', width=1, dash='dot')
+    ))
+    
+    # 3. Price Overlay (Secondary Y)
+    if 'Close' in trend_df.columns:
+        fig.add_trace(go.Scatter(
+            x=trend_df.index,
+            y=trend_df['Close'],
+            name='Price',
+            mode='lines',
+            line=dict(color='white', width=2),
+            yaxis='y2'
+        ))
+
+    fig.update_layout(
+        title="📊 Multi-Factor Volume Analysis (Smart Money Flow)",
+        template="plotly_dark",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        height=450,
+        showlegend=True,
+        yaxis=dict(title="Volume", showgrid=False),
+        yaxis2=dict(title="Price", overlaying='y', side='right', showgrid=False, gridcolor='#333'),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     return fig
