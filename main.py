@@ -35,7 +35,7 @@ from utils.positions import (
     check_position_alerts, get_summary, migrate_from_legacy, is_position_exists,
     add_to_watchlist
 )
-from utils.email_notifier import is_email_configured, configure_email, send_weekly_summary, send_trend_change_alert, test_email_connection, get_email_address
+from utils.email_notifier import is_email_configured, configure_email, send_weekly_summary, send_trend_change_alert, test_email_connection, get_email_address, export_weekly_summary
 from utils.telegram_notifier import send_telegram_message, is_telegram_configured
 from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood

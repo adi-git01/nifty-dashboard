@@ -104,7 +104,7 @@ def find_rs_divergence(market_df, nifty_df):
         ticker = row['ticker']
         
         # Require positive daily return vs negative market
-        day_chg = row.get('return_1d', 0)
+        day_chg = row.get('change_p', 0)
         if day_chg < 0.5:
             continue
             
@@ -147,7 +147,7 @@ def find_live_earnings_shocks(market_df, full_history_dict):
     for _, row in market_df.iterrows():
         ticker = row['ticker']
         p = row.get('price', 0)
-        day_chg = row.get('return_1d', 0)
+        day_chg = row.get('change_p', 0)
         
         # 1. Price Jump
         if day_chg < 5.0:

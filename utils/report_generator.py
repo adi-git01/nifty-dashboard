@@ -267,6 +267,16 @@ def generate_pdf_from_md(md_content):
     clean_md = clean_md.replace('░', '-')
     clean_md = clean_md.replace('₹', 'Rs.')
     
+    # Pre-emptively fix common typographic smart punctuation from LLMs
+    clean_md = clean_md.replace('‘', "'").replace('’', "'")
+    clean_md = clean_md.replace('“', '"').replace('”', '"')
+    clean_md = clean_md.replace('—', '-')
+    clean_md = clean_md.replace('–', '-')
+    clean_md = clean_md.replace('…', '...')
+    
+    # Force pure Latin-1 compliance (drops any remaining unrenderable unicode like Chinese, obscure emojis)
+    clean_md = clean_md.encode('latin-1', 'ignore').decode('latin-1')
+    
     # 2. Convert stripped Markdown to HTML
     html_content = markdown.markdown(clean_md, extensions=['tables'])
     
