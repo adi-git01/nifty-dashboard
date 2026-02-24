@@ -116,8 +116,11 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     
     # If not live mode, and fundamental_df already has computed metrics like 'currentPrice', we just return it!
     # Because loading from Parquet already restores full computed state.
-    if not live_mode and not fundamental_df.empty and 'currentPrice' in fundamental_df.columns:
-        return fundamental_df
+    # CRITICAL FIX: Ensure 'trend_signal' and 'dna_signal' truly exist to prevent GUI KeyErrors.
+    if not live_mode and not fundamental_df.empty:
+        required_cols = ['currentPrice', 'trend_signal', 'dna_signal']
+        if all(col in fundamental_df.columns for col in required_cols):
+            return fundamental_df
     
     if not tickers:
         return fundamental_df
