@@ -186,6 +186,35 @@ def run_rebalance(df, db):
             })
         send_trend_change_alert(email_alerts)
 
+def send_daily_heartbeat(df, mode):
+    """
+    Sends a positive confirmation that the engine ran successfully.
+    Acts as a fail-safe check against silent GitHub Actions failures.
+    """
+    print("Sending Daily Heartbeat Confirmation...")
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    universe_size = len(df) if not df.empty else 0
+    buyers = df[df['dna_signal'] == 'BUY'] if not df.empty and 'dna_signal' in df.columns else pd.DataFrame()
+    buy_count = len(buyers)
+    
+    msg = f"✅ <b>EOD Engine Run: SUCCESS</b>\n\n"
+    msg += f"🕒 <b>Time:</b> {now_str} IST\n"
+    msg += f"⚙️ <b>Mode:</b> {mode.upper()}\n"
+    msg += f"📊 <b>Universe Scanned:</b> {universe_size} Nifty Stocks\n"
+    msg += f"🟢 <b>New Buy Signals:</b> {buy_count}\n\n"
+    msg += "<i>Systems operating normally.</i>"
+    
+    try:
+        from utils.telegram_notifier import send_telegram_message
+        send_telegram_message(msg)
+    except: pass
+    
+    try:
+        from utils.email_notifier import _send_email, is_email_configured
+        if is_email_configured():
+            _send_email(f"✅ EOD Engine Run: SUCCESS ({buy_count} Buys)", f"<pre>{msg.replace('<b>', '').replace('</b>', '').replace('<i>', '').replace('</i>', '')}</pre>")
+    except: pass
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -208,4 +237,8 @@ if __name__ == "__main__":
         run_rebalance(df, db)
         
     db.close()
+    
+    # Send confirming heartbeat before shutting down
+    send_daily_heartbeat(df, args.mode)
+    
     print("Trading Engine Execution Completed.")
