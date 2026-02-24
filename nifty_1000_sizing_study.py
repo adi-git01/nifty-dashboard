@@ -99,11 +99,11 @@ class Engine:
             ret = (p - pos['en']) / pos['en']
             reason = None
 
-            # 15% Trailing Stop
-            tr = pos['pk'] * 0.85 
-            if tr > pos['stop']: pos['stop'] = tr
+            # OptComp-V21 Trailing Logic: 15% initial hard stop. ONLY activate 10% trailing stop after securing 10% profit.
+            if ret > 0.10:
+                tr = pos['pk'] * 0.90 
+                if tr > pos['stop']: pos['stop'] = tr
             
-            # 15% Hard Stop from Entry is implied by the first trailing stop marker
             if p < pos['stop']: reason = 'StopLoss'
 
             if reason:
