@@ -22,9 +22,19 @@ CONFIG_FILE = "config.json"
 def _load_config() -> Dict:
     """
     Load email configuration.
-    Priority: 1) Streamlit secrets (cloud), 2) config.json (local)
+    Priority: 1) Environment vars (GitHub Actions), 2) Streamlit secrets (cloud), 3) config.json (local)
     """
-    # Try Streamlit secrets first (for cloud deployment)
+    # Try Environment Variables First (for GitHub Actions)
+    if os.environ.get("GMAIL_ADDRESS") and os.environ.get("GMAIL_APP_PASSWORD"):
+        return {
+            "email": {
+                "gmail_address": os.environ.get("GMAIL_ADDRESS"),
+                "app_password": os.environ.get("GMAIL_APP_PASSWORD"),
+                "enabled": True
+            }
+        }
+        
+    # Try Streamlit secrets next (for cloud deployment)
     try:
         import streamlit as st
         if hasattr(st, 'secrets') and 'email' in st.secrets:
@@ -388,6 +398,22 @@ def send_trend_change_alert(changes: List[Dict]) -> tuple[bool, str]:
     
     subject = f"⚠️ Trend Change Alert: {len(changes)} stock(s) - {datetime.now().strftime('%b %d')}"
     return _send_email(subject, html)
+
+def send_system_alert(subject: str, message: str) -> tuple[bool, str]:
+    """
+    Send a generic text-based system alert (e.g., from the automated trading engine).
+    """
+    html_body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; padding: 20px;">
+            <div style="background: #16213e; padding: 20px; border-radius: 10px;">
+                <h2 style="color: #667eea; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">{subject}</h2>
+                <pre style="font-family: Consolas, monospace; white-space: pre-wrap; font-size: 14px; color: #fff;">{message}</pre>
+            </div>
+        </body>
+    </html>
+    """
+    return _send_email(subject, html_body)
 
 def test_email_connection() -> tuple[bool, str]:
     """

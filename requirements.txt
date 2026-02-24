@@ -7,3 +7,6 @@ duckduckgo-search
 openpyxl
 google-generativeai
 fpdf2
+markdown
+fastparquet
+pyarrow
