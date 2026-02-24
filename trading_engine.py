@@ -6,6 +6,7 @@ import os
 from trading_db import TradingDatabase
 from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data, get_parquet_cache_path
 from utils.telegram_notifier import send_telegram_message
+from utils.email_notifier import send_trend_change_alert
 
 def get_nifty1000_universe():
     fundamentals = load_base_fundamentals(live_mode=True)
@@ -110,13 +111,33 @@ def check_portfolio_stops(df, db):
         
     db.conn.commit()
     
-    # Send all alerts in one Telegram message
+    
+    # Send all alerts in ONE Telegram message
     if alerts:
         send_telegram_message("\\n\\n".join(alerts))
         for alert in alerts:
             db.cursor.execute("INSERT INTO alerts_log (alert_date, ticker, alert_type, message) VALUES (?, ?, ?, ?)",
                               (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "SYSTEM", "SELL", alert))
         db.conn.commit()
+    
+    # Send all alerts in ONE Email
+    if sells:
+        email_alerts = []
+        for ticker, exit_price, reason in sells:
+            db.cursor.execute("SELECT * FROM portfolio WHERE ticker = ?", (ticker,))
+            pos = db.cursor.fetchone()
+            if pos:
+                entry_price = pos[2]
+                pnl_pct = ((exit_price - entry_price) / entry_price) * 100
+                email_alerts.append({
+                    'ticker': ticker,
+                    'entry_trend_signal': 'ACTIVE',
+                    'current_signal': f'🚨 STOP LOSS ({reason})',
+                    'return_pct': pnl_pct,
+                    'days_tracked': 0
+                })
+        if email_alerts:
+            send_trend_change_alert(email_alerts)
 
 def run_rebalance(df, db):
     """
@@ -151,6 +172,19 @@ def run_rebalance(df, db):
             db.cursor.execute("INSERT INTO alerts_log (alert_date, ticker, alert_type, message) VALUES (?, ?, ?, ?)",
                               (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "SYSTEM", "BUY_ALERT", alert))
         db.conn.commit()
+        
+    # Build batch email alert for buys
+    if not top_buys.empty:
+        email_alerts = []
+        for _, row in top_buys.iterrows():
+            email_alerts.append({
+                'ticker': row['ticker'],
+                'entry_trend_signal': 'CASH',
+                'current_signal': '🟢 NEW BUY SIGNAL',
+                'return_pct': 0,
+                'days_tracked': 0
+            })
+        send_trend_change_alert(email_alerts)
 
 
 if __name__ == "__main__":
