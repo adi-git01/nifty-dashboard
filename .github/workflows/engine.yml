@@ -42,3 +42,41 @@ jobs:
       with:
         commit_message: "🤖 System: EOD Engine Check (Cache, SQLite Ledger, Sub-Industries)"
         file_pattern: 'data/*.csv data/cache/*.parquet positions.json'
+
+    - name: 🚨 Notify on Crash (Telegram & Email)
+      if: failure()
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+        GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      run: |
+        python -c "
+        import os, requests, smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        
+        msg = '🚨 <b>CRITICAL PIPELINE FAILURE</b> 🚨\n\nThe Alpha Trend Engine crashed during the 3:15 PM run!\n\n<b>Reason:</b> Process exited with fatal code.\nPlease check the GitHub Actions logs immediately.'
+        
+        token = os.environ.get('TELEGRAM_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        if token and chat_id:
+            try: requests.post(f'https://api.telegram.org/bot{token}/sendMessage', json={'chat_id': chat_id, 'text': msg, 'parse_mode': 'HTML'}, timeout=10)
+            except: pass
+            
+        user = os.environ.get('GMAIL_ADDRESS')
+        pwd = os.environ.get('GMAIL_APP_PASSWORD')
+        if user and pwd:
+            em = MIMEMultipart()
+            em['From'] = user
+            em['To'] = user
+            em['Subject'] = '🚨 CRITICAL PIPELINE FAILURE 🚨'
+            em.attach(MIMEText(msg.replace('\n', '<br>'), 'html'))
+            try:
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                server.login(user, pwd)
+                server.send_message(em)
+                server.quit()
+            except: pass
+        "
