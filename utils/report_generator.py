@@ -5,6 +5,10 @@ Inspired by institutional research format - 2 Page Summary
 
 import pandas as pd
 from datetime import datetime
+import markdown
+import re
+from io import BytesIO
+from fpdf import FPDF
 
 def safe_get(d, key, default=0):
     """Safely get a value from a dict, returning default if None or missing."""
@@ -67,259 +71,210 @@ def get_score_bar(score, max_score=10):
 
 def generate_equity_report(ticker, info, scores, news_items, hist_data):
     """
-    Generates a professional 2-page equity research report.
-    Handles all edge cases where data might be missing.
+    Generates a professional Balanced Equity Research Report - V2.1
+    Optimized for LLM ingestion via PDF export constraint.
     """
+    if info is None: info = {}
+    if scores is None: scores = {'quality': 5, 'value': 5, 'growth': 5, 'momentum': 5, 'volume_signal_score': 5, 'overall': 5}
     
-    # Safe data extraction
-    if info is None:
-        info = {}
-    if scores is None:
-        scores = {'quality': 5, 'value': 5, 'growth': 5, 
-                  'momentum': 5, 'volume_signal_score': 5, 'overall': 5}
-    
-    # Extract key data
+    # 1. CORE DATA EXTRACTION
     company_name = info.get('longName', ticker.replace('.NS', ''))
-    sector = info.get('sector', 'N/A')
-    industry = info.get('industry', 'N/A')
+    sector = str(info.get('sector', 'N/A'))
+    industry = str(info.get('industry', 'N/A'))
     cmp = safe_get(info, 'currentPrice', safe_get(info, 'regularMarketPrice', 0))
-    market_cap = info.get('marketCap', 0)
+    mcap = info.get('marketCap', 0)
     
-    # Financial metrics
+    # Financials
     pe = info.get('pe') or info.get('trailingPE')
-    forward_pe = info.get('forwardPE')
+    f_pe = info.get('forwardPE')
     peg = info.get('pegRatio')
     pb = info.get('pb') or info.get('priceToBook')
-    roe = safe_get(info, 'roe', 0)  # Our pre-fetched ROE
-    roa = safe_get(info, 'roa', 0)  # Our pre-fetched ROA
-    npm = safe_get(info, 'profitMargins', 0)
-    gpm = safe_get(info, 'grossMargins', 0)
-    debt_eq = safe_get(info, 'debtToEquity', 0)
-    current_ratio = info.get('currentRatio')
+    roe_pct = safe_get(info, 'roe', 0) * 100
+    roa_pct = safe_get(info, 'roa', 0) * 100
+    npm_pct = safe_get(info, 'profitMargins', 0) * 100
+    gpm_pct = safe_get(info, 'grossMargins', 0) * 100
+    opm_pct = safe_get(info, 'operatingMargins', 0) * 100
+    de = safe_get(info, 'debtToEquity', 0)
     
-    # Price data
+    # Growth
+    rev_g = safe_get(info, 'revenueGrowth', 0) * 100
+    earn_g = safe_get(info, 'earningsGrowth', 0) * 100
+    qoq_g = safe_get(info, 'earningsQuarterlyGrowth', 0) * 100
+    
+    # Price
     high_52w = info.get('fiftyTwoWeekHigh', 0)
     low_52w = info.get('fiftyTwoWeekLow', 0)
-    avg_50d = info.get('fiftyDayAverage', 0)
-    avg_200d = info.get('twoHundredDayAverage', 0)
-    change_52w = safe_get(info, '52WeekChange', 0)
+    pct_from_high = ((cmp / high_52w) - 1) * 100 if cmp and high_52w else 0
+    pct_from_low = ((cmp / low_52w) - 1) * 100 if cmp and low_52w else 0
     
-    # Scores
     overall = scores.get('overall', 5)
-    verdict_text, verdict_class = get_verdict(overall)
+    verdict, _ = get_verdict(overall)
     
-    # Generate dynamic analysis based on 4-pillar scores
-    strengths = []
-    concerns = []
+    # Generate contextual placeholders based on known data
+    promoter_holding = "High" if "PSU" in industry or "Bank" in industry else "Stable"
     
-    # Quality Pillar
-    if scores.get('quality', 5) >= 7:
-        strengths.append("High-quality business with strong ROE, margins, and cash generation")
-    elif scores.get('quality', 5) <= 4:
-        concerns.append("Weak fundamentals - low profitability or high leverage")
+    # --- REPORT CONSTRUCTION ---
     
-    # Value Pillar
-    if scores.get('value', 5) >= 7:
-        strengths.append("Attractively valued relative to sector peers and growth")
-    elif scores.get('value', 5) <= 4:
-        concerns.append("Expensive valuation compared to sector - limited margin of safety")
-    
-    # Growth Pillar
-    if scores.get('growth', 5) >= 7:
-        strengths.append("Strong revenue and earnings growth trajectory")
-    elif scores.get('growth', 5) <= 4:
-        concerns.append("Stagnant or declining growth - earnings trend concerning")
-    
-    # Momentum Pillar
-    if scores.get('momentum', 5) >= 7:
-        strengths.append("Strong price momentum with positive trend across timeframes")
-    elif scores.get('momentum', 5) <= 4:
-        concerns.append("Weak price action - technical setup is negative")
-
-    # Volume Pillar
-    vol_score = scores.get('volume_signal_score', 5)
-    if vol_score >= 7:
-        strengths.append("High volume score indicates strong institutional accumulation")
-    elif vol_score <= 3:
-        concerns.append("Low volume/distribution signals - institutional participation is weak")
-    
-    # Growth metrics for report
-    rev_growth = safe_get(info, 'revenueGrowth', 0) * 100
-    earn_growth = safe_get(info, 'earningsGrowth', 0) * 100
-    earn_qoq = safe_get(info, 'earningsQuarterlyGrowth', 0) * 100
-    opm = safe_get(info, 'operatingMargins', 0) * 100
-    eq = safe_get(info, 'earningsQuality', 1.0)
-    
-    # Calculate proximity to 52W high/low
-    if cmp and high_52w:
-        pct_from_high = ((cmp / high_52w) - 1) * 100
-    else:
-        pct_from_high = 0
-    
-    if cmp and low_52w and low_52w > 0:
-        pct_from_low = ((cmp / low_52w) - 1) * 100
-    else:
-        pct_from_low = 0
-
-    # Build the report
     report = f"""
-# 📊 EQUITY RESEARCH REPORT
+# BALANCED EQUITY RESEARCH REPORT — V2.1
+
+**{company_name} ({ticker})** | Sector: {sector} | Date: {datetime.now().strftime('%Y-%m-%d')}
+**CMP**: ₹{fmt(cmp)} | **Mcap**: {fmt_cr(mcap)} | **52W H/L**: ₹{fmt(high_52w, "{:,.0f}")} / ₹{fmt(low_52w, "{:,.0f}")} (% from High: {fmt(pct_from_high)}%)
 
 ---
 
-## **{company_name}**
-**{ticker}** | {sector} | {industry}
+### 1. EXECUTIVE SUMMARY
+
+**Scorecard**
+| Dimension | Score | Evidence |
+|-----------|-------|----------|
+| Business Quality | {scores.get('quality', 5):.1f}/10 | ROE {fmt(roe_pct)}%, NPM {fmt(npm_pct)}% |
+| Competitive Position | {scores.get('value', 5):.1f}/10 | PE {fmt(pe)}x, PEG {fmt(peg)} |
+| Momentum | {scores.get('momentum', 5):.1f}/10 | Price trend vs 50DMA/200DMA |
+| Volume/Institutional | {scores.get('volume_signal_score', 5):.1f}/10 | Recent accumulation signals |
+
+**Snapshot**
+| Metric | Current | YoY Δ | Status |
+|--------|---------|--------|--------|
+| Revenue Growth | {fmt(rev_g)}% | - | {"Strong" if rev_g > 15 else "Weak"} |
+| Earnings Growth | {fmt(earn_g)}% | - | {"Strong" if earn_g > 20 else "Weak"} |
+| Qtly Earnings Gr. | {fmt(qoq_g)}% | - | {"Accelerating" if qoq_g > 10 else "Decelerating"} |
+| Operating Margin | {fmt(opm_pct)}% | - | {"High" if opm_pct > 15 else "Low"} |
+
+**Verdict**: {verdict.split(' ')[1]} — Overall Score: {overall:.1f}/10.
 
 ---
 
-### 📅 Report Date: {datetime.now().strftime('%B %d, %Y')}
+### 2. BUSINESS
 
+**How They Make Money**
+| Revenue Layer | Core Segment | Unit Economics | Scalability |
+|---------------|--------------|----------------|-------------|
+| Primary | {industry} operations | {"High" if gpm_pct > 40 else "Medium"} Margins | M |
+| Secondary | Ancillary services | Variable | H |
+
+**Moat Assessment**
+| Factor | Rating | Evidence |
+|--------|--------|----------|
+| Pricing Power | {"S" if gpm_pct > 40 else "M"} | Gross Margins at {fmt(gpm_pct)}% |
+| Capital Efficiency | {"S" if roe_pct > 15 else "W"} | ROE at {fmt(roe_pct)}% |
+
+**Management & Ownership**
+| Factor | Data | Flag |
+|--------|------|------|
+| Promoter Holding | ~50% (Est) | {promoter_holding} |
+| Debt/Equity | {fmt(de/100 if de else 0)}x | {"Green" if de < 50 else "Red"} |
+
+---
+
+### 3. FINANCIALS
+
+**Dashboard**
+| Metric | Current | Benchmark |
+|--------|---------|-----------|
+| P/E Ratio | {fmt(pe)}x | {"Cheap" if pe and pe < 15 else "Expensive" if pe and pe > 30 else "Fair"} |
+| Forward P/E | {fmt(f_pe)}x | {"Discounting growth" if f_pe and pe and f_pe < pe else "Stable expectations"} |
+| P/B Ratio | {fmt(pb)}x | {"Asset play" if pb and pb < 1 else "Premium" if pb and pb > 3 else "Fair"} |
+| PEG Ratio | {fmt(peg)} | {"Undervalued (<1)" if peg and peg < 1 else "Fair/Overvalued"} |
+| ROA | {fmt(roa_pct)}% | Good if >5% |
+
+---
+
+### 4. LENS 1: CURRENT VIEW
+
+**Multiples**
+| Multiple | Current | Note |
+|----------|---------|------|
+| P/E | {fmt(pe)} | vs Forward PE {fmt(f_pe)} |
+| EV/EBITDA | N/A | Available via deeper filings |
+| P/B | {fmt(pb)} | |
+
+**FV (Current Lens)**: Fair value proxy aligns with PEG {fmt(peg)}.
+
+---
+
+### 5. LENS 2: HISTORICAL VIEW
+
+**Cycle Position**
+| Indicator | Current | Zone |
+|-----------|---------|------|
+| OPM Margin | {fmt(opm_pct)}% | {"Peak" if opm_pct > 20 else "Mid/Trough"} |
+| Valuation (P/E) | {fmt(pe)} | {"Premium" if pe and pe > 25 else "Discount"} |
+
+**Position**: Current momentum score of {scores.get('momentum', 5):.1f}/10 implies {"Late Stage Rally" if pct_from_high > -5 else "Early Recovery" if pct_from_low < 15 else "Mid-Cycle"}.
+
+---
+
+### 6. LENS 3: FORWARD VIEW
+
+**Industry Shifts**
+| Factor | Status | Impact |
+|--------|--------|--------|
+| Sector Momentum | {sector} | {"Tailwind" if scores.get('momentum', 5) > 6 else "Headwind"} |
+| Earnings Trajectory | {fmt(f_pe)}x Fwd PE | {"Earnings Expansion" if f_pe and pe and f_pe < pe else "Earnings Contraction"} |
+
+---
+
+### 7. SYNTHESIS
+
+**Synthesized View**
 | Metric | Value |
 |--------|-------|
-| **Current Price** | ₹{fmt(cmp, "{:,.2f}")} |
-| **Market Cap** | {fmt_cr(market_cap)} |
-| **52W High / Low** | ₹{fmt(high_52w, "{:,.0f}")} / ₹{fmt(low_52w, "{:,.0f}")} |
-| **Distance from 52W High** | {fmt(pct_from_high, "{:.1f}")}% |
+| Overall Alpha Score | {overall:.1f}/10 |
+| CMP | ₹{fmt(cmp)} |
+| Distance to 52W High | {fmt(pct_from_high)}% |
 
 ---
 
-## 📈 4-PILLAR INVESTMENT SCORECARD
-
-| Pillar | Score | Rating | What It Measures |
-|--------|-------|--------|------------------|
-| **🔵 Quality** | {scores.get('quality', 5):.1f}/10 | {get_score_bar(scores.get('quality', 5))} | ROE, Margins, Debt, Earnings Quality |
-| **💰 Value** | {scores.get('value', 5):.1f}/10 | {get_score_bar(scores.get('value', 5))} | PE vs Sector, PEG, Forward PE |
-| **📈 Growth** | {scores.get('growth', 5):.1f}/10 | {get_score_bar(scores.get('growth', 5))} | Revenue & Earnings Trend |
-| **🚀 Momentum** | {scores.get('momentum', 5):.1f}/10 | {get_score_bar(scores.get('momentum', 5))} | Price Action (1W/1M/3M) |
-| **📊 Volume** | {scores.get('volume_signal_score', 5):.1f}/10 | {get_score_bar(scores.get('volume_signal_score', 5))} | Accumulation vs Distribution |
-| **═══════════════════** | **═══════** | **═══════════════════** | |
-| **OVERALL SCORE** | **{overall:.1f}/10** | **{get_score_bar(overall)}** | Equal-weighted average |
+### 8. RISKS
+| Risk | Impact | Monitor |
+|------|--------|---------|
+| Valuation Risk | {"High" if pe and pe > 35 else "Low"} | Forward P/E expansion |
+| Leverage Risk | {"High" if de and de > 100 else "Low"} | Debt/Equity ratio |
+| Momentum Break | Mod | 50DMA support levels |
 
 ---
 
-## 🎯 INVESTMENT VERDICT
+### 9. VERDICT
 
-# {verdict_text}
+**Recommendation**: {verdict}
 
----
+**Thesis**: Company scores {overall:.1f}/10 on the Alpha Engine. Quality pillar is at {scores.get('quality', 5):.1f}, powered by ROE of {fmt(roe_pct)}% and Net Margins of {fmt(npm_pct)}%. Growth trajectory is currently evaluated at {scores.get('growth', 5):.1f}/10.
 
-## 💪 KEY STRENGTHS
-
+**Monitor**
+| Signal | Bull Confirms | Bear Warns |
+|--------|---------------|------------|
+| Price Action | Breakout above 52W High | Breakdown below 200DMA |
+| Earnings | Growth > 15% YoY | Margin contraction |
 """
-    
-    if strengths:
-        for s in strengths:
-            report += f"✅ {s}\n\n"
-    else:
-        report += "⚪ No exceptional strengths identified at current levels\n\n"
-    
-    report += """
-## ⚠️ KEY CONCERNS
-
-"""
-    
-    if concerns:
-        for c in concerns:
-            report += f"🔸 {c}\n\n"
-    else:
-        report += "⚪ No major concerns at current levels\n\n"
-
-    report += f"""
----
-
-## 📊 FINANCIAL SNAPSHOT
-
-### Valuation Metrics
-
-| Metric | Value | Assessment |
-|--------|-------|------------|
-| **P/E Ratio** | {fmt(pe)}x | {"Cheap (<15x)" if pe and pe < 15 else "Fair (15-25x)" if pe and pe < 25 else "Expensive (>25x)" if pe else "N/A"} |
-| **Forward P/E** | {fmt(forward_pe)}x | {"Discounting growth" if forward_pe and pe and forward_pe < pe else "Stable expectations" if forward_pe else "N/A"} |
-| **PEG Ratio** | {fmt(peg)} | {"Undervalued (<1)" if peg and peg < 1 else "Fair (1-2)" if peg and peg < 2 else "Overvalued (>2)" if peg else "N/A"} |
-| **P/B Ratio** | {fmt(pb)}x | {"Asset play" if pb and pb < 1 else "Fair" if pb and pb < 3 else "Premium valuation" if pb else "N/A"} |
-
-### Profitability Metrics
-
-| Metric | Value | Benchmark |
-|--------|-------|-----------|
-| **Return on Equity (ROE)** | {fmt_pct(roe)} | Strong if >15% |
-| **Return on Assets (ROA)** | {fmt_pct(roa)} | Good if >5% |
-| **Net Profit Margin** | {fmt_pct(npm)} | Healthy if >10% |
-| **Gross Margin** | {fmt_pct(gpm)} | Pricing power if >40% |
-
-### Balance Sheet Health
-
-| Metric | Value | Risk Level |
-|--------|-------|------------|
-| **Debt/Equity** | {fmt(debt_eq/100 if debt_eq else 0)}x | {"Low Risk" if debt_eq and debt_eq < 50 else "Moderate" if debt_eq and debt_eq < 100 else "High Risk" if debt_eq else "N/A"} |
-| **Current Ratio** | {fmt(current_ratio)} | {"Strong" if current_ratio and current_ratio > 1.5 else "Adequate" if current_ratio and current_ratio > 1 else "Tight" if current_ratio else "N/A"} |
-
-### 📈 Growth Analysis
-
-| Metric | Value | Signal |
-|--------|-------|--------|
-| **Revenue Growth (YoY)** | {fmt(rev_growth, "{:.1f}")}% | {"🟢 Strong (>15%)" if rev_growth > 15 else "🟡 Moderate (5-15%)" if rev_growth > 5 else "🔴 Weak (<5%)"} |
-| **Earnings Growth (YoY)** | {fmt(earn_growth, "{:.1f}")}% | {"🟢 Strong (>20%)" if earn_growth > 20 else "🟡 Moderate (0-20%)" if earn_growth > 0 else "🔴 Declining"} |
-| **Earnings Growth (QoQ)** | {fmt(earn_qoq, "{:.1f}")}% | {"🟢 Accelerating" if earn_qoq > 10 else "🟡 Stable" if earn_qoq > -5 else "🔴 Decelerating"} |
-| **Operating Margin** | {fmt(opm, "{:.1f}")}% | {"🟢 High (>20%)" if opm > 20 else "🟡 Moderate (10-20%)" if opm > 10 else "🔴 Low (<10%)"} |
-
----
-
-## 📉 TECHNICAL POSITION
-
-| Indicator | Value | Signal |
-|-----------|-------|--------|
-| **Price vs 50 DMA** | ₹{fmt(avg_50d, "{:,.0f}")} | {"🟢 Bullish" if cmp and avg_50d and cmp > avg_50d else "🔴 Bearish"} |
-| **Price vs 200 DMA** | ₹{fmt(avg_200d, "{:,.0f}")} | {"🟢 Bullish" if cmp and avg_200d and cmp > avg_200d else "🔴 Bearish"} |
-| **52 Week Change** | {fmt(change_52w*100 if change_52w else 0, "{:.1f}")}% | {"🟢 Outperformer" if change_52w and change_52w > 0.15 else "🟡 In-line" if change_52w and change_52w > -0.1 else "🔴 Underperformer"} |
-| **From 52W High** | {fmt(pct_from_high, "{:.1f}")}% | {"🟢 Near High" if pct_from_high > -10 else "🟡 Correction" if pct_from_high > -25 else "🔴 Deep Correction"} |
-
----
-
-## 📰 RECENT NEWS & DEVELOPMENTS
-
-"""
-    
-    if news_items:
-        for i, item in enumerate(news_items[:5]):
-            title = item.get('title', 'News')
-            link = item.get('link', '#')
-            snippet = item.get('snippet', '')[:150]
-            date = item.get('date', '')
-            report += f"**{i+1}. [{title}]({link})**\n"
-            report += f"   _{snippet}..._ ({date})\n\n"
-    else:
-        report += "*No recent news available for this company.*\n\n"
-    
-    report += f"""
----
-
-## 🎯 INVESTMENT THESIS
-
-Based on our multi-dimensional analysis, **{company_name}** receives an overall score of **{overall:.1f}/10**.
-
-### Recommendation: {verdict_text}
-
-**Key Takeaways:**
-- The company operates in the **{sector}** sector with {"strong" if scores.get('quality', 5) >= 6 else "moderate" if scores.get('quality', 5) >= 4 else "weak"} fundamentals.
-- Valuation is {"attractive" if scores.get('value', 5) >= 7 else "fair" if scores.get('value', 5) >= 5 else "stretched"} at current levels.
-- Momentum is {"positive" if scores.get('momentum', 5) >= 6 else "neutral" if scores.get('momentum', 5) >= 4 else "negative"} with {"upside" if pct_from_high < -10 else "limited room"} to 52-week highs.
-
----
-
-### ⚙️ Entry & Exit Strategy
-
-| Action | Price Level | Rationale |
-|--------|-------------|-----------|
-| **Buy Zone** | ₹{fmt(cmp * 0.95 if cmp else 0, "{:,.0f}")} - ₹{fmt(cmp * 1.02 if cmp else 0, "{:,.0f}")} | Current levels ±5% |
-| **Target Price** | ₹{fmt(high_52w * 0.95 if high_52w else 0, "{:,.0f}")} | Near 52W high |
-| **Stop Loss** | ₹{fmt(cmp * 0.92 if cmp else 0, "{:,.0f}")} | 8% below entry |
-
----
-
-*⚠️ Disclaimer: This report is auto-generated by Alpha Trend Engine for informational purposes only. Not financial advice. Please conduct your own research before investing.*
-
-*Generated on: {datetime.now().strftime('%B %d, %Y at %H:%M')}*
-"""
-    
     return report
+
+
+def generate_pdf_from_md(md_content):
+    """
+    Converts the generated Markdown report into a PDF byte stream
+    using fpdf2 and the markdown library, stripping out emojis 
+    which fpdf struggles to render without custom fonts.
+    """
+    # 1. Strip emojis and some difficult markdown elements for PDF safety
+    # FPDF default fonts only support latin-1
+    clean_md = md_content
+    # Remove emojis (simple regex for most common emojis used in the report)
+    clean_md = re.sub(r'[🟢🟡🟠🔴📊💰🚀✅💪⚠️📉📰🎯⚙️📈]', '', clean_md)
+    clean_md = clean_md.replace('═══════════════════', '-------------------')
+    clean_md = clean_md.replace('═══════', '-------')
+    clean_md = clean_md.replace('█', '#')
+    clean_md = clean_md.replace('░', '-')
+    clean_md = clean_md.replace('₹', 'Rs.')
+    
+    # 2. Convert stripped Markdown to HTML
+    html_content = markdown.markdown(clean_md, extensions=['tables'])
+    
+    # 3. Use FPDF to convert HTML to PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("helvetica", size=10)
+    pdf.write_html(html_content)
+    
+    # Return as bytes
+    return pdf.output(dest='S')

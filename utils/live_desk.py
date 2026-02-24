@@ -109,6 +109,35 @@ def get_seasonal_overlay(sector_str, month_num):
         return SEASONAL_RULES[cat][month_num]
     return 'NEUTRAL'
 
+def get_seasonal_guideline(sector_str):
+    """Returns a string summarizing the month-by-month seasonality."""
+    cat = classify_sector(sector_str)
+    if cat not in SEASONAL_RULES:
+        return "Seasonality Neutral"
+        
+    edges = []
+    traps = []
+    
+    # Month abbreviation map
+    m_abbr = {1:'Jan', 2:'Feb', 3:'Mar', 4:'Apr', 5:'May', 6:'Jun', 7:'Jul', 8:'Aug', 9:'Sep', 10:'Oct', 11:'Nov', 12:'Dec'}
+    
+    for m, rule in SEASONAL_RULES[cat].items():
+        if rule == 'EDGE':
+            edges.append(m_abbr[m])
+        elif rule == 'TRAP':
+            traps.append(m_abbr[m])
+            
+    parts = []
+    if edges:
+        parts.append(f"🟢 EDGE: {','.join(edges)}")
+    if traps:
+        parts.append(f"🔴 TRAP: {','.join(traps)}")
+        
+    if not parts:
+        return "Seasonality Neutral"
+        
+    return " | ".join(parts)
+
 # ======================================================================
 # 3. PLAYBOOK: CYCLICITY & PEAD PROFILING
 # ======================================================================
@@ -213,7 +242,8 @@ def generate_v3_watchlist(market_df, max_results=15):
             'Cyclicity': risk_profile,
             'Seasonality': season_display,
             'PEAD_Edge': pead_edge,
-            'Volume_Rating': volume_status / 10.0
+            'Volume_Rating': volume_status / 10.0,
+            'Vol_Badge': row.get('vol_badge', '')
         })
         
     df_results = pd.DataFrame(results)

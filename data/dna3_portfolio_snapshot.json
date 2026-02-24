@@ -1,235 +1,183 @@
 {
-    "date": "2026-02-20",
-    "cash": 288891.30469866947,
+    "strategy": "OptComp-V21",
+    "date": "2026-02-23",
+    "cash": 19883.125670898473,
     "holdings": {
+        "APARINDS.NS": {
+            "entry_price": 10776.0,
+            "entry_date": "2026-02-20",
+            "shares": 9,
+            "peak_price": 10776.0
+        },
         "HINDCOPPER.NS": {
-            "entry_price": 597.5499877929688,
-            "entry_date": "2026-02-11",
-            "shares": 111,
-            "peak_price": 624.7000122070312
+            "entry_price": 564.0,
+            "entry_date": "2026-02-20",
+            "shares": 177,
+            "peak_price": 564.0
         },
-        "ASHOKLEY.NS": {
-            "entry_price": 209.72999572753906,
-            "entry_date": "2026-02-11",
-            "shares": 296,
-            "peak_price": 211.02000427246094
+        "SCHNEIDER.NS": {
+            "entry_price": 882.25,
+            "entry_date": "2026-02-20",
+            "shares": 113,
+            "peak_price": 914.4500122070312
         },
-        "NATIONALUM.NS": {
-            "entry_price": 368.6499938964844,
-            "entry_date": "2026-02-11",
-            "shares": 157,
-            "peak_price": 369.70001220703125
+        "GVT&D.NS": {
+            "entry_price": 3702.800048828125,
+            "entry_date": "2026-02-20",
+            "shares": 26,
+            "peak_price": 3713.10009765625
+        },
+        "POWERINDIA.NS": {
+            "entry_price": 24163.0,
+            "entry_date": "2026-02-20",
+            "shares": 4,
+            "peak_price": 24243.0
         },
         "FORCEMOT.NS": {
-            "entry_price": 23623.0,
-            "entry_date": "2026-02-11",
-            "shares": 2,
-            "peak_price": 25776.0
-        },
-        "KIRLOSENG.NS": {
-            "entry_price": 1264.699951171875,
-            "entry_date": "2026-02-11",
-            "shares": 40,
-            "peak_price": 1429.5999755859375
-        },
-        "VEDL.NS": {
-            "entry_price": 690.1500244140625,
-            "entry_date": "2026-02-11",
-            "shares": 69,
-            "peak_price": 702.75
-        },
-        "MCX.NS": {
-            "entry_price": 2470.699951171875,
-            "entry_date": "2026-02-11",
-            "shares": 18,
-            "peak_price": 2470.699951171875
-        },
-        "KARURVYSYA.NS": {
-            "entry_price": 325.5,
-            "entry_date": "2026-02-11",
-            "shares": 127,
-            "peak_price": 326.0
-        },
-        "SHRIRAMFIN.NS": {
-            "entry_price": 1048.5999755859375,
-            "entry_date": "2026-02-11",
-            "shares": 34,
-            "peak_price": 1082.800048828125
-        },
-        "M&MFIN.NS": {
-            "entry_price": 392.79998779296875,
-            "entry_date": "2026-02-11",
-            "shares": 86,
-            "peak_price": 392.79998779296875
-        },
-        "APLAPOLLO.NS": {
-            "entry_price": 2238.699951171875,
-            "entry_date": "2026-02-11",
-            "shares": 14,
-            "peak_price": 2280.800048828125
-        },
-        "JKTYRE.NS": {
-            "entry_price": 571.6500244140625,
-            "entry_date": "2026-02-11",
-            "shares": 51,
-            "peak_price": 604.9000244140625
-        },
-        "MOTHERSON.NS": {
-            "entry_price": 129.42999267578125,
-            "entry_date": "2026-02-11",
-            "shares": 212,
-            "peak_price": 133.9199981689453
+            "entry_price": 24475.0,
+            "entry_date": "2026-02-20",
+            "shares": 4,
+            "peak_price": 24475.0
         },
         "BHARATFORG.NS": {
-            "entry_price": 1760.0,
-            "entry_date": "2026-02-13",
-            "shares": 37,
-            "peak_price": 1771.4000244140625
-        },
-        "SBIN.NS": {
-            "entry_price": 1215.5,
-            "entry_date": "2026-02-17",
+            "entry_price": 1816.699951171875,
+            "entry_date": "2026-02-20",
             "shares": 54,
-            "peak_price": 1220.0
+            "peak_price": 1832.0
+        },
+        "VTL.NS": {
+            "entry_price": 529.1500244140625,
+            "entry_date": "2026-02-20",
+            "shares": 188,
+            "peak_price": 536.0999755859375
+        },
+        "AMBER.NS": {
+            "entry_price": 7829.5,
+            "entry_date": "2026-02-20",
+            "shares": 12,
+            "peak_price": 7829.5
+        },
+        "KIRLOSENG.NS": {
+            "entry_price": 1398.5,
+            "entry_date": "2026-02-20",
+            "shares": 71,
+            "peak_price": 1398.5
         }
     },
-    "equity": 985356.3077809449,
-    "count": 15,
+    "equity": 997758.3710322266,
+    "count": 10,
     "portfolio": [
         {
             "Ticker": "HINDCOPPER.NS",
             "Sector": "Copper",
-            "Price": 563.6500244140625,
-            "RS_Score": 82.5,
-            "Entry": 597.5499877929688,
-            "PnL%": -5.673159412840866,
-            "Dist_MA50": 6.63700415944088
+            "Price": 563.3499755859375,
+            "RS_Score": 32.4,
+            "Entry": 564.0,
+            "PnL%": -0.11525255568484044,
+            "Dist_MA50": 4.92431002542052
         },
         {
             "Ticker": "FORCEMOT.NS",
             "Sector": "Passenger Cars & Utility Vehicles",
-            "Price": 24139.0,
-            "RS_Score": 45.6,
-            "Entry": 23623.0,
-            "PnL%": 2.1843118994200568,
-            "Dist_MA50": 19.116821235451507
+            "Price": 24397.0,
+            "RS_Score": 31.2,
+            "Entry": 24475.0,
+            "PnL%": -0.31869254341164455,
+            "Dist_MA50": 17.80890976659379
         },
         {
-            "Ticker": "ASHOKLEY.NS",
-            "Sector": "Commercial Vehicles",
-            "Price": 203.49000549316406,
-            "RS_Score": 43.5,
-            "Entry": 209.72999572753906,
-            "PnL%": -2.9752493021939466,
-            "Dist_MA50": 8.513303297981464
+            "Ticker": "APARINDS.NS",
+            "Sector": "Other Electrical Equipment",
+            "Price": 10655.0,
+            "RS_Score": 30.0,
+            "Entry": 10776.0,
+            "PnL%": -1.1228656273199702,
+            "Dist_MA50": 23.58552280561755
         },
         {
-            "Ticker": "NATIONALUM.NS",
-            "Sector": "Aluminium",
-            "Price": 340.1000061035156,
-            "RS_Score": 40.2,
-            "Entry": 368.6499938964844,
-            "PnL%": -7.744469894385916,
-            "Dist_MA50": 1.3593280552507327
+            "Ticker": "GVT&D.NS",
+            "Sector": "Heavy Electrical Equipment",
+            "Price": 3713.10009765625,
+            "RS_Score": 29.7,
+            "Entry": 3702.800048828125,
+            "PnL%": 0.2781691879739711,
+            "Dist_MA50": 17.943290459803794
         },
         {
-            "Ticker": "VEDL.NS",
-            "Sector": "Diversified Metals",
-            "Price": 676.1500244140625,
-            "RS_Score": 39.0,
-            "Entry": 690.1500244140625,
-            "PnL%": -2.0285444475476186,
-            "Dist_MA50": 5.6872475445753325
-        },
-        {
-            "Ticker": "KARURVYSYA.NS",
-            "Sector": "Private Sector Bank",
-            "Price": 319.5,
-            "RS_Score": 32.1,
-            "Entry": 325.5,
-            "PnL%": -1.8433179723502304,
-            "Dist_MA50": 14.618340425580648
-        },
-        {
-            "Ticker": "SHRIRAMFIN.NS",
-            "Sector": "Non Banking Financial Company (NBFC)",
-            "Price": 1054.699951171875,
-            "RS_Score": 30.9,
-            "Entry": 1048.5999755859375,
-            "PnL%": 0.5817257036010277,
-            "Dist_MA50": 7.275986480539516
-        },
-        {
-            "Ticker": "APLAPOLLO.NS",
-            "Sector": "Iron & Steel Products",
-            "Price": 2203.0,
-            "RS_Score": 30.3,
-            "Entry": 2238.699951171875,
-            "PnL%": -1.594673334994599,
-            "Dist_MA50": 10.965933102108236
-        },
-        {
-            "Ticker": "JKTYRE.NS",
-            "Sector": "Tyres & Rubber Products",
-            "Price": 557.7000122070312,
-            "RS_Score": 27.7,
-            "Entry": 571.6500244140625,
-            "PnL%": -2.440306413234202,
-            "Dist_MA50": 8.241662040050464
-        },
-        {
-            "Ticker": "SBIN.NS",
-            "Sector": "Public Sector Bank",
-            "Price": 1205.699951171875,
-            "RS_Score": 26.8,
-            "Entry": 1215.5,
-            "PnL%": -0.8062565880810366,
-            "Dist_MA50": 15.57883866130755
+            "Ticker": "SCHNEIDER.NS",
+            "Sector": "Heavy Electrical Equipment",
+            "Price": 888.0,
+            "RS_Score": 27.3,
+            "Entry": 882.25,
+            "PnL%": 0.6517427033153868,
+            "Dist_MA50": 22.656338032305925
         },
         {
             "Ticker": "BHARATFORG.NS",
             "Sector": "Auto Components & Equipments",
-            "Price": 1758.199951171875,
-            "RS_Score": 25.4,
-            "Entry": 1760.0,
-            "PnL%": -0.10227550159801137,
-            "Dist_MA50": 17.620016600627995
+            "Price": 1832.0,
+            "RS_Score": 26.6,
+            "Entry": 1816.699951171875,
+            "PnL%": 0.8421890922744615,
+            "Dist_MA50": 21.182073582122012
         },
         {
-            "Ticker": "MCX.NS",
-            "Sector": "Exchange and Data Platform",
-            "Price": 2361.199951171875,
-            "RS_Score": 24.7,
-            "Entry": 2470.699951171875,
-            "PnL%": -4.431942452099988,
-            "Dist_MA50": 3.312816518229263
+            "Ticker": "VTL.NS",
+            "Sector": "Other Textile Products",
+            "Price": 536.0999755859375,
+            "RS_Score": 26.5,
+            "Entry": 529.1500244140625,
+            "PnL%": 1.313417906305647,
+            "Dist_MA50": 18.641361952374965
+        },
+        {
+            "Ticker": "POWERINDIA.NS",
+            "Sector": "Heavy Electrical Equipment",
+            "Price": 24138.0,
+            "RS_Score": 25.0,
+            "Entry": 24163.0,
+            "PnL%": -0.10346397384430742,
+            "Dist_MA50": 24.367292092593818
+        },
+        {
+            "Ticker": "AMBER.NS",
+            "Sector": "Household Appliances",
+            "Price": 7743.0,
+            "RS_Score": 21.5,
+            "Entry": 7829.5,
+            "PnL%": -1.1047959639823743,
+            "Dist_MA50": 16.93813288630134
         },
         {
             "Ticker": "KIRLOSENG.NS",
             "Sector": "Compressors Pumps & Diesel Engines",
-            "Price": 1419.800048828125,
-            "RS_Score": 23.2,
-            "Entry": 1264.699951171875,
-            "PnL%": 12.263786166239173,
-            "Dist_MA50": 16.914893229912128
-        },
-        {
-            "Ticker": "MOTHERSON.NS",
-            "Sector": "Auto Components & Equipments",
-            "Price": 129.8800048828125,
-            "RS_Score": 21.1,
-            "Entry": 129.42999267578125,
-            "PnL%": 0.3476877327487137,
-            "Dist_MA50": 8.632380362785694
-        },
-        {
-            "Ticker": "M&MFIN.NS",
-            "Sector": "Non Banking Financial Company (NBFC)",
-            "Price": 379.3999938964844,
-            "RS_Score": 13.6,
-            "Entry": 392.79998779296875,
-            "PnL%": -3.4114038474835815,
-            "Dist_MA50": 2.4231677474220445
+            "Price": 1388.9000244140625,
+            "RS_Score": 20.3,
+            "Entry": 1398.5,
+            "PnL%": -0.6864480218761172,
+            "Dist_MA50": 12.775530007679928
         }
-    ]
+    ],
+    "last_rebalance_date": "2026-02-20",
+    "rebalance_count": 1,
+    "config": {
+        "rs_weights": [
+            [
+                5,
+                0.1
+            ],
+            [
+                21,
+                0.5
+            ],
+            [
+                63,
+                0.4
+            ]
+        ],
+        "rebalance_days": 13,
+        "max_positions": 10,
+        "breadth_threshold": 30,
+        "trailing_stop": 0.85
+    }
 }

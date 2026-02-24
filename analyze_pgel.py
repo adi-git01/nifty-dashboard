@@ -94,7 +94,7 @@ def analyze():
     print(f"RS Score > 0: {rs_score > 0} ({rs_score:.1f})")
     
     if price > ma50 and rs_score > 0:
-        print("VERDICT: DNA3 BUY SIGNAL ✅")
+        print("VERDICT: DNA3 BUY SIGNAL")
     else:
         print("VERDICT: NO SIGNAL ❌")
 

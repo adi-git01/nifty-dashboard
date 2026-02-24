@@ -16,50 +16,13 @@ import os
 os.makedirs("data", exist_ok=True)
 
 MOOD_FILE = "data/market_mood_history.csv"
+BREADTH_FILE = "data/market_breadth_history.csv"
 
-def calculate_trend_score_for_date(df_history, date):
+def seed_history(lookback_days=365):
     """
-    Calculate a simplified trend score for all stocks on a specific date.
-    Uses price position relative to moving averages.
+    Seed both the mood history and breadth history files with 1-year of historical data.
     """
-    # Filter history up to this date
-    df = df_history[df_history.index <= date].copy()
-    
-    if len(df) < 50:
-        return None
-    
-    # Get last row (the target date)
-    latest = df.iloc[-1]
-    
-    # Calculate MAs
-    ma20 = df['Close'].iloc[-20:].mean() if len(df) >= 20 else latest['Close']
-    ma50 = df['Close'].iloc[-50:].mean() if len(df) >= 50 else latest['Close']
-    
-    price = latest['Close']
-    
-    # Simple trend score: based on price vs MAs
-    score = 50  # Neutral
-    
-    if price > ma20:
-        score += 15
-    if price > ma50:
-        score += 15
-    if ma20 > ma50:
-        score += 10
-    if price < ma20:
-        score -= 15
-    if price < ma50:
-        score -= 15
-    if ma20 < ma50:
-        score -= 10
-        
-    return max(0, min(100, score))
-
-def seed_mood_history(lookback_days=180):
-    """
-    Seed the mood history file with historical data.
-    """
-    print("Seeding Market Mood History...")
+    print("Seeding Market Mood and Breadth History...")
     print("   Fetching data for Nifty 50 proxy (for speed)...")
     
     # Use NIFTY50 components as proxy (faster than 500)
@@ -73,8 +36,8 @@ def seed_mood_history(lookback_days=180):
     
     print(f"   Got {len(hist)} days of data")
     
-    # Generate mood metrics for each day
-    results = []
+    mood_results = []
+    breadth_results = []
     
     # Make dates timezone-aware to match yfinance data
     import pytz
@@ -86,12 +49,13 @@ def seed_mood_history(lookback_days=180):
         
         # Get data up to this date
         df = hist[hist.index <= date]
-        if len(df) < 50:
+        if len(df) < 200:
             continue
         
         latest = df.iloc[-1]
         ma20 = df['Close'].iloc[-20:].mean()
         ma50 = df['Close'].iloc[-50:].mean()
+        ma200 = df['Close'].iloc[-200:].mean()
         price = latest['Close']
         
         # Simulate metrics based on NIFTY performance
@@ -99,41 +63,75 @@ def seed_mood_history(lookback_days=180):
         
         # Avg Trend Score: based on price vs MAs
         if price > ma20 > ma50:
-            avg_score = 65 + np.random.randint(-5, 10)
-        elif price > ma50:
             avg_score = 55 + np.random.randint(-5, 10)
+        elif price > ma50:
+            avg_score = 45 + np.random.randint(-5, 10)
         elif price < ma20 < ma50:
-            avg_score = 35 + np.random.randint(-5, 10)
+            avg_score = 35 + np.random.randint(-5, 5)
         else:
-            avg_score = 50 + np.random.randint(-10, 10)
-        
+            avg_score = 40 + np.random.randint(-10, 10)
+            
         avg_score = max(20, min(80, avg_score))
         
-        # Strong Momentum: correlated with avg score
-        strong_momentum = int(50 + (avg_score - 50) * 3 + np.random.randint(-20, 20))
-        strong_momentum = max(20, min(200, strong_momentum))
+        # Base multipliers
+        strength_factor = avg_score / 45.0  # Centers around 1.0
         
-        # Total Uptrends: higher
-        total_uptrends = int(strong_momentum * 1.5 + np.random.randint(-30, 30))
-        total_uptrends = max(50, min(300, total_uptrends))
+        strong_momentum = int(140 * strength_factor + np.random.randint(-20, 20))
+        strong_momentum = max(20, min(350, strong_momentum))
         
-        # Breakouts: correlated with strong momentum
-        breakouts = int(strong_momentum * 0.15 + np.random.randint(-5, 10))
-        breakouts = max(5, min(50, breakouts))
+        total_uptrends = int(170 * strength_factor + np.random.randint(-30, 30))
+        total_uptrends = max(50, min(400, total_uptrends))
         
-        results.append({
+        breakouts = int(30 * strength_factor + np.random.randint(-8, 8))
+        breakouts = max(5, min(100, breakouts))
+        
+        mood_results.append({
             'date': date_str,
             'strong_momentum': strong_momentum,
             'total_uptrends': total_uptrends,
             'avg_trend_score': round(avg_score, 1),
             'breakout_alerts': breakouts
         })
+
+        # --- Breadth approximations ---
+        # % above 50DMA: correlated largely with price>ma50
+        if price > ma50:
+            pct_50 = 60 + np.random.randint(-5, 20)
+        else:
+            pct_50 = 40 + np.random.randint(-20, 5)
+        
+        # % above 200DMA: correlated with price>ma200
+        if price > ma200:
+            pct_200 = 65 + np.random.randint(-15, 15)
+        else:
+            pct_200 = 35 + np.random.randint(-15, 15)
+
+        pct_strong_momentum = round((strong_momentum / 500) * 100, 1)
+        pct_uptrends = round((total_uptrends / 500) * 100, 1)
+        pct_52w = round((breakouts / 500) * 100, 1)
+
+        pct_50 = max(10, min(95, pct_50))
+        pct_200 = max(15, min(90, pct_200))
+
+        breadth_results.append({
+            'date': date_str,
+            'pct_above_50dma': pct_50,
+            'pct_above_200dma': pct_200,
+            'pct_strong_momentum': pct_strong_momentum,
+            'pct_uptrends': pct_uptrends,
+            'pct_near_52w_high': pct_52w,
+            'total_stocks': 500
+        })
     
     # Save
-    df_results = pd.DataFrame(results)
-    df_results.to_csv(MOOD_FILE, index=False)
+    df_mood = pd.DataFrame(mood_results)
+    df_mood.to_csv(MOOD_FILE, index=False)
     
-    print(f"   DONE: Saved {len(df_results)} days of mood history to {MOOD_FILE}")
+    df_breadth = pd.DataFrame(breadth_results)
+    df_breadth.to_csv(BREADTH_FILE, index=False)
+    
+    print(f"   DONE: Saved {len(df_mood)} days of mood history to {MOOD_FILE}")
+    print(f"   DONE: Saved {len(df_breadth)} days of breadth history to {BREADTH_FILE}")
 
 if __name__ == "__main__":
-    seed_mood_history()
+    seed_history(365)

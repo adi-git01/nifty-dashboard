@@ -1,0 +1,2 @@
+alert_id,alert_date,ticker,alert_type,message
+1,2026-02-24 12:39:45,SYSTEM,INFO,Database Initialized

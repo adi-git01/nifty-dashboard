@@ -492,7 +492,7 @@ def run_backtest():
     # Regime Summary
     regime_df = pd.DataFrame(regime_log)
     regime_counts = regime_df['regime'].value_counts()
-    print("\n📊 REGIME DISTRIBUTION:")
+    print("\nREGIME DISTRIBUTION:")
     for r in ['BULL', 'MILD_BULL', 'SIDEWAYS', 'BEAR']:
         cnt = regime_counts.get(r, 0)
         pct = cnt / len(regime_df) * 100
@@ -506,7 +506,7 @@ def run_backtest():
     n_years = (dates[-1] - dates[0]).days / 365.25
     n_cagr = ((n_end / n_start) ** (1 / n_years) - 1) * 100
     
-    print(f"\n📈 NIFTY BENCHMARK:")
+    print(f"\nNIFTY BENCHMARK:")
     print(f"  Total Return: {n_ret:+.1f}%  |  CAGR: {n_cagr:+.1f}%")
     
     # Per-Strategy Summary
@@ -538,7 +538,7 @@ def run_backtest():
         avg_hold = np.mean([t['Holding_Days'] for t in sells]) if sells else 0
         
         print(f"\n{'─' * 60}")
-        print(f"🎯 {name}")
+        print(f"{name}")
         print(f"{'─' * 60}")
         print(f"  Final Equity : ₹{end_eq:,.0f}")
         print(f"  Total Return : {total_ret:+.1f}%")
@@ -666,7 +666,7 @@ def run_backtest():
     # Regime log
     regime_df.to_csv(f"{OUTPUT_DIR}/bear_regime_log.csv", index=False)
     
-    print(f"\n✅ Saved:")
+    print(f"\nSaved:")
     print(f"   {RESULTS_FILE}")
     print(f"   {TRADES_FILE}")
     print(f"   {EQUITY_FILE}")
@@ -676,7 +676,7 @@ def run_backtest():
     # KEY INSIGHTS
     # --------------------------------------------------------
     print(f"\n{'=' * 80}")
-    print("💡 KEY INSIGHTS")
+    print("KEY INSIGHTS")
     print(f"{'=' * 80}")
     
     best = max(all_results, key=lambda x: x['CAGR%'])

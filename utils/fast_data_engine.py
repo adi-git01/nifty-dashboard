@@ -9,21 +9,27 @@ from utils.scoring import calculate_trend_metrics, calculate_scores
 from utils.data_engine import get_stock_info
 import concurrent.futures
 
-CACHE_FILE_CSV = "nifty500_cache.csv"
-CACHE_FILE_PARQUET = "market_data.parquet"
+CACHE_FILE_CSV = "data/nifty500_cache.csv"
 
-def load_base_fundamentals():
+def get_parquet_cache_path():
+    today_str = datetime.now().strftime("%Y_%m_%d")
+    os.makedirs("data/cache", exist_ok=True)
+    return f"data/cache/market_master_{today_str}.parquet"
+
+def load_base_fundamentals(live_mode=False):
     """
     Loads base fundamental data (Sector, Name, PE, MarketCap) from cache.
     Prefers Parquet (Fast) > CSV (Slow) > Empty DataFrame.
     """
-    # Try Parquet
-    if os.path.exists(CACHE_FILE_PARQUET):
+    parquet_path = get_parquet_cache_path()
+    
+    # Try Parquet unless in Live Mode
+    if not live_mode and os.path.exists(parquet_path):
         try:
-            df = pd.read_parquet(CACHE_FILE_PARQUET)
+            df = pd.read_parquet(parquet_path)
             if 'ticker' in df.columns:
                 return df
-            print("⚠️ Parquet cache missing 'ticker' column. Ignoring.")
+            print("Parquet cache missing 'ticker' column. Ignoring.")
         except Exception as e:
             print(f"Error loading parquet: {e}")
             
@@ -40,9 +46,9 @@ def load_base_fundamentals():
             
     # Fallback: Just Tickers
     # Fallback: Restore from internal list
-    from utils.nifty500_list import TICKERS, SECTOR_MAP
-    df = pd.DataFrame({'ticker': TICKERS})
-    df['sector'] = df['ticker'].map(SECTOR_MAP).fillna("Unknown")
+    from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP
+    df = pd.DataFrame({'ticker': TICKERS_1000})
+    df['sector'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
     df['name'] = df['ticker'] # Default name
     return df
 
@@ -101,19 +107,24 @@ def fetch_missing_fundamentals(df):
             
     return df
 
-def fetch_and_process_market_data(tickers, fundamental_df):
+def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     """
     Vectorized fetch of price data for all tickers + merging with fundamentals.
     """
     # 0. Ensure Fundamentals (Accuracy Mode) - checking/fetching missing PE/Sector
     fundamental_df = fetch_missing_fundamentals(fundamental_df)
     
+    # If not live mode, and fundamental_df already has computed metrics like 'currentPrice', we just return it!
+    # Because loading from Parquet already restores full computed state.
+    if not live_mode and not fundamental_df.empty and 'currentPrice' in fundamental_df.columns:
+        return fundamental_df
+    
     if not tickers:
         return fundamental_df
     if not tickers:
         return fundamental_df
 
-    print(f"⚡ [FAST ENGINE] Fetching data for {len(tickers)} stocks...")
+    print(f"[FAST ENGINE] Fetching data for {len(tickers)} stocks...")
     
     # 1. Bulk Fetch History (1 Year)
     try:
@@ -226,6 +237,25 @@ def fetch_and_process_market_data(tickers, fundamental_df):
                 
                 # Avg Volume
                 base_data['averageVolume'] = int(df['Volume'].iloc[-50:].mean())
+                
+                # Up/Down Volume Ratio (50 Days)
+                if len(df) >= 50:
+                    price_change = df['Close'].diff()
+                    up_vol = df['Volume'].where(price_change > 0, 0).rolling(window=50).sum()
+                    down_vol = df['Volume'].where(price_change < 0, 0).rolling(window=50).sum()
+                    ud_ratio = up_vol / down_vol.replace(0, np.nan)
+                    val = float(ud_ratio.iloc[-1])
+                    base_data['ud_ratio'] = round(val, 2) if not np.isnan(val) else 1.0
+                else:
+                    base_data['ud_ratio'] = 1.0
+                    
+                # Volume Badge Signal for UI
+                if base_data.get('ud_ratio', 1.0) > 1.2:
+                    base_data['vol_badge'] = "🟢 ⬆️ U/D > 1.2"
+                elif base_data.get('ud_ratio', 1.0) < 0.8:
+                    base_data['vol_badge'] = "🔴 ⬇️ U/D < 0.8"
+                else:
+                    base_data['vol_badge'] = "🟡 ➖ Neutral"
 
             # 4. Trend Metrics (Rely on utils/scoring which handles the logic)
             trends = calculate_trend_metrics(base_data)
@@ -237,10 +267,36 @@ def fetch_and_process_market_data(tickers, fundamental_df):
             scores = calculate_scores(base_data, sector_pe_median=median_pe, sector=sector)
             base_data.update(scores)
             
-            # 6. DNA-3 METRICS (Pre-Calculated for Speed)
-            # RS 3M vs Nifty
-            rs_3m = base_data['return_3m'] - nifty_3m_ret
-            base_data['rs_3m'] = round(rs_3m, 2)
+            # 6. OptComp-V21 Composite RS 
+            # (10% 1W, 50% 1M, 40% 3M vs Nifty)
+            def _calc_rs(ret, bench_ret):
+                return ret - bench_ret
+                
+            rs_1w = _calc_rs(base_data.get('return_1w', 0), 0) # Simplification: Assume Nifty 1W ret ~ 0 for fast calc, ideally pass nifty_1w_ret
+            # We'll calculate true RS vs Nifty directly here
+            idx = df.index.searchsorted(df.index[-1])
+            nifty_idx = nifty.index.searchsorted(df.index[-1])
+            
+            if nifty_idx >= 63 and idx >= 63:
+                n_ret_1w = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-5]) / nifty['Close'].iloc[nifty_idx-5] * 100
+                n_ret_1m = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-21]) / nifty['Close'].iloc[nifty_idx-21] * 100
+                n_ret_3m = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-63]) / nifty['Close'].iloc[nifty_idx-63] * 100
+                
+                t_ret_1w = (df['Close'].iloc[idx] - df['Close'].iloc[idx-5]) / df['Close'].iloc[idx-5] * 100
+                t_ret_1m = (df['Close'].iloc[idx] - df['Close'].iloc[idx-21]) / df['Close'].iloc[idx-21] * 100
+                t_ret_3m = (df['Close'].iloc[idx] - df['Close'].iloc[idx-63]) / df['Close'].iloc[idx-63] * 100
+                
+                rs_1w = t_ret_1w - n_ret_1w
+                rs_1m = t_ret_1m - n_ret_1m
+                rs_3m_val = t_ret_3m - n_ret_3m
+                
+                comp_rs = (rs_1w * 0.10) + (rs_1m * 0.50) + (rs_3m_val * 0.40)
+            else:
+                comp_rs = 0
+                rs_3m_val = base_data.get('return_3m', 0)
+                
+            base_data['comp_rs'] = round(comp_rs, 2)
+            base_data['rs_3m'] = round(rs_3m_val, 2)
             
             # Volatility (Annualized)
             if len(df) > 60:
@@ -250,11 +306,14 @@ def fetch_and_process_market_data(tickers, fundamental_df):
                 volatility = 0
             base_data['volatility'] = round(volatility, 1)
             
-            # DNA Signal
+            # DNA Signal (Now OptComp-V21 Rules)
+            # Entry: Composite RS > 0, Price > 50MA, Vol > 1Cr
             above_ma50 = current_price > base_data.get('fiftyDayAverage', 0)
-            if rs_3m >= 2.0 and volatility >= 30 and above_ma50:
+            vol_val = base_data.get('averageVolume', 0) * current_price
+            
+            if comp_rs > 0 and above_ma50 and vol_val > 10_000_000:
                 base_data['dna_signal'] = 'BUY'
-            elif rs_3m >= 2.0 and above_ma50:
+            elif comp_rs > 0 and above_ma50:
                 base_data['dna_signal'] = 'WATCH'
             else:
                 base_data['dna_signal'] = 'HOLD'
@@ -279,7 +338,8 @@ def fetch_and_process_market_data(tickers, fundamental_df):
     
     # Save to Parquet Cache for next time
     try:
-        final_df.to_parquet(CACHE_FILE_PARQUET)
+        parquet_path = get_parquet_cache_path()
+        final_df.to_parquet(parquet_path)
     except Exception:
         pass
         

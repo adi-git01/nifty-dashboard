@@ -88,7 +88,7 @@ def save_mood_snapshot(metrics):
     
     history.to_csv(MOOD_FILE, index=False)
 
-def load_mood_history():
+def load_mood_history(days=365):
     """
     Loads the mood history for charting.
     Returns DataFrame with date and 4 metrics.
@@ -99,6 +99,11 @@ def load_mood_history():
     df = pd.read_csv(MOOD_FILE)
     df['date'] = pd.to_datetime(df['date'])
     df = df.sort_values('date')
+    
+    if days:
+        cutoff = pd.to_datetime('today') - pd.Timedelta(days=days)
+        df = df[df['date'] >= cutoff]
+        
     return df
 
 def replay_historical_mood(price_history_df, lookback_days=365):
@@ -135,40 +140,45 @@ def chart_market_mood(history_df):
     # Add traces
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['strong_momentum'], 
-                   name="🚀 Strong Momentum", line=dict(color="#00d4ff", width=2)),
+                   name="🚀 Strong Momentum", mode='lines', 
+                   line=dict(color="#00C853", width=2.5, shape='spline', smoothing=0.8)),
         secondary_y=False
     )
     
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['total_uptrends'], 
-                   name="📈 Total Uptrends", line=dict(color="#00ff88", width=2)),
+                   name="📈 Total Uptrends", mode='lines', 
+                   fill='tozeroy', fillcolor='rgba(99,91,255,0.05)',
+                   line=dict(color="#635BFF", width=3, shape='spline', smoothing=0.8)),
         secondary_y=False
     )
     
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['breakout_alerts'], 
-                   name="🔥 Breakout Alerts", line=dict(color="#ff6b6b", width=2)),
+                   name="🔥 Breakout Alerts", mode='lines',
+                   line=dict(color="#FF3366", width=2.5, dash='dot', shape='spline', smoothing=0.8)),
         secondary_y=False
     )
     
     # Avg Trend Score on secondary axis (different scale: 0-100)
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['avg_trend_score'], 
-                   name="📊 Avg Trend Score", line=dict(color="#ffd93d", width=3, dash='dot')),
+                   name="📊 Avg Trend Score", mode='lines',
+                   line=dict(color="#FFC107", width=2.5, shape='spline', smoothing=0.8)),
         secondary_y=True
     )
     
     # Styling
     fig.update_layout(
-        title="🌡️ Market Mood History",
-        template="plotly_dark",
+        template="plotly_white",
         hovermode="x unified",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="right", x=1),
         height=350,
-        margin=dict(l=20, r=20, t=60, b=20)
+        margin=dict(l=0, r=0, t=10, b=0)
     )
     
-    fig.update_yaxes(title_text="Stock Count", secondary_y=False)
-    fig.update_yaxes(title_text="Avg Score (0-100)", secondary_y=True, range=[0, 100])
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(title_text="Stock Count", secondary_y=False, gridcolor='rgba(0,0,0,0.05)')
+    fig.update_yaxes(title_text="Avg Score (0-100)", secondary_y=True, range=[0, 100], showgrid=False)
     
     return fig

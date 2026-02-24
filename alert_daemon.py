@@ -70,7 +70,7 @@ def check_alerts():
                     price = current_prices.get(simple_ticker)
                     
                 if not price:
-                    print(f"⚠️ Price not found for {ticker}")
+                    print(f"Price not found for {ticker}")
                     continue
                     
                 # SL Check
@@ -87,19 +87,19 @@ def check_alerts():
 
         # 4. Send Notifications for positions
         if alerts_triggered:
-            print(f"⚡ Triggering {len(alerts_triggered)} position alerts...")
+            print(f"Triggering {len(alerts_triggered)} position alerts...")
             
             if is_telegram_configured():
                 full_msg = "🚨 **MARKET ALERT** 🚨\n\n" + "\n\n".join(alerts_triggered)
                 success, err = send_telegram_message(full_msg)
                 if success:
-                    print("✅ Telegram sent successfully for position alerts.")
+                    print("Telegram sent successfully for position alerts.")
                 else:
                     print(f"❌ Telegram failed for position alerts: {err}")
             else:
-                print("⚠️ Telegram not configured. Skipping position alert send.")
+                print("Telegram not configured. Skipping position alert send.")
         else:
-            print("✅ No position alerts triggered.")
+            print("No position alerts triggered.")
 
     # --- 2. VOLUME ALERTS (Runs Once Daily after Market Close) ---
     global LAST_VOLUME_SCAN
@@ -116,7 +116,7 @@ def check_alerts():
         vol_alerts = scan_volume_changes(TICKERS)
         
         if vol_alerts:
-            print(f"⚡ {len(vol_alerts)} Volume Alerts found!")
+            print(f"{len(vol_alerts)} Volume Alerts found!")
             messages = []
             for a in vol_alerts[:10]: # Limit to top 10 to avoid spam
                 icon = "🟢" if a['change'] > 0 else "🔴"
@@ -132,7 +132,7 @@ def check_alerts():
             if is_telegram_configured():
                 success, err = send_telegram_message(full_msg)
                 if success:
-                    print("✅ Telegram sent successfully for volume alerts.")
+                    print("Telegram sent successfully for volume alerts.")
                 else:
                     print(f"❌ Telegram failed for volume alerts: {err}")
             
@@ -179,15 +179,15 @@ def check_alerts():
                 
                 success, msg = _send_email(f"🔊 Volume Alert Digest - {today_str}", email_html)
                 if success:
-                    print("✅ Email sent successfully.")
+                    print("Email sent successfully.")
                 else:
                     print(f"❌ Email failed: {msg}")
         else:
-            print("✅ No volume alerts triggered.")
+            print("No volume alerts triggered.")
             
         LAST_VOLUME_SCAN = now
 
-    print("✅ Check Complete.")
+    print("Check Complete.")
 
 if __name__ == "__main__":
     check_alerts()

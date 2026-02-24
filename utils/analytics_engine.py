@@ -315,3 +315,85 @@ def analyze_sectors(df):
         sector_stats = sector_stats.sort_values(by='avg_overall', ascending=False)
     
     return sector_stats
+
+
+def get_monthly_alpha_calendar():
+    """
+    Parses `granular_industry_analysis.csv` and `evolution_report.txt` to build 
+    a 12-month calendar of which industries to Accumulate/Avoid, including 
+    price-earnings lead/lag times.
+    """
+    import os
+    
+    cycles_path = "analysis_2026/industry_cycles/granular_industry_analysis.csv"
+    lags_path = "analysis_2026/industry_lags/evolution_report.txt"
+    
+    if not os.path.exists(cycles_path):
+        return pd.DataFrame()
+        
+    df_cycles = pd.read_csv(cycles_path)
+    
+    # 1. Parse Post-COVID lags from the text report
+    lag_map = {}
+    if os.path.exists(lags_path):
+        with open(lags_path, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                # Basic parsing: look for lines with ' -> ' which indicate the shift
+                if '->' in line and not line.startswith(' ' * 10): # skip header rows
+                    parts = line.split()
+                    try:
+                        # Extract industry name (can be multiple words)
+                        # The last 3 tokens are usually ['Leads', 'by', 'Xmo'] or similar shift text
+                        # Before that is Post-COVID_Lag (int), Pre-COVID_Lag (int)
+                        # Everything before that is Industry
+                        
+                        # Let's use a simpler heuristic: the line contains the industry name
+                        # We can just match the industry names from df_cycles
+                        pass # too risky to split blindly
+                    except:
+                        pass
+        
+        # Safer parsing: regex or fixed width. Let's just do a simpler pass over the lines.
+        for line in lines:
+            line_str = line.strip()
+            if not line_str or line_str.startswith('STRUCTURAL') or line_str.startswith('Industry') or line_str.startswith('STRATEGY') or line_str.startswith('Horizon'):
+                continue
+                
+            # Attempt to split. The structure is: [Industry Name] [Pre_Lag] [Post_Lag] [Shift Text]
+            # Since Industry Name can have spaces, we can regex or split from right.
+            # Example: "Aerospace & Defense             -1               0   Leads by 1mo -> Concurrent"
+            # It's fixed width or space delimited. Let's find the numbers.
+            import re
+            match = re.search(r'(-\d+|\d+)\s+(-\d+|\d+)\s+([A-Za-z0-9 >-]+)$', line_str)
+            if match:
+                post_lag = int(match.group(2))
+                industry = line_str[:match.start()].strip()
+                lag_map[industry] = post_lag
+    
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    calendar_data = []
+    
+    for month in months:
+        # Best industries
+        best_df = df_cycles[df_cycles['Best_Month'] == month]
+        best_list = []
+        for _, row in best_df.iterrows():
+            ind = row['Industry']
+            lag = lag_map.get(ind, 0)
+            if lag < 0:
+                best_list.append(f"{ind} (Lead: {abs(lag)}mo)")
+            else:
+                best_list.append(ind)
+                
+        # Worst industries
+        worst_df = df_cycles[df_cycles['Worst_Month'] == month]
+        worst_list = worst_df['Industry'].tolist()
+        
+        calendar_data.append({
+            '📅 Month': month,
+            '🟢 Historical Best (Accumulate)': " • ".join(best_list) if best_list else "-",
+            '🔴 Historical Worst (Avoid/Lighten)': " • ".join(worst_list) if worst_list else "-"
+        })
+        
+    return pd.DataFrame(calendar_data)

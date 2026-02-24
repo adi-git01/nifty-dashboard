@@ -5,3 +5,5 @@ plotly
 numpy
 duckduckgo-search
 openpyxl
+google-generativeai
+fpdf2

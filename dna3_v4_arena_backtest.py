@@ -287,7 +287,7 @@ def run_multi_horizon_arena():
     
     # Save results
     df_res[['Label', 'v3_cagr', 'v3_dd', 'v4_cagr', 'v4_dd', 'v4_vs_v3_alpha']].to_csv("analysis_2026/backtests/v4_vs_v3_comparison.csv", index=False)
-    print("\n✅ Multi-Horizon Arena Match Complete. Results saved to analysis_2026/backtests/v4_vs_v3_comparison.csv")
+    print("\nMulti-Horizon Arena Match Complete. Results saved to analysis_2026/backtests/v4_vs_v3_comparison.csv")
     
 if __name__ == "__main__":
     run_multi_horizon_arena()

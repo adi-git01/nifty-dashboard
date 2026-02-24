@@ -128,3 +128,35 @@ def render_market_explorer():
             f4.metric("Debt/Equity", f"{info.get('debtToEquity', 0):.2f}")
             f5.metric("PEG Ratio", f"{info.get('pegRatio', 0):.2f}")
             
+            st.markdown("---")
+            if st.button("📄 Generate Structural Report", use_container_width=True):
+                with st.spinner("Generating Institutional-Grade Report..."):
+                    from utils.report_generator import generate_equity_report, generate_pdf_from_md
+                    from utils.news_engine import fetch_latest_news
+                    news = fetch_latest_news(ticker)
+                    hist = yf.Ticker(ticker).history(period="1y")
+                    report_md = generate_equity_report(ticker, info, scores, news, hist)
+                    report_pdf = generate_pdf_from_md(report_md)
+                    
+                    st.success("Report Generated!")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.download_button(
+                            label="📥 Download Markdown Report",
+                            data=report_md,
+                            file_name=f"{ticker}_Research_Report.md",
+                            mime="text/markdown",
+                            use_container_width=True
+                        )
+                    with c2:
+                        st.download_button(
+                            label="📥 Download PDF Report",
+                            data=report_pdf,
+                            file_name=f"{ticker}_Research_Report.pdf",
+                            mime="application/pdf",
+                            use_container_width=True,
+                            type="primary"
+                        )
+                    
+                    with st.expander("Preview Report", expanded=True):
+                        st.markdown(report_md)

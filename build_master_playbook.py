@@ -177,7 +177,7 @@ def generate_playbook():
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(report)
         
-    print(f"✅ Success! Playbook written to: {out_file}")
+    print(f"Success! Playbook written to: {out_file}")
 
 if __name__ == "__main__":
     generate_playbook()

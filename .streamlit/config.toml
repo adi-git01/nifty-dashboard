@@ -1,16 +1,7 @@
-# Streamlit Cloud Configuration
-
-[browser]
-gatherUsageStats = false
-
-[server]
-headless = true
-enableCORS = false
-enableXsrfProtection = true
-
 [theme]
-primaryColor = "#667eea"
-backgroundColor = "#0e1117"
-secondaryBackgroundColor = "#1a1a2e"
-textColor = "#ffffff"
-font = "sans serif"
+base="light"
+primaryColor="#635BFF"
+backgroundColor="#F7F9FC"
+secondaryBackgroundColor="#FFFFFF"
+textColor="#1A1F36"
+font="sans serif"

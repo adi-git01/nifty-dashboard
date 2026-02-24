@@ -142,7 +142,7 @@ def chart_price_history(hist_df):
 
     fig.update_layout(
         xaxis_rangeslider_visible=False,
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=0, r=0, t=0, b=0),
@@ -225,7 +225,7 @@ def chart_sector_rotation(sector_history):
     
     fig.update_layout(
         title="Sector Relative Strength (vs Nifty 500)",
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(family="Inter, sans-serif"),
@@ -358,7 +358,7 @@ def chart_stock_cycle(trend_df):
 
     fig.update_layout(
         xaxis_rangeslider_visible=False,
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=0, r=60, t=40, b=0),
@@ -401,7 +401,7 @@ def chart_relative_performance(stock_history_dict):
         
     fig.update_layout(
         title="Relative Performance (Normalized %)",
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(family="Inter, sans-serif"),
@@ -453,7 +453,7 @@ def chart_score_history(hist_df, current_scores=None):
     
     fig.update_layout(
         title="Score Evolution Over Time",
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font=dict(family="Inter, sans-serif"),
@@ -529,7 +529,7 @@ def chart_volume_analysis(trend_df):
 
     fig.update_layout(
         title="📊 Multi-Factor Volume Analysis (Smart Money Flow)",
-        template="plotly_dark",
+        template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         height=450,

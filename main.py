@@ -1,15 +1,33 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import os
-from datetime import datetime
+import json
+import time
+import subprocess
+from datetime import datetime, timedelta
+import sys
+import io
+
+# Force UTF-8 encoding for standard output/error to prevent cp1252 crashes on Windows
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+if sys.stderr.encoding.lower() != 'utf-8':
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+import yfinance as yf
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+
 from utils.nifty500_list import TICKERS
 from utils.data_engine import get_stock_info, get_stock_history, batch_fetch_tickers
 from utils.scoring import calculate_scores, calculate_trend_metrics
 from utils.visuals import chart_score_radar, chart_price_history, chart_gauge, chart_market_heatmap, chart_relative_performance
 from utils.news_engine import fetch_latest_news
 from utils.report_generator import generate_equity_report
-from utils.ui_components import css_styles, card_metric, card_verdict, page_header, COLORS
-from utils.analytics_engine import analyze_sectors, calculate_cycle_position
+from utils.ui_components import css_styles, card_metric, card_verdict, page_header, COLORS, hero_pnl_card, sidebar_alert_panel
+from utils.analytics_engine import analyze_sectors, calculate_cycle_position, get_monthly_alpha_calendar
 from utils.market_explorer import render_market_explorer
 from utils.positions import (
     get_all_positions, get_positions_with_pnl, get_position,
@@ -19,6 +37,14 @@ from utils.positions import (
 )
 from utils.email_notifier import is_email_configured, configure_email, send_weekly_summary, send_trend_change_alert, test_email_connection, get_email_address
 from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
+from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood
+from utils.market_breadth import render_breadth_widget
+from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data
+from utils.live_desk import get_cyclicity, get_seasonal_guideline
+
+# Debug mode: set DASH_DEBUG=1 to show debug panel
+DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
 
 # --- CONFIGURATION ---
 st.set_page_config(
@@ -35,7 +61,6 @@ st.markdown(css_styles(), unsafe_allow_html=True)
 st.sidebar.title("🚀 Alpha Trend")
 
 if st.sidebar.button("🔄 Hard Reset Cache", type="primary"):
-    import os
     if os.path.exists("nifty500_cache.csv"):
         os.remove("nifty500_cache.csv")
     if os.path.exists("market_data.parquet"):
@@ -45,6 +70,8 @@ if st.sidebar.button("🔄 Hard Reset Cache", type="primary"):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.rerun()
+
+live_mode_toggle = st.sidebar.checkbox("🚀 Bypass Master Cache (Live Mode)", value=False, help="Forces a fresh pull of all 1000 stocks from Yahoo Finance instead of using the daily Parquet cache.")
 
 st.sidebar.markdown("---")
 
@@ -104,28 +131,53 @@ if st.sidebar.button("📋 Open Position Manager", use_container_width=True, typ
     st.session_state['nav_page'] = "📊 Return Tracker"
     st.rerun()
 
-# Data loading (moved to top to ensure availability for all views)
-if 'market_data' not in st.session_state:
-    from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data
+# Persistent Alert Panel in sidebar
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔔 Alerts")
+
+# ============================================================
+# CENTRALIZED DATA LOADING + AUTO-REFRESH
+# ============================================================
+AUTO_REFRESH_MINUTES = 30  # Auto-refresh data after 30 minutes
+
+# Check if data needs refresh (stale data)
+_needs_refresh = 'market_data' not in st.session_state
+if not _needs_refresh and 'data_loaded_at' in st.session_state:
+    _minutes_old = (datetime.now() - st.session_state['data_loaded_at']).total_seconds() / 60
+    if _minutes_old > AUTO_REFRESH_MINUTES:
+        _needs_refresh = True
+        st.toast("🔄 Data is stale, refreshing...", icon="⏰")
+
+if _needs_refresh:
     
     load_status = st.empty()
     progress_bar = st.progress(0, text="Initializing...")
     
     # Step 1: Load fundamentals
-    progress_bar.progress(10, text="Step 1/3: Loading fundamentals...")
-    fundamentals = load_base_fundamentals()
+    progress_bar.progress(10, text="Step 1/4: Loading fundamentals...")
+    fundamentals = load_base_fundamentals(live_mode=live_mode_toggle)
     
-    # Step 2: Fetch live data
-    progress_bar.progress(30, text=f"Step 2/3: Fetching live prices for {len(fundamentals)} stocks...")
-    df = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals)
+    # Step 2: Fetch live stock data
+    progress_bar.progress(30, text=f"Step 2/4: Fetching live prices for {len(fundamentals)} stocks...")
+    df = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live_mode_toggle)
     
     if df.empty:
         progress_bar.empty()
         st.error("⚠️ Data Fetch Failed! Check internet.")
         st.stop()
     
-    # Step 3: Finalize
-    progress_bar.progress(90, text="Step 3/3: Calculating scores...")
+    # Step 3: Pre-fetch Nifty index data (shared across all pages)
+    progress_bar.progress(80, text="Step 3/4: Fetching Nifty index data...")
+    try:
+        _nifty_start = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
+        _nifty_data = yf.Ticker("^NSEI").history(start=_nifty_start)
+        if not _nifty_data.empty:
+            st.session_state['nifty_data'] = _nifty_data
+    except Exception:
+        pass  # Non-fatal — individual pages can fallback
+    
+    # Step 4: Finalize
+    progress_bar.progress(95, text="Step 4/4: Calculating scores...")
     st.session_state['market_data'] = df
     st.session_state['data_loaded_at'] = datetime.now()
     
@@ -134,7 +186,7 @@ if 'market_data' not in st.session_state:
          st.session_state['sector_pe_cache'] = df.groupby('sector')['pe'].median().to_dict()
     
     progress_bar.progress(100, text="✅ Ready!")
-    import time; time.sleep(0.5)
+    time.sleep(0.5)
     progress_bar.empty()
     load_status.empty()
 
@@ -202,32 +254,36 @@ if triggered_positions and 'pos_alerts_notified' not in st.session_state:
     
     st.session_state['pos_alerts_notified'] = True
 
-# Debug: Show data verification
-with st.sidebar.expander("🔍 Debug Data"):
-    st.write(f"Columns: {len(df.columns)}")
-    if 'trend_signal' in df.columns:
-        st.write("Signals:", df['trend_signal'].value_counts().to_dict())
-    else:
-        st.error("trend_signal column MISSING!")
-    if 'trend_score' in df.columns:
-        st.write(f"Trend Score Range: {df['trend_score'].min()} - {df['trend_score'].max()}")
-    else:
-        st.error("trend_score column MISSING!")
-    
-    # Show available price fields from first row
-    st.write("**Sample Row Keys (first stock):**")
-    sample = df.iloc[0].dropna().to_dict()
-    price_keys = [k for k in sample.keys() if any(x in k.lower() for x in ['price', 'average', 'high', 'low', '52', 'week'])]
-    st.write(price_keys[:15])
+# Render persistent alert panel in sidebar (regardless of notification state)
+if triggered_positions:
+    st.sidebar.markdown(sidebar_alert_panel(triggered_positions), unsafe_allow_html=True)
+else:
+    st.sidebar.caption("✅ No alerts")
+
+# Debug: Show data verification (only if DASH_DEBUG=1)
+if DASH_DEBUG:
+    with st.sidebar.expander("🔍 Debug Data"):
+        st.write(f"Columns: {len(df.columns)}")
+        if 'trend_signal' in df.columns:
+            st.write("Signals:", df['trend_signal'].value_counts().to_dict())
+        else:
+            st.error("trend_signal column MISSING!")
+        if 'trend_score' in df.columns:
+            st.write(f"Trend Score Range: {df['trend_score'].min()} - {df['trend_score'].max()}")
+        else:
+            st.error("trend_score column MISSING!")
+        sample = df.iloc[0].dropna().to_dict()
+        price_keys = [k for k in sample.keys() if any(x in k.lower() for x in ['price', 'average', 'high', 'low', '52', 'week'])]
+        st.write(price_keys[:15])
 
 
-from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
+# trend_engine imports moved to top
 
 # (Auto-alert check is now handled by the unified position alert system above)
 
 # === DNA3 MORNING BRIEF AUTO-TRIGGER (Once per day on dashboard load) ===
 try:
-    import json as _json
+    _json = json
     _config_path = "config.json"
     _config = {}
     if os.path.exists(_config_path):
@@ -270,8 +326,7 @@ if 'active_workspace' not in st.session_state:
 active_workspace = st.sidebar.selectbox("📂 Workspace", [
     "🔍 Market Specs", 
     "📋 Portfolio Manager", 
-    "⚖️ Analysis Lab", 
-    "⚙️ Strategy & Backtest"
+    "⚖️ Analysis Lab"
 ], key="active_workspace")
 
 page = "🌊 Trend Scanner" # Default
@@ -280,13 +335,10 @@ if active_workspace == "🔍 Market Specs":
     page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
-    page = st.sidebar.radio("Tools", ["📊 Return Tracker", "⚠️ Alerts Configuration", "📝 Notes"], key="page_portfolio")
+    page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
     
 elif active_workspace == "⚖️ Analysis Lab":
     page = st.sidebar.radio("Tools", ["⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"], key="page_analysis")
-    
-elif active_workspace == "⚙️ Strategy & Backtest":
-    page = st.sidebar.radio("Tools", ["🔬 Strategy Lab", "📈 Portfolio Backtest"], key="page_strategy")
 
 # Handle auto-navigation override (e.g. from Deep Dive buttons)
 if 'nav_page' in st.session_state:
@@ -356,7 +408,6 @@ if page == "⚖️ Compare Stocks":
             st.markdown("### 📊 Score Comparison")
             
             # Radar chart comparison
-            import plotly.graph_objects as go
             
             categories = ['Trend', 'Quality', 'Value', 'Growth', 'Momentum', 'Volume']
             
@@ -396,7 +447,7 @@ if page == "⚖️ Compare Stocks":
             fig.update_layout(
                 polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
                 showlegend=True,
-                template='plotly_dark',
+                template='plotly_white',
                 height=400
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -405,8 +456,7 @@ if page == "⚖️ Compare Stocks":
             st.markdown("---")
             st.markdown("### 📈 Price Performance (Last 6 Months)")
             
-            import yfinance as yf
-            from datetime import datetime, timedelta
+
             
             end_date = datetime.now()
             start_date = end_date - timedelta(days=180)
@@ -426,7 +476,7 @@ if page == "⚖️ Compare Stocks":
                 fig2.add_hline(y=100, line_dash="dash", line_color="gray", annotation_text="Base")
                 fig2.update_layout(
                     height=350,
-                    template='plotly_dark',
+                    template='plotly_white',
                     yaxis_title='Performance (Base 100)',
                     legend=dict(orientation="h", yanchor="bottom", y=1.02)
                 )
@@ -449,16 +499,17 @@ elif page == "🔍 Market Explorer":
 
 # --- VIEW: LIVE TRADING DESK (DNA3-V4 + REGIME) ---
 elif page == "🚀 Live Trading Desk":
-    st.markdown(page_header("🚀 DNA3-V3.1: The Live Trading Desk", "Pure mathematical momentum deployment guided by 15-Year out-of-sample Regime & Seasonality analytics."), unsafe_allow_html=True)
+    st.markdown(page_header("🚀 V3.1 Momentum Engine: The Live Trading Desk", "Pure mathematical momentum deployment guided by 15-Year out-of-sample Regime & Seasonality analytics."), unsafe_allow_html=True)
     
     from utils.live_desk import get_live_regime, generate_v3_watchlist
-    import yfinance as yf
-    from datetime import datetime, timedelta
     
-    # 1. Fetch Nifty for Regime calculation
+    # 1. Use centralized Nifty data (pre-fetched at startup)
     with st.spinner("Calculating Live Macro Regime..."):
-        start_date = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
-        nifty_live = yf.Ticker("^NSEI").history(start=start_date)
+        if 'nifty_data' in st.session_state:
+            nifty_live = st.session_state['nifty_data']
+        else:
+            start_date = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
+            nifty_live = yf.Ticker("^NSEI").history(start=start_date)
         if not nifty_live.empty:
             regime_data = get_live_regime(nifty_live)
             
@@ -481,24 +532,26 @@ elif page == "🚀 Live Trading Desk":
             st.markdown("---")
             
             # 2. V3.1 Momentum Engine + Seasonal Indicators
-            st.markdown("### 📅 DNA3-V3.1: THE WATCHLIST")
+            st.markdown("### 📅 V3.1 Momentum Engine: THE WATCHLIST")
             st.caption(f"*Seasonality Warning:* Recent structural regime changes have broken historical calendar correlations. Seasonality is now shown as an **indicator only**, rather than a strict filter.")
             
             with st.spinner("Running V3.1 Engine + Seasonality checks..."):
                 v3_watchlist = generate_v3_watchlist(df)
                 
                 if not v3_watchlist.empty:
+                    v3_watchlist['screener_link'] = "https://www.screener.in/company/" + v3_watchlist['Ticker'].str.replace('.NS', '', regex=False) + "/"
                     st.dataframe(
-                        v3_watchlist[['Ticker', 'Target', 'Sector', 'Price', 'V3_Score', 'Cyclicity', 'Seasonality', 'PEAD_Edge']],
+                        v3_watchlist[['screener_link', 'Target', 'Sector', 'Price', 'V3_Score', 'Cyclicity', 'Seasonality', 'PEAD_Edge', 'Vol_Badge']],
                         column_config={
-                            "Ticker": st.column_config.TextColumn("Ticker", width="small"),
+                            "screener_link": st.column_config.LinkColumn("Ticker", width="small", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                             "Target": "Company Name",
                             "Sector": "Industry Theme",
                             "Price": st.column_config.NumberColumn("CMP", format="₹%.0f"),
                             "V3_Score": st.column_config.ProgressColumn("Trend Conviction", format="%.0f", min_value=0, max_value=100),
                             "Cyclicity": st.column_config.TextColumn("Risk Policy", help="Determines wide (-20%) vs tight (-8%) trailing stops"),
                             "Seasonality": st.column_config.TextColumn("Seasonality", help="Warning indicator only based on 15Y odds"),
-                            "PEAD_Edge": st.column_config.TextColumn("Earnings Edge", help="Historical Post-Earnings Reaction")
+                            "PEAD_Edge": st.column_config.TextColumn("Earnings Edge", help="Historical Post-Earnings Reaction"),
+                            "Vol_Badge": st.column_config.TextColumn("Inst. Flow", help="Up/Down Volume > 1.2 indicates institutional accumulation")
                         },
                         hide_index=True,
                         use_container_width=True
@@ -545,9 +598,12 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("Extremely tight 10D range + Volume dried up < 50% of 60D Avg. Indicates supply exhaustion before breakout.")
                     if vcp_list:
                         vcp_df = pd.DataFrame(vcp_list)
+                        vcp_df['screener_link'] = "https://www.screener.in/company/" + vcp_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
                         st.dataframe(
-                            vcp_df[['Ticker', 'Price', 'Compression', 'Vol_Ratio']],
+                            vcp_df[['screener_link', 'Price', 'Compression', 'Vol_Ratio']],
                             column_config={
+                                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                                "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
                                 "Compression": st.column_config.NumberColumn("10D ATR%", format="%.1f%%"),
                                 "Vol_Ratio": st.column_config.NumberColumn("Vol vs 60D", format="%.0f%%")
                             },
@@ -561,9 +617,11 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("Green in a sea of Red. Stocks closing positive > 0.5% while Nifty fell > -0.5% today.")
                     if rs_list:
                         rs_df = pd.DataFrame(rs_list)
+                        rs_df['screener_link'] = "https://www.screener.in/company/" + rs_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
                         st.dataframe(
-                            rs_df[['Ticker', 'Stock_Ret', 'Delta_RS', 'Dist_52W']],
+                            rs_df[['screener_link', 'Stock_Ret', 'Delta_RS', 'Dist_52W']],
                             column_config={
+                                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                                 "Stock_Ret": st.column_config.NumberColumn("Today %", format="%+.1f%%"),
                                 "Delta_RS": st.column_config.NumberColumn("vs Nifty %", format="%+.1f%%"),
                                 "Dist_52W": st.column_config.NumberColumn("Dist to 52W", format="%.1f%%")
@@ -578,9 +636,11 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("Day-0 >5% Gap on >300% Volume. Use PEAD Edge to Buy vs Fade.")
                     if shock_list:
                         shk_df = pd.DataFrame(shock_list)
+                        shk_df['screener_link'] = "https://www.screener.in/company/" + shk_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
                         st.dataframe(
-                            shk_df[['Ticker', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
+                            shk_df[['screener_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                             column_config={
+                                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                                 "Jump_Pct": st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
                                 "Vol_Mult": st.column_config.NumberColumn("Vol Ratio", format="%.1fx average"),
                                 "PEAD_Action": "Playbook Action"
@@ -599,8 +659,6 @@ elif page == "🌊 Trend Scanner":
     st.markdown(page_header("🌊 Alpha Trend Scanner", "Real-time momentum intelligence for Nifty 500 | Powered by AI"), unsafe_allow_html=True)
     
     # === DNA3-V2.1 MODEL PORTFOLIO SECTION (LIVE TRACKING) ===
-    import json
-    import os
     
     DNA3_SNAPSHOT = "data/dna3_portfolio_snapshot.json"
     DNA3_EQUITY = "data/dna3_equity_curve.csv"
@@ -612,72 +670,72 @@ elif page == "🌊 Trend Scanner":
                 dna3_data = json.load(f)
             
             # Load Equity Curve for returns
-            live_return = "0.0%"
+            live_return_pct = 0.0
             equity_val = 1000000
             
             if os.path.exists(DNA3_EQUITY):
                 eq_df = pd.read_csv(DNA3_EQUITY)
                 if not eq_df.empty:
                     last_eq = eq_df['Equity'].iloc[-1]
-                    start_eq = 1000000 # 10L Start
-                    ret_abs = (last_eq - start_eq) / start_eq * 100
-                    live_return = f"{ret_abs:+.1f}%"
+                    start_eq = 1000000
+                    live_return_pct = (last_eq - start_eq) / start_eq * 100
                     equity_val = last_eq
 
-            with st.expander("🧬 **DNA3-V2.1 Model Portfolio (Live Tracking)**", expanded=True):
-                d_col1, d_col2 = st.columns([1, 3], gap="medium")
-                
-                with d_col1:
-                    # Live Metrics
-                    st.metric("Live Return (Since Feb '26)", live_return, delta="Real Money Performance")
-                    st.metric("Net Asset Value", f"₹{equity_val:,.0f}")
-                    st.metric("Current Holdings", f"{dna3_data.get('count', 0)} Stocks")
-                    
-                    st.caption(f"Strategy: Price > MA50 + RS > 0")
-                    
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        if st.button("🔄 Refresh"):
-                            with st.spinner("Updating Live Portfolio..."):
-                                import subprocess
-                                subprocess.run(["python", "dna3_current_portfolio.py"])
-                                st.rerun()
-                    with c2:
-                        # Export Trade Log
-                        if os.path.exists(DNA3_LOG):
-                            with open(DNA3_LOG, "rb") as file:
-                                st.download_button(
-                                    label="📥 Log",
-                                    data=file,
-                                    file_name="dna3_trade_log.csv",
-                                    mime="text/csv"
-                                )
-                
-                with d_col2:
-                    if dna3_data.get('portfolio'):
-                        p_df = pd.DataFrame(dna3_data['portfolio'])
-                        st.dataframe(
-                            p_df[['Ticker', 'Sector', 'Price', 'Entry', 'PnL%', 'RS_Score', 'Dist_MA50']],
-                            column_config={
-                                "Ticker": "Stock",
-                                "Price": st.column_config.NumberColumn("Current Price", format="₹%.2f"),
-                                "Entry": st.column_config.NumberColumn("Entry Price", format="₹%.2f"),
-                                "PnL%": st.column_config.NumberColumn("Unrealized P&L", format="%+.1f%%"),
-                                "RS_Score": st.column_config.ProgressColumn("RS Score", min_value=0, max_value=100, format="%.1f"),
-                                "Dist_MA50": st.column_config.NumberColumn("% vs MA50", format="%.1f%%")
-                            },
-                            hide_index=True,
-                            use_container_width=True,
-                            height=280
+            # === HERO P&L CARD (Robinhood-style) ===
+            st.markdown(hero_pnl_card(
+                portfolio_value=equity_val,
+                return_pct=live_return_pct,
+                holdings_count=dna3_data.get('count', 0)
+            ), unsafe_allow_html=True)
+            
+            # Portfolio details + controls row
+            hero_left, hero_right = st.columns([3, 1])
+            
+            with hero_left:
+                if dna3_data.get('portfolio'):
+                    p_df = pd.DataFrame(dna3_data['portfolio'])
+                    p_df['screener_link'] = "https://www.screener.in/company/" + p_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
+                    st.dataframe(
+                        p_df[['screener_link', 'Sector', 'Price', 'Entry', 'PnL%', 'RS_Score', 'Dist_MA50']],
+                        column_config={
+                            "screener_link": st.column_config.LinkColumn("Stock", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                            "Price": st.column_config.NumberColumn("Current Price", format="₹%.2f"),
+                            "Entry": st.column_config.NumberColumn("Entry Price", format="₹%.2f"),
+                            "PnL%": st.column_config.NumberColumn("Unrealized P&L", format="%+.1f%%"),
+                            "RS_Score": st.column_config.ProgressColumn("RS Score", min_value=0, max_value=100, format="%.1f"),
+                            "Dist_MA50": st.column_config.NumberColumn("% vs MA50", format="%.1f%%")
+                        },
+                        hide_index=True,
+                        use_container_width=True,
+                        height=250
+                    )
+                else:
+                    st.info("No stocks meet DNA3 criteria currently (Cash Mode).")
+            
+            with hero_right:
+                if st.button("🔄 Refresh Portfolio", use_container_width=True):
+                    with st.spinner("Updating..."):
+                        subprocess.Popen(["python", "dna3_current_portfolio.py"],
+                                         stdout=subprocess.DEVNULL,
+                                         stderr=subprocess.DEVNULL)
+                        time.sleep(2)
+                        st.rerun()
+                if os.path.exists(DNA3_LOG):
+                    with open(DNA3_LOG, "rb") as file:
+                        st.download_button(
+                            label="📥 Trade Log",
+                            data=file,
+                            file_name="dna3_trade_log.csv",
+                            mime="text/csv",
+                            use_container_width=True
                         )
-                    else:
-                        st.info("No stocks meet DNA3 criteria currently (Cash Mode).")
+
         except Exception as e:
             st.error(f"Error loading DNA3 Portfolio: {e}")
     
     # === DNA3 ALERT CONTROLS ===
     with st.expander("🔔 **DNA3 Alert Settings** (Telegram + Email)", expanded=False):
-        import json as _json
+        _json = json
         _config_path = "config.json"
         _config = {}
         if os.path.exists(_config_path):
@@ -741,7 +799,7 @@ elif page == "🌊 Trend Scanner":
     col4.metric("🔥 Breakout Alerts", f"{breakout_count}", help="Near 52-week highs")
     
     # === MARKET MOOD HISTORY CHART ===
-    from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood
+    # market_mood imports at top
     
     # Save today's snapshot
     mood_metrics = calculate_mood_metrics(df)
@@ -771,12 +829,16 @@ elif page == "🌊 Trend Scanner":
     else:
         st.caption("📊 Market Mood chart will appear after 2+ days of tracking.")
     
+    # === MARKET BREADTH MONITOR (Narrow Market Detector) ===
+    # market_breadth import at top
+    render_breadth_widget(df)
+    
     # === MARKET TIMING SIGNALS (Based on Analysis) ===
     current_score = avg_trend
     previous_score = mood_history['avg_trend_score'].iloc[-2] if len(mood_history) > 1 else current_score
     
     # Mood Alert Widget
-    mood_cols = st.columns([2, 3, 3])
+    mood_cols = st.columns([1, 2])
     
     with mood_cols[0]:
         # Determine mood zone
@@ -803,57 +865,14 @@ elif page == "🌊 Trend Scanner":
         """, unsafe_allow_html=True)
     
     with mood_cols[1]:
-        # Sector Rotation Signal Panel - Based on Correlation Analysis
-        st.markdown("**📊 Sector Rotation Signal**")
-        
-        if current_score < 40:
-            st.success("🔥 **STRONG BUY**: Auto, Energy, Midcap")
-            st.info("✅ **BUY**: Realty, PSE, Infra")
-            st.warning("⏸️ **HOLD**: IT (wait for high mood)")
-            st.caption("Expected 90D: Auto +10%, Energy +4%, Midcap +4%")
-        elif current_score > 65:
-            st.success("✅ **BUY**: IT sector (+8.7% expected)")
-            st.error("❌ **AVOID**: Realty (-5%), Energy (-3%), Midcap (-1%)")
-            st.warning("💰 Book profits in cyclicals")
+        # Score change alert
+        score_change = current_score - previous_score
+        if current_score < 40 and previous_score >= 40:
+            st.warning("🚨 **ALERT**: Score dropped below 40 - Potential BUY signal for Midcap/Bank!")
+        elif current_score > 65 and previous_score <= 65:
+            st.info("📢 **ALERT**: Score crossed above 65 - Consider IT sector, reduce Midcap exposure")
         else:
-            # 40-65 range
-            st.info("⏸️ **HOLD**: Current positions")
-            if current_score < 50:
-                st.caption("Approaching BUY zone - watch Auto, Energy")
-            else:
-                st.caption("Approaching CAUTION zone - watch IT")
-        
-        st.caption(f"Optimal Horizon: 60-90 days")
-    
-    with mood_cols[2]:
-        # Enhanced Sector Signal Table based on analysis
-        st.markdown("**📈 Sector Signal Strength**")
-        
-        # Tiered sector data from analysis
-        sector_data = {
-            "Sector": ["Auto 🏆", "Energy 🏆", "Midcap", "Realty", "IT 🔄"],
-            "Corr": ["-0.72", "-0.78", "-0.81", "-0.64", "+0.26"],
-            "@ <40": ["+10%", "+4%", "+4%", "+4%", "+5%"],
-            "@ >70": ["+3%", "-3%", "-1%", "-5%", "+9%"],
-        }
-        st.dataframe(
-            pd.DataFrame(sector_data),
-            hide_index=True,
-            use_container_width=True,
-            column_config={
-                "Sector": st.column_config.TextColumn("Sector"),
-                "Corr": st.column_config.TextColumn("Signal"),
-                "@ <40": st.column_config.TextColumn("Low Mood"),
-                "@ >70": st.column_config.TextColumn("High Mood"),
-            }
-        )
-    
-    # Score change alert
-    score_change = current_score - previous_score
-    if current_score < 40 and previous_score >= 40:
-        st.warning("🚨 **ALERT**: Score dropped below 40 - Potential BUY signal for Midcap/Bank!")
-    elif current_score > 65 and previous_score <= 65:
-        st.info("📢 **ALERT**: Score crossed above 65 - Consider IT sector, reduce Midcap exposure")
+            st.info("📊 Stable market mood. Maintain current strategy.")
     
     st.markdown("---")
 
@@ -878,11 +897,12 @@ elif page == "🌊 Trend Scanner":
     if not breakouts.empty:
         with st.expander(f"🚨 **{len(breakouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
             # Sort by closest to high
-            breakouts_sorted = breakouts.nsmallest(20, 'dist_52w')
+            breakouts_sorted = breakouts.nsmallest(20, 'dist_52w').copy()
+            breakouts_sorted['screener_link'] = "https://www.screener.in/company/" + breakouts_sorted['ticker'].str.replace('.NS', '', regex=False) + "/"
             st.dataframe(
-                breakouts_sorted[['ticker', 'name', 'price', 'dist_52w', 'trend_score', 'overall']],
+                breakouts_sorted[['screener_link', 'name', 'price', 'dist_52w', 'trend_score', 'overall']],
                 column_config={
-                    "ticker": "Ticker",
+                    "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                     "name": "Company", 
                     "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
                     "dist_52w": st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -984,7 +1004,7 @@ elif page == "🌊 Trend Scanner":
     if filtered_df.empty:
         st.warning("No stocks found matching these filters.")
         if st.button("🔄 Force Refresh Data"):
-            import os
+
             # Remove both caches to force full rebuild
             if os.path.exists("nifty500_cache.csv"): os.remove("nifty500_cache.csv")
             if os.path.exists("market_data.parquet"): os.remove("market_data.parquet")
@@ -996,7 +1016,7 @@ elif page == "🌊 Trend Scanner":
     st.subheader(f"Found {len(filtered_df)} Momentum Stocks")
     
     # Ensure columns exist (handle legacy cache)
-    for col in ['rs_3m', 'volatility', 'dna_signal']:
+    for col in ['comp_rs', 'volatility', 'dna_signal']:
         if col not in filtered_df.columns:
             filtered_df[col] = None
     
@@ -1012,7 +1032,7 @@ elif page == "🌊 Trend Scanner":
         
         # Map friendly name to df column
         col_map = {
-            "RS Score (vs Nifty)": "rs_3m",
+            "RS Score (vs Nifty)": "comp_rs",
             "Volatility": "volatility",
             "Trend Score": "trend_score",
             "Distance from 52W High": "dist_52w",
@@ -1029,23 +1049,26 @@ elif page == "🌊 Trend Scanner":
             except:
                 min_val, max_val = 0.0, 100.0
             
-            filter_val = st.slider(f"Minimum {filter_col}", min_val, max_val, min_val)
+            filter_val = st.slider(f"{filter_col} Range", min_val, max_val, (min_val, max_val))
             
-        # Apply Filter (only if user moved the slider from minimum)
-        if target_col in filtered_df.columns and filter_val > min_val:
-            # Keep rows where value >= filter OR value is NaN (no data yet)
+        # Apply Filter (only if user moved the slider from defaults)
+        if target_col in filtered_df.columns and (filter_val[0] > min_val or filter_val[1] < max_val):
+            # Keep rows within range OR value is NaN (no data yet)
             filtered_df = filtered_df[
-                (filtered_df[target_col] >= filter_val) | (filtered_df[target_col].isna())
+                ((filtered_df[target_col] >= filter_val[0]) & (filtered_df[target_col] <= filter_val[1])) | (filtered_df[target_col].isna())
             ]
-            st.caption(f"Showing {len(filtered_df)} stocks with {filter_col} >= {filter_val:.1f}")
+            st.caption(f"Showing {len(filtered_df)} stocks with {filter_col} between {filter_val[0]:.1f} and {filter_val[1]:.1f}")
 
-    display_cols = ['ticker', 'name', 'sector', 'price', 'trend_signal', 'trend_score', 'rs_3m', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
+    display_cols = ['screener_link', 'name', 'sector', 'price', 'trend_signal', 'trend_score', 'comp_rs', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
+
+    filtered_df['screener_link'] = "https://www.screener.in/company/" + filtered_df['ticker'].str.replace('.NS', '', regex=False) + "/"
 
     st.dataframe(
         filtered_df[display_cols].sort_values(by='trend_score', ascending=False),
         column_config={
+            "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
             "trend_score": st.column_config.ProgressColumn("Trend Score", format="%d", min_value=0, max_value=100),
             "price": st.column_config.NumberColumn("Price", format="₹ %.2f"),
             "dist_52w": st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -1056,7 +1079,7 @@ elif page == "🌊 Trend Scanner":
             "growth": st.column_config.ProgressColumn("Growth", min_value=0, max_value=10, format="%.1f"),
             "momentum": st.column_config.ProgressColumn("Momentum", min_value=0, max_value=10, format="%.1f"),
             "volume_signal_score": st.column_config.ProgressColumn("Volume", min_value=0, max_value=10, format="%.1f"),
-            "rs_3m": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%", help="3-Month Relative Strength vs Nifty"),
+            "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%", help="Composite Relative Strength vs Nifty (1W+1M+3M)"),
             "volatility": st.column_config.NumberColumn("Volatility", format="%.0f%%", help="Annualized Price Volatility"),
             "dna_signal": st.column_config.TextColumn("DNA Signal", help="BUY = All DNA-3 filters pass"),
         },
@@ -1210,7 +1233,6 @@ elif page == "📊 Return Tracker":
                     status = "⚠️ Near SL"
                 
                 # Calculate days
-                from datetime import datetime
                 entry_date = pos.get('entry_date')
                 days = 0
                 if entry_date:
@@ -1390,6 +1412,10 @@ elif page == "📊 Return Tracker":
         
         with alert_col1:
             st.markdown("#### Active Alerts")
+            
+            # Fetch alerts using the utility function from alerts.py
+            from utils.alerts import get_alerts_with_pnl
+            all_alerts = get_alerts_with_pnl(df)
             
             if all_alerts:
                 for alert in all_alerts:
@@ -1598,7 +1624,7 @@ elif page == "📊 Return Tracker":
                             st.toast("Email configured! Refresh to see changes.", icon="✅")
             
             with email_col2:
-                if is_email_configured() and tracked_returns:
+                if is_email_configured():
                     if st.button("📤 Send Report", use_container_width=True, key="send_email_report"):
                         with st.spinner("Generating email report..."):
                             summary_data = export_weekly_summary(df)
@@ -1654,8 +1680,8 @@ elif page == "📊 Return Tracker":
                             else:
                                 st.toast(f"❌ Failed: {msg}", icon="⚠️")
                     
-                    if tracked_returns:
-                        if st.button("📊 Send Summary", use_container_width=True, key="send_tg_summary"):
+                    # Weekly summary button enabled unconditionally
+                    if st.button("📊 Send Summary", use_container_width=True, key="send_tg_summary"):
                             with st.spinner("Generating summary..."):
                                 summary_data = export_weekly_summary(df)
                                 success, msg = tg_send_summary(summary_data)
@@ -1699,8 +1725,6 @@ elif page == "📈 Portfolio Backtest":
     from utils.portfolio_backtest import (
         run_backtest, get_current_portfolio_from_scores, BACKTEST_CONFIG
     )
-    import plotly.express as px
-    import plotly.graph_objects as go
     
     st.markdown(page_header("📈 Portfolio Backtest", "Validate trend scores with real historical returns | 6-month backtest • Bi-weekly rebalancing • ₹2L capital"), unsafe_allow_html=True)
     
@@ -1743,6 +1767,7 @@ elif page == "📈 Portfolio Backtest":
                 "trend_score": st.column_config.ProgressColumn("Trend Score", min_value=0, max_value=100),
                 "trend_signal": st.column_config.TextColumn("Signal"),
                 "overall": st.column_config.NumberColumn("Overall", format="%.1f"),
+                "comp_rs": st.column_config.NumberColumn("OptComp RS", format="%.2f", help="Composite RS vs Nifty (1W/1M/3M)"),
                 "target_allocation": st.column_config.NumberColumn("Allocation ₹", format="%.0f"),
                 "target_shares": st.column_config.NumberColumn("Target Shares", format="%d"),
             },
@@ -1761,7 +1786,7 @@ elif page == "📈 Portfolio Backtest":
             color_discrete_sequence=px.colors.qualitative.Set2
         )
         fig_sector.update_layout(
-            template='plotly_dark',
+            template='plotly_white',
             paper_bgcolor='rgba(0,0,0,0)',
             height=300
         )
@@ -1902,7 +1927,7 @@ elif page == "📈 Portfolio Backtest":
                 ))
                 
                 fig_equity.update_layout(
-                    template='plotly_dark',
+                    template='plotly_white',
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
                     height=400,
@@ -1980,7 +2005,7 @@ elif page == "📈 Portfolio Backtest":
                             fig_hm.update_layout(
                                 title=f"Trend vs {factor_name} (Avg Return %)",
                                 height=350,
-                                template='plotly_dark',
+                                template='plotly_white',
                                 xaxis_title='Trend Bucket',
                                 yaxis_title=f'{factor_name} Bucket',
                                 yaxis={'categoryorder':'category descending'}
@@ -2005,7 +2030,7 @@ elif page == "📈 Portfolio Backtest":
                         hole=0.4,
                         color_discrete_sequence=px.colors.qualitative.Set3
                     )
-                    fig_pie.update_layout(height=300, showlegend=True, template='plotly_dark')
+                    fig_pie.update_layout(height=300, showlegend=True, template='plotly_white')
                     st.plotly_chart(fig_pie, use_container_width=True)
                 
                 with ea_col2:
@@ -2231,7 +2256,7 @@ elif page == "📈 Portfolio Backtest":
                 title='Alpha vs Benchmark by Strategy'
             )
             fig_alpha.update_layout(
-                template='plotly_dark',
+                template='plotly_white',
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 height=350
@@ -2258,7 +2283,7 @@ elif page == "📈 Portfolio Backtest":
             ))
             fig_risk.update_layout(
                 barmode='group',
-                template='plotly_dark',
+                template='plotly_white',
                 paper_bgcolor='rgba(0,0,0,0)',
                 height=300,
                 legend=dict(orientation='h')
@@ -2289,7 +2314,7 @@ elif page == "📈 Portfolio Backtest":
                         ))
                         fig_hm.update_layout(
                             height=350,
-                            template='plotly_dark',
+                            template='plotly_white',
                             xaxis_title='Trend Score', 
                             yaxis_title='Quality Score',
                             title=f"Return Heatmap ({best_key})"
@@ -2310,7 +2335,7 @@ elif page == "📈 Portfolio Backtest":
                                 color_discrete_sequence=px.colors.qualitative.Set3,
                                 title="Exit Reasons"
                             )
-                            fig_pie.update_layout(height=300, template='plotly_dark')
+                            fig_pie.update_layout(height=300, template='plotly_white')
                             st.plotly_chart(fig_pie, use_container_width=True)
                     with ea_col2:
                         st.dataframe(best_exit, use_container_width=True)
@@ -2326,8 +2351,6 @@ elif page == "🔬 Strategy Lab":
         run_optimization, get_top_strategies, generate_heatmap_data,
         DEFAULT_GRID, FIXED_PARAMS, run_quick_backtest
     )
-    import plotly.express as px
-    import plotly.graph_objects as go
     
     st.markdown(page_header("🔬 Strategy Lab", "Test parameter combinations to find high-alpha strategies"), unsafe_allow_html=True)
     
@@ -2408,7 +2431,7 @@ elif page == "🔬 Strategy Lab":
                     eq_df = result.get('equity_curve')
                     if eq_df is not None and not eq_df.empty:
                         fig = px.line(eq_df, x='date', y='equity', title='Equity Curve')
-                        fig.update_layout(height=300, template='plotly_dark')
+                        fig.update_layout(height=300, template='plotly_white')
                         st.plotly_chart(fig, use_container_width=True)
                     
                     # Trade log
@@ -2496,8 +2519,7 @@ elif page == "🔬 Strategy Lab":
                 # Equity curve with benchmark overlay
                 eq_df = result.get('equity_curve')
                 if eq_df is not None and not eq_df.empty:
-                    import plotly.graph_objects as go
-                    import yfinance as yf
+
                     
                     fig = go.Figure()
                     
@@ -2529,7 +2551,7 @@ elif page == "🔬 Strategy Lab":
                         pass
                     
                     fig.update_layout(
-                        height=280, template='plotly_dark',
+                        height=280, template='plotly_white',
                         title='Equity Curve vs Benchmark (Base 100)',
                         legend=dict(orientation="h", yanchor="bottom", y=1.02),
                         xaxis_title='', yaxis_title='Value'
@@ -2607,7 +2629,7 @@ elif page == "🔬 Strategy Lab":
                         generate_param_grid, run_quick_backtest, calculate_composite_score,
                         ENTRY_GRID, STAGE1_FIXED_EXITS, FIXED_PARAMS
                     )
-                    from datetime import datetime, timedelta
+
                     from utils.portfolio_backtest import fetch_historical_prices
                 
                     # Generate configs using ENTRY_GRID with fixed exit params
@@ -2795,7 +2817,7 @@ elif page == "🔬 Strategy Lab":
                             generate_param_grid, run_quick_backtest, calculate_composite_score,
                             EXIT_GRID, FIXED_PARAMS
                         )
-                        from datetime import datetime, timedelta
+
                         from utils.portfolio_backtest import fetch_historical_prices
                         
                         # Generate exit configs with fixed entry from Stage 1
@@ -3076,7 +3098,7 @@ elif page == "🔬 Strategy Lab":
                 if st.button("▶️ Run Portfolio Backtest", type="primary", use_container_width=True, key="run_portfolio_bt"):
                     # Build config
                     from utils.strategy_optimizer import FIXED_PARAMS, run_quick_backtest
-                    from datetime import datetime, timedelta
+
                     from utils.portfolio_backtest import fetch_historical_prices
                     
                     config = {
@@ -3125,7 +3147,7 @@ elif page == "🔬 Strategy Lab":
                         # Equity curve
                         eq_df = result.get('equity_curve')
                         if eq_df is not None and not eq_df.empty:
-                            import yfinance as yf
+
                             
                             # Fetch benchmark
                             bench = yf.download("^CRSLDX", start=eq_df['date'].min(), end=eq_df['date'].max(), progress=False)
@@ -3139,11 +3161,11 @@ elif page == "🔬 Strategy Lab":
                                 fig = go.Figure()
                                 fig.add_trace(go.Scatter(x=eq_df['date'], y=eq_df['portfolio'], name='Portfolio', line=dict(color='#00d4ff', width=2)))
                                 fig.add_trace(go.Scatter(x=bench_prices['date'], y=bench_prices['benchmark'], name='Nifty 500', line=dict(color='#ff6b6b', width=2, dash='dot')))
-                                fig.update_layout(height=350, template='plotly_dark', title='Portfolio vs Nifty 500 (Base 100)')
+                                fig.update_layout(height=350, template='plotly_white', title='Portfolio vs Nifty 500 (Base 100)')
                                 st.plotly_chart(fig, use_container_width=True)
                             else:
                                 fig = px.line(eq_df, x='date', y='equity', title='Equity Curve')
-                                fig.update_layout(height=300, template='plotly_dark')
+                                fig.update_layout(height=300, template='plotly_white')
                                 st.plotly_chart(fig, use_container_width=True)
                         
                         # Trade log
@@ -3170,127 +3192,127 @@ elif page == "📊 Sector Pulse":
     
     st.markdown(page_header("📊 Sector Pulse", "Deep dive into sector performance and stock rotation dynamics"), unsafe_allow_html=True)
     
-    # === SECTOR OVERVIEW ===
-    sector_analysis = analyze_sectors(df)
+    # === SECTOR TIMING SIGNALS ===
+    st.markdown("### 🎯 Sector Rotation & Timing Signals")
     
-    if sector_analysis.empty:
-        st.error("Could not analyze sectors. Check data quality.")
-        st.stop()
-    
-    # Display sector summary metrics
-    st.markdown("### 🏭 Sector Performance Overview")
-    
-    col1, col2, col3 = st.columns(3)
-    top_sector = sector_analysis.loc[sector_analysis['avg_overall'].idxmax()]
-    worst_sector = sector_analysis.loc[sector_analysis['avg_overall'].idxmin()]
-    top_momentum_sector = sector_analysis.loc[sector_analysis['avg_trend_score'].idxmax()]
-    
-    col1.metric("🏆 Top Rated Sector", top_sector.name, f"Score: {top_sector['avg_overall']:.1f}")
-    col2.metric("📉 Weakest Sector", worst_sector.name, f"Score: {worst_sector['avg_overall']:.1f}")
-    col3.metric("🚀 Best Momentum", top_momentum_sector.name, f"Trend: {top_momentum_sector['avg_trend_score']:.0f}")
-    
-    st.markdown("---")
-    
-    # Sector table
-    st.markdown("### 📋 Sector Breakdown")
-    st.dataframe(
-        sector_analysis.reset_index().rename(columns={'index': 'Sector'}),
-        column_config={
-            "Sector": st.column_config.TextColumn("Sector"),
-            "count": st.column_config.NumberColumn("Stocks", format="%d"),
-            "avg_overall": st.column_config.ProgressColumn("Avg Score", min_value=0, max_value=10, format="%.1f"),
-            "avg_trend_score": st.column_config.ProgressColumn("Avg Trend", min_value=0, max_value=100, format="%.0f"),
-            "avg_momentum": st.column_config.NumberColumn("Momentum", format="%.1f"),
-        },
-        hide_index=True,
-        height=400
-    )
-    
-    st.markdown("---")
-    
-    # === SECTOR ROTATION CHART (3M vs 1M Returns) ===
-    st.markdown("### 🔄 Sector Rotation Map")
-    st.caption("X: 3-Month Return | Y: 1-Month Return | Size: Avg Trend Score | Identifies sector rotation themes")
-    
-    import plotly.express as px
-    import plotly.graph_objects as go
-    
-    # Calculate sector-level returns
-    sector_returns = df.groupby('sector').agg({
-        'return_1m': 'mean',
-        'return_3m': 'mean',
-        'trend_score': 'mean',
-        'overall': 'mean',
-        'ticker': 'count'
-    }).reset_index()
-    sector_returns.columns = ['Sector', 'Return_1M', 'Return_3M', 'Avg_Trend', 'Avg_Score', 'Count']
-    
-    # Fill any NaN values
-    sector_returns['Return_1M'] = sector_returns['Return_1M'].fillna(0)
-    sector_returns['Return_3M'] = sector_returns['Return_3M'].fillna(0)
-    sector_returns['Avg_Trend'] = sector_returns['Avg_Trend'].fillna(50)
-    
-    # Create the sector rotation scatter plot
-    fig_rotation = px.scatter(
-        sector_returns,
-        x='Return_3M',
-        y='Return_1M',
-        size='Avg_Trend',
-        color='Avg_Score',
-        hover_name='Sector',
-        hover_data={'Count': True, 'Avg_Score': ':.1f', 'Avg_Trend': ':.0f', 'Return_1M': ':.1f', 'Return_3M': ':.1f'},
-        color_continuous_scale='RdYlGn',
-        range_color=[3, 7],
-        labels={
-            'Return_3M': '3-Month Return (%)',
-            'Return_1M': '1-Month Return (%)',
-            'Avg_Score': 'Quality Score'
-        },
-        text='Sector'
-    )
-    
-    # Add quadrant lines at 0
-    fig_rotation.add_hline(y=0, line_dash="dash", line_color="white", opacity=0.5)
-    fig_rotation.add_vline(x=0, line_dash="dash", line_color="white", opacity=0.5)
-    
-    # Quadrant labels
-    x_max = max(abs(sector_returns['Return_3M'].min()), abs(sector_returns['Return_3M'].max()), 5)
-    y_max = max(abs(sector_returns['Return_1M'].min()), abs(sector_returns['Return_1M'].max()), 3)
-    
-    fig_rotation.add_annotation(x=x_max*0.8, y=y_max*0.8, text="🚀 LEADING", showarrow=False, 
-                                font=dict(color="#00C853", size=14, family="Inter"))
-    fig_rotation.add_annotation(x=-x_max*0.8, y=y_max*0.8, text="📈 IMPROVING", showarrow=False, 
-                                font=dict(color="#2196F3", size=14, family="Inter"))
-    fig_rotation.add_annotation(x=x_max*0.8, y=-y_max*0.8, text="⚠️ WEAKENING", showarrow=False, 
-                                font=dict(color="#FF9800", size=14, family="Inter"))
-    fig_rotation.add_annotation(x=-x_max*0.8, y=-y_max*0.8, text="🔴 LAGGING", showarrow=False, 
-                                font=dict(color="#F44336", size=14, family="Inter"))
-    
-    fig_rotation.update_traces(textposition='top center', textfont=dict(size=10, color='white'))
-    
-    fig_rotation.update_layout(
-        height=500,
-        template='plotly_dark',
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Inter, sans-serif"),
-        showlegend=False
-    )
-    
-    st.plotly_chart(fig_rotation, use_container_width=True, key="sector_rotation_map")
-    
-    # Sector rotation interpretation
-    with st.expander("📖 How to Read the Sector Rotation Map"):
-        st.markdown("""
-        - **🚀 LEADING (Top-Right)**: Sectors with positive 3M AND 1M returns - Strong uptrend, market leaders
-        - **📈 IMPROVING (Top-Left)**: Negative 3M but positive 1M - Potential turnaround, momentum building
-        - **⚠️ WEAKENING (Bottom-Right)**: Positive 3M but negative 1M - Losing momentum, potential rotation out
-        - **🔴 LAGGING (Bottom-Left)**: Negative 3M AND 1M - Avoid, underperforming market
+    # Calculate current market mood score for signals
+    try:
+        from utils.trend_engine import load_mood_history
+        mood_history = load_mood_history()
+        current_score = mood_history['avg_trend_score'].iloc[-1] if not mood_history.empty else 50
+    except Exception:
+        current_score = 50
         
-        **Size** = Average Trend Score of stocks in sector  
-        **Color** = Average Quality Score (Green = High Quality, Red = Low Quality)
-        """)
+    signal_cols = st.columns([1, 1])
     
+    with signal_cols[0]:
+        # Sector Rotation Signal Panel - Based on Correlation Analysis
+        st.markdown("**📊 Current Rotation Signal**")
+        
+        if current_score < 40:
+            st.success("🔥 **STRONG BUY**: Auto, Energy, Midcap")
+            st.info("✅ **BUY**: Realty, PSE, Infra")
+            st.warning("⏸️ **HOLD**: IT (wait for high mood)")
+            st.caption("Expected 90D: Auto +10%, Energy +4%, Midcap +4%")
+        elif current_score > 65:
+            st.success("✅ **BUY**: IT sector (+8.7% expected)")
+            st.error("❌ **AVOID**: Realty (-5%), Energy (-3%), Midcap (-1%)")
+            st.warning("💰 Book profits in cyclicals")
+        else:
+            # 40-65 range
+            st.info("⏸️ **HOLD**: Current positions")
+            if current_score < 50:
+                st.caption("Approaching BUY zone - watch Auto, Energy")
+            else:
+                st.caption("Approaching CAUTION zone - watch IT")
+        st.caption(f"Market Mood Score: {current_score:.0f}/100 | Optimal Horizon: 60-90 days")
+
+    with signal_cols[1]:
+        # Enhanced Sector Signal Table based on analysis
+        st.markdown("**📈 Sector Correlation Matrix**")
+        
+        # Tiered sector data from analysis
+        sector_data = {
+            "Sector": ["Auto 🏆", "Energy 🏆", "Midcap", "Realty", "IT 🔄"],
+            "Corr": ["-0.72", "-0.78", "-0.81", "-0.64", "+0.26"],
+            "@ <40": ["+10%", "+4%", "+4%", "+4%", "+5%"],
+            "@ >70": ["+3%", "-3%", "-1%", "-5%", "+9%"],
+        }
+        st.dataframe(
+            pd.DataFrame(sector_data),
+            hide_index=True,
+            use_container_width=True,
+            column_config={
+                "Sector": st.column_config.TextColumn("Sector"),
+                "Corr": st.column_config.TextColumn("Signal"),
+                "@ <40": st.column_config.TextColumn("Low Mood"),
+                "@ >70": st.column_config.TextColumn("High Mood"),
+            }
+        )
+        
+    st.markdown("---")
+    
+    # === SUB-INDUSTRY ROTATION HEATMAP ===
+    st.markdown("### 🧬 Sub-Industry Rotation Matrix")
+    st.caption("Granular tracking of capital flow across the 58 Sub-Industries of the Nifty 1000.")
+    
+    sub_ind_file = "data/sub_industry_rotation.csv"
+    if os.path.exists(sub_ind_file):
+        try:
+            sub_df = pd.read_csv(sub_ind_file)
+            if not sub_df.empty:
+                st.dataframe(
+                    sub_df.sort_values(by="rs_momentum", ascending=False),
+                    column_config={
+                        "sub_industry": st.column_config.TextColumn("Sub-Industry"),
+                        "rs_momentum": st.column_config.NumberColumn("Momentum Score", format="%+.2f"),
+                        "top_components": st.column_config.TextColumn("Leading Stocks"),
+                        "record_date": "Updated On"
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    height=800
+                )
+            else:
+                st.info("Sub-Industry data is empty. Run trading_engine.py first.")
+        except Exception as e:
+            st.error(f"Error loading Sub-Industry rotation: {e}")
+    else:
+        st.info("Sub-Industry rotation engine has not run yet. (Run trading_engine.py locally or via GitHub Action to generate backend matrix)")
+    
+    st.markdown("---")
+    
+    # === GRANULAR INDUSTRY SEASONALITY CALENDAR ===
+    st.markdown("### 📅 Monthly Alpha Calendar (12-Month Lookahead)")
+    st.caption("Which granular industries historically peak or bottom out in each calendar month? Price Lead/Lag delays are explicitly calculated (e.g. Lead: 3mo means buy 3 months *before* this peak).")
+    
+    alpha_cal_df = get_monthly_alpha_calendar()
+    
+    if not alpha_cal_df.empty:
+        # Style the dataframe to highlight the current month row
+        current_month_abbr = datetime.now().strftime("%b")
+        
+        def highlight_current_month(row):
+            if row['📅 Month'] == current_month_abbr:
+                return ['background-color: rgba(99, 91, 255, 0.15); font-weight: bold'] * len(row)
+            return [''] * len(row)
+            
+        styled_cal = alpha_cal_df.style.apply(highlight_current_month, axis=1)
+        
+        st.dataframe(
+            styled_cal,
+            column_config={
+                "📅 Month": st.column_config.TextColumn("Month", width="small"),
+                "🟢 Historical Best (Accumulate)": st.column_config.TextColumn("🟢 Historical Best (Accumulate)", width="large"),
+                "🔴 Historical Worst (Avoid/Lighten)": st.column_config.TextColumn("🔴 Historical Worst (Avoid/Lighten)", width="large"),
+            },
+            hide_index=True,
+            use_container_width=True,
+            height=450  # Enough height to show all 12 months without scrolling
+        )
+    else:
+        st.info("Seasonality Engine offline. Missing granular_industry_analysis.csv")
+
     st.markdown("---")
     
     # === SECTOR-LEVEL CYCLE POSITION ===
@@ -3383,11 +3405,12 @@ elif page == "📊 Sector Pulse":
         
         # Top performers in sector
         st.markdown(f"#### 🏆 Top Performers in {selected_sector}")
-        top_in_sector = sector_stocks.nlargest(10, 'overall')[['ticker', 'name', 'price', 'overall', 'trend_score', 'trend_signal', 'return_1m', 'return_3m']]
+        top_in_sector = sector_stocks.nlargest(10, 'overall')[['ticker', 'name', 'price', 'overall', 'trend_score', 'trend_signal', 'return_1m', 'return_3m']].copy()
+        top_in_sector['screener_link'] = "https://www.screener.in/company/" + top_in_sector['ticker'].str.replace('.NS', '', regex=False) + "/"
         st.dataframe(
-            top_in_sector,
+            top_in_sector[['screener_link', 'name', 'price', 'overall', 'trend_score', 'trend_signal', 'return_1m', 'return_3m']],
             column_config={
-                "ticker": "Ticker",
+                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                 "name": "Company",
                 "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
                 "overall": st.column_config.ProgressColumn("Score", min_value=0, max_value=10, format="%.1f"),
@@ -3461,7 +3484,7 @@ elif page == "📊 Sector Pulse":
         st.markdown("### 🔄 Stock Rotation (Within Sector)")
         st.caption("X: 3-Month Return | Y: 1-Month Return | Color: Trend Signal | Size: Market Cap")
         
-        import plotly.express as px
+
         
         # Ensure return columns exist, fill missing with 0
         if 'return_1m' not in sector_stocks.columns:
@@ -3506,14 +3529,22 @@ elif page == "📊 Sector Pulse":
             )
             
             # Add quadrant lines
-            fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
-            fig.add_vline(x=0, line_dash="dash", line_color="gray", opacity=0.5)
+            fig.add_hline(y=0, line_dash="solid", line_width=2, line_color="#E0E0E0", opacity=1.0)
+            fig.add_vline(x=0, line_dash="solid", line_width=2, line_color="#E0E0E0", opacity=1.0)
             
-            # Quadrant labels
-            x_range = chart_df['return_3m'].max() - chart_df['return_3m'].min()
-            y_range = chart_df['return_1m'].max() - chart_df['return_1m'].min()
+            # Dynamically calculate label positions based on max axis bounds
             x_max = max(abs(chart_df['return_3m'].min()), abs(chart_df['return_3m'].max()), 10)
             y_max = max(abs(chart_df['return_1m'].min()), abs(chart_df['return_1m'].max()), 5)
+            
+            # Update axes to fit data tightly with padding
+            fig.update_xaxes(range=[-x_max*1.15, x_max*1.15])
+            fig.update_yaxes(range=[-y_max*1.15, y_max*1.15])
+            
+            # Add light background quadrant colors using dynamic extents
+            fig.add_shape(type="rect", x0=0, y0=0, x1=x_max*2, y1=y_max*2, fillcolor="#00C853", opacity=0.03, line_width=0, layer="below")
+            fig.add_shape(type="rect", x0=-x_max*2, y0=0, x1=0, y1=y_max*2, fillcolor="#2196F3", opacity=0.03, line_width=0, layer="below")
+            fig.add_shape(type="rect", x0=0, y0=-y_max*2, x1=x_max*2, y1=0, fillcolor="#FF9800", opacity=0.03, line_width=0, layer="below")
+            fig.add_shape(type="rect", x0=-x_max*2, y0=-y_max*2, x1=0, y1=0, fillcolor="#F44336", opacity=0.03, line_width=0, layer="below")
             
             fig.add_annotation(x=x_max*0.7, y=y_max*0.7, text="🚀 Winners", showarrow=False, font=dict(color="green", size=12))
             fig.add_annotation(x=-x_max*0.7, y=y_max*0.7, text="📈 Turnarounds", showarrow=False, font=dict(color="blue", size=12))
@@ -3524,7 +3555,7 @@ elif page == "📊 Sector Pulse":
                 height=450,
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                template='plotly_dark',
+                template='plotly_white',
             )
             
             st.plotly_chart(fig, use_container_width=True, key="stock_rotation_chart")
@@ -3701,10 +3732,7 @@ elif page == "⏳ Time Trends":
             else: # Multi-Factor Analysis
                 from utils.score_history import calculate_historical_scores
                 from utils.scoring import calculate_scores
-                import plotly.graph_objects as go
-                from plotly.subplots import make_subplots
-                import yfinance as yf
-                import numpy as np
+
                 
                 # Defined locally to avoid Streamlit caching issues with utils module
                 def detect_divergences(df, price_col='Close', indicator_col='momentum_score_hist', window=5):
@@ -3749,7 +3777,7 @@ elif page == "⏳ Time Trends":
                             d.loc[curr_idx, 'div_bear'] = p_curr
                             
                     return d[['div_bull', 'div_bear']]
-                import yfinance as yf
+
                 
                 # Fetch history for calculation
                 hist_data = yf.Ticker(trend_ticker).history(period="2y")
@@ -3858,7 +3886,7 @@ elif page == "⏳ Time Trends":
                         fig.add_hline(y=8, line_dash="dot", line_color="green", row=2, col=1, opacity=0.3)
                         fig.add_hline(y=2, line_dash="dot", line_color="red", row=2, col=1, opacity=0.3)
                         
-                        fig.update_layout(height=600, template="plotly_dark", hovermode="x unified")
+                        fig.update_layout(height=600, template="plotly_white", hovermode="x unified")
                         fig.update_yaxes(title_text="Price", row=1, col=1)
                         fig.update_yaxes(title_text="Score (0-10)", range=[0, 11], row=2, col=1)
                         
@@ -3929,6 +3957,11 @@ elif page == "📉 Deep Dive":
     else:
         target_ticker = st.sidebar.selectbox("Select Company", TICKERS, index=default_index)
         is_custom = False
+
+    st.sidebar.markdown("---")
+    gemini_api_key = st.sidebar.text_input("Gemini API Key (For AI Reports)", type="password")
+    if not gemini_api_key:
+        st.sidebar.caption("🔑 Enter API key to unlock the 🧠 Generate AI Report feature.")
 
     # Main Content
     if target_ticker:
@@ -4018,8 +4051,70 @@ elif page == "📉 Deep Dive":
                 st.markdown("---")
 
                 if view_mode == "Research Report":
+                    from utils.ai_report_engine import build_data_payload, generate_ai_report_markdown, convert_markdown_to_pdf
+
+                    
+                    rep_col1, rep_col2 = st.columns([3, 1])
+                    with rep_col1:
+                        st.markdown("### 📊 Standard Report")
+                    with rep_col2:
+                        # Clear AI session state if ticker changes
+                        if st.session_state.get('ai_current_ticker') != target_ticker:
+                            st.session_state['ai_report_md'] = None
+                            st.session_state['ai_report_pdf'] = None
+                            st.session_state['ai_current_ticker'] = target_ticker
+                            
+                        if st.button("🧠 Generate AI PDF Report", type="primary", use_container_width=True):
+                            if 'gemini_api_key' not in locals() or not gemini_api_key:
+                                st.error("Please enter a Gemini API Key in the sidebar.")
+                            else:
+                                with st.spinner("🤖 AI Analyst is writing your report... This takes ~15 seconds."):
+                                    try:
+                                        payload = build_data_payload(target_ticker, info, scores, news_items, hist)
+                                        md_report = generate_ai_report_markdown(gemini_api_key, payload)
+                                        
+                                        # Save PDF
+                                        os.makedirs("analysis_2026/reports", exist_ok=True)
+                                        pdf_path = f"analysis_2026/reports/{target_ticker.replace('.NS', '')}_AI_Report.pdf"
+                                        convert_markdown_to_pdf(md_report, pdf_path)
+                                        
+                                        st.session_state['ai_report_md'] = md_report
+                                        st.session_state['ai_report_pdf'] = pdf_path
+                                        st.success("Report generated successfully!")
+                                    except Exception as e:
+                                        st.error(f"Generation failed: {e}")
+
+                    if st.session_state.get('ai_report_md') and st.session_state.get('ai_report_pdf'):
+                        st.markdown("---")
+                        st.markdown("### 🤖 Institutional AI Research")
+                        
+                        pdf_file_path = st.session_state['ai_report_pdf']
+                        if os.path.exists(pdf_file_path):
+                            with open(pdf_file_path, "rb") as pdf_file:
+                                st.download_button(
+                                    label="📥 Download PDF Report",
+                                    data=pdf_file,
+                                    file_name=f"{target_ticker.replace('.NS', '')}_Research_Report.pdf",
+                                    mime="application/pdf",
+                                    type="primary"
+                                )
+                        with st.expander("👁️ Preview AI Report (Markdown)", expanded=True):
+                            st.markdown(st.session_state['ai_report_md'])
+                        st.markdown("---")
+                    
                     if scores:
+                        from utils.report_generator import generate_equity_report, generate_pdf_from_md
                         report_content = generate_equity_report(target_ticker, info, scores, news_items, hist)
+                        report_pdf = generate_pdf_from_md(report_content)
+                        
+                        st.download_button(
+                            label="📥 Download PDF Report (For LLM Analysis)",
+                            data=report_pdf,
+                            file_name=f"{target_ticker}_Research_Report.pdf",
+                            mime="application/pdf",
+                            use_container_width=True,
+                            type="primary"
+                        )
                         st.markdown(report_content)
                     
                     if hist is not None and not hist.empty:
