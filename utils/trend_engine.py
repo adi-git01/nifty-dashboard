@@ -153,9 +153,9 @@ def calculate_sector_history(nifty500_df):
             sector_index = (1 + sector_daily_ret).cumprod() * 100
             sector_indices[sector] = sector_index
             
-        # Also add Nifty 500 Benchmark (Approximate using mean of all)
+        # Also add Market Benchmark (Approximate using mean of all)
         market_ret = returns.mean(axis=1)
-        sector_indices['Nifty 500 (Eq Wt)'] = (1 + market_ret).cumprod() * 100
+        sector_indices['Market (Eq Wt)'] = (1 + market_ret).cumprod() * 100
         
         return sector_indices.dropna()
         

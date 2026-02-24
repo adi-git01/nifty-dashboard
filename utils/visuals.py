@@ -18,7 +18,7 @@ def chart_market_heatmap(df):
     
     fig = px.treemap(
         df,
-        path=[px.Constant("Nifty 500"), 'sector', 'ticker'],
+        path=[px.Constant("Market Universe"), 'sector', 'ticker'],
         values='marketCap',
         color='overall',
         color_continuous_scale='RdYlGn',
