@@ -25,37 +25,45 @@ def calculate_mood_metrics(df):
     """
     if df.empty:
         return None
+        
+    total_stocks = len(df)
+    if total_stocks == 0:
+        return None
     
-    # 1. Strong Momentum: trend_score >= 80
-    strong_momentum = len(df[df.get('trend_score', pd.Series([0]*len(df))) >= 80])
+    # 1. Strong Momentum: trend_score >= 80 (as % of universe)
+    strong_momentum_count = len(df[df.get('trend_score', pd.Series([0]*len(df))) >= 80])
+    strong_momentum = (strong_momentum_count / total_stocks) * 100
     
-    # 2. Total Uptrends: trend_signal contains 'UPTREND'
+    # 2. Total Uptrends: trend_signal contains 'UPTREND' (as % of universe)
     if 'trend_signal' in df.columns:
-        total_uptrends = len(df[df['trend_signal'].str.contains('UPTREND', na=False)])
+        total_uptrends_count = len(df[df['trend_signal'].str.contains('UPTREND', na=False)])
+        total_uptrends = (total_uptrends_count / total_stocks) * 100
     else:
         total_uptrends = 0
     
-    # 3. Avg Trend Score
+    # 3. Avg Trend Score (already naturally scaled 0-100)
     if 'trend_score' in df.columns:
         avg_trend_score = df['trend_score'].mean()
     else:
         avg_trend_score = 50
     
-    # 4. Breakout Alerts: within 5% of 52-week high
+    # 4. Breakout Alerts: within 5% of 52-week high (as % of universe)
     if 'dist_52w' in df.columns:
-        breakout_alerts = len(df[df['dist_52w'] >= -5])
+        breakout_alerts_count = len(df[df['dist_52w'] >= -5])
+        breakout_alerts = (breakout_alerts_count / total_stocks) * 100
     elif 'fiftyTwoWeekHigh' in df.columns and 'price' in df.columns:
         df['_dist'] = ((df['price'] - df['fiftyTwoWeekHigh']) / df['fiftyTwoWeekHigh']) * 100
-        breakout_alerts = len(df[df['_dist'] >= -5])
+        breakout_alerts_count = len(df[df['_dist'] >= -5])
+        breakout_alerts = (breakout_alerts_count / total_stocks) * 100
     else:
         breakout_alerts = 0
     
     return {
         'date': datetime.now().strftime('%Y-%m-%d'),
-        'strong_momentum': strong_momentum,
-        'total_uptrends': total_uptrends,
+        'strong_momentum': round(strong_momentum, 1),
+        'total_uptrends': round(total_uptrends, 1),
         'avg_trend_score': round(avg_trend_score, 1),
-        'breakout_alerts': breakout_alerts
+        'breakout_alerts': round(breakout_alerts, 1)
     }
 
 def save_mood_snapshot(metrics):
@@ -127,45 +135,41 @@ def replay_historical_mood(price_history_df, lookback_days=365):
 def chart_market_mood(history_df):
     """
     Creates a Plotly chart with 4 mood metrics over time.
+    All metrics are now normalized as percentages (0-100%).
     """
     import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
     
     if history_df.empty:
         return None
     
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Create simple figure (no secondary axis needed since all are 0-100%)
+    fig = go.Figure()
     
     # Add traces
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['strong_momentum'], 
                    name="🚀 Strong Momentum", mode='lines', 
-                   line=dict(color="#00C853", width=2.5, shape='spline', smoothing=0.8)),
-        secondary_y=False
+                   line=dict(color="#00C853", width=2.5, shape='spline', smoothing=0.8))
     )
     
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['total_uptrends'], 
                    name="📈 Total Uptrends", mode='lines', 
                    fill='tozeroy', fillcolor='rgba(99,91,255,0.05)',
-                   line=dict(color="#635BFF", width=3, shape='spline', smoothing=0.8)),
-        secondary_y=False
+                   line=dict(color="#635BFF", width=3, shape='spline', smoothing=0.8))
     )
     
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['breakout_alerts'], 
                    name="🔥 Breakout Alerts", mode='lines',
-                   line=dict(color="#FF3366", width=2.5, dash='dot', shape='spline', smoothing=0.8)),
-        secondary_y=False
+                   line=dict(color="#FF3366", width=2.5, dash='dot', shape='spline', smoothing=0.8))
     )
     
-    # Avg Trend Score on secondary axis (different scale: 0-100)
+    # Avg Trend Score
     fig.add_trace(
         go.Scatter(x=history_df['date'], y=history_df['avg_trend_score'], 
                    name="📊 Avg Trend Score", mode='lines',
-                   line=dict(color="#FFC107", width=2.5, shape='spline', smoothing=0.8)),
-        secondary_y=True
+                   line=dict(color="#FFC107", width=2.5, shape='spline', smoothing=0.8))
     )
     
     # Styling
@@ -174,11 +178,14 @@ def chart_market_mood(history_df):
         hovermode="x unified",
         legend=dict(orientation="h", yanchor="bottom", y=1.1, xanchor="right", x=1),
         height=350,
-        margin=dict(l=0, r=0, t=10, b=0)
+        margin=dict(l=0, r=0, t=10, b=0),
+        yaxis=dict(
+            title_text="Percentage / Score (0-100%)", 
+            range=[0, 100], 
+            gridcolor='rgba(0,0,0,0.05)'
+        )
     )
     
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(title_text="Stock Count", secondary_y=False, gridcolor='rgba(0,0,0,0.05)')
-    fig.update_yaxes(title_text="Avg Score (0-100)", secondary_y=True, range=[0, 100], showgrid=False)
     
     return fig
