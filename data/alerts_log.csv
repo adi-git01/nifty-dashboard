@@ -1,2 +1,7 @@
 alert_id,alert_date,ticker,alert_type,message
 1,2026-02-24 12:39:45,SYSTEM,INFO,Database Initialized
+2,2026-02-27 10:23:50,SYSTEM,BUY_ALERT,"🟢 *NEW BUY SIGNAL* 🟢\n*AVANTIFEED.NS*\nPrice: ₹1,282.80\nRS Score: 58.36"
+3,2026-02-27 10:23:50,SYSTEM,BUY_ALERT,🟢 *NEW BUY SIGNAL* 🟢\n*KRN.NS*\nPrice: ₹998.05\nRS Score: 44.44
+4,2026-02-27 10:23:50,SYSTEM,BUY_ALERT,"🟢 *NEW BUY SIGNAL* 🟢\n*MTARTECH.NS*\nPrice: ₹3,806.80\nRS Score: 42.16"
+5,2026-02-27 10:23:50,SYSTEM,BUY_ALERT,"🟢 *NEW BUY SIGNAL* 🟢\n*APARINDS.NS*\nPrice: ₹11,180.50\nRS Score: 34.31"
+6,2026-02-27 10:23:50,SYSTEM,BUY_ALERT,"🟢 *NEW BUY SIGNAL* 🟢\n*BHARATFORG.NS*\nPrice: ₹1,911.20\nRS Score: 32.87"
