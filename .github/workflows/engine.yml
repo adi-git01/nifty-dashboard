@@ -4,8 +4,6 @@ on:
   schedule:
     # Regular: 3:30 PM IST = 10:00 AM UTC (Mon-Fri)
     - cron: '0 10 * * 1-5'
-    # TEMP TEST: 11:30 AM IST = 6:00 AM UTC — March 3 only (remove after test)
-    - cron: '0 6 3 3 *'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -23,6 +21,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history required so git-auto-commit can push without non-fast-forward errors
       # ✅ FIX #1: Removed `ref: ${{ github.head_ref }}` — that's for PRs only.
       # On schedule triggers github.head_ref is empty, causing a broken checkout.
 
@@ -63,9 +63,11 @@ jobs:
 
     - name: Commit State Changes (All Data Files)
       uses: stefanzweifel/git-auto-commit-action@v5
+      continue-on-error: true  # Don't fail the job if nothing changed or push conflicts
       with:
         commit_message: "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
         file_pattern: 'data/*.csv data/*.json data/cache/*.parquet positions.json'
+        push_options: '--force-with-lease'  # Safely handle non-fast-forward errors
 
 
     - name: 🚨 Notify on Crash (Telegram & Email)

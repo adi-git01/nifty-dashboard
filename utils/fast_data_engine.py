@@ -74,7 +74,10 @@ def fetch_missing_fundamentals(df):
 
     if not missing: return df
     
-    st.toast(f"Deep scanning {len(missing)} stocks... (Accuracy Mode)", icon="🕵️")
+    try:
+        st.toast(f"Deep scanning {len(missing)} stocks... (Accuracy Mode)", icon="🕵️")
+    except Exception:
+        print(f"[ENGINE] Deep scanning {len(missing)} stocks... (Accuracy Mode)")
     
     new_data = []
     # ✅ FIX: Reduced workers 20→3 to avoid Yahoo Finance rate limiting on GitHub Actions
