@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import os
+import time
 import streamlit as st
 from datetime import datetime
 from utils.volume_analysis import get_combined_volume_signal
@@ -76,13 +77,18 @@ def fetch_missing_fundamentals(df):
     st.toast(f"Deep scanning {len(missing)} stocks... (Accuracy Mode)", icon="🕵️")
     
     new_data = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-        futures = {executor.submit(get_stock_info, t): t for t in missing}
+    # ✅ FIX: Reduced workers 20→3 to avoid Yahoo Finance rate limiting on GitHub Actions
+    # Sequential-ish fetching with small delay prevents 401 Invalid Crumb cascade
+    def _fetch_with_delay(ticker):
+        time.sleep(0.3)  # Stagger requests to avoid rate limits
+        return get_stock_info(ticker)
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {executor.submit(_fetch_with_delay, t): t for t in missing}
         for f in concurrent.futures.as_completed(futures):
             try:
                 res = f.result()
                 if res:
-                    # Ensure ticker is present
                     res['ticker'] = futures[f]
                     new_data.append(res)
             except: pass
@@ -141,18 +147,24 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
                 old_nifty = nifty['Close'].iloc[-63]
                 nifty_3m_ret = ((curr_nifty - old_nifty) / old_nifty) * 100
 
-        # Threaded download is usually handled by yfinance internally
+        # ✅ FIX: threads=False prevents 20-thread storm that triggers Yahoo 401s on CI
+        # Batch download is still fast (single HTTP session, vectorized)
         history_data = yf.download(
             tickers, 
             period="1y", 
             interval="1d", 
             group_by='ticker', 
-            threads=True,
+            threads=False,      # <-- KEY FIX: avoid parallel request storm
             progress=False,
             auto_adjust=True
         )
     except Exception as e:
-        st.error(f"Failed to fetch market data: {e}")
+        # ✅ Graceful degradation: log but don't crash — use existing cache/fundamentals
+        print(f"[ENGINE] yfinance download failed ({e}), returning cached fundamentals")
+        try:
+            st.error(f"Failed to fetch market data: {e}")
+        except Exception:
+            pass
         return fundamental_df
 
     processed_rows = []
