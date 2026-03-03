@@ -88,7 +88,12 @@ def check_portfolio_stops(df, db):
     if portfolio.empty:
         print("Portfolio is empty. No stops to check.")
         return
-        
+    
+    # Guard: if yfinance data fetch failed, df may have no 'currentPrice' column
+    if df.empty or 'currentPrice' not in df.columns:
+        print("[STOP CHECK] Skipped: market data unavailable (no currentPrice column).")
+        return
+
     df_lookup = df.set_index('ticker')
     sells = []
     alerts = []
@@ -162,6 +167,10 @@ def run_rebalance(df, db):
     Orchestrates finding new buys based on the V3.1 Momentum conditions.
     """
     print("Running Portfolio Rebalance Scanners...")
+    # Guard: if yfinance data fetch failed, df may have no 'dna_signal' column
+    if df.empty or 'dna_signal' not in df.columns:
+        print("[REBALANCE] Skipped: market data unavailable (no dna_signal column).")
+        return
     # Find active buys
     buyers = df[df['dna_signal'] == 'BUY']
     if buyers.empty:
@@ -241,18 +250,31 @@ if __name__ == "__main__":
     
     db = TradingDatabase()
     
-    if args.mode in ['daily_cache', 'full']:
-        df = generate_daily_master_cache()
-        generate_sub_industry_rotation(df, db)
-    else:
-        # Just load existing parquet cache for fast ops if daily scan already ran
-        df = pd.read_parquet(get_parquet_cache_path())
+    try:
+        if args.mode in ['daily_cache', 'full']:
+            df = generate_daily_master_cache()
+            generate_sub_industry_rotation(df, db)
+        else:
+            # Just load existing parquet cache for fast ops if daily scan already ran
+            parquet_path = get_parquet_cache_path()
+            if os.path.exists(parquet_path):
+                df = pd.read_parquet(parquet_path)
+            else:
+                print("[ENGINE] No parquet cache found. Creating empty DataFrame.")
+                df = pd.DataFrame()
 
-    if args.mode in ['stop_check', 'full']:
-        check_portfolio_stops(df, db)
-        
-    if args.mode in ['rebalance', 'full']:
-        run_rebalance(df, db)
+        if args.mode in ['stop_check', 'full']:
+            check_portfolio_stops(df, db)
+            
+        if args.mode in ['rebalance', 'full']:
+            run_rebalance(df, db)
+
+    except Exception as e:
+        print(f"[ENGINE] Critical error during execution: {e}")
+        import traceback
+        traceback.print_exc()
+        df = pd.DataFrame()  # Ensure heartbeat still sends
+        raise  # Re-raise so GitHub Actions marks job as failed (intentional if truly broken)
         
     db.close()
     
