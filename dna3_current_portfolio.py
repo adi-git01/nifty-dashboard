@@ -38,7 +38,7 @@ import sys
 
 # Ensure utils import works
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from utils.nifty500_list import TICKERS, SECTOR_MAP
+from utils.nifty1000_list import TICKERS_1000 as TICKERS, SUB_INDUSTRY_MAP as SECTOR_MAP
 
 # ============================================================
 # STRATEGY CONFIGURATION — OptComp-V21 (Locked from Research)
@@ -71,7 +71,7 @@ EQUITY_CURVE_FILE = f"{DATA_DIR}/dna3_equity_curve.csv"
 
 class OptCompV21Engine:
     def __init__(self):
-        self.tickers = TICKERS[:500]
+        self.tickers = TICKERS  # Full Nifty 1000 universe
         self.data_cache = {}
         self.current_date = datetime.now().strftime('%Y-%m-%d')
         self.sector_map = SECTOR_MAP

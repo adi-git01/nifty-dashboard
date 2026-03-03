@@ -72,6 +72,7 @@ class TradingDatabase:
                 sub_industry TEXT,
                 rs_momentum REAL,
                 top_components TEXT,
+                score_0_100 INTEGER DEFAULT 50,
                 PRIMARY KEY (record_date, sub_industry)
             );
         """)

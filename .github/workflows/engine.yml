@@ -2,8 +2,10 @@ name: Alpha Trend Engine
 
 on:
   schedule:
-    # 3:30 PM IST = 10:00 AM UTC (Mon-Fri)  [shifted +15min to avoid GH Actions congestion]
+    # Regular: 3:30 PM IST = 10:00 AM UTC (Mon-Fri)
     - cron: '0 10 * * 1-5'
+    # TEMP TEST: 11:30 AM IST = 6:00 AM UTC — March 3 only (remove after test)
+    - cron: '0 6 3 3 *'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:

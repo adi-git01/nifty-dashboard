@@ -29,6 +29,7 @@ def generate_sub_industry_rotation(df, db):
     """
     Groups the Nifty 1000 universe by 58 Sub-Industries from our Encyclopedia.
     Calculates average composite RS and volume signals to populate the Heatmap.
+    Appends historical data (one snapshot per date) for monthly heatmap tracking.
     """
     print("Calculating Sub-Industry Rotation...")
     if df.empty or 'sector' not in df.columns or 'comp_rs' not in df.columns:
@@ -55,8 +56,25 @@ def generate_sub_industry_rotation(df, db):
         })
         
     rot_df = pd.DataFrame(rotation_rows)
-    rot_df.to_sql('sub_industry_rotation', db.conn, if_exists='replace', index=False)
-    print(f"Computed rotation for {len(rot_df)} Sub-Industries.")
+    
+    # Normalize rs_momentum to 0-100 percentile rank within this snapshot
+    if not rot_df.empty:
+        rs_min = rot_df['rs_momentum'].min()
+        rs_max = rot_df['rs_momentum'].max()
+        if rs_max > rs_min:
+            rot_df['score_0_100'] = ((rot_df['rs_momentum'] - rs_min) / (rs_max - rs_min) * 100).round(0).astype(int)
+        else:
+            rot_df['score_0_100'] = 50
+    
+    # Delete existing rows for today to prevent duplicates, then append
+    try:
+        db.cursor.execute("DELETE FROM sub_industry_rotation WHERE record_date = ?", (today_str,))
+        db.conn.commit()
+    except Exception:
+        pass
+    
+    rot_df.to_sql('sub_industry_rotation', db.conn, if_exists='append', index=False)
+    print(f"Computed rotation for {len(rot_df)} Sub-Industries ({today_str}).")
 
 
 def check_portfolio_stops(df, db):
