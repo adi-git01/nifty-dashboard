@@ -124,7 +124,14 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     Vectorized fetch of price data for all tickers + merging with fundamentals.
     """
     # 0. Ensure Fundamentals (Accuracy Mode) - checking/fetching missing PE/Sector
-    fundamental_df = fetch_missing_fundamentals(fundamental_df)
+    # ✅ OPTIMIZATION: In live_mode (CI/GitHub Actions), skip the per-ticker .info fetch.
+    # PE ratio is NOT needed for: dna_signal, comp_rs, sub-industry rotation, or stop checks.
+    # Fetching PE for 750 stocks via yf.Ticker().info takes 4+ minutes and is the #1 bottleneck.
+    # PE is only needed in the Streamlit UI's fundamentals table — it reads from Parquet cache there.
+    if not live_mode:
+        fundamental_df = fetch_missing_fundamentals(fundamental_df)
+    else:
+        print("[ENGINE] live_mode=True — skipping fetch_missing_fundamentals (PE not needed for signals)", flush=True)
     
     # If not live mode, and fundamental_df already has computed metrics like 'currentPrice', we just return it!
     # Because loading from Parquet already restores full computed state.
