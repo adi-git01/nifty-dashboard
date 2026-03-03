@@ -3,6 +3,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+import logging
+
+# ✅ Silence streamlit "missing ScriptRunContext" spam in headless CI mode
+# These are harmless when running as a plain Python script but flood the logs
+logging.getLogger("streamlit").setLevel(logging.ERROR)
+logging.getLogger("streamlit.runtime").setLevel(logging.ERROR)
+
 from trading_db import TradingDatabase
 from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data, get_parquet_cache_path
 from utils.telegram_notifier import send_telegram_message
