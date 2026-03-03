@@ -333,7 +333,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -715,12 +715,73 @@ elif page == "🌊 Trend Scanner":
             
             with hero_right:
                 if st.button("🔄 Refresh Portfolio", use_container_width=True):
-                    with st.spinner("Updating..."):
-                        subprocess.Popen(["python", "dna3_current_portfolio.py"],
-                                         stdout=subprocess.DEVNULL,
-                                         stderr=subprocess.DEVNULL)
-                        time.sleep(2)
-                        st.rerun()
+                    with st.spinner("Fetching live prices for portfolio..."):
+                        try:
+                            # Fast inline refresh: only fetch held tickers (~10 stocks)
+                            held_tickers = [p['Ticker'] for p in dna3_data.get('portfolio', [])]
+                            if held_tickers:
+                                live_prices = yf.download(held_tickers, period="100d", group_by='ticker', threads=True, progress=False)
+                                nifty_hist = yf.Ticker("^NSEI").history(period="100d")
+                                if nifty_hist.index.tz is not None:
+                                    nifty_hist.index = nifty_hist.index.tz_localize(None)
+                                nifty_price = float(nifty_hist['Close'].iloc[-1])
+                                
+                                # RS weight config (same as OptComp-V21)
+                                rs_weights = [(5, 0.10), (21, 0.50), (63, 0.40)]
+                                
+                                updated_portfolio = []
+                                for p in dna3_data['portfolio']:
+                                    t = p['Ticker']
+                                    try:
+                                        if len(held_tickers) == 1:
+                                            stock_df = live_prices.dropna(how='all')
+                                        else:
+                                            stock_df = live_prices[t].dropna(how='all') if t in live_prices.columns.get_level_values(0) else None
+                                        if stock_df is not None and not stock_df.empty and len(stock_df) > 50:
+                                            if stock_df.index.tz is not None:
+                                                stock_df.index = stock_df.index.tz_localize(None)
+                                            curr_price = float(stock_df['Close'].iloc[-1])
+                                            ma50 = float(stock_df['Close'].rolling(50).mean().iloc[-1])
+                                            dist_ma50 = (curr_price - ma50) / ma50 * 100
+                                            
+                                            # Composite RS calculation
+                                            rs_total = 0.0
+                                            for period, weight in rs_weights:
+                                                if len(stock_df) >= period + 1 and len(nifty_hist) >= period + 1:
+                                                    rs_stock = (curr_price / float(stock_df['Close'].iloc[-period]) - 1)
+                                                    rs_nifty = (nifty_price / float(nifty_hist['Close'].iloc[-period]) - 1)
+                                                    rs_total += (rs_stock - rs_nifty) * 100 * weight
+                                            
+                                            entry_price = dna3_data['holdings'].get(t, {}).get('entry_price', p.get('Entry', curr_price))
+                                            pnl_pct = (curr_price - entry_price) / entry_price * 100
+                                            
+                                            p['Price'] = round(curr_price, 2)
+                                            p['PnL%'] = round(pnl_pct, 2)
+                                            p['RS_Score'] = round(rs_total, 1)
+                                            p['Dist_MA50'] = round(dist_ma50, 1)
+                                    except Exception:
+                                        pass  # Keep original values if fetch fails
+                                    updated_portfolio.append(p)
+                                
+                                # Update equity
+                                total_equity = dna3_data.get('cash', 0)
+                                for p in updated_portfolio:
+                                    t = p['Ticker']
+                                    shares = dna3_data['holdings'].get(t, {}).get('shares', 0)
+                                    total_equity += shares * p['Price']
+                                
+                                dna3_data['portfolio'] = updated_portfolio
+                                dna3_data['equity'] = total_equity
+                                dna3_data['date'] = datetime.now().strftime('%Y-%m-%d')
+                                
+                                with open(DNA3_SNAPSHOT, 'w') as f:
+                                    json.dump(dna3_data, f, indent=4)
+                                
+                                st.toast("✅ Portfolio prices updated!", icon="🔄")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Refresh failed: {e}")
+                            st.rerun()
                 if os.path.exists(DNA3_LOG):
                     with open(DNA3_LOG, "rb") as file:
                         st.download_button(
@@ -3255,25 +3316,135 @@ elif page == "📊 Sector Pulse":
     
     # === SUB-INDUSTRY ROTATION HEATMAP ===
     st.markdown("### 🧬 Sub-Industry Rotation Matrix")
-    st.caption("Granular tracking of capital flow across the 58 Sub-Industries of the Nifty 1000.")
+    st.caption("Granular tracking of capital flow across the 58 Sub-Industries of the Nifty 1000. Score 0–100 (percentile rank). 🟢 Leaders → 🟡 Mid → 🔴 Laggards.")
     
     sub_ind_file = "data/sub_industry_rotation.csv"
     if os.path.exists(sub_ind_file):
         try:
             sub_df = pd.read_csv(sub_ind_file)
             if not sub_df.empty:
-                st.dataframe(
-                    sub_df.sort_values(by="rs_momentum", ascending=False),
-                    column_config={
-                        "sub_industry": st.column_config.TextColumn("Sub-Industry"),
-                        "rs_momentum": st.column_config.NumberColumn("Momentum Score", format="%+.2f"),
-                        "top_components": st.column_config.TextColumn("Leading Stocks"),
-                        "record_date": "Updated On"
-                    },
-                    hide_index=True,
-                    use_container_width=True,
-                    height=800
+                # Ensure score_0_100 exists (backward compat with old CSV)
+                if 'score_0_100' not in sub_df.columns:
+                    for date_val in sub_df['record_date'].unique():
+                        mask = sub_df['record_date'] == date_val
+                        rs_vals = sub_df.loc[mask, 'rs_momentum']
+                        rs_min, rs_max = rs_vals.min(), rs_vals.max()
+                        if rs_max > rs_min:
+                            sub_df.loc[mask, 'score_0_100'] = ((rs_vals - rs_min) / (rs_max - rs_min) * 100).round(0).astype(int)
+                        else:
+                            sub_df.loc[mask, 'score_0_100'] = 50
+                
+                # Create month label for grouping (e.g., "Mar-26")
+                sub_df['record_date'] = pd.to_datetime(sub_df['record_date'])
+                sub_df['month_label'] = sub_df['record_date'].dt.strftime('%b-%y')
+                
+                # For each month, take the latest snapshot (in case multiple dates per month)
+                sub_df = sub_df.sort_values('record_date')
+                sub_df['month_key'] = sub_df['record_date'].dt.to_period('M')
+                latest_per_month = sub_df.groupby(['month_key', 'sub_industry']).last().reset_index()
+                
+                # Pivot: rows = sub-industries, columns = months (use Period month_key for correct chronological ordering)
+                # Last 12 months
+                unique_months = sorted(latest_per_month['month_key'].unique())[-12:]
+                latest_per_month = latest_per_month[latest_per_month['month_key'].isin(unique_months)]
+
+                # Map each month_key Period to its month_label string (e.g. 'Jan-26')
+                period_to_label = (
+                    latest_per_month[['month_key', 'month_label']]
+                    .drop_duplicates()
+                    .set_index('month_key')['month_label']
+                    .to_dict()
                 )
+
+                # Pivot on Period (guarantees chronological column order after sort)
+                score_pivot = latest_per_month.pivot_table(
+                    index='sub_industry', columns='month_key', values='score_0_100', aggfunc='last'
+                )
+                hover_pivot = latest_per_month.pivot_table(
+                    index='sub_industry', columns='month_key', values='top_components', aggfunc='last'
+                )
+
+                # Sort columns chronologically (Periods sort naturally)
+                score_pivot = score_pivot.sort_index(axis=1)
+                hover_pivot = hover_pivot.sort_index(axis=1)
+
+                # Rename Period columns -> readable month labels
+                score_pivot.columns = [period_to_label.get(p, str(p)) for p in score_pivot.columns]
+                hover_pivot.columns = [period_to_label.get(p, str(p)) for p in hover_pivot.columns]
+
+                # Readable ordered list of month labels
+                month_order = list(score_pivot.columns)
+
+                # Sort rows by latest month score (best at top)
+                if month_order:
+                    last_month_col = month_order[-1]
+                    score_pivot = score_pivot.sort_values(by=last_month_col, ascending=False, na_position='last')
+                    hover_pivot = hover_pivot.reindex(score_pivot.index)
+
+                # Build custom hover text
+                hover_text = []
+                for idx in score_pivot.index:
+                    row_text = []
+                    for col in score_pivot.columns:
+                        score_val = score_pivot.loc[idx, col]
+                        leaders = hover_pivot.loc[idx, col] if pd.notna(hover_pivot.loc[idx, col]) else "N/A"
+                        if pd.notna(score_val):
+                            row_text.append(f"<b>{idx}</b><br>Score: {score_val:.0f}/100<br>Month: {col}<br>Leaders: {leaders}")
+                        else:
+                            row_text.append(f"<b>{idx}</b><br>No data<br>Month: {col}")
+                    hover_text.append(row_text)
+
+                # Plotly Heatmap
+                fig = go.Figure(data=go.Heatmap(
+                    z=score_pivot.values,
+                    x=score_pivot.columns.tolist(),
+                    y=[s.replace('.NS', '') for s in score_pivot.index.tolist()],
+                    colorscale=[
+                        [0.0, '#d32f2f'],     # Deep Red (worst)
+                        [0.25, '#ff7043'],    # Orange-Red
+                        [0.5, '#fdd835'],     # Yellow (mid)
+                        [0.75, '#66bb6a'],    # Light Green
+                        [1.0, '#1b5e20'],     # Deep Green (best)
+                    ],
+                    zmin=0, zmax=100,
+                    text=hover_text,
+                    hovertemplate='%{text}<extra></extra>',
+                    colorbar=dict(
+                        title="Score",
+                        tickvals=[0, 25, 50, 75, 100],
+                        ticktext=["0 \U0001f534", "25", "50 \U0001f7e1", "75", "100 \U0001f7e2"],
+                    ),
+                    xgap=2, ygap=1,
+                ))
+
+                fig.update_layout(
+                    height=max(600, len(score_pivot) * 22),
+                    xaxis=dict(title="Month", side="top", tickangle=0),
+                    yaxis=dict(title="", autorange="reversed", tickfont=dict(size=11)),
+                    margin=dict(l=200, r=40, t=60, b=20),
+                    template='plotly_dark',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Summary stats below heatmap
+                if len(month_order) > 0:
+                    latest_data = latest_per_month[latest_per_month['month_label'] == month_order[-1]]
+                    if not latest_data.empty:
+                        top3 = latest_data.nlargest(3, 'score_0_100')
+                        bot3 = latest_data.nsmallest(3, 'score_0_100')
+                        
+                        sum_col1, sum_col2 = st.columns(2)
+                        with sum_col1:
+                            st.markdown("**🟢 Current Leaders**")
+                            for _, r in top3.iterrows():
+                                st.caption(f"**{r['sub_industry']}** — Score: {r['score_0_100']:.0f} | {r['top_components']}")
+                        with sum_col2:
+                            st.markdown("**🔴 Current Laggards**")
+                            for _, r in bot3.iterrows():
+                                st.caption(f"**{r['sub_industry']}** — Score: {r['score_0_100']:.0f} | {r['top_components']}")
             else:
                 st.info("Sub-Industry data is empty. Run trading_engine.py first.")
         except Exception as e:
@@ -4236,3 +4407,161 @@ if page == "📝 Notes":
         st.success("Notes saved successfully! (Session storage)")
 
 
+
+
+# --- VIEW: TURNAROUND RADAR ---
+elif page == "\U0001f3af Turnaround Radar":
+    import plotly.graph_objects as go
+
+    st.markdown(page_header(
+        "\U0001f3af Institutional Turnaround Radar",
+        "Beaten-down Nifty 1000 stocks showing early institutional accumulation \u2014 before V21 qualification."
+    ), unsafe_allow_html=True)
+
+    WATCHLIST_CSV = "data/turnaround_watchlist.csv"
+
+    @st.cache_data(ttl=3600)
+    def load_turnaround_watchlist():
+        if not os.path.exists(WATCHLIST_CSV):
+            return pd.DataFrame()
+        return pd.read_csv(WATCHLIST_CSV)
+
+    wdf = load_turnaround_watchlist()
+
+    if wdf.empty:
+        st.warning("Watchlist not generated yet. Run `python turnaround_screener.py` locally or wait for the next GitHub Actions daily run.")
+        st.code("python turnaround_screener.py", language="bash")
+        st.stop()
+
+    alert_n = int((wdf["Tier"] == "ALERT").sum())
+    ready_n = int((wdf["Tier"] == "READY").sum())
+    watch_n = int((wdf["Tier"] == "WATCH").sum())
+
+    # Colour language: green = ready to fire, gold = warming up, blue = early radar ping
+    TIER_COLORS = {
+        "ALERT": "#00C853",  # Emerald green  — imminent V21, ready to fire
+        "READY": "#FFB300",  # Amber gold     — RS velocity confirmed, getting warm
+        "WATCH": "#42A5F5",  # Sky blue       — early accumulation ping
+    }
+
+    # --- Tier cards ---
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("\U0001f7e2 ALERT", alert_n, help="IAS 80+: RS21+RS63 turning. Strong liq floor. Imminent V21 — ready to fire.")
+    c2.metric("\U0001f7e1 READY", ready_n, help="IAS 60-79: Liq stable, RS velocity confirmed. Getting warm.")
+    c3.metric("\U0001f535 WATCH", watch_n, help="IAS 35-59: Early institutional ping. Set MA50 alert.")
+    c4.metric("Total Pool", len(wdf))
+
+    st.info("**How to use:** These are BELOW MA50 \u2014 do NOT buy. Set a price alert at each stock's MA50 level. When crossed with CompRS > 0, re-check the V21 scanner for fast-track to portfolio.")
+
+    st.markdown("---")
+
+    # --- Filters ---
+    fcols = st.columns([1, 1, 1, 2])
+    tier_filter  = fcols[0].multiselect("Tier",  ["ALERT","READY","WATCH"], default=["ALERT","READY","WATCH"])
+    cycle_filter = fcols[1].multiselect("Cycle", ["LONG","MID","SHORT"],    default=["LONG","MID","SHORT"])
+    min_ias      = fcols[2].slider("Min IAS", 35, 90, 35)
+    search       = fcols[3].text_input("Search ticker or sub-industry")
+
+    fdf = wdf[
+        wdf["Tier"].isin(tier_filter) &
+        wdf["Cycle"].isin(cycle_filter) &
+        (wdf["IAS"] >= min_ias)
+    ].copy()
+    if search:
+        fdf = fdf[
+            fdf["Ticker"].str.contains(search.upper(), na=False) |
+            fdf["Sub_Industry"].str.contains(search, case=False, na=False)
+        ]
+
+    # --- Watchlist table ---
+    st.markdown(f"### Watchlist ({len(fdf)} stocks)")
+
+    # Build screener.in links using the same pattern as other tabs
+    display_df = fdf.copy().sort_values("IAS", ascending=False).reset_index(drop=True)
+    display_df["screener_link"] = "https://www.screener.in/company/" + display_df["Ticker"].str.replace(r"\.(NS|BO)$", "", regex=True) + "/"
+
+    display_cols = ["screener_link","Sub_Industry","Cycle","CMP","Off_52W_High","RS21","RS63",
+                    "CompRS","Liq5Cr","LiqFromLow","IAS","Tier","Off_MA50","V21_CRS_Gap","V21_MA50_Gap"]
+    available = [c for c in display_cols if c in display_df.columns]
+
+    st.dataframe(
+        display_df[available],
+        column_config={
+            "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/", width=110),
+            "Sub_Industry": st.column_config.TextColumn("Sub-Industry", width=160),
+            "Cycle":        st.column_config.TextColumn("Cycle", width=55),
+            "CMP":          st.column_config.NumberColumn("CMP", format="%.1f"),
+            "Off_52W_High": st.column_config.NumberColumn("Off52W%", format="%.1f"),
+            "Off_MA50":     st.column_config.NumberColumn("OffMA50%", format="%.1f"),
+            "RS21":         st.column_config.NumberColumn("RS21", format="%.1f"),
+            "RS63":         st.column_config.NumberColumn("RS63", format="%.1f"),
+            "CompRS":       st.column_config.NumberColumn("CompRS", format="%.3f"),
+            "Liq5Cr":       st.column_config.NumberColumn("Liq5Cr", format="%.0f"),
+            "LiqFromLow":   st.column_config.NumberColumn("LiqFromLow", format="%.1fx"),
+            "IAS":          st.column_config.ProgressColumn("IAS", format="%.0f", max_value=100),
+            "Tier":         st.column_config.TextColumn("Tier", width=60),
+            "V21_CRS_Gap":  st.column_config.NumberColumn("V21 CRS Gap", format="%.2f"),
+            "V21_MA50_Gap": st.column_config.NumberColumn("V21 MA50 Gap%", format="%.1f"),
+        },
+        use_container_width=True,
+        hide_index=True,
+        height=600,
+    )
+
+    # --- IAS distribution + Sub-industry breakdown ---
+    st.markdown("---")
+    st.markdown("### Signal Analytics")
+    dcols = st.columns([2, 1])
+
+    with dcols[0]:
+        st.markdown("**IAS Score Distribution**")
+        fig_hist = go.Figure()
+        for tier, color in TIER_COLORS.items():
+            sub = wdf[wdf["Tier"] == tier]["IAS"]
+            if not sub.empty:
+                fig_hist.add_trace(go.Histogram(
+                    x=sub, name=tier, marker_color=color, opacity=0.8,
+                    xbins=dict(size=5)
+                ))
+        fig_hist.update_layout(
+            barmode="stack", xaxis_title="IAS Score", yaxis_title="Stocks",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e0e0e0"), legend=dict(orientation="h"),
+            height=280, margin=dict(l=0, r=0, t=10, b=0),
+        )
+        st.plotly_chart(fig_hist, use_container_width=True, key="ias_hist_radar")
+
+    with dcols[1]:
+        st.markdown("**Top Sub-Industries**")
+        si_counts = wdf["Sub_Industry"].value_counts().head(12).reset_index()
+        si_counts.columns = ["Sub-Industry", "Count"]
+        st.dataframe(si_counts, hide_index=True, use_container_width=True, height=280)
+
+    # --- V21 Pipeline ---
+    st.markdown("---")
+    st.markdown("### V21 Pipeline (ALERT + READY tier)")
+    st.caption("% below MA50 each stock must close to trigger V21 entry. Smaller bar = closer to qualification.")
+
+    pipe_df = wdf[wdf["Tier"].isin(["ALERT","READY"])].copy()
+    if not pipe_df.empty and "V21_MA50_Gap" in pipe_df.columns:
+        pipe_df = pipe_df.sort_values("V21_MA50_Gap").head(30)
+        fig_pipe = go.Figure()
+        fig_pipe.add_trace(go.Bar(
+            x=pipe_df["Ticker"].str.replace(".NS","", regex=False),
+            y=pipe_df["V21_MA50_Gap"],
+            marker_color=[TIER_COLORS.get(t, "#ccc") for t in pipe_df["Tier"]],
+            text=[f"{t} | IAS {v}" for t, v in zip(pipe_df["Tier"], pipe_df["IAS"])],
+            textposition="outside",
+        ))
+        fig_pipe.update_layout(
+            xaxis_title="Stock", yaxis_title="% Below MA50",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e0e0e0"), height=340,
+            margin=dict(l=0, r=0, t=10, b=0),
+        )
+        st.plotly_chart(fig_pipe, use_container_width=True, key="pipeline_bar_radar")
+    else:
+        st.info("No ALERT or READY stocks today.")
+
+    if "Date" in wdf.columns and len(wdf):
+        st.caption(f"Last run: {wdf['Date'].iloc[0]} | Run turnaround_screener.py or wait for GitHub Actions.")

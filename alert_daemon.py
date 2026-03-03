@@ -3,14 +3,25 @@ Alert Daemon
 ============
 Standalone script to check stock positions and send Telegram alerts.
 Designed to run via GitHub Actions or Cron.
+
+Usage:
+  python alert_daemon.py              # Normal run (volume scan only after 4 PM IST)
+  python alert_daemon.py --force-volume  # Force volume scan (for GitHub Actions)
 """
 
 import os
 import sys
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import time
+
+# IST = UTC + 5:30
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def now_ist():
+    """Current time in IST regardless of server timezone (critical for GitHub Actions on UTC)."""
+    return datetime.now(tz=IST)
 
 # Add root directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -101,17 +112,18 @@ def check_alerts():
         else:
             print("No position alerts triggered.")
 
-    # --- 2. VOLUME ALERTS (Runs Once Daily after Market Close) ---
+    # --- 2. VOLUME ALERTS (Runs Once Daily after Market Close IST) ---
     global LAST_VOLUME_SCAN
-    now = datetime.now()
-    market_close_hour = 16 # 4 PM
-    
-    # Run if it's past 4 PM and we haven't run it today involving Nifty 500
-    is_after_market = now.hour >= market_close_hour
+    now = now_ist()  # ✅ Always use IST, not UTC server time
+    market_close_hour_ist = 16  # 4 PM IST
+    force_volume = '--force-volume' in sys.argv  # GitHub Actions can pass this flag
+
+    # Run if it's past 4 PM IST (or forced) and we haven't run it today
+    is_after_market = now.hour >= market_close_hour_ist
     is_new_day = (LAST_VOLUME_SCAN is None) or (LAST_VOLUME_SCAN.date() < now.date())
-    
-    if is_after_market and is_new_day:
-        print("📢 Starting Daily Volume Scan (Nifty 500)...")
+
+    if (is_after_market and is_new_day) or force_volume:
+        print(f"📢 Starting Daily Volume Scan (Nifty 500)... [IST hour={now.hour}, force={force_volume}]")
         # Scan entire universe
         vol_alerts = scan_volume_changes(TICKERS)
         

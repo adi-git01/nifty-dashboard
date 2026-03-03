@@ -2,8 +2,8 @@ name: Alpha Trend Engine
 
 on:
   schedule:
-    # 3:15 PM IST = 9:45 AM UTC (Mon-Fri)
-    - cron: '45 9 * * 1-5'
+    # 3:30 PM IST = 10:00 AM UTC (Mon-Fri)  [shifted +15min to avoid GH Actions congestion]
+    - cron: '0 10 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -12,12 +12,18 @@ jobs:
     permissions:
       contents: write  # Crucial for git-auto-commit-action
     
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.head_ref }}
-    
+      # ✅ FIX #1: Removed `ref: ${{ github.head_ref }}` — that's for PRs only.
+      # On schedule triggers github.head_ref is empty, causing a broken checkout.
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -28,35 +34,47 @@ jobs:
       run: |
         pip install -r requirements.txt
         
-    - name: Execute Trading Engine (Full Cycle)
-      env:
-        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
-        GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+    - name: "Step 1/5: Trading Engine (Cache + Sub-Industry Rotation)"
       run: |
         python trading_engine.py --mode full
-        
-    - name: Commit State Changes (SQLite CSVs & Parquet)
+
+    - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
+      run: |
+        python turnaround_screener.py
+
+    - name: "Step 3/5: OptComp-V21 Portfolio Engine (Live Prices + Exits/Rebalance)"
+      run: |
+        python dna3_current_portfolio.py
+
+    - name: "Step 4/5: DNA3 Morning Alert (Telegram + Email)"
+      run: |
+        python dna3_morning_alert.py
+      # ✅ FIX #2: Portfolio snapshot is written in Step 3 (same run), so it
+      #    is available here — but only if checkout succeeded (fix #1 above).
+
+    - name: "Step 5/5: Position & Volume Alert Daemon (Stop-Loss / Volume Spikes)"
+      # ✅ FIX #3: alert_daemon.py was never called by the workflow.
+      # --force-volume bypasses the IST 4PM check (server runs UTC, check was always failing)
+      run: |
+        python alert_daemon.py --force-volume
+      continue-on-error: true  # Don't let alert failures block the commit
+
+    - name: Commit State Changes (All Data Files)
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: "🤖 System: EOD Engine Check (Cache, SQLite Ledger, Sub-Industries)"
-        file_pattern: 'data/*.csv data/cache/*.parquet positions.json'
+        commit_message: "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
+        file_pattern: 'data/*.csv data/*.json data/cache/*.parquet positions.json'
+
 
     - name: 🚨 Notify on Crash (Telegram & Email)
       if: failure()
-      env:
-        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
-        GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
       run: |
         python -c "
         import os, requests, smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
         
-        msg = '🚨 <b>CRITICAL PIPELINE FAILURE</b> 🚨\n\nThe Alpha Trend Engine crashed during the 3:15 PM run!\n\n<b>Reason:</b> Process exited with fatal code.\nPlease check the GitHub Actions logs immediately.'
+        msg = '🚨 <b>CRITICAL PIPELINE FAILURE</b> 🚨\n\nThe Alpha Trend Engine crashed during the 3:30 PM run!\n\n<b>Reason:</b> Process exited with fatal code.\nPlease check the GitHub Actions logs immediately.'
         
         token = os.environ.get('TELEGRAM_TOKEN')
         chat_id = os.environ.get('TELEGRAM_CHAT_ID')
