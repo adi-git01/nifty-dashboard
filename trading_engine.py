@@ -8,6 +8,10 @@ from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_mar
 from utils.telegram_notifier import send_telegram_message
 from utils.email_notifier import send_trend_change_alert
 
+def _log(msg):
+    """Timestamped print — makes CI log timelines readable."""
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
+
 def get_nifty1000_universe():
     fundamentals = load_base_fundamentals(live_mode=True)
     return fundamentals
@@ -17,12 +21,14 @@ def generate_daily_master_cache():
     Downloads the entire market universe, calculates technical indicators, 
     and saves it to the daily Parquet cache block.
     """
-    print("Generating Daily Master Cache for Nifty 1000...")
+    _log("START: generate_daily_master_cache")
     fundamentals = get_nifty1000_universe()
     tickers = fundamentals['ticker'].dropna().tolist()
+    _log(f"Universe loaded: {len(tickers)} tickers, fundamentals shape={fundamentals.shape}")
     
     # This also auto-saves the Parquet inside the function
     df = fetch_and_process_market_data(tickers, fundamentals, live_mode=True)
+    _log(f"END: generate_daily_master_cache — result shape={df.shape}, columns={list(df.columns[:8])}{'...' if len(df.columns)>8 else ''}")
     return df
 
 def generate_sub_industry_rotation(df, db):
@@ -31,8 +37,9 @@ def generate_sub_industry_rotation(df, db):
     Calculates average composite RS and volume signals to populate the Heatmap.
     Appends historical data (one snapshot per date) for monthly heatmap tracking.
     """
-    print("Calculating Sub-Industry Rotation...")
+    _log("START: generate_sub_industry_rotation")
     if df.empty or 'sector' not in df.columns or 'comp_rs' not in df.columns:
+        _log(f"SKIP sub_industry_rotation — df.empty={df.empty}, columns={list(df.columns[:5])}")
         return
         
     today_str = datetime.now().strftime("%Y-%m-%d")

@@ -74,10 +74,13 @@ def fetch_missing_fundamentals(df):
 
     if not missing: return df
     
+    # 🕵️ BOOBY TRAP: log how many stocks need fundamental fetch — hints at run duration
+    print(f"[ENGINE] fetch_missing_fundamentals: {len(missing)} stocks missing PE/sector. Fetching via 3 workers...", flush=True)
     try:
         st.toast(f"Deep scanning {len(missing)} stocks... (Accuracy Mode)", icon="🕵️")
     except Exception:
-        print(f"[ENGINE] Deep scanning {len(missing)} stocks... (Accuracy Mode)")
+        pass  # headless mode, ignore
+
     
     new_data = []
     # ✅ FIX: Reduced workers 20→3 to avoid Yahoo Finance rate limiting on GitHub Actions
@@ -152,6 +155,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
 
         # ✅ FIX: threads=False prevents 20-thread storm that triggers Yahoo 401s on CI
         # Batch download is still fast (single HTTP session, vectorized)
+        print(f"[ENGINE] Starting yf.download for {len(tickers)} tickers...", flush=True)
         history_data = yf.download(
             tickers, 
             period="1y", 
@@ -161,6 +165,11 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             progress=False,
             auto_adjust=True
         )
+        # 🕵️ BOOBY TRAP: log download result structure
+        print(f"[ENGINE] yf.download complete. Shape={history_data.shape}, "
+              f"MultiIndex={isinstance(history_data.columns, pd.MultiIndex)}, "
+              f"Cols preview={list(history_data.columns[:4]) if not isinstance(history_data.columns, pd.MultiIndex) else list(history_data.columns.levels[0][:4])}",
+              flush=True)
     except Exception as e:
         # ✅ Graceful degradation: log but don't crash — use existing cache/fundamentals
         print(f"[ENGINE] yfinance download failed ({e}), returning cached fundamentals")
@@ -353,6 +362,12 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             
     # Convert to DataFrame
     final_df = pd.DataFrame(processed_rows)
+    # 🕵️ BOOBY TRAP: log how many tickers made it through
+    print(f"[ENGINE] Processing complete: {len(processed_rows)}/{total_tickers} tickers returned valid data.", flush=True)
+    if not final_df.empty:
+        print(f"[ENGINE] Output shape={final_df.shape}, key_cols={[c for c in ['ticker','currentPrice','dna_signal','comp_rs'] if c in final_df.columns]}", flush=True)
+    else:
+        print("[ENGINE] ⚠️  final_df is EMPTY — yfinance returned no usable data.", flush=True)
     
     # Save to Parquet Cache for next time
     try:

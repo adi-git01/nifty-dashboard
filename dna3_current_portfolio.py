@@ -155,7 +155,9 @@ class OptCompV21Engine:
                 return t, None
 
             missing = [t for t in self.tickers if t not in self.data_cache]
-            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            # ✅ FIX: max_workers=3 (was 20) — 20 parallel yfinance calls = Yahoo 429 rate limit
+            print(f"  [FALLBACK] Fetching {len(missing)} missing stocks with 3 workers...", flush=True)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                 results = executor.map(fetch_single, missing)
                 for t, df in results:
                     if df is not None:

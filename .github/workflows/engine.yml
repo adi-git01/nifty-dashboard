@@ -41,14 +41,17 @@ jobs:
         python trading_engine.py --mode full
 
     - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
+      continue-on-error: true  # Screener failure must not block portfolio engine or commit
       run: |
         python turnaround_screener.py
 
     - name: "Step 3/5: OptComp-V21 Portfolio Engine (Live Prices + Exits/Rebalance)"
+      continue-on-error: true  # Portfolio engine failure must not block alerts or commit
       run: |
         python dna3_current_portfolio.py
 
     - name: "Step 4/5: DNA3 Morning Alert (Telegram + Email)"
+      continue-on-error: true  # Alert failure must not block commit
       run: |
         python dna3_morning_alert.py
       # ✅ FIX #2: Portfolio snapshot is written in Step 3 (same run), so it
