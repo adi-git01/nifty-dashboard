@@ -2,8 +2,8 @@ name: Alpha Trend Engine
 
 on:
   schedule:
-    # Regular: 3:30 PM IST = 10:00 AM UTC (Mon-Fri)
-    - cron: '0 10 * * 1-5'
+    # Regular: 3:21 PM IST = 09:51 AM UTC (Mon-Fri) - Off-peak minute to avoid GitHub delays
+    - cron: '51 9 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
