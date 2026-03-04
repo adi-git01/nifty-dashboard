@@ -1,26 +1,29 @@
 """
-OptComp-V21 LIVE PORTFOLIO ENGINE
-=================================
-Production portfolio engine implementing the optimized Composite RS strategy.
+OptComp-V22 LIVE PORTFOLIO ENGINE (Regime-Protected)
+=====================================================
+Production portfolio engine implementing the Composite RS strategy
+with the V2.2 Regime Shield.
 
-Strategy: OptComp-V21
+Strategy: OptComp-V22
   - RS Signal: Composite (10% 1W + 50% 1M + 40% 3M)
-  - Rebalance: Every 13 trading days
-  - G-Factor: Off
-  - Regime Sizing: Off (full deployment)
-  - Positions: 10 equal-weight
+  - Rebalance: 13d (BULL/CAUTION) / 21d (BEAR) / HOLD (CRISIS)
+  - Regime: 4-tier (BULL/CAUTION/BEAR/CRISIS) from Nifty MA200 + drawdown
+  - Positions: 15 equal-weight
   - Breadth Gate: Skip new buys when market breadth < 30%
 
 Entry Rules (only on rebalance days):
   1. Price > 50-day MA
-  2. Composite RS > 0 (outperforming Nifty on blended timeframes)
-  3. Daily traded value > 1 Crore
-  4. Market breadth (% above 50DMA proxy) >= 30%
-  5. Rank by composite RS, buy top candidates
+  2. CompRS >= regime threshold (17pp BULL/CAUTION, 22pp BEAR/CRISIS)
+  3. Liquidity >= regime threshold (1Cr/1.2Cr/1.5Cr/2Cr)
+  4. Market breadth >= 30%
+  5. Circuit breaker NOT active (Nifty -25% from 52W high)
+  6. Vol quality >= 0.55 (CAUTION/BEAR only)
+  7. Rank by CompRS, buy top candidates
 
-Exit Rules (checked EVERY run):
+Exit Rules (checked EVERY run, regime-adaptive):
   1. Price < 50-day MA -> SELL (Trend Break)
-  2. Price < Peak * 0.85 -> SELL (15% Trailing Stop)
+  2. Price < Peak * (1 - trail_stop[regime]) -> SELL (Regime Trail Stop)
+     BULL: 15% | CAUTION: 12% | BEAR: 8% | CRISIS: 6%
 
 Artifacts:
   - data/dna3_portfolio_snapshot.json (Current State)
@@ -39,15 +42,18 @@ import sys
 # Ensure utils import works
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils.nifty1000_list import TICKERS_1000 as TICKERS, SUB_INDUSTRY_MAP as SECTOR_MAP
+from utils.regime_manager import (classify_regime, get_regime_params,
+                                   is_circuit_breaker_active,
+                                   calculate_volume_quality)
 
 # ============================================================
-# STRATEGY CONFIGURATION — OptComp-V21 (Locked from Research)
+# STRATEGY CONFIGURATION — OptComp-V22 (Regime-Protected)
 # ============================================================
-STRATEGY_NAME = "OptComp-V21"
-MAX_POSITIONS = 10
+STRATEGY_NAME = "OptComp-V22"
+MAX_POSITIONS = 15
 INITIAL_CAPITAL = 1000000  # 10 Lakhs
 START_DATE = "2026-02-23"  # Fresh start
-REBALANCE_DAYS = 13        # Trading days between rebalances
+DEFAULT_REBALANCE_DAYS = 13  # Overridden by regime
 
 # Composite RS Weights (10% 1W + 50% 1M + 40% 3M)
 RS_WEIGHTS = [
@@ -59,9 +65,12 @@ RS_WEIGHTS = [
 # Breadth Gate Threshold
 BREADTH_NARROW_THRESHOLD = 30  # % of stocks above 50DMA — below this = skip buys
 
-# Risk Management
-TRAILING_STOP_PCT = 0.85     # Sell if price drops 15% from peak
-MIN_LIQUIDITY = 10_000_000   # Rs 1 Crore min daily value
+# V2.2 Regime Thresholds (CompRS is in *100 scale, so 0.17 -> 17.0)
+# These are applied dynamically per regime via regime_manager.get_regime_params()
+# Static fallbacks (only used if regime computation fails):
+FALLBACK_TRAILING_STOP_PCT = 0.85     # 15% trail
+FALLBACK_MIN_LIQUIDITY     = 10_000_000  # Rs 1 Cr
+FALLBACK_MIN_COMP_RS       = 17.0     # 17pp CompRS
 
 DATA_DIR = "data"
 SNAPSHOT_FILE = f"{DATA_DIR}/dna3_portfolio_snapshot.json"
@@ -241,28 +250,34 @@ class OptCompV21Engine:
         return round(above_50 / total * 100, 1)
 
     def is_rebalance_day(self, state):
-        """Check if today is a rebalance day (every 13 trading days)."""
+        """Legacy wrapper; uses default 13d frequency."""
+        return self._is_rebalance_day_v22(state, DEFAULT_REBALANCE_DAYS)
+
+    def _is_rebalance_day_v22(self, state, rebalance_freq):
+        """Check if today is a rebalance day using regime-dynamic frequency."""
         last_reb = state.get('last_rebalance_date')
         
         if last_reb is None:
             return True  # First run, force rebalance
 
-        # Count trading days since last rebalance using Nifty calendar
+        # CRISIS = HOLD (freq=999), never rebalance
+        if rebalance_freq >= 999:
+            return False
+
         nifty = self.data_cache['NIFTY']
         try:
             last_reb_dt = pd.Timestamp(last_reb)
             today_dt = nifty.index[-1]
             
-            # Count trading days between last_reb and today
             trading_days = nifty.index[(nifty.index > last_reb_dt) & (nifty.index <= today_dt)]
             days_since = len(trading_days)
             
-            return days_since >= REBALANCE_DAYS
+            return days_since >= rebalance_freq
         except:
             return True  # If error, force rebalance
 
     def update_portfolio(self):
-        """Main portfolio update loop."""
+        """Main portfolio update loop with V2.2 Regime Shield."""
         if not self.fetch_data():
             return
 
@@ -274,9 +289,44 @@ class OptCompV21Engine:
         today = self.data_cache['NIFTY'].index[-1].strftime('%Y-%m-%d')
         self.current_date = today
 
+        # ============================================================
+        # V2.2 REGIME CLASSIFICATION
+        # ============================================================
+        nifty_df = self.data_cache['NIFTY']
+        try:
+            n_close  = float(nifty_df['Close'].iloc[-1])
+            n_ma200  = float(nifty_df['Close'].rolling(200).mean().iloc[-1])
+            n_52w_hi = float(nifty_df['High'].rolling(252).max().iloc[-1])
+            regime   = classify_regime(n_close, n_ma200, n_52w_hi)
+        except Exception:
+            regime = 'CAUTION'  # safe fallback
+
+        params      = get_regime_params(regime)
+        trail_pct   = params['trail_stop']      # 0.15 / 0.12 / 0.08 / 0.06
+        trail_keep  = 1.0 - trail_pct            # 0.85 / 0.88 / 0.92 / 0.94
+        min_liq_cr  = params['min_liquidity']    # 1 / 1.2 / 1.5 / 2 (in Cr)
+        min_liq_raw = min_liq_cr * 1e7           # convert Cr -> raw Rs
+        min_comp_rs = params['min_comp_rs'] * 100  # 0.17 -> 17.0 (match *100 scaling)
+        rebal_days  = params['rebalance_freq']   # 13 / 13 / 21 / 999
+        can_enter   = params['new_entries']       # True / True / True / False
+
+        # Circuit Breaker
+        try:
+            cb_active = is_circuit_breaker_active(n_close, n_52w_hi)
+        except Exception:
+            cb_active = False
+
+        self.regime = regime  # store for snapshot
+
+        regime_icon = {'BULL': '[BULL]', 'CAUTION': '[CAUTION]',
+                       'BEAR': '[BEAR]', 'CRISIS': '[CRISIS]'}.get(regime, '[?]')
+
         print(f"\n  {'='*70}")
-        print(f"  {STRATEGY_NAME} LIVE ENGINE")
+        print(f"  {STRATEGY_NAME} LIVE ENGINE  {regime_icon}")
         print(f"  Date: {today}")
+        print(f"  Regime: {regime} | Trail: {trail_pct*100:.0f}% | Liq: Rs{min_liq_cr:.1f}Cr | CompRS: {min_comp_rs:.0f}pp")
+        if cb_active:
+            print(f"  *** CIRCUIT BREAKER ACTIVE *** (Nifty >25% off 52W high)")
         print(f"  {'='*70}")
         
         # ============================================================
@@ -300,11 +350,11 @@ class OptCompV21Engine:
 
             exit_reason = None
 
-            # EXIT RULES
+            # EXIT RULES (V2.2: regime-adaptive trailing stop)
             if price < ma50:
                 exit_reason = "Trend Break (< MA50)"
-            elif price < peak * TRAILING_STOP_PCT:
-                exit_reason = f"Trailing Stop (-{(1-TRAILING_STOP_PCT)*100:.0f}%)"
+            elif price < peak * trail_keep:
+                exit_reason = f"Trailing Stop (-{trail_pct*100:.0f}% [{regime}])"
 
             if exit_reason:
                 shares = holdings[t]['shares']
@@ -326,21 +376,28 @@ class OptCompV21Engine:
             del holdings[t]
 
         # ============================================================
-        # 2. REBALANCE CHECK — only scan for buys every 13 days
+        # 2. REBALANCE CHECK (V2.2: regime-adaptive frequency)
         # ============================================================
-        is_reb_day = self.is_rebalance_day(state)
+        # Override rebalance frequency from regime
+        is_reb_day = self._is_rebalance_day_v22(state, rebal_days)
 
         if is_reb_day:
-            print(f"\n  >> REBALANCE DAY (#{state.get('rebalance_count', 0) + 1})")
-            
-            # Calculate breadth gate
-            breadth = self.calculate_breadth()
-            print(f"     Market Breadth: {breadth:.0f}% above 50DMA", end="")
+            print(f"\n  >> REBALANCE DAY (#{state.get('rebalance_count', 0) + 1}) [{regime}: every {rebal_days}d]")
 
-            if breadth < BREADTH_NARROW_THRESHOLD:
-                print(f" -> NARROW MARKET (< {BREADTH_NARROW_THRESHOLD}%) -> SKIPPING NEW BUYS")
+            # V2.2: Circuit breaker blocks ALL new entries
+            if cb_active:
+                print("     CIRCUIT BREAKER ACTIVE -> ALL NEW ENTRIES BLOCKED")
+            elif not can_enter:
+                print(f"     {regime} REGIME -> NEW ENTRIES SUSPENDED")
             else:
-                print(f" -> Healthy (>= {BREADTH_NARROW_THRESHOLD}%) -> Scanning...")
+                # Calculate breadth gate
+                breadth = self.calculate_breadth()
+                print(f"     Market Breadth: {breadth:.0f}% above 50DMA", end="")
+
+                if breadth < BREADTH_NARROW_THRESHOLD:
+                    print(f" -> NARROW MARKET (< {BREADTH_NARROW_THRESHOLD}%) -> SKIPPING NEW BUYS")
+                else:
+                    print(f" -> Healthy (>= {BREADTH_NARROW_THRESHOLD}%) -> Scanning...")
 
                 # ============================================================
                 # 3. SCAN FOR NEW BUYS (only on rebalance day + healthy breadth)
@@ -354,10 +411,23 @@ class OptCompV21Engine:
                     if not m:
                         continue
 
-                    # ENTRY RULES
-                    if (m['liquidity'] > MIN_LIQUIDITY and 
+                    # ENTRY RULES (V2.2: regime-adaptive thresholds)
+                    if (m['liquidity'] > min_liq_raw and 
                         m['price'] > m['ma50'] and 
-                        m['rs_score'] > 0):
+                        m['rs_score'] >= min_comp_rs):
+
+                        # V2.2 Step 4: Vol Quality gate (CAUTION/BEAR only)
+                        if regime in ['CAUTION', 'BEAR']:
+                            df_t = self.data_cache[t]
+                            if len(df_t) >= 5:
+                                vq = calculate_volume_quality(
+                                    df_t['Close'].iloc[-5:],
+                                    df_t['Open'].iloc[-5:],
+                                    df_t['Volume'].iloc[-5:]
+                                )
+                                if vq < 0.55:
+                                    continue  # filtered: panic selling volume
+
                         candidates.append({
                             'Ticker': t,
                             'Sector': self.sector_map.get(t, 'Unknown'),
@@ -417,7 +487,7 @@ class OptCompV21Engine:
                 days_since = len(trading_days)
             except:
                 pass
-            print(f"\n  >> NOT REBALANCE DAY (day {days_since}/{REBALANCE_DAYS}). Exits only.")
+            print(f"\n  >> NOT REBALANCE DAY (day {days_since}/{rebal_days}). Exits only.")
 
         # ============================================================
         # 5. CALCULATE EQUITY & BUILD DISPLAY
@@ -461,12 +531,16 @@ class OptCompV21Engine:
             'portfolio': portfolio_list,
             'last_rebalance_date': state.get('last_rebalance_date'),
             'rebalance_count': state.get('rebalance_count', 0),
+            'regime': regime,
+            'circuit_breaker': cb_active,
             'config': {
                 'rs_weights': RS_WEIGHTS,
-                'rebalance_days': REBALANCE_DAYS,
+                'rebalance_days': rebal_days,
                 'max_positions': MAX_POSITIONS,
                 'breadth_threshold': BREADTH_NARROW_THRESHOLD,
-                'trailing_stop': TRAILING_STOP_PCT,
+                'trailing_stop': trail_pct,
+                'min_comp_rs': min_comp_rs,
+                'min_liquidity_cr': min_liq_cr,
             }
         }
 
@@ -495,7 +569,8 @@ class OptCompV21Engine:
         print(f"  Equity:    Rs.{equity_val:>12,.0f} ({ret_pct:+.1f}%)")
         print(f"  Cash:      Rs.{cash:>12,.0f}")
         print(f"  Holdings:  {len(holdings)}/{MAX_POSITIONS}")
-        print(f"  Rebalance: #{state.get('rebalance_count', 0)} (every {REBALANCE_DAYS} days)")
+        print(f"  Regime:    {regime} | Trail: {trail_pct*100:.0f}% | Rebal: {rebal_days}d")
+        print(f"  Rebalance: #{state.get('rebalance_count', 0)}")
         print(f"  {'='*70}")
 
         if portfolio_list:

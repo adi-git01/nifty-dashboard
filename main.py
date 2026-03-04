@@ -174,6 +174,17 @@ if _needs_refresh:
         _nifty_data = yf.Ticker("^NSEI").history(start=_nifty_start)
         if not _nifty_data.empty:
             st.session_state['nifty_data'] = _nifty_data
+            
+            # --- V2.2 Regime Manager ---
+            from utils.regime_manager import classify_regime
+            _nd = _nifty_data.copy()
+            if _nd.index.tz is not None:
+                _nd.index = _nd.index.tz_localize(None)
+            _ma200 = _nd['Close'].rolling(200).mean().iloc[-1]
+            _h52w  = _nd['High'].rolling(252).max().iloc[-1]
+            _close = _nd['Close'].iloc[-1]
+            current_regime = classify_regime(float(_close), float(_ma200), float(_h52w))
+            st.session_state['market_regime'] = current_regime
     except Exception:
         pass  # Non-fatal — individual pages can fallback
     
@@ -207,6 +218,10 @@ if 'data_loaded_at' in st.session_state:
     else:
         freshness_text = f"🔴 {minutes_ago // 60}h ago (stale)"
     st.sidebar.caption(f"📊 {len(df)} stocks • Updated: {freshness_text}")
+    
+    regime = st.session_state.get('market_regime', 'UNKNOWN')
+    regime_color = {"BULL": "🟢", "CAUTION": "🟡", "BEAR": "🟠", "CRISIS": "🔴"}.get(regime, "⚪")
+    st.sidebar.markdown(f"**Market Regime:** {regime_color} **{regime}**")
 else:
     st.sidebar.success(f"Loaded {len(df)} Tickers")
 
@@ -4428,6 +4443,11 @@ elif page == "\U0001f3af Turnaround Radar":
 
     wdf = load_turnaround_watchlist()
 
+    regime = st.session_state.get('market_regime', 'UNKNOWN')
+    if regime in ['BEAR', 'CRISIS']:
+        st.error(f"🚨 **{regime} REGIME ACTIVE** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
+        st.stop()
+
     if wdf.empty:
         st.warning("Watchlist not generated yet. Run `python turnaround_screener.py` locally or wait for the next GitHub Actions daily run.")
         st.code("python turnaround_screener.py", language="bash")
@@ -4481,7 +4501,7 @@ elif page == "\U0001f3af Turnaround Radar":
     display_df["screener_link"] = "https://www.screener.in/company/" + display_df["Ticker"].str.replace(r"\.(NS|BO)$", "", regex=True) + "/"
 
     display_cols = ["screener_link","Sub_Industry","Cycle","CMP","Off_52W_High","RS21","RS63",
-                    "CompRS","Liq5Cr","LiqFromLow","IAS","Tier","Off_MA50","V21_CRS_Gap","V21_MA50_Gap"]
+                    "CompRS","Liq5Cr","LiqFromLow","VolQuality","IAS","Tier","Off_MA50","V21_CRS_Gap","V21_MA50_Gap"]
     available = [c for c in display_cols if c in display_df.columns]
 
     st.dataframe(
@@ -4498,6 +4518,7 @@ elif page == "\U0001f3af Turnaround Radar":
             "CompRS":       st.column_config.NumberColumn("CompRS", format="%.3f"),
             "Liq5Cr":       st.column_config.NumberColumn("Liq5Cr", format="%.0f"),
             "LiqFromLow":   st.column_config.NumberColumn("LiqFromLow", format="%.1fx"),
+            "VolQuality":   st.column_config.NumberColumn("Vol Quality", format="%.2f", help=">0.55 = Valid Accumulation"),
             "IAS":          st.column_config.ProgressColumn("IAS", format="%.0f", max_value=100),
             "Tier":         st.column_config.TextColumn("Tier", width=60),
             "V21_CRS_Gap":  st.column_config.NumberColumn("V21 CRS Gap", format="%.2f"),

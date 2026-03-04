@@ -14,6 +14,7 @@ from trading_db import TradingDatabase
 from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data, get_parquet_cache_path
 from utils.telegram_notifier import send_telegram_message
 from utils.email_notifier import send_trend_change_alert
+from utils.regime_manager import classify_regime, get_regime_params
 
 def _log(msg):
     """Timestamped print — makes CI log timelines readable."""
@@ -94,19 +95,35 @@ def generate_sub_industry_rotation(df, db):
 def check_portfolio_stops(df, db):
     """
     Orchestrates the trailing stop loss logic on the current active portfolio.
+    V2.2: Uses regime-adaptive trailing stop percentages.
     Issues telegram alerts if stops are hit.
     """
-    print("Checking Portfolio Stops...")
+    print("Checking Portfolio Stops (V2.2 Regime-Adaptive)...")
     portfolio = pd.read_sql_query("SELECT * FROM portfolio", db.conn)
     
     if portfolio.empty:
         print("Portfolio is empty. No stops to check.")
         return
     
-    # Guard: if yfinance data fetch failed, df may have no 'currentPrice' column
     if df.empty or 'currentPrice' not in df.columns:
         print("[STOP CHECK] Skipped: market data unavailable (no currentPrice column).")
         return
+
+    # V2.2: Compute current regime for adaptive trailing stop
+    import yfinance as yf
+    try:
+        _nifty = yf.Ticker("^NSEI").history(period="2y")
+        _n_close  = float(_nifty['Close'].iloc[-1])
+        _n_ma200  = float(_nifty['Close'].rolling(200).mean().iloc[-1])
+        _n_52w_hi = float(_nifty['High'].rolling(252).max().iloc[-1])
+        regime = classify_regime(_n_close, _n_ma200, _n_52w_hi)
+    except Exception:
+        regime = 'CAUTION'
+
+    params = get_regime_params(regime)
+    trail_pct = params['trail_stop']  # 0.15 / 0.12 / 0.08 / 0.06
+    trail_keep = 1.0 - trail_pct
+    print(f"  Regime: {regime} | Trail Stop: {trail_pct*100:.0f}%")
 
     df_lookup = df.set_index('ticker')
     sells = []
@@ -117,13 +134,21 @@ def check_portfolio_stops(df, db):
         if ticker in df_lookup.index:
             current_price = df_lookup.loc[ticker, 'currentPrice']
             ma50 = df_lookup.loc[ticker, 'fiftyDayAverage']
+            peak = pos.get('peak_price', pos['entry_price'])
             
-            # Simple 50-Day MA trailing stop check
-            # Real exit logic should check if price < MA50
+            exit_reason = None
+
+            # EXIT: MA50 break
             if current_price < ma50:
-                print(f"STOP LOSS HIT: {ticker} (Price: {current_price} < MA50: {ma50})")
-                sells.append((ticker, current_price, "MA50 Break"))
-                alerts.append(f"🚨 *STOP LOSS HIT* 🚨\\n*{ticker}*\\nPrice: ₹{current_price:,.2f}\\nReason: Dropped below 50-Day MA (₹{ma50:,.2f})")
+                exit_reason = "MA50 Break"
+            # EXIT: Regime-adaptive trailing stop
+            elif peak and current_price < peak * trail_keep:
+                exit_reason = f"Trail Stop (-{trail_pct*100:.0f}% [{regime}])"
+
+            if exit_reason:
+                print(f"STOP HIT: {ticker} (Price: {current_price:.2f} | Reason: {exit_reason})")
+                sells.append((ticker, current_price, exit_reason))
+                alerts.append(f"\xf0\x9f\x9a\xa8 *STOP LOSS HIT* \xf0\x9f\x9a\xa8\\n*{ticker}*\\nPrice: {current_price:,.2f}\\nReason: {exit_reason}")
                 
             # Update peak price for trailing
             if current_price > pos.get('peak_price', pos['entry_price']):
@@ -238,9 +263,22 @@ def send_daily_heartbeat(df, mode):
     buyers = df[df['dna_signal'] == 'BUY'] if not df.empty and 'dna_signal' in df.columns else pd.DataFrame()
     buy_count = len(buyers)
     
+    # V2.2: Include regime state in heartbeat
+    try:
+        import yfinance as yf
+        _nifty = yf.Ticker("^NSEI").history(period="2y")
+        _regime = classify_regime(
+            float(_nifty['Close'].iloc[-1]),
+            float(_nifty['Close'].rolling(200).mean().iloc[-1]),
+            float(_nifty['High'].rolling(252).max().iloc[-1])
+        )
+    except Exception:
+        _regime = 'UNKNOWN'
+
     msg = f"✅ <b>EOD Engine Run: SUCCESS</b>\n\n"
     msg += f"🕒 <b>Time:</b> {now_str} IST\n"
     msg += f"⚙️ <b>Mode:</b> {mode.upper()}\n"
+    msg += f"📊 <b>Regime:</b> {_regime}\n"
     msg += f"📊 <b>Universe Scanned:</b> {universe_size} Nifty Stocks\n"
     msg += f"🟢 <b>New Buy Signals:</b> {buy_count}\n\n"
     msg += "<i>Systems operating normally.</i>"

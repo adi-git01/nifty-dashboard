@@ -23,6 +23,7 @@ warnings.filterwarnings("ignore")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.nifty1000_list import TICKERS_1000
+from utils.regime_manager import calculate_volume_quality as _calc_vq
 
 OUTPUT_CSV  = "data/turnaround_watchlist.csv"
 CACHE_DIR   = "data/cache"
@@ -85,7 +86,7 @@ def calc_ias(rs21_d5: float, lfl: float, pct_off_low: float, rs63: float) -> flo
     return round(vel_s + lfl_s + price_s + r63_s, 1)
 
 
-def score_ticker(t: str, close: pd.Series, volume: pd.Series,
+def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series,
                  nifty: pd.Series, sub_map: dict) -> dict | None:
     """Compute today's IAS for a single ticker. Returns None if gates not met."""
     try:
@@ -143,6 +144,17 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series,
         if price   <= close.rolling(10).min().iloc[-1]:
             return None   # Making new 10-day lows (not forming a base)
 
+        # ── SYSTEMIC CRISIS SHIELDS ───────────────────────────────────────────
+        # 1. Volume Quality Discriminator (Blocks panic selling)
+        vol_quality = _calc_vq(close, open_px, volume, window=5)
+        if vol_quality < 0.55:
+            return None   # Driven by red-day liquidation, fake bounce
+            
+        # 2. Multi-Day Confirmation (Requires 3-day hold of structurally higher lows/closes)
+        if len(close) >= 3:
+            if close.iloc[-1] <= close.iloc[-3]:
+                return None  # Failed to hold a 3-day higher floor
+
         ias = calc_ias(rs21d_now, lfl_now, ol_now, rs63_now)
         if ias < MIN_IAS_SCORE:
             return None
@@ -164,6 +176,7 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series,
             "CompRS":       round(crs_now, 3),
             "Liq5Cr":       round(liq5_now, 1),
             "LiqFromLow":   round(min(lfl_now, 50), 1),
+            "VolQuality":   round(vol_quality, 2),
             "IAS":          ias,
             "Tier":         tier,
             "V21_CRS_Gap":  round(v21_crs_gap, 2),
@@ -220,9 +233,10 @@ def main():
             data = bulk[t] if len(tickers) > 1 else bulk
             close  = data["Close"].dropna()
             volume = data["Volume"].dropna()
+            open_px = data["Open"].dropna()
             if len(close) < 70:
                 continue
-            row = score_ticker(t, close, volume, nifty_close, sub_map)
+            row = score_ticker(t, close, volume, open_px, nifty_close, sub_map)
             if row:
                 results.append(row)
         except Exception:

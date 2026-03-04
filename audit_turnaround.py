@@ -46,7 +46,7 @@ if os.path.exists(csv_path):
     check("CSV exists", True)
     check("Row count >= 10", len(df) >= 10, f"{len(df)} rows")
     expected_cols = ["Ticker","Sub_Industry","Cycle","CMP","Off_52W_High","Off_MA50",
-                     "RS21","RS63","CompRS","Liq5Cr","LiqFromLow","IAS","Tier",
+                     "RS21","RS63","CompRS","Liq5Cr","LiqFromLow","VolQuality","IAS","Tier",
                      "V21_CRS_Gap","V21_MA50_Gap","Date"]
     missing = [c for c in expected_cols if c not in df.columns]
     check("All required columns", len(missing)==0, f"Missing: {missing}" if missing else "")
