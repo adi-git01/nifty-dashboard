@@ -1,19 +1,13 @@
 {
     "strategy": "OptComp-V21",
-    "date": "2026-03-03",
-    "cash": 19883.125670898473,
+    "date": "2026-03-04",
+    "cash": 116473.15631457523,
     "holdings": {
         "APARINDS.NS": {
             "entry_price": 10776.0,
             "entry_date": "2026-02-20",
             "shares": 9,
             "peak_price": 11180.5
-        },
-        "HINDCOPPER.NS": {
-            "entry_price": 564.0,
-            "entry_date": "2026-02-20",
-            "shares": 177,
-            "peak_price": 566.2999877929688
         },
         "SCHNEIDER.NS": {
             "entry_price": 882.25,
@@ -61,101 +55,92 @@
             "entry_price": 1398.5,
             "entry_date": "2026-02-20",
             "shares": 71,
-            "peak_price": 1398.5
+            "peak_price": 1416.5
         }
     },
-    "equity": 1009171.8256708985,
-    "count": 10,
+    "equity": 973413.8137852784,
+    "count": 9,
     "portfolio": [
         {
-            "Ticker": "APARINDS.NS",
-            "Sector": "Other Electrical Equipment",
-            "Price": 10694.0,
-            "RS_Score": 26.1,
-            "Entry": 10776.0,
-            "PnL%": -0.76,
-            "Dist_MA50": 21.8
-        },
-        {
             "Ticker": "BHARATFORG.NS",
-            "Sector": "Auto Components & Equipments",
-            "Price": 1879.3,
-            "RS_Score": 30.5,
+            "Sector": "Auto Components",
+            "Price": 1841.800048828125,
+            "RS_Score": 26.7,
             "Entry": 1816.699951171875,
-            "PnL%": 3.45,
-            "Dist_MA50": 20.5
-        },
-        {
-            "Ticker": "FORCEMOT.NS",
-            "Sector": "Passenger Cars & Utility Vehicles",
-            "Price": 23380.0,
-            "RS_Score": 25.2,
-            "Entry": 24475.0,
-            "PnL%": -4.47,
-            "Dist_MA50": 9.7
-        },
-        {
-            "Ticker": "SCHNEIDER.NS",
-            "Sector": "Heavy Electrical Equipment",
-            "Price": 873.2,
-            "RS_Score": 21.4,
-            "Entry": 882.25,
-            "PnL%": -1.03,
-            "Dist_MA50": 18.2
-        },
-        {
-            "Ticker": "AMBER.NS",
-            "Sector": "Household Appliances",
-            "Price": 7884.5,
-            "RS_Score": 23.1,
-            "Entry": 7829.5,
-            "PnL%": 0.7,
-            "Dist_MA50": 17.2
-        },
-        {
-            "Ticker": "GVT&D.NS",
-            "Sector": "Heavy Electrical Equipment",
-            "Price": 3772.4,
-            "RS_Score": 23.0,
-            "Entry": 3702.800048828125,
-            "PnL%": 1.88,
-            "Dist_MA50": 16.8
-        },
-        {
-            "Ticker": "POWERINDIA.NS",
-            "Sector": "Heavy Electrical Equipment",
-            "Price": 25500.0,
-            "RS_Score": 24.9,
-            "Entry": 24163.0,
-            "PnL%": 5.53,
-            "Dist_MA50": 28.0
-        },
-        {
-            "Ticker": "VTL.NS",
-            "Sector": "Other Textile Products",
-            "Price": 547.5,
-            "RS_Score": 23.4,
-            "Entry": 529.1500244140625,
-            "PnL%": 3.47,
-            "Dist_MA50": 18.6
+            "PnL%": 1.381631437819933,
+            "Dist_MA50": 17.43667750617474
         },
         {
             "Ticker": "KIRLOSENG.NS",
-            "Sector": "Compressors Pumps & Diesel Engines",
-            "Price": 1405.5,
-            "RS_Score": 24.2,
+            "Sector": "Industrial Manufacturing",
+            "Price": 1416.5,
+            "RS_Score": 26.3,
             "Entry": 1398.5,
-            "PnL%": 0.5,
-            "Dist_MA50": 12.6
+            "PnL%": 1.2870933142652843,
+            "Dist_MA50": 13.252133216778706
         },
         {
-            "Ticker": "HINDCOPPER.NS",
-            "Sector": "Copper",
-            "Price": 576.0,
-            "RS_Score": 28.3,
-            "Entry": 564.0,
-            "PnL%": 2.13,
-            "Dist_MA50": 3.5
+            "Ticker": "POWERINDIA.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 24500.0,
+            "RS_Score": 22.0,
+            "Entry": 24163.0,
+            "PnL%": 1.394694367421264,
+            "Dist_MA50": 22.2035342259678
+        },
+        {
+            "Ticker": "AMBER.NS",
+            "Sector": "Consumer Durables",
+            "Price": 7657.0,
+            "RS_Score": 20.1,
+            "Entry": 7829.5,
+            "PnL%": -2.2032058241267003,
+            "Dist_MA50": 13.493026930322664
+        },
+        {
+            "Ticker": "GVT&D.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 3682.60009765625,
+            "RS_Score": 18.9,
+            "Entry": 3702.800048828125,
+            "PnL%": -0.5455317842039014,
+            "Dist_MA50": 13.457953759218602
+        },
+        {
+            "Ticker": "VTL.NS",
+            "Sector": "Textiles & Apparels",
+            "Price": 538.2000122070312,
+            "RS_Score": 17.6,
+            "Entry": 529.1500244140625,
+            "PnL%": 1.7102877020538678,
+            "Dist_MA50": 16.18092714813903
+        },
+        {
+            "Ticker": "FORCEMOT.NS",
+            "Sector": "Automobiles",
+            "Price": 21450.0,
+            "RS_Score": 16.1,
+            "Entry": 24475.0,
+            "PnL%": -12.359550561797752,
+            "Dist_MA50": 0.31089362275247273
+        },
+        {
+            "Ticker": "SCHNEIDER.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 832.75,
+            "RS_Score": 14.3,
+            "Entry": 882.25,
+            "PnL%": -5.610654576367243,
+            "Dist_MA50": 12.387982601520893
+        },
+        {
+            "Ticker": "APARINDS.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 10022.0,
+            "RS_Score": 12.0,
+            "Entry": 10776.0,
+            "PnL%": -6.997030438010393,
+            "Dist_MA50": 13.79778240801194
         }
     ],
     "last_rebalance_date": "2026-02-20",
