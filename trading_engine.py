@@ -170,6 +170,26 @@ def check_portfolio_stops(df, db):
         """, (ticker, pos[1], datetime.now().strftime("%Y-%m-%d"), entry_price, exit_price, pnl_pct, reason, pos[6]))
         
         db.cursor.execute("DELETE FROM portfolio WHERE ticker = ?", (ticker,))
+
+        # Also write to centralized trade log CSV
+        try:
+            import csv
+            log_path = "data/dna3_trade_log.csv"
+            file_exists = os.path.exists(log_path)
+            with open(log_path, 'a', newline='') as csvf:
+                writer = csv.DictWriter(csvf, fieldnames=['Ticker','Action','Date','Price','PnL','PnL%','Reason'])
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerow({
+                    'Ticker': ticker, 'Action': 'SELL',
+                    'Date': datetime.now().strftime("%Y-%m-%d"),
+                    'Price': round(exit_price, 2),
+                    'PnL': round((exit_price - entry_price) * 1, 2),
+                    'PnL%': round(pnl_pct, 2),
+                    'Reason': reason
+                })
+        except Exception:
+            pass  # Don't let CSV write failure block the main flow
         
     db.conn.commit()
     

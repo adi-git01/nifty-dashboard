@@ -556,10 +556,16 @@ class OptCompV21Engine:
         eq_record = {
             'Date': today, 'Equity': round(equity_val, 2),
             'Cash': round(cash, 2), 'Holdings': len(holdings),
+            'Regime': regime,
         }
-        df_eq = pd.DataFrame([eq_record])
-        hdr = not os.path.exists(EQUITY_CURVE_FILE)
-        df_eq.to_csv(EQUITY_CURVE_FILE, mode='a', header=hdr, index=False)
+        # Dedup: only write one row per day
+        if os.path.exists(EQUITY_CURVE_FILE):
+            existing_eq = pd.read_csv(EQUITY_CURVE_FILE)
+            existing_eq = existing_eq[existing_eq['Date'] != today]
+            existing_eq = pd.concat([existing_eq, pd.DataFrame([eq_record])], ignore_index=True)
+            existing_eq.to_csv(EQUITY_CURVE_FILE, index=False)
+        else:
+            pd.DataFrame([eq_record]).to_csv(EQUITY_CURVE_FILE, index=False)
 
         # Print summary
         ret_pct = (equity_val - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100

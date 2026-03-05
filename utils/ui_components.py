@@ -513,7 +513,7 @@ def card_verdict(verdict, score):
     </div>
     """
 
-def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="OptComp-V21", since="Feb '26"):
+def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="OptComp-V22", since="Feb '26"):
     """Robinhood-style hero card with big P&L number."""
     ret_color = COLORS['positive'] if return_pct >= 0 else COLORS['negative']
     arrow = "▲" if return_pct >= 0 else "▼"
@@ -537,11 +537,11 @@ def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="Op
             </div>
             <div class="hero-meta-item">
                 <div class="meta-label">Strategy</div>
-                <div class="meta-value">Price > MA50 + RS > 0</div>
+                <div class="meta-value">Regime Shield + RS</div>
             </div>
             <div class="hero-meta-item">
-                <div class="meta-label">Rebalance</div>
-                <div class="meta-value">Every 13 days</div>
+                <div class="meta-label">Max Positions</div>
+                <div class="meta-value">15 equal-weight</div>
             </div>
         </div>
     </div>

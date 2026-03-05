@@ -704,6 +704,110 @@ elif page == "🌊 Trend Scanner":
                 holdings_count=dna3_data.get('count', 0)
             ), unsafe_allow_html=True)
             
+            # === EQUITY VS NIFTY CHART ===
+            if os.path.exists(DNA3_EQUITY):
+                eq_chart_df = pd.read_csv(DNA3_EQUITY)
+                eq_chart_df['Date'] = pd.to_datetime(eq_chart_df['Date'])
+                eq_chart_df = eq_chart_df.drop_duplicates(subset='Date', keep='last').sort_values('Date')
+                
+                if len(eq_chart_df) >= 2:
+                    import plotly.graph_objects as go
+                    
+                    # Fetch Nifty data for same period
+                    start_str = eq_chart_df['Date'].iloc[0].strftime('%Y-%m-%d')
+                    try:
+                        nifty_eq = yf.download("^NSEI", start=start_str, progress=False)
+                        if isinstance(nifty_eq.columns, pd.MultiIndex):
+                            nifty_eq.columns = nifty_eq.columns.get_level_values(0)
+                        if nifty_eq.index.tz is not None:
+                            nifty_eq.index = nifty_eq.index.tz_localize(None)
+                        
+                        # Normalize both to 100 at inception
+                        port_base = eq_chart_df['Equity'].iloc[0]
+                        port_norm = eq_chart_df['Equity'] / port_base * 100
+                        
+                        # Match Nifty to portfolio dates
+                        nifty_close = nifty_eq['Close'].reindex(eq_chart_df['Date'].values, method='ffill')
+                        nifty_base = nifty_close.iloc[0] if not pd.isna(nifty_close.iloc[0]) else nifty_close.dropna().iloc[0]
+                        nifty_norm = nifty_close / nifty_base * 100
+                        
+                        fig = go.Figure()
+                        
+                        # Portfolio line
+                        fig.add_trace(go.Scatter(
+                            x=eq_chart_df['Date'], y=port_norm,
+                            name='Portfolio', mode='lines+markers',
+                            line=dict(color='#00d4aa', width=3),
+                            marker=dict(size=6),
+                            hovertemplate='Portfolio: %{y:.1f}<br>Value: ₹%{customdata:,.0f}<extra></extra>',
+                            customdata=eq_chart_df['Equity']
+                        ))
+                        
+                        # Nifty line
+                        fig.add_trace(go.Scatter(
+                            x=eq_chart_df['Date'], y=nifty_norm,
+                            name='Nifty 50', mode='lines',
+                            line=dict(color='#666', width=2, dash='dot'),
+                            hovertemplate='Nifty: %{y:.1f}<extra></extra>'
+                        ))
+                        
+                        # 100 baseline
+                        fig.add_hline(y=100, line_dash="dash", line_color="rgba(255,255,255,0.2)", line_width=1)
+                        
+                        fig.update_layout(
+                            title=None,
+                            template='plotly_dark',
+                            height=280,
+                            margin=dict(l=10, r=10, t=10, b=10),
+                            legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+                            xaxis=dict(showgrid=False),
+                            yaxis=dict(title='Normalized (100 = Start)', showgrid=True,
+                                       gridcolor='rgba(255,255,255,0.05)'),
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                        )
+                        
+                        st.plotly_chart(fig, use_container_width=True, key="equity_vs_nifty_chart")
+                    except Exception:
+                        pass  # Silently skip chart if Nifty fetch fails
+
+            # === TRADE SUMMARY STATS ===
+            if os.path.exists(DNA3_LOG):
+                tlog = pd.read_csv(DNA3_LOG)
+                buys = tlog[tlog['Action'] == 'BUY']
+                sells = tlog[tlog['Action'] == 'SELL']
+                
+                if not sells.empty:
+                    wins = sells[sells['PnL%'] > 0]
+                    losses = sells[sells['PnL%'] <= 0]
+                    wr = len(wins) / len(sells) * 100 if len(sells) > 0 else 0
+                    avg_win = wins['PnL%'].mean() if not wins.empty else 0
+                    avg_loss = losses['PnL%'].mean() if not losses.empty else 0
+                    best = sells['PnL%'].max()
+                    worst = sells['PnL%'].min()
+                    
+                    ts1, ts2, ts3, ts4, ts5 = st.columns(5)
+                    ts1.metric("Total Buys", len(buys))
+                    ts2.metric("Total Sells", len(sells))
+                    ts3.metric("Win Rate", f"{wr:.0f}%")
+                    ts4.metric("Avg Win", f"{avg_win:+.1f}%")
+                    ts5.metric("Avg Loss", f"{avg_loss:+.1f}%")
+                
+                # Trade History in expander
+                with st.expander(f"📋 **Trade History** ({len(tlog)} records)", expanded=False):
+                    display_tlog = tlog.copy()
+                    display_tlog['Ticker'] = display_tlog['Ticker'].str.replace('.NS', '', regex=False)
+                    st.dataframe(
+                        display_tlog,
+                        column_config={
+                            "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
+                            "PnL": st.column_config.NumberColumn("P&L", format="₹%.2f"),
+                            "PnL%": st.column_config.NumberColumn("P&L%", format="%+.2f%%"),
+                        },
+                        hide_index=True,
+                        use_container_width=True,
+                    )
+            
             # Portfolio details + controls row
             hero_left, hero_right = st.columns([3, 1])
             
