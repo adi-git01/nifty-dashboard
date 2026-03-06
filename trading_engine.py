@@ -223,7 +223,7 @@ def check_portfolio_stops(df, db):
 
 def run_rebalance(df, db):
     """
-    Orchestrates finding new buys based on the V3.1 Momentum conditions.
+    Orchestrates finding new buys based on the V2.2 Momentum conditions.
     """
     print("Running Portfolio Rebalance Scanners...")
     # Guard: if yfinance data fetch failed, df may have no 'dna_signal' column
@@ -280,8 +280,6 @@ def send_daily_heartbeat(df, mode):
     print("Sending Daily Heartbeat Confirmation...")
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     universe_size = len(df) if not df.empty else 0
-    buyers = df[df['dna_signal'] == 'BUY'] if not df.empty and 'dna_signal' in df.columns else pd.DataFrame()
-    buy_count = len(buyers)
     
     # V2.2: Include regime state in heartbeat
     try:
@@ -295,12 +293,39 @@ def send_daily_heartbeat(df, mode):
     except Exception:
         _regime = 'UNKNOWN'
 
+    # V2.2: Load portfolio health for heartbeat
+    portfolio_line = ""
+    try:
+        import json
+        snap_file = os.path.join(os.path.dirname(__file__), "data", "dna3_portfolio_snapshot.json")
+        if os.path.exists(snap_file):
+            with open(snap_file) as f:
+                snap = json.load(f)
+            equity = snap.get('equity', 0)
+            count = snap.get('count', 0)
+            max_pos = snap.get('config', {}).get('max_positions', 15)
+            initial = 1000000
+            ret_pct = (equity - initial) / initial * 100
+
+            # Find nearest-to-exit stock
+            danger_stocks = [h for h in snap.get('portfolio', []) if h.get('Danger')]
+            if danger_stocks:
+                nearest = danger_stocks[0]['Ticker'].replace('.NS', '')
+                portfolio_line += f"🏠 <b>Holdings:</b> {count}/{max_pos} | ⚠️ Nearest Exit: {nearest}\n"
+            else:
+                portfolio_line += f"🏠 <b>Holdings:</b> {count}/{max_pos}\n"
+            portfolio_line += f"💰 <b>Portfolio:</b> Rs {equity:,.0f} ({ret_pct:+.1f}%)\n"
+    except:
+        pass
+
+    trail_pct = {'BULL': 15, 'CAUTION': 12, 'BEAR': 8, 'CRISIS': 6}.get(_regime, '?')
+
     msg = f"✅ <b>EOD Engine Run: SUCCESS</b>\n\n"
     msg += f"🕒 <b>Time:</b> {now_str} IST\n"
     msg += f"⚙️ <b>Mode:</b> {mode.upper()}\n"
-    msg += f"📊 <b>Regime:</b> {_regime}\n"
-    msg += f"📊 <b>Universe Scanned:</b> {universe_size} Nifty Stocks\n"
-    msg += f"🟢 <b>New Buy Signals:</b> {buy_count}\n\n"
+    msg += f"📊 <b>Regime:</b> {_regime} | Trail: {trail_pct}%\n"
+    msg += portfolio_line
+    msg += f"🔍 <b>Universe Scanned:</b> {universe_size} stocks\n\n"
     msg += "<i>Systems operating normally.</i>"
     
     try:
@@ -311,7 +336,7 @@ def send_daily_heartbeat(df, mode):
     try:
         from utils.email_notifier import _send_email, is_email_configured
         if is_email_configured():
-            _send_email(f"✅ EOD Engine Run: SUCCESS ({buy_count} Buys)", f"<pre>{msg.replace('<b>', '').replace('</b>', '').replace('<i>', '').replace('</i>', '')}</pre>")
+            _send_email(f"✅ EOD Engine Run: SUCCESS", f"<pre>{msg.replace('<b>', '').replace('</b>', '').replace('<i>', '').replace('</i>', '')}</pre>")
     except: pass
 
 

@@ -129,14 +129,40 @@ def check_alerts():
         
         if vol_alerts:
             print(f"{len(vol_alerts)} Volume Alerts found!")
+
+            # Load portfolio holdings to split alerts
+            held_tickers = set()
+            try:
+                import json
+                snap_file = os.path.join(os.path.dirname(__file__), "data", "dna3_portfolio_snapshot.json")
+                if os.path.exists(snap_file):
+                    with open(snap_file) as f:
+                        snap = json.load(f)
+                    held_tickers = set(snap.get('holdings', {}).keys())
+            except:
+                pass
+
+            # Split into held vs universe
+            held_alerts = [a for a in vol_alerts if a['ticker'] in held_tickers]
+            universe_alerts = [a for a in vol_alerts if a['ticker'] not in held_tickers]
+
             messages = []
-            for a in vol_alerts[:10]: # Limit to top 10 to avoid spam
+            if held_alerts:
+                messages.append("🏠 **YOUR PORTFOLIO**")
+                for a in held_alerts:
+                    icon = "🟢" if a['change'] > 0 else "🔴"
+                    msg = f"{icon} **{a['ticker'].replace('.NS','')}**: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
+                    messages.append(msg)
+                messages.append("")
+
+            messages.append("🔊 **UNIVERSE (Top 10)**")
+            for a in universe_alerts[:10]:
                 icon = "🟢" if a['change'] > 0 else "🔴"
                 msg = f"{icon} **{a['ticker'].replace('.NS','')}**: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
                 messages.append(msg)
             
-            if len(vol_alerts) > 10:
-                messages.append(f"...and {len(vol_alerts)-10} more.")
+            if len(universe_alerts) > 10:
+                messages.append(f"...and {len(universe_alerts)-10} more.")
             
             full_msg = "🔊 **SMART VOLUME ALERTS** 🔊\n\n" + "\n".join(messages)
             

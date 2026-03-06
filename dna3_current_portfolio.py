@@ -47,6 +47,55 @@ from utils.regime_manager import (classify_regime, get_regime_params,
                                    calculate_volume_quality)
 
 # ============================================================
+# ALERT HELPERS — send Telegram + Email for trade events
+# ============================================================
+def _send_trade_alerts(trade_events, regime=''):
+    """Send batched Telegram + Email alerts for BUY/SELL events."""
+    if not trade_events:
+        return
+    try:
+        from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+        if is_telegram_configured():
+            lines = [f"<b>OptComp-V22 Trade Alert</b> [{regime}]\n"]
+            for ev in trade_events:
+                action = ev['Action']
+                ticker = ev['Ticker'].replace('.NS', '')
+                price = ev['Price']
+                if action == 'SELL':
+                    pnl = ev.get('PnL%', 0)
+                    reason = ev.get('Reason', '')
+                    icon = '🟢' if pnl >= 0 else '🔴'
+                    lines.append(f"{icon} SELL <b>{ticker}</b>  ₹{price:,.0f}  P&L: {pnl:+.1f}%\n    {reason}")
+                else:
+                    rs = ev.get('Reason', '')
+                    lines.append(f"🟢 BUY <b>{ticker}</b>  ₹{price:,.0f}\n    {rs}")
+            send_telegram_message("\n".join(lines))
+    except Exception as e:
+        print(f"  [ALERT] Telegram failed: {e}")
+
+    try:
+        from utils.email_notifier import send_trend_change_alert, is_email_configured
+        if is_email_configured():
+            email_changes = []
+            for ev in trade_events:
+                ticker = ev['Ticker']
+                action = ev['Action']
+                if action == 'SELL':
+                    signal = f"🚨 EXIT ({ev.get('Reason', '')})" 
+                else:
+                    signal = '🟢 NEW BUY'
+                email_changes.append({
+                    'ticker': ticker,
+                    'entry_trend_signal': 'ACTIVE' if action == 'SELL' else 'CASH',
+                    'current_signal': signal,
+                    'return_pct': ev.get('PnL%', 0),
+                    'days_tracked': 0,
+                })
+            send_trend_change_alert(email_changes)
+    except Exception as e:
+        print(f"  [ALERT] Email failed: {e}")
+
+# ============================================================
 # STRATEGY CONFIGURATION — OptComp-V22 (Regime-Protected)
 # ============================================================
 STRATEGY_NAME = "OptComp-V22"
@@ -92,10 +141,15 @@ class OptCompV21Engine:
             try:
                 with open(SNAPSHOT_FILE, 'r') as f:
                     state = json.load(f)
-                    if 'strategy' in state and state['strategy'] == STRATEGY_NAME:
+                    saved_strategy = state.get('strategy', '')
+                    # Backward-compatible: accept V21 snapshots and migrate
+                    compatible = (saved_strategy == STRATEGY_NAME or
+                                  saved_strategy in ['OptComp-V21', 'OptComp-V22'])
+                    if compatible:
+                        state['strategy'] = STRATEGY_NAME  # migrate forward
                         return state
                     else:
-                        print(f"  Old strategy detected ({state.get('strategy', 'unknown')}). Resetting for {STRATEGY_NAME}.")
+                        print(f"  Old strategy detected ({saved_strategy}). Resetting for {STRATEGY_NAME}.")
                         return self.get_initial_state()
             except:
                 return self.get_initial_state()
@@ -328,6 +382,84 @@ class OptCompV21Engine:
         if cb_active:
             print(f"  *** CIRCUIT BREAKER ACTIVE *** (Nifty >25% off 52W high)")
         print(f"  {'='*70}")
+
+        # 🔔 REGIME CHANGE ALERT
+        prev_regime = state.get('regime', regime)
+        if prev_regime != regime:
+            print(f"  ⚠️ REGIME SHIFT: {prev_regime} → {regime}")
+            prev_params = get_regime_params(prev_regime)
+            try:
+                from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+                if is_telegram_configured():
+                    msg = (f"⚠️ <b>REGIME SHIFT</b>: {prev_regime} → {regime}\n\n"
+                           f"Trailing Stop: {prev_params['trail_stop']*100:.0f}% → {trail_pct*100:.0f}%\n"
+                           f"Rebalance: {prev_params['rebalance_freq']}d → {rebal_days}d\n"
+                           f"Min CompRS: {prev_params['min_comp_rs']*100:.0f}pp → {min_comp_rs:.0f}pp\n"
+                           f"New Entries: {'✅' if can_enter else '❌ Suspended'}")
+                    send_telegram_message(msg)
+            except Exception as e:
+                print(f"  [ALERT] Regime shift Telegram failed: {e}")
+            try:
+                from utils.email_notifier import send_system_alert, is_email_configured
+                if is_email_configured():
+                    send_system_alert(
+                        f"⚠️ Regime Shift: {prev_regime} → {regime}",
+                        f"Trail: {prev_params['trail_stop']*100:.0f}% → {trail_pct*100:.0f}% | "
+                        f"Rebal: {prev_params['rebalance_freq']}d → {rebal_days}d | "
+                        f"Entries: {'Open' if can_enter else 'SUSPENDED'}"
+                    )
+            except Exception as e:
+                print(f"  [ALERT] Regime shift Email failed: {e}")
+
+        # 🔔 CIRCUIT BREAKER CHANGE ALERT
+        prev_cb = state.get('circuit_breaker', False)
+        if cb_active != prev_cb:
+            cb_msg = ("🚨 <b>CIRCUIT BREAKER ACTIVATED</b>\n\n"
+                      f"Nifty drawdown exceeds -25% from 52W high.\n"
+                      f"ALL new entries SUSPENDED until recovery.") if cb_active else (
+                      "✅ <b>CIRCUIT BREAKER DEACTIVATED</b>\n\n"
+                      f"Nifty recovered above -25% threshold.\n"
+                      f"New entries RESUMED under {regime} regime rules.")
+            print(f"  {'🚨' if cb_active else '✅'} Circuit Breaker {'ON' if cb_active else 'OFF'}")
+            try:
+                from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+                if is_telegram_configured():
+                    send_telegram_message(cb_msg)
+            except Exception as e:
+                print(f"  [ALERT] Circuit breaker TG failed: {e}")
+            try:
+                from utils.email_notifier import send_system_alert, is_email_configured
+                if is_email_configured():
+                    send_system_alert(
+                        f"🚨 Circuit Breaker {'ON' if cb_active else 'OFF'}",
+                        cb_msg.replace('<b>', '').replace('</b>', '')
+                    )
+            except Exception as e:
+                print(f"  [ALERT] Circuit breaker Email failed: {e}")
+
+        # 🔔 PORTFOLIO DRAWDOWN ALERT (equity vs peak from equity curve)
+        try:
+            if os.path.exists(EQUITY_CURVE_FILE):
+                eq_df = pd.read_csv(EQUITY_CURVE_FILE)
+                if len(eq_df) > 1:
+                    peak_equity = eq_df['Equity'].max()
+                    current_equity = state.get('equity', peak_equity)
+                    dd_pct = (current_equity - peak_equity) / peak_equity * 100
+                    if dd_pct <= -5:
+                        dd_msg = (f"📉 <b>PORTFOLIO DRAWDOWN WARNING</b>\n\n"
+                                  f"Portfolio: Rs {current_equity:,.0f}\n"
+                                  f"Peak: Rs {peak_equity:,.0f}\n"
+                                  f"Drawdown: {dd_pct:.1f}%\n"
+                                  f"Regime: {regime}")
+                        print(f"  📉 Portfolio Drawdown: {dd_pct:.1f}%")
+                        try:
+                            from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+                            if is_telegram_configured():
+                                send_telegram_message(dd_msg)
+                        except:
+                            pass
+        except Exception as e:
+            print(f"  [ALERT] Drawdown check failed: {e}")
         
         # ============================================================
         # 1. CHECK EXITS (ALWAYS — every run, not just rebalance)
@@ -371,6 +503,10 @@ class OptCompV21Engine:
                     'PnL%': round(pnl_pct, 2), 'Reason': exit_reason
                 })
                 print(f"    SELL {t}: {exit_reason} | P&L: {pnl_pct:+.1f}%")
+
+        # 🔔 SEND EXIT ALERTS (Telegram + Email)
+        exit_events = [e for e in trade_log if e['Action'] == 'SELL']
+        _send_trade_alerts(exit_events, regime=regime)
 
         for t in stocks_to_sell:
             del holdings[t]
@@ -475,6 +611,10 @@ class OptCompV21Engine:
                                 free_slots -= 1
                                 print(f"    BUY  {cand['Ticker']}: RS={cand['RS_Score']:+.1f} @ Rs.{price:.0f}")
 
+                # 🔔 SEND BUY ALERTS (Telegram + Email)
+                buy_events = [e for e in trade_log if e['Action'] == 'BUY']
+                _send_trade_alerts(buy_events, regime=regime)
+
             # Update rebalance tracking
             state['last_rebalance_date'] = today
             state['rebalance_count'] = state.get('rebalance_count', 0) + 1
@@ -504,6 +644,18 @@ class OptCompV21Engine:
             ma50 = self.data_cache[t]['Close'].rolling(50).mean().iloc[-1]
             dist_ma50 = (curr_price - ma50) / ma50 * 100
 
+            peak = h.get('peak_price', h['entry_price'])
+            trail_stop_price = peak * trail_keep
+            dist_trail = (curr_price - trail_stop_price) / trail_stop_price * 100
+
+            # Danger flag: within 5% of either exit trigger
+            danger = ''
+            if dist_ma50 < 5:
+                danger = f'⚠️ {dist_ma50:.1f}% to MA50'
+            if dist_trail < 5:
+                trail_warn = f'⚠️ {dist_trail:.1f}% to trail'
+                danger = trail_warn if not danger else f'{danger} | {trail_warn}'
+
             rs = self.composite_rs(t)
 
             portfolio_list.append({
@@ -514,6 +666,9 @@ class OptCompV21Engine:
                 'Entry': h['entry_price'],
                 'PnL%': (curr_price - h['entry_price']) / h['entry_price'] * 100,
                 'Dist_MA50': dist_ma50,
+                'MA50': round(float(ma50), 2),
+                'Trail_Stop': round(float(trail_stop_price), 2),
+                'Danger': danger,
             })
 
         portfolio_list.sort(key=lambda x: -x['RS_Score'])

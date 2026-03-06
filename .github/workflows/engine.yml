@@ -2,8 +2,8 @@ name: Alpha Trend Engine
 
 on:
   schedule:
-    # Regular: 3:21 PM IST = 09:51 AM UTC (Mon-Fri) - Off-peak minute to avoid GitHub delays
-    - cron: '51 9 * * 1-5'
+    # Regular: 3:45 PM IST = 10:15 AM UTC (Mon-Fri) - After market close for proper EOD data
+    - cron: '15 10 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
       run: |
         python turnaround_screener.py
 
-    - name: "Step 3/5: OptComp-V21 Portfolio Engine (Live Prices + Exits/Rebalance)"
+    - name: "Step 3/5: OptComp-V22 Portfolio Engine (Live Prices + Exits/Rebalance)"
       continue-on-error: true  # Portfolio engine failure must not block alerts or commit
       run: |
         python dna3_current_portfolio.py

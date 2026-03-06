@@ -189,11 +189,11 @@ def get_pead_edge(sector_str):
 
 
 # ======================================================================
-# 4. LIVE DNA3-V3.1 SCANNER (With Seasonal Indicators)
+# 4. LIVE DNA3-V2.2 SCANNER (With Seasonal Indicators)
 # ======================================================================
 def generate_v3_watchlist(market_df, max_results=15):
     """
-    Applies pure V3.1 relative strength criteria. 
+    Applies pure V2.2 relative strength criteria. 
     Appends the V4 Seasonal Array as an INFORMATIONAL INDICATOR only,
     never as a hard veto, because recent correlations have broken down.
     """
@@ -207,7 +207,7 @@ def generate_v3_watchlist(market_df, max_results=15):
     
     for _, row in market_df.iterrows():
         score = row.get('trend_score', 0)
-        # We only want legit momentum setups (V3.1 baseline)
+        # We only want legit momentum setups (V2.2 baseline)
         if score < 70: 
             continue
             

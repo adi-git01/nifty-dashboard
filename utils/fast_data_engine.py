@@ -301,7 +301,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             scores = calculate_scores(base_data, sector_pe_median=median_pe, sector=sector)
             base_data.update(scores)
             
-            # 6. OptComp-V21 Composite RS 
+            # 6. OptComp-V22 Composite RS 
             # (10% 1W, 50% 1M, 40% 3M vs Nifty)
             def _calc_rs(ret, bench_ret):
                 return ret - bench_ret
@@ -340,7 +340,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
                 volatility = 0
             base_data['volatility'] = round(volatility, 1)
             
-            # DNA Signal (Now OptComp-V21 Rules)
+            # DNA Signal (Now OptComp-V22 Rules)
             # Entry: Composite RS > 0, Price > 50MA, Vol > 1Cr
             above_ma50 = current_price > base_data.get('fiftyDayAverage', 0)
             vol_val = base_data.get('averageVolume', 0) * current_price

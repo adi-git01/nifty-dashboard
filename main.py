@@ -513,9 +513,9 @@ if page == "⚖️ Compare Stocks":
 elif page == "🔍 Market Explorer":
     render_market_explorer()
 
-# --- VIEW: LIVE TRADING DESK (DNA3-V4 + REGIME) ---
+# --- VIEW: LIVE TRADING DESK (DNA3-V2.2 + REGIME) ---
 elif page == "🚀 Live Trading Desk":
-    st.markdown(page_header("🚀 V3.1 Momentum Engine: The Live Trading Desk", "Pure mathematical momentum deployment guided by 15-Year out-of-sample Regime & Seasonality analytics."), unsafe_allow_html=True)
+    st.markdown(page_header("🚀 V2.2 Momentum Engine: The Live Trading Desk", "Pure mathematical momentum deployment guided by 15-Year out-of-sample Regime & Seasonality analytics."), unsafe_allow_html=True)
     
     from utils.live_desk import get_live_regime, generate_v3_watchlist
     
@@ -547,11 +547,11 @@ elif page == "🚀 Live Trading Desk":
                 
             st.markdown("---")
             
-            # 2. V3.1 Momentum Engine + Seasonal Indicators
-            st.markdown("### 📅 V3.1 Momentum Engine: THE WATCHLIST")
+            # 2. V2.2 Momentum Engine + Seasonal Indicators
+            st.markdown("### 📅 V2.2 Momentum Engine: THE WATCHLIST")
             st.caption(f"*Seasonality Warning:* Recent structural regime changes have broken historical calendar correlations. Seasonality is now shown as an **indicator only**, rather than a strict filter.")
             
-            with st.spinner("Running V3.1 Engine + Seasonality checks..."):
+            with st.spinner("Running V2.2 Engine + Seasonality checks..."):
                 v3_watchlist = generate_v3_watchlist(df)
                 
                 if not v3_watchlist.empty:
@@ -674,7 +674,7 @@ elif page == "🌊 Trend Scanner":
     # === HERO SECTION ===
     st.markdown(page_header("🌊 Alpha Trend Scanner", "Real-time momentum intelligence for Nifty 500 | Powered by AI"), unsafe_allow_html=True)
     
-    # === DNA3-V2.1 MODEL PORTFOLIO SECTION (LIVE TRACKING) ===
+    # === DNA3-V2.2 MODEL PORTFOLIO SECTION (LIVE TRACKING) ===
     
     DNA3_SNAPSHOT = "data/dna3_portfolio_snapshot.json"
     DNA3_EQUITY = "data/dna3_equity_curve.csv"
@@ -845,7 +845,7 @@ elif page == "🌊 Trend Scanner":
                                     nifty_hist.index = nifty_hist.index.tz_localize(None)
                                 nifty_price = float(nifty_hist['Close'].iloc[-1])
                                 
-                                # RS weight config (same as OptComp-V21)
+                                # RS weight config (same as OptComp-V22)
                                 rs_weights = [(5, 0.10), (21, 0.50), (63, 0.40)]
                                 
                                 updated_portfolio = []
