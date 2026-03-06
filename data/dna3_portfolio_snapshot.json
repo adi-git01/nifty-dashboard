@@ -1,13 +1,13 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-03-05",
+    "date": "2026-03-06",
     "cash": 31494.4724830322,
     "holdings": {
         "STLTECH.NS": {
             "entry_price": 173.52999877929688,
             "entry_date": "2026-03-05",
             "shares": 384,
-            "peak_price": 173.52999877929688
+            "peak_price": 181.3000030517578
         },
         "KRN.NS": {
             "entry_price": 953.5999755859375,
@@ -19,7 +19,7 @@
             "entry_price": 25305.0,
             "entry_date": "2026-03-05",
             "shares": 2,
-            "peak_price": 25305.0
+            "peak_price": 25860.0
         },
         "SAILIFE.NS": {
             "entry_price": 1069.199951171875,
@@ -31,13 +31,13 @@
             "entry_price": 1468.0,
             "entry_date": "2026-03-05",
             "shares": 45,
-            "peak_price": 1468.0
+            "peak_price": 1510.5
         },
         "NATIONALUM.NS": {
             "entry_price": 395.95001220703125,
             "entry_date": "2026-03-05",
             "shares": 168,
-            "peak_price": 395.95001220703125
+            "peak_price": 396.1499938964844
         },
         "TEJASNET.NS": {
             "entry_price": 492.3999938964844,
@@ -49,7 +49,7 @@
             "entry_price": 918.0,
             "entry_date": "2026-03-05",
             "shares": 72,
-            "peak_price": 918.0
+            "peak_price": 968.8499755859375
         },
         "SANSERA.NS": {
             "entry_price": 2233.699951171875,
@@ -61,13 +61,13 @@
             "entry_price": 3359.199951171875,
             "entry_date": "2026-03-05",
             "shares": 19,
-            "peak_price": 3359.199951171875
+            "peak_price": 3491.199951171875
         },
         "DYNAMATECH.NS": {
             "entry_price": 10690.0,
             "entry_date": "2026-03-05",
             "shares": 6,
-            "peak_price": 10690.0
+            "peak_price": 10751.0
         },
         "BANDHANBNK.NS": {
             "entry_price": 185.02999877929688,
@@ -79,158 +79,203 @@
             "entry_price": 3824.39990234375,
             "entry_date": "2026-03-05",
             "shares": 17,
-            "peak_price": 3824.39990234375
+            "peak_price": 3869.0
         },
         "AMBER.NS": {
             "entry_price": 7825.5,
             "entry_date": "2026-03-05",
             "shares": 8,
-            "peak_price": 7825.5
+            "peak_price": 7872.5
         },
         "GESHIP.NS": {
             "entry_price": 1389.4000244140625,
             "entry_date": "2026-03-05",
             "shares": 47,
-            "peak_price": 1389.4000244140625
+            "peak_price": 1415.300048828125
         }
     },
-    "equity": 998066.855234497,
+    "equity": 1003669.3395789794,
     "count": 15,
     "portfolio": [
         {
             "Ticker": "STLTECH.NS",
             "Sector": "IT - Services",
-            "Price": 173.52999877929688,
-            "RS_Score": 51.1,
+            "Price": 181.3000030517578,
+            "RS_Score": 57.3,
             "Entry": 173.52999877929688,
-            "PnL%": 0.0,
-            "Dist_MA50": 41.067767274056074
-        },
-        {
-            "Ticker": "KRN.NS",
-            "Sector": "IT - Services",
-            "Price": 953.5999755859375,
-            "RS_Score": 31.0,
-            "Entry": 953.5999755859375,
-            "PnL%": 0.0,
-            "Dist_MA50": 27.666692613829515
+            "PnL%": 4.477614433884238,
+            "Dist_MA50": 45.575487977443046,
+            "MA50": 124.54,
+            "Trail_Stop": 159.54,
+            "Danger": ""
         },
         {
             "Ticker": "POWERINDIA.NS",
             "Sector": "Electrical Equipment",
-            "Price": 25305.0,
-            "RS_Score": 30.9,
+            "Price": 25860.0,
+            "RS_Score": 36.1,
             "Entry": 25305.0,
-            "PnL%": 0.0,
-            "Dist_MA50": 25.39382232877216
-        },
-        {
-            "Ticker": "SAILIFE.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1069.199951171875,
-            "RS_Score": 30.5,
-            "Entry": 1069.199951171875,
-            "PnL%": 0.0,
-            "Dist_MA50": 18.130327259549144
-        },
-        {
-            "Ticker": "KIRLOSENG.NS",
-            "Sector": "Industrial Manufacturing",
-            "Price": 1468.0,
-            "RS_Score": 28.7,
-            "Entry": 1468.0,
-            "PnL%": 0.0,
-            "Dist_MA50": 16.948179001497447
-        },
-        {
-            "Ticker": "NATIONALUM.NS",
-            "Sector": "Non - Ferrous Metals",
-            "Price": 395.95001220703125,
-            "RS_Score": 28.1,
-            "Entry": 395.95001220703125,
-            "PnL%": 0.0,
-            "Dist_MA50": 12.803869379582759
-        },
-        {
-            "Ticker": "TEJASNET.NS",
-            "Sector": "Telecom - Equipment & Accessories",
-            "Price": 492.3999938964844,
-            "RS_Score": 27.1,
-            "Entry": 492.3999938964844,
-            "PnL%": 0.0,
-            "Dist_MA50": 30.163655482178946
-        },
-        {
-            "Ticker": "FINCABLES.NS",
-            "Sector": "Electrical Equipment",
-            "Price": 918.0,
-            "RS_Score": 25.8,
-            "Entry": 918.0,
-            "PnL%": 0.0,
-            "Dist_MA50": 17.087504926090546
-        },
-        {
-            "Ticker": "SANSERA.NS",
-            "Sector": "Consumer Durables",
-            "Price": 2233.699951171875,
-            "RS_Score": 25.1,
-            "Entry": 2233.699951171875,
-            "PnL%": 0.0,
-            "Dist_MA50": 15.065033623587873
+            "PnL%": 2.1932424422050976,
+            "Dist_MA50": 27.211692850171588,
+            "MA50": 20328.32,
+            "Trail_Stop": 22756.8,
+            "Danger": ""
         },
         {
             "Ticker": "DATAPATTNS.NS",
             "Sector": "Aerospace & Defense",
-            "Price": 3359.199951171875,
-            "RS_Score": 25.0,
+            "Price": 3491.199951171875,
+            "RS_Score": 35.6,
             "Entry": 3359.199951171875,
-            "PnL%": 0.0,
-            "Dist_MA50": 23.60606240275397
+            "PnL%": 3.9295070826001615,
+            "Dist_MA50": 27.680083476108397,
+            "MA50": 2734.33,
+            "Trail_Stop": 3072.26,
+            "Danger": ""
+        },
+        {
+            "Ticker": "FINCABLES.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 968.8499755859375,
+            "RS_Score": 33.2,
+            "Entry": 918.0,
+            "PnL%": 5.539213026790577,
+            "Dist_MA50": 22.95705741711352,
+            "MA50": 787.96,
+            "Trail_Stop": 852.59,
+            "Danger": ""
+        },
+        {
+            "Ticker": "KIRLOSENG.NS",
+            "Sector": "Industrial Manufacturing",
+            "Price": 1510.5,
+            "RS_Score": 31.0,
+            "Entry": 1468.0,
+            "PnL%": 2.8950953678474116,
+            "Dist_MA50": 19.949976329733925,
+            "MA50": 1259.27,
+            "Trail_Stop": 1329.24,
+            "Danger": ""
+        },
+        {
+            "Ticker": "KRN.NS",
+            "Sector": "IT - Services",
+            "Price": 926.4500122070312,
+            "RS_Score": 30.5,
+            "Entry": 953.5999755859375,
+            "PnL%": -2.8471019372902155,
+            "Dist_MA50": 23.4157588263698,
+            "MA50": 750.67,
+            "Trail_Stop": 839.17,
+            "Danger": ""
+        },
+        {
+            "Ticker": "NATIONALUM.NS",
+            "Sector": "Non - Ferrous Metals",
+            "Price": 396.1499938964844,
+            "RS_Score": 30.1,
+            "Entry": 395.95001220703125,
+            "PnL%": 0.050506802194151754,
+            "Dist_MA50": 12.16048756590845,
+            "MA50": 353.2,
+            "Trail_Stop": 348.61,
+            "Danger": ""
         },
         {
             "Ticker": "DYNAMATECH.NS",
             "Sector": "Consumer Durables",
-            "Price": 10690.0,
-            "RS_Score": 24.9,
+            "Price": 10751.0,
+            "RS_Score": 29.0,
             "Entry": 10690.0,
-            "PnL%": 0.0,
-            "Dist_MA50": 15.465961665983407
+            "PnL%": 0.5706267539756782,
+            "Dist_MA50": 15.898486874806588,
+            "MA50": 9276.22,
+            "Trail_Stop": 9460.88,
+            "Danger": ""
         },
         {
-            "Ticker": "BANDHANBNK.NS",
-            "Sector": "Banks",
-            "Price": 185.02999877929688,
-            "RS_Score": 23.5,
-            "Entry": 185.02999877929688,
-            "PnL%": 0.0,
-            "Dist_MA50": 17.917943628585412
+            "Ticker": "SAILIFE.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 1037.0,
+            "RS_Score": 26.7,
+            "Entry": 1069.199951171875,
+            "PnL%": -3.0115930267844564,
+            "Dist_MA50": 14.23145507605581,
+            "MA50": 907.81,
+            "Trail_Stop": 940.9,
+            "Danger": ""
         },
         {
             "Ticker": "GVT&D.NS",
             "Sector": "Electrical Equipment",
-            "Price": 3824.39990234375,
-            "RS_Score": 23.0,
+            "Price": 3869.0,
+            "RS_Score": 26.0,
             "Entry": 3824.39990234375,
-            "PnL%": 0.0,
-            "Dist_MA50": 17.301510601459064
+            "PnL%": 1.1661985878860948,
+            "Dist_MA50": 18.133870004617055,
+            "MA50": 3275.1,
+            "Trail_Stop": 3404.72,
+            "Danger": ""
+        },
+        {
+            "Ticker": "SANSERA.NS",
+            "Sector": "Consumer Durables",
+            "Price": 2197.699951171875,
+            "RS_Score": 25.4,
+            "Entry": 2233.699951171875,
+            "PnL%": -1.611675730265973,
+            "Dist_MA50": 12.664776327587635,
+            "MA50": 1950.65,
+            "Trail_Stop": 1965.66,
+            "Danger": ""
+        },
+        {
+            "Ticker": "BANDHANBNK.NS",
+            "Sector": "Banks",
+            "Price": 183.02999877929688,
+            "RS_Score": 25.4,
+            "Entry": 185.02999877929688,
+            "PnL%": -1.0809058061906993,
+            "Dist_MA50": 16.144628942393542,
+            "MA50": 157.59,
+            "Trail_Stop": 162.83,
+            "Danger": ""
         },
         {
             "Ticker": "AMBER.NS",
             "Sector": "Consumer Durables",
-            "Price": 7825.5,
-            "RS_Score": 21.6,
+            "Price": 7872.5,
+            "RS_Score": 24.4,
             "Entry": 7825.5,
-            "PnL%": 0.0,
-            "Dist_MA50": 15.607918451765402
+            "PnL%": 0.6006006006006006,
+            "Dist_MA50": 15.885217329863282,
+            "MA50": 6793.36,
+            "Trail_Stop": 6927.8,
+            "Danger": ""
         },
         {
             "Ticker": "GESHIP.NS",
             "Sector": "Transport Services",
-            "Price": 1389.4000244140625,
-            "RS_Score": 21.2,
+            "Price": 1415.300048828125,
+            "RS_Score": 23.8,
             "Entry": 1389.4000244140625,
-            "PnL%": 0.0,
-            "Dist_MA50": 15.782144144077678
+            "PnL%": 1.8641157304560327,
+            "Dist_MA50": 17.325806922818217,
+            "MA50": 1206.3,
+            "Trail_Stop": 1245.46,
+            "Danger": ""
+        },
+        {
+            "Ticker": "TEJASNET.NS",
+            "Sector": "Telecom - Equipment & Accessories",
+            "Price": 465.04998779296875,
+            "RS_Score": 21.9,
+            "Entry": 492.3999938964844,
+            "PnL%": -5.554428603276004,
+            "Dist_MA50": 22.86170734116495,
+            "MA50": 378.51,
+            "Trail_Stop": 433.31,
+            "Danger": ""
         }
     ],
     "last_rebalance_date": "2026-03-05",
