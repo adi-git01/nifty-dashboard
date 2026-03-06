@@ -265,7 +265,7 @@ def build_email_summary(data):
             </div>
 
             <div style="text-align:center; margin-bottom: 20px;">
-                <span class="regime-badge">{regime} | Trail: {trail_pct*100:.0f}%</span>
+                <span class="regime-badge">{regime} ({regime_days} days) | Trail: {trail_pct*100:.0f}%</span>
             </div>
 
             <div class="stats">

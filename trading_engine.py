@@ -307,14 +307,30 @@ def send_daily_heartbeat(df, mode):
             initial = 1000000
             ret_pct = (equity - initial) / initial * 100
 
-            # Find nearest-to-exit stock
-            danger_stocks = [h for h in snap.get('portfolio', []) if h.get('Danger')]
-            if danger_stocks:
-                nearest = danger_stocks[0]['Ticker'].replace('.NS', '')
-                portfolio_line += f"🏠 <b>Holdings:</b> {count}/{max_pos} | ⚠️ Nearest Exit: {nearest}\n"
+            # Rank all holdings by proximity to exit (Danger zone first, then closest distance)
+            holdings = snap.get('portfolio', [])
+            if holdings:
+                portfolio_line += f"🏠 <b>Holdings:</b> {count}/{max_pos}\n"
+                portfolio_line += f"💰 <b>Portfolio:</b> Rs {equity:,.0f} ({ret_pct:+.1f}%)\n"
+                portfolio_line += f"\n<b>--- Distance to Exit ---</b>\n"
+                
+                def exit_dist(h):
+                    cmp = h.get('Price', 1)
+                    ts = h.get('Trail_Stop', -1)
+                    ma = h.get('MA50', -1)
+                    hard_floor = max(ts, ma) if ma > 0 and ts > 0 else (ts if ts > 0 else cmp*0.5)
+                    # pct distance to floor
+                    return (cmp / hard_floor - 1) * 100 if hard_floor > 0 else 999
+                
+                sorted_holds = sorted(holdings, key=exit_dist)
+                for h in sorted_holds:
+                    ticker = h['Ticker'].replace('.NS', '')
+                    dist = exit_dist(h)
+                    danger = " 🚨" if h.get('Danger') else (" ⚠️" if dist < 8.0 else "")
+                    portfolio_line += f"  {ticker:<10} +{dist:.1f}%{danger}\n"
             else:
                 portfolio_line += f"🏠 <b>Holdings:</b> {count}/{max_pos}\n"
-            portfolio_line += f"💰 <b>Portfolio:</b> Rs {equity:,.0f} ({ret_pct:+.1f}%)\n"
+                portfolio_line += f"💰 <b>Portfolio:</b> Rs {equity:,.0f} ({ret_pct:+.1f}%)\n"
     except:
         pass
 

@@ -252,6 +252,90 @@ def main():
           .reset_index(drop=True))
 
     df.to_csv(OUTPUT_CSV, index=False)
+    
+    # --- 🔔 NEW IAS ALERTS ENGINE ---
+    STATE_FILE = "data/turnaround_state.json"
+    prev_state = {}
+    if os.path.exists(STATE_FILE):
+        import json
+        with open(STATE_FILE, 'r') as f:
+            prev_state = json.load(f)
+    
+    current_state = {}
+    new_ready = []
+    tc_alerts = []  # Turnaround Confirmation
+    demotions = []  # READY -> WATCH
+    
+    for _, r in df.iterrows():
+        t = str(r['Ticker'])
+        tier = r['Tier']
+        ias = r.get('IAS', 0)
+        
+        # Tracking days >= 35 (the minimum gate)
+        prev_days = prev_state.get(t, {}).get('days_active', 0)
+        curr_days = prev_days + 1
+        current_state[t] = {'tier': tier, 'days_active': curr_days, 'ias': ias}
+        
+        prev_tier = prev_state.get(t, {}).get('tier', 'NONE')
+        
+        # 🟢 Turnaround Confirmation (3 days active)
+        if curr_days == 3:
+            tc_alerts.append((t, r['Name'], ias, r['Off_MA50']))
+            
+        # 🟢 READY Promotions
+        if tier in ['READY', 'ALERT'] and prev_tier not in ['READY', 'ALERT']:
+            new_ready.append((t, r['Name'], tier, ias, r['Off_MA50']))
+            
+        # 🔴 Tier Demotions (READY/ALERT -> WATCH/DROP)
+        if prev_tier in ['READY', 'ALERT'] and tier not in ['READY', 'ALERT']:
+            demotions.append((t, r['Name'], prev_tier, tier, ias))
+            
+    # For stocks that dropped off the scanner completely (IAS < 35)
+    for t, p_st in prev_state.items():
+        if t not in current_state:
+            p_tier = p_st.get('tier')
+            if p_tier in ['READY', 'ALERT']:
+                # Dropped from a high tier to nothing
+                demotions.append((t, t.replace('.NS', ''), p_tier, 'DROPPED', 0))
+
+    # Save state
+    with open(STATE_FILE, 'w') as f:
+        json.dump(current_state, f, indent=4)
+        
+    # Dispatch Alerts
+    if tc_alerts or new_ready or demotions:
+        try:
+            from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+            from utils.email_notifier import send_system_alert, is_email_configured
+            
+            # Action Alert: Turnaround Confirmation (Immediate TG+Email)
+            if tc_alerts:
+                tg_tc = "🚨 <b>TURNAROUND CONFIRMATION</b> (IAS 3 Day Hold)\n\n"
+                for t, name, ias, off_ma in tc_alerts:
+                    tg_tc += f"• {name}: IAS {ias:.0f} | {off_ma:+.1f}% vs MA50\n"
+                if is_telegram_configured():
+                    send_telegram_message(tg_tc)
+                if is_email_configured():
+                    send_system_alert("🚨 Action Alert: Turnaround Confirmation", tg_tc.replace('<b>', '').replace('</b>', ''))
+                    
+            # Non-Action Alerts: New READY / Demotions (Daily Email)
+            if new_ready or demotions:
+                email_sub = f"🔄 IAS Tracker Updates: {len(new_ready)} Up | {len(demotions)} Down"
+                email_body = ""
+                if new_ready:
+                    email_body += "<b>🟢 ENTERING READY TIER (IAS ≥60)</b><br>"
+                    for t, name, tier, ias, off_ma in new_ready:
+                        email_body += f"• {name} -> {tier} (IAS: {ias:.0f}, {off_ma:+.1f}%)<br>"
+                    email_body += "<br>"
+                if demotions:
+                    email_body += "<b>🔴 DEMOTIONS (Lost READY status)</b><br>"
+                    for t, name, pt, nt, ias in demotions:
+                        email_body += f"• {name} -> {nt} (was {pt})<br>"
+                
+                if is_email_configured():
+                    send_system_alert(email_sub, email_body)
+        except Exception as e:
+            print(f"  [ALERT] Failed to send IAS alerts: {e}")
 
     # Summary
     tier_counts = df["Tier"].value_counts()
@@ -263,6 +347,8 @@ def main():
     print(f"  WATCH  (IAS 35+): {tier_counts.get('WATCH', 0)}")
     print(f"  Output : {OUTPUT_CSV}")
     print(f"{'='*65}")
+    
+    if tc_alerts: print(f"  > Dispatched {len(tc_alerts)} Turnaround Confirmation alerts")
     print("\n  Top 10 by IAS:")
     print(df[["Ticker","Sub_Industry","CMP","Off_52W_High","IAS","Tier"]].head(10).to_string(index=False))
 
