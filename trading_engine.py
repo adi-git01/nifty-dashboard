@@ -236,6 +236,15 @@ def run_rebalance(df, db):
         print("No BUY signals generated today.")
         return
         
+    # Filter out stocks we already own or are already tracking
+    db.cursor.execute("SELECT ticker FROM watchlist UNION SELECT ticker FROM portfolio")
+    existing_tickers = {row[0] for row in db.cursor.fetchall()}
+    buyers = buyers[~buyers['ticker'].isin(existing_tickers)]
+    
+    if buyers.empty:
+        print("No NEW, unalerted BUY signals generated today.")
+        return
+        
     top_buys = buyers.sort_values(by='comp_rs', ascending=False).head(5)
     alerts = []
     
