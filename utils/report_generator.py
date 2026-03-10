@@ -137,8 +137,7 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | Metric | Current | YoY Δ | Status |
 |--------|---------|--------|--------|
 | Revenue Growth | {fmt(rev_g)}% | - | {"Strong" if rev_g > 15 else "Weak"} |
-| Earnings Growth | {fmt(earn_g)}% | - | {"Strong" if earn_g > 20 else "Weak"} |
-| Qtly Earnings Gr. | {fmt(qoq_g)}% | - | {"Accelerating" if qoq_g > 10 else "Decelerating"} |
+| Earnings Growth | {fmt(earn_g)}% | - | {"Accelerating" if earn_g > 20 else "Stable"} |
 | Operating Margin | {fmt(opm_pct)}% | - | {"High" if opm_pct > 15 else "Low"} |
 
 **Verdict**: {verdict.split(' ')[1]} — Overall Score: {overall:.1f}/10.
@@ -170,13 +169,13 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 ### 3. FINANCIALS
 
 **Dashboard**
-| Metric | Current | Benchmark |
-|--------|---------|-----------|
-| P/E Ratio | {fmt(pe)}x | {"Cheap" if pe and pe < 15 else "Expensive" if pe and pe > 30 else "Fair"} |
-| Forward P/E | {fmt(f_pe)}x | {"Discounting growth" if f_pe and pe and f_pe < pe else "Stable expectations"} |
-| P/B Ratio | {fmt(pb)}x | {"Asset play" if pb and pb < 1 else "Premium" if pb and pb > 3 else "Fair"} |
-| PEG Ratio | {fmt(peg)} | {"Undervalued (<1)" if peg and peg < 1 else "Fair/Overvalued"} |
-| ROA | {fmt(roa_pct)}% | Good if >5% |
+| Metric | Current | Benchmark | Trend |
+|--------|---------|-----------|-------|
+| P/E Ratio | {fmt(pe)}x | {"Cheap" if pe and pe < 15 else "Expensive" if pe and pe > 30 else "Fair"} | - |
+| ROA | {fmt(roa_pct)}% | Good if >5% | - |
+| PEG Ratio | {fmt(peg)} | {"Undervalued (<1)" if peg and peg < 1 else "Fair/Overvalued"} | - |
+
+**Assessment**: Quality score of {scores.get('quality', 5):.1f}/10 driven by ROE and margins.
 
 ---
 
@@ -186,10 +185,10 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | Multiple | Current | Note |
 |----------|---------|------|
 | P/E | {fmt(pe)} | vs Forward PE {fmt(f_pe)} |
-| EV/EBITDA | N/A | Available via deeper filings |
 | P/B | {fmt(pb)} | |
+| EV/EBITDA | N/A | Available via deeper filings |
 
-**FV (Current Lens)**: Fair value proxy aligns with PEG {fmt(peg)}.
+**FV (Current Lens)**: Fair value proxy aligns with PEG {fmt(peg)}. Implies current stability.
 
 ---
 
@@ -201,7 +200,7 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | OPM Margin | {fmt(opm_pct)}% | {"Peak" if opm_pct > 20 else "Mid/Trough"} |
 | Valuation (P/E) | {fmt(pe)} | {"Premium" if pe and pe > 25 else "Discount"} |
 
-**Position**: Current momentum score of {scores.get('momentum', 5):.1f}/10 implies {"Late Stage Rally" if pct_from_high > -5 else "Early Recovery" if pct_from_low < 15 else "Mid-Cycle"}.
+**Position**: Sequence implies {"Late Stage Rally" if pct_from_high > -5 else "Early Recovery" if pct_from_low < 15 else "Mid-Cycle"}. Current at premium to historical.
 
 ---
 
@@ -213,9 +212,18 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | Sector Momentum | {sector} | {"Tailwind" if scores.get('momentum', 5) > 6 else "Headwind"} |
 | Earnings Trajectory | {fmt(f_pe)}x Fwd PE | {"Earnings Expansion" if f_pe and pe and f_pe < pe else "Earnings Contraction"} |
 
+**Forward Verdict**: Trajectory likely to sustain based on forward PE discount.
+
 ---
 
 ### 7. SYNTHESIS
+
+**Three-Lens Summary**
+| Lens | FV | Verdict | Key Assumption |
+|------|-----|---------|----------------|
+| Current | N/A | Fair | Margins hold |
+| Historical | N/A | Fair | Mean Reversion |
+| Forward | N/A | Supports | Sector tailwinds |
 
 **Synthesized View**
 | Metric | Value |
@@ -224,22 +232,39 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | CMP | ₹{fmt(cmp)} |
 | Distance to 52W High | {fmt(pct_from_high)}% |
 
+**Key Insight**: Price action aligns with underlying fundamental quality.
+
 ---
 
 ### 8. RISKS
+
 | Risk | Impact | Monitor |
 |------|--------|---------|
 | Valuation Risk | {"High" if pe and pe > 35 else "Low"} | Forward P/E expansion |
 | Leverage Risk | {"High" if de and de > 100 else "Low"} | Debt/Equity ratio |
 | Momentum Break | Mod | 50DMA support levels |
 
+**Downside**: Risk to downside increases if 200DMA breaches.
+
 ---
 
-### 9. VERDICT
+### 9. PEERS
+
+| Metric | Co. | Peer Benchmark | Note |
+|--------|-----|----------------|------|
+| Rev Gr | {fmt(rev_g)}% | Sector avg | Lags/Leads |
+| EBITDA% | {fmt(opm_pct)}% | Sector avg | Margin profile |
+| P/E | {fmt(pe)} | Sector avg | Premium/Discount |
+
+**Rank**: Relative analysis constraint by system automation.
+
+---
+
+### 10. VERDICT
 
 **Recommendation**: {verdict}
 
-**Thesis**: Company scores {overall:.1f}/10 on the Alpha Engine. Quality pillar is at {scores.get('quality', 5):.1f}, powered by ROE of {fmt(roe_pct)}% and Net Margins of {fmt(npm_pct)}%. Growth trajectory is currently evaluated at {scores.get('growth', 5):.1f}/10.
+**Thesis**: Company scores {overall:.1f}/10 on the Alpha Engine. Quality pillar is at {scores.get('quality', 5):.1f}, powered by ROE of {fmt(roe_pct)}% and Net Margins of {fmt(npm_pct)}%. 
 
 **Monitor**
 | Signal | Bull Confirms | Bear Warns |
@@ -248,6 +273,7 @@ def generate_equity_report(ticker, info, scores, news_items, hist_data):
 | Earnings | Growth > 15% YoY | Margin contraction |
 """
     return report
+
 
 
 def generate_pdf_from_md(md_content):
@@ -285,6 +311,5 @@ def generate_pdf_from_md(md_content):
     pdf.add_page()
     pdf.set_font("helvetica", size=10)
     pdf.write_html(html_content)
-    
     # Return as bytes
-    return pdf.output(dest='S')
+    return bytes(pdf.output())

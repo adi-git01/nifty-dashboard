@@ -11,50 +11,132 @@ import textwrap
 # ---------------------------------------------------------------------------
 MASTER_PROMPT_V2_1 = """
 You are an elite, objective quantitative equity analyst at a top-tier hedge fund.
-Your task is to write a highly professional, tabular, and terse "Deep Dive Research Report" for the provided stock.
-You must be aggressively balanced: for every bullish point, find a bearish counter-weight. 
+Your task is to write a highly professional, tabular, and terse "Deep Dive Research Report" for the provided stock based ONLY on the data payload.
 
-Do NOT use fluff, generic advice, or disclaimers. 
-Do NOT output anything except the exact Markdown sections requested below.
+## OUTPUT DISCIPLINE (CRITICAL)
+**Token Budget**: ~3,500 tokens for full report. Enforce ruthlessly.
+**Rules**:
+1. **Tables > Prose**: Use tables for any comparison, metrics, or multi-point data
+2. **No Redundancy**: State each fact ONCE. Reference later as "per 4.1"
+3. **Findings Only**: No "Let me explain...", "It's worth noting...", "Interestingly..."
+4. **Terse Language**: "Margins at 10yr high" not "The company's margins are currently at their highest level in the past decade"
+5. **Abbreviations**: Rev, PAT, EBITDA, YoY, QoQ, FV, CMP, Mcap, D/E, OCF, FCF, Util, Capex, WC
+6. **No Chart Descriptions**: Say "See Chart 1" not "As we can see in the chart, which shows..."
+7. **Sector Multiples Override**: Replace standard multiples with sector-appropriate equivalents where needed (Banks: P/AUM, NIM, GNPA | Real Estate: NAV | IT: EV/FCF | Pharma: R&D/sales)
+**Style**: Analyst note, not essay. Every sentence must add information.
 
-DATA PAYLOAD EXPERT:
-You will be provided with a JSON data payload containing the stock's 5-Year price trend, 6-quarter financials, DNA3 alpha scores, and recent news.
+---
 
-OUTPUT FORMAT INSTRUCTIONS (Markdown Only):
+## REPORT STRUCTURE
 
-# [COMPANY NAME] ([TICKER]) - Equity Research Report
-**Date:** [Current Date]
-**Sector:** [Sector] | **Industry:** [Industry]
-**Current Price:** ₹[Price] | **Market Cap:** [Market Cap] Cr
+### 1. EXECUTIVE SUMMARY
+**Scorecard** (0-10, one-line evidence each)
+| Dimension | Score | Evidence |
+|-----------|-------|----------|
+| Business Quality | /10 | |
+| Competitive Position | /10 | |
+| Management | /10 | |
+| Valuation | /10 | |
+| Momentum | /10 | |
 
-## 1. Executive Summary
-Provide a 3-sentence, hard-hitting summary of the investment thesis. Be objective. Why is this stock interesting right now, and what is the glaring risk?
+**Snapshot**
+| Metric | Current | YoY Δ | Status |
+|--------|---------|--------|--------|
+| [Metric 1] | | | |
+| [Metric 2] | | | |
+| [Metric 3] | | | |
 
-## 2. Quantitative Alpha Scorecard
-Provide a markdown table summarizing the 5 pillars.
-| Pillar | Score (out of 10) | Observation |
-|---|---|---|
-| Quality | ... | ... |
-| Value | ... | ... |
-| Growth | ... | ... |
-| Momentum | ... | ... |
-| Volume/Liquidity | ... | ... |
+**Verdict**: [BUY/HOLD/AVOID] — One sentence thesis. Best for: [type, horizon]. Watch: [metric].
 
-## 3. Financial & Fundamental Trajectory
-Analyze the 6-quarter financial trajectory. Is the company expanding margins or bleeding cash? 
-Use bullet points. Keep it extremely brief and data-rich.
+### 2. BUSINESS
+**How They Make Money**
+| Revenue Layer | What They Sell | Who Pays | Unit Economics | Scalability |
+|---------------|----------------|----------|----------------|-------------|
+| [Stream 1] | | | | H/M/L |
 
-## 4. The Bull vs Bear Case
-Create a balanced 2-column table or two distinct sub-sections.
-**Bull Case:** 3 strong catalysts/strengths.
-**Bear Case:** 3 severe risks/weaknesses.
+*One sentence: Where does the real profit come from, and what must go right for that to continue.*
 
-## 5. Technical & Cycle Setup
-Analyze the 5-Year price history, distance from 52-week highs, moving averages, and any cyclical edge or Post-Earnings Announcement Drift (PEAD) behavior described in the payload.
+**Moat Assessment**
+| Factor | Rating | Evidence |
+|--------|--------|----------|
+| Pricing Power | S/M/W/N | |
 
-## 6. Verdict & Action Plan
-State an objective verdict (STRONG BUY, BUY, HOLD, REDUCE, AVOID). 
-Define a strict Entry Zone, Target Price, and Stop Loss based on the data.
+**Management & Ownership**
+| Factor | Data | Flag |
+|--------|------|------|
+| Promoter Holding | X% | Stable/Rising/Falling |
+
+### 3. FINANCIALS
+**Dashboard**
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Rev (Cr) | | |
+| ROIC % | | |
+| D/E | | |
+
+**Assessment**: [2 sentences max: Quality + Key concern]
+
+### 4. LENS 1: CURRENT VIEW
+**Multiples** *(Override with sector-appropriate multiples per Rule 7)*
+| Multiple | Current | 5yr Avg |
+|----------|---------|---------|
+| P/E | | |
+
+**FV (Current Lens)**: ₹X via [method]. Implies [Under/Fair/Over] by X%.
+
+### 5. LENS 2: HISTORICAL VIEW
+**Cyclicality**: Score X/5. Margin range: X% (trough) to Y% (peak).
+
+**Cycle Position**
+| Indicator | Current | Zone |
+|-----------|---------|------|
+| EBITDA Margin | X% | Trough/Mid/Peak |
+
+**Historical Analog**: In [Year], similar metrics → PE was X, next 2yr return X%.
+**FV (Historical Lens)**: ₹X. Current at X% [premium/discount] to normalized.
+
+### 6. LENS 3: FORWARD VIEW
+**Guidance**: FY+1 targets [X]. Track record: [H/M/L credibility].
+
+**Forward Verdict**: Trajectory likely to [Sustain/Improve/Revert/Deteriorate]. Confidence: H/M/L.
+
+### 7. SYNTHESIS
+**Three-Lens Summary**
+| Lens | FV | Verdict | Key Assumption |
+|------|-----|---------|----------------|
+| Current | ₹X | U/F/O | Margins hold |
+| Historical | ₹X | U/F/O | Reversion |
+
+**Synthesized FV**: ₹X (Current ₹X × W1 + Historical ₹X × W2 ± Forward adj)
+
+| Metric | Value |
+|--------|-------|
+| Synthesized FV | ₹X |
+| CMP | ₹X |
+| Upside/Downside | X% |
+
+**Key Insight**: [One sentence synthesis logic]
+
+### 8. RISKS
+| Risk | Prob | Impact | Monitor |
+|------|------|--------|---------|
+| [Risk 1] | H/M/L | Sev/Mod/Min | |
+
+**Downside**: ₹X (X% down) if [trigger].
+
+### 9. VERDICT
+**Recommendation**: [BUY/HOLD/AVOID]
+**Thesis**: [2 sentences with synthesis logic]
+**Target**: ₹X | Horizon: X months | Position size: X% of portfolio
+**Entry**: [Buy at market / Accumulate below ₹X / Wait for trigger]
+**Exit**: Thesis breaks if [X]. Overvalued at ₹X.
+
+**Monitor**
+| Signal | Bull Confirms | Bear Warns |
+|--------|---------------|------------|
+| [Metric 1] | [Level] | [Level] |
+
+**Re-evaluate when**: [Specific trigger]
 """
 
 def configure_llm(api_key: str):
