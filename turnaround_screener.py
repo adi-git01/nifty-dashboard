@@ -77,13 +77,20 @@ def calc_rs(close: pd.Series, bench: pd.Series, window: int) -> pd.Series:
     return close.pct_change(window) * 100 - bench.pct_change(window) * 100
 
 
-def calc_ias(rs21_d5: float, lfl: float, pct_off_low: float, rs63: float) -> float:
+def calc_ias(rs21_d5: float, lfl: float, pct_off_low: float, rs63: float, shock_ratio: float = 0.0) -> float:
     """IAS Score 0-100. Validated formula from 12-stock post-mortem."""
     vel_s   = min(35, max(0, rs21_d5 / 5.0 * 35))          # RS velocity (35 pts)
     lfl_s   = min(30, max(0, (min(lfl, 50) - 1.0) * 15))   # Liq from low, capped 50x (30 pts)
     price_s = min(20, max(0, pct_off_low / 15.0 * 20))      # Bounce from 52W low (20 pts)
     r63_s   = 15 if rs63 > 0 else (10 if rs63 > -5 else (5 if rs63 > -15 else 0))
-    return round(vel_s + lfl_s + price_s + r63_s, 1)
+    
+    raw = vel_s + lfl_s + price_s + r63_s
+    if shock_ratio > 0.75:
+        # Consolidation Gate: Penalize 1-day shock events (Perennial Losers filter)
+        # Cap max score at 60.0 so they never trigger ALERT tier (80)
+        return round(min(raw * 0.60, 60.0), 1)
+        
+    return round(raw, 1)
 
 
 def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series,
@@ -113,6 +120,9 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
         l252 = close.rolling(252, min_periods=50).min()
 
         rs21_d5   = rs21.diff(5)
+        rs21_d1   = rs21.diff(1)
+        max_1d_rs = rs21_d1.rolling(5).max()
+        
         off_high  = (close / h252 - 1) * 100
         off_low   = (close / l252 - 1) * 100
         ma50      = close.rolling(50).mean()
@@ -129,6 +139,9 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
         rs21d_now  = float(rs21_d5.iloc[-1])
         ma50_now   = float(ma50.iloc[-1])
         off_ma50   = (price / ma50_now - 1) * 100 if ma50_now > 0 else 0
+        
+        m1d_now    = float(max_1d_rs.iloc[-1])
+        shock_ratio = (m1d_now / rs21d_now) if rs21d_now > 3.0 else 0.0
 
         # V21 distance score: how far from qualifying for main portfolio?
         # V21 needs: CompRS > 0, price above MA50
@@ -155,7 +168,7 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
             if close.iloc[-1] <= close.iloc[-3]:
                 return None  # Failed to hold a 3-day higher floor
 
-        ias = calc_ias(rs21d_now, lfl_now, ol_now, rs63_now)
+        ias = calc_ias(rs21d_now, lfl_now, ol_now, rs63_now, shock_ratio)
         if ias < MIN_IAS_SCORE:
             return None
 
