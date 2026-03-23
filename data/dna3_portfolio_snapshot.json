@@ -1,7 +1,7 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-03-20",
-    "cash": 437515.454532257,
+    "date": "2026-03-23",
+    "cash": 612249.1863911437,
     "holdings": {
         "KRN.NS": {
             "entry_price": 953.5999755859375,
@@ -21,24 +21,6 @@
             "shares": 62,
             "peak_price": 1069.199951171875
         },
-        "KIRLOSENG.NS": {
-            "entry_price": 1468.0,
-            "entry_date": "2026-03-05",
-            "shares": 45,
-            "peak_price": 1510.5
-        },
-        "NATIONALUM.NS": {
-            "entry_price": 395.95001220703125,
-            "entry_date": "2026-03-05",
-            "shares": 168,
-            "peak_price": 409.1499938964844
-        },
-        "DATAPATTNS.NS": {
-            "entry_price": 3359.199951171875,
-            "entry_date": "2026-03-05",
-            "shares": 19,
-            "peak_price": 3493.199951171875
-        },
         "GVT&D.NS": {
             "entry_price": 3824.39990234375,
             "entry_date": "2026-03-05",
@@ -52,104 +34,68 @@
             "peak_price": 1486.5
         }
     },
-    "equity": 926433.0968662414,
-    "count": 8,
+    "equity": 903293.1379902648,
+    "count": 5,
     "portfolio": [
         {
             "Ticker": "POWERINDIA.NS",
             "Sector": "Electrical Equipment",
-            "Price": 25025.0,
-            "RS_Score": 28.5,
+            "Price": 24255.0,
+            "RS_Score": 24.2,
             "Entry": 25305.0,
-            "PnL%": -1.1065006915629323,
-            "Dist_MA50": 16.06410727338164,
-            "MA50": 21561.36,
+            "PnL%": -4.149377593360995,
+            "Dist_MA50": 11.889795816691706,
+            "MA50": 21677.58,
             "Trail_Stop": 22756.8,
             "Danger": ""
         },
         {
             "Ticker": "GESHIP.NS",
             "Sector": "Transport Services",
-            "Price": 1429.699951171875,
-            "RS_Score": 27.9,
+            "Price": 1360.0,
+            "RS_Score": 23.4,
             "Entry": 1389.4000244140625,
-            "PnL%": 2.9005272815370633,
-            "Dist_MA50": 12.549056719887023,
-            "MA50": 1270.29,
+            "PnL%": -2.1160230241438978,
+            "Dist_MA50": 6.586618124487127,
+            "MA50": 1275.96,
             "Trail_Stop": 1308.12,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 4.0% to trail"
         },
         {
-            "Ticker": "NATIONALUM.NS",
-            "Sector": "Non - Ferrous Metals",
-            "Price": 368.5,
-            "RS_Score": 27.1,
-            "Entry": 395.95001220703125,
-            "PnL%": -6.932696391149093,
-            "Dist_MA50": 0.34118923414523883,
-            "MA50": 367.25,
-            "Trail_Stop": 360.05,
-            "Danger": "\u26a0\ufe0f 0.3% to MA50 | \u26a0\ufe0f 2.3% to trail"
-        },
-        {
-            "Ticker": "DATAPATTNS.NS",
-            "Sector": "Aerospace & Defense",
-            "Price": 3230.800048828125,
-            "RS_Score": 25.9,
-            "Entry": 3359.199951171875,
-            "PnL%": -3.82233580049193,
-            "Dist_MA50": 12.783557405821522,
-            "MA50": 2864.6,
-            "Trail_Stop": 3074.02,
+            "Ticker": "SAILIFE.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 988.2000122070312,
+            "RS_Score": 17.6,
+            "Entry": 1069.199951171875,
+            "PnL%": -7.575752213238077,
+            "Dist_MA50": 6.980935166225809,
+            "MA50": 923.72,
+            "Trail_Stop": 940.9,
             "Danger": ""
         },
         {
             "Ticker": "KRN.NS",
             "Sector": "IT - Services",
-            "Price": 896.8499755859375,
-            "RS_Score": 25.5,
+            "Price": 847.9500122070312,
+            "RS_Score": 15.7,
             "Entry": 953.5999755859375,
-            "PnL%": -5.951132702696441,
-            "Dist_MA50": 14.735702444017514,
-            "MA50": 781.67,
+            "PnL%": -11.079065235293221,
+            "Dist_MA50": 8.154544191660339,
+            "MA50": 784.02,
             "Trail_Stop": 839.17,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 1.0% to trail"
         },
         {
             "Ticker": "GVT&D.NS",
             "Sector": "Electrical Equipment",
-            "Price": 3678.89990234375,
-            "RS_Score": 22.0,
+            "Price": 3461.0,
+            "RS_Score": 13.3,
             "Entry": 3824.39990234375,
-            "PnL%": -3.8045184529690945,
-            "Dist_MA50": 8.328408339038184,
-            "MA50": 3396.06,
+            "PnL%": -9.502141816315902,
+            "Dist_MA50": 1.6377751260726647,
+            "MA50": 3405.23,
             "Trail_Stop": 3404.72,
-            "Danger": ""
-        },
-        {
-            "Ticker": "SAILIFE.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1000.0499877929688,
-            "RS_Score": 16.7,
-            "Entry": 1069.199951171875,
-            "PnL%": -6.4674491710475515,
-            "Dist_MA50": 8.333341410763552,
-            "MA50": 923.12,
-            "Trail_Stop": 940.9,
-            "Danger": ""
-        },
-        {
-            "Ticker": "KIRLOSENG.NS",
-            "Sector": "Industrial Manufacturing",
-            "Price": 1376.699951171875,
-            "RS_Score": 10.2,
-            "Entry": 1468.0,
-            "PnL%": -6.219349375212874,
-            "Dist_MA50": 6.056795703268909,
-            "MA50": 1298.08,
-            "Trail_Stop": 1329.24,
-            "Danger": "\u26a0\ufe0f 3.6% to trail"
+            "Danger": "\u26a0\ufe0f 1.6% to MA50 | \u26a0\ufe0f 1.7% to trail"
         }
     ],
     "last_rebalance_date": "2026-03-05",
