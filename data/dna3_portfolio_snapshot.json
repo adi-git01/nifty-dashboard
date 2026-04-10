@@ -1,19 +1,19 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-04-09",
+    "date": "2026-04-10",
     "cash": 61047.0805992125,
     "holdings": {
         "KRN.NS": {
             "entry_price": 953.5999755859375,
             "entry_date": "2026-03-05",
             "shares": 69,
-            "peak_price": 964.2000122070312
+            "peak_price": 969.3499755859375
         },
         "POWERINDIA.NS": {
             "entry_price": 25305.0,
             "entry_date": "2026-03-05",
             "shares": 2,
-            "peak_price": 27315.0
+            "peak_price": 28425.0
         },
         "SAILIFE.NS": {
             "entry_price": 1069.199951171875,
@@ -25,7 +25,7 @@
             "entry_price": 3824.39990234375,
             "entry_date": "2026-03-05",
             "shares": 17,
-            "peak_price": 3911.300048828125
+            "peak_price": 4067.0
         },
         "GESHIP.NS": {
             "entry_price": 1389.4000244140625,
@@ -55,19 +55,19 @@
             "entry_price": 607.2999877929688,
             "entry_date": "2026-03-24",
             "shares": 100,
-            "peak_price": 608.5499877929688
+            "peak_price": 615.7000122070312
         },
         "TEJASNET.NS": {
             "entry_price": 420.75,
             "entry_date": "2026-03-24",
             "shares": 144,
-            "peak_price": 440.70001220703125
+            "peak_price": 443.45001220703125
         },
         "BELRISE.NS": {
             "entry_price": 193.66000366210938,
             "entry_date": "2026-03-24",
             "shares": 313,
-            "peak_price": 202.22999572753906
+            "peak_price": 206.08999633789062
         },
         "EMCURE.NS": {
             "entry_price": 1539.699951171875,
@@ -79,190 +79,190 @@
             "entry_price": 889.3499755859375,
             "entry_date": "2026-03-24",
             "shares": 68,
-            "peak_price": 959.6500244140625
+            "peak_price": 975.2000122070312
         },
         "VTL.NS": {
             "entry_price": 534.5999755859375,
             "entry_date": "2026-03-24",
             "shares": 113,
-            "peak_price": 551.3499755859375
+            "peak_price": 560.8499755859375
         }
     },
-    "equity": 922783.6185173034,
+    "equity": 936930.2451805114,
     "count": 14,
     "portfolio": [
         {
             "Ticker": "PREMIERENE.NS",
             "Sector": "Electrical Equipment",
-            "Price": 956.4500122070312,
-            "RS_Score": 30.7,
+            "Price": 975.2000122070312,
+            "RS_Score": 30.8,
             "Entry": 889.3499755859375,
-            "PnL%": 7.544840441119447,
-            "Dist_MA50": 19.81580258135052,
-            "MA50": 798.27,
-            "Trail_Stop": 815.7,
+            "PnL%": 9.653121828055653,
+            "Dist_MA50": 21.277092024954904,
+            "MA50": 804.11,
+            "Trail_Stop": 858.18,
             "Danger": ""
         },
         {
             "Ticker": "POWERINDIA.NS",
             "Sector": "Electrical Equipment",
-            "Price": 27315.0,
-            "RS_Score": 26.9,
+            "Price": 28425.0,
+            "RS_Score": 29.0,
             "Entry": 25305.0,
-            "PnL%": 7.943094250148191,
-            "Dist_MA50": 16.978223164386204,
-            "MA50": 23350.5,
-            "Trail_Stop": 23217.75,
-            "Danger": ""
-        },
-        {
-            "Ticker": "KRN.NS",
-            "Sector": "IT - Services",
-            "Price": 964.2000122070312,
-            "RS_Score": 20.2,
-            "Entry": 953.5999755859375,
-            "PnL%": 1.1115810499660068,
-            "Dist_MA50": 16.520484280208066,
-            "MA50": 827.49,
-            "Trail_Stop": 819.57,
+            "PnL%": 12.329579134558388,
+            "Dist_MA50": 20.50118317960336,
+            "MA50": 23588.98,
+            "Trail_Stop": 25014.0,
             "Danger": ""
         },
         {
             "Ticker": "AETHER.NS",
             "Sector": "Diversified Metals",
-            "Price": 1133.800048828125,
-            "RS_Score": 17.0,
+            "Price": 1190.199951171875,
+            "RS_Score": 21.2,
             "Entry": 1224.6500244140625,
-            "PnL%": -7.41844394519201,
-            "Dist_MA50": 10.655013203899463,
-            "MA50": 1024.63,
-            "Trail_Stop": 1040.95,
-            "Danger": ""
-        },
-        {
-            "Ticker": "LINDEINDIA.NS",
-            "Sector": "Chemicals & Petrochemicals",
-            "Price": 7183.5,
-            "RS_Score": 16.8,
-            "Entry": 7393.5,
-            "PnL%": -2.8403327246906067,
-            "Dist_MA50": 7.2564389697648375,
-            "MA50": 6697.5,
-            "Trail_Stop": 6284.47,
+            "PnL%": -2.8130545507211533,
+            "Dist_MA50": 15.658607675186225,
+            "MA50": 1029.06,
+            "Trail_Stop": 1077.69,
             "Danger": ""
         },
         {
             "Ticker": "GVT&D.NS",
             "Sector": "Electrical Equipment",
-            "Price": 3911.300048828125,
-            "RS_Score": 16.7,
+            "Price": 4067.0,
+            "RS_Score": 18.5,
             "Entry": 3824.39990234375,
-            "PnL%": 2.2722557447802205,
-            "Dist_MA50": 8.30504029078095,
-            "MA50": 3611.37,
-            "Trail_Stop": 3324.61,
+            "PnL%": 6.34348143110177,
+            "Dist_MA50": 11.778060398458123,
+            "MA50": 3638.46,
+            "Trail_Stop": 3578.96,
             "Danger": ""
-        },
-        {
-            "Ticker": "GESHIP.NS",
-            "Sector": "Transport Services",
-            "Price": 1391.199951171875,
-            "RS_Score": 16.7,
-            "Entry": 1389.4000244140625,
-            "PnL%": 0.12954705097054858,
-            "Dist_MA50": 3.7811945278496246,
-            "MA50": 1340.51,
-            "Trail_Stop": 1263.52,
-            "Danger": "\u26a0\ufe0f 3.8% to MA50"
         },
         {
             "Ticker": "VTL.NS",
             "Sector": "Textiles & Apparels",
-            "Price": 549.8499755859375,
-            "RS_Score": 16.6,
+            "Price": 560.8499755859375,
+            "RS_Score": 18.2,
             "Entry": 534.5999755859375,
-            "PnL%": 2.852600205094575,
-            "Dist_MA50": 6.819254795016419,
-            "MA50": 514.75,
-            "Trail_Stop": 468.65,
+            "PnL%": 4.910213467785743,
+            "Dist_MA50": 8.293939032976123,
+            "MA50": 517.9,
+            "Trail_Stop": 493.55,
+            "Danger": ""
+        },
+        {
+            "Ticker": "KRN.NS",
+            "Sector": "IT - Services",
+            "Price": 969.3499755859375,
+            "RS_Score": 17.2,
+            "Entry": 953.5999755859375,
+            "PnL%": 1.6516359483254437,
+            "Dist_MA50": 16.101080410702853,
+            "MA50": 834.92,
+            "Trail_Stop": 853.03,
+            "Danger": ""
+        },
+        {
+            "Ticker": "LINDEINDIA.NS",
+            "Sector": "Chemicals & Petrochemicals",
+            "Price": 7190.0,
+            "RS_Score": 15.7,
+            "Entry": 7393.5,
+            "PnL%": -2.7524176641644686,
+            "Dist_MA50": 6.9299214905346975,
+            "MA50": 6724.03,
+            "Trail_Stop": 6506.28,
             "Danger": ""
         },
         {
             "Ticker": "ACI.NS",
             "Sector": "Diversified Metals",
-            "Price": 608.5499877929688,
-            "RS_Score": 13.9,
+            "Price": 615.7000122070312,
+            "RS_Score": 14.1,
             "Entry": 607.2999877929688,
-            "PnL%": 0.205829083669623,
-            "Dist_MA50": 5.84674554530411,
-            "MA50": 574.94,
-            "Trail_Stop": 517.27,
+            "PnL%": 1.383175462359157,
+            "Dist_MA50": 6.8565585456382365,
+            "MA50": 576.19,
+            "Trail_Stop": 541.82,
             "Danger": ""
         },
         {
             "Ticker": "BELRISE.NS",
             "Sector": "Consumer Durables",
-            "Price": 202.22999572753906,
-            "RS_Score": 10.9,
+            "Price": 206.08999633789062,
+            "RS_Score": 12.0,
             "Entry": 193.66000366210938,
-            "PnL%": 4.425277240199935,
-            "Dist_MA50": 9.910472939842853,
-            "MA50": 184.0,
-            "Trail_Stop": 171.9,
+            "PnL%": 6.418461448275417,
+            "Dist_MA50": 11.448552877815708,
+            "MA50": 184.92,
+            "Trail_Stop": 181.36,
             "Danger": ""
+        },
+        {
+            "Ticker": "GESHIP.NS",
+            "Sector": "Transport Services",
+            "Price": 1372.9000244140625,
+            "RS_Score": 11.9,
+            "Entry": 1389.4000244140625,
+            "PnL%": -1.1875629559570777,
+            "Dist_MA50": 2.0017606908181986,
+            "MA50": 1345.96,
+            "Trail_Stop": 1308.12,
+            "Danger": "\u26a0\ufe0f 2.0% to MA50 | \u26a0\ufe0f 5.0% to trail"
         },
         {
             "Ticker": "ENTERO.NS",
             "Sector": "Healthcare Services",
-            "Price": 1180.9000244140625,
-            "RS_Score": 10.2,
+            "Price": 1197.199951171875,
+            "RS_Score": 11.7,
             "Entry": 1226.0,
-            "PnL%": -3.678627698689845,
-            "Dist_MA50": 5.868917928073531,
-            "MA50": 1115.44,
-            "Trail_Stop": 1061.73,
+            "PnL%": -2.349106755964519,
+            "Dist_MA50": 7.255606613760119,
+            "MA50": 1116.21,
+            "Trail_Stop": 1099.21,
             "Danger": ""
         },
         {
             "Ticker": "EMCURE.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1604.9000244140625,
-            "RS_Score": 10.1,
+            "Price": 1600.5,
+            "RS_Score": 6.5,
             "Entry": 1539.699951171875,
-            "PnL%": 4.234596045324501,
-            "Dist_MA50": 7.075283104852809,
-            "MA50": 1498.85,
-            "Trail_Stop": 1404.79,
-            "Danger": ""
-        },
-        {
-            "Ticker": "TEJASNET.NS",
-            "Sector": "Telecom - Equipment & Accessories",
-            "Price": 439.25,
-            "RS_Score": 5.3,
-            "Entry": 420.75,
-            "PnL%": 4.396910279263221,
-            "Dist_MA50": 13.123920729039792,
-            "MA50": 388.29,
-            "Trail_Stop": 374.6,
+            "PnL%": 3.9488244954381995,
+            "Dist_MA50": 6.682503999889261,
+            "MA50": 1500.25,
+            "Trail_Stop": 1454.38,
             "Danger": ""
         },
         {
             "Ticker": "SAILIFE.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 978.0999755859375,
-            "RS_Score": 2.2,
+            "Price": 999.0,
+            "RS_Score": 4.5,
             "Entry": 1069.199951171875,
-            "PnL%": -8.520387181657577,
-            "Dist_MA50": 3.5644529754260628,
-            "MA50": 944.44,
-            "Trail_Stop": 908.82,
-            "Danger": "\u26a0\ufe0f 3.6% to MA50"
+            "PnL%": -6.565652298705565,
+            "Dist_MA50": 5.32241960523691,
+            "MA50": 948.52,
+            "Trail_Stop": 940.9,
+            "Danger": ""
+        },
+        {
+            "Ticker": "TEJASNET.NS",
+            "Sector": "Telecom - Equipment & Accessories",
+            "Price": 443.45001220703125,
+            "RS_Score": 0.9,
+            "Entry": 420.75,
+            "PnL%": 5.395130649324123,
+            "Dist_MA50": 13.39141572381587,
+            "MA50": 391.08,
+            "Trail_Stop": 390.24,
+            "Danger": ""
         }
     ],
     "last_rebalance_date": "2026-03-24",
     "rebalance_count": 2,
-    "regime": "BULL",
+    "regime": "CAUTION",
     "circuit_breaker": false,
     "config": {
         "rs_weights": [
@@ -282,8 +282,8 @@
         "rebalance_days": 13,
         "max_positions": 15,
         "breadth_threshold": 30,
-        "trailing_stop": 0.15,
+        "trailing_stop": 0.12,
         "min_comp_rs": 17.0,
-        "min_liquidity_cr": 1.0
+        "min_liquidity_cr": 1.2
     }
 }
