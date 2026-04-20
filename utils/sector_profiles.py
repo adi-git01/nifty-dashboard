@@ -16,6 +16,7 @@ SECTOR_PROFILE_MAP = {
     # yfinance uses broader categories - map them to our profiles
     "Technology": "IT",
     "Financial Services": "NBFC",  # Banks also come under this
+    "Capital Markets": "NBFC",     # Exchanges (BSE, MCX), brokers, asset managers
     "Basic Materials": "COMMODITY",
     "Energy": "COMMODITY",
     "Consumer Cyclical": "CONSUMER",

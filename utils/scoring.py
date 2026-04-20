@@ -67,12 +67,20 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     ranges = quality_config.get("ranges", {})
     bonuses = quality_config.get("bonuses", {})
     
-    # Extract raw metrics
-    roe = safe_num(data.get("roe"), 0)
-    roe_pct = roe * 100 if roe < 1 else roe
-    
-    roa = safe_num(data.get("roa"), 0)
-    roa_pct = roa * 100 if roa < 1 else roa
+    # Extract raw metrics — use None-passthrough so normalize() returns neutral 5
+    _roe_raw = data.get("roe")
+    if _roe_raw is None:
+        roe_pct = None
+    else:
+        _r = float(_roe_raw)
+        roe_pct = _r * 100 if abs(_r) < 1 else _r
+
+    _roa_raw = data.get("roa")
+    if _roa_raw is None:
+        roa_pct = None
+    else:
+        _r = float(_roa_raw)
+        roa_pct = _r * 100 if abs(_r) < 1 else _r
     
     _npm_raw = data.get("profitMargins")
     npm_pct = None if _npm_raw is None else (float(_npm_raw) * 100 if float(_npm_raw) < 1 else float(_npm_raw))
@@ -133,7 +141,7 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     
     # Apply profile-specific bonuses
     if "roe_excellent" in bonuses:
-        if roe_pct > bonuses["roe_excellent"]["threshold"]:
+        if roe_pct is not None and roe_pct > bonuses["roe_excellent"]["threshold"]:
             quality = min(10, quality + bonuses["roe_excellent"]["bonus"])
     
     if "npm_excellent" in bonuses:
