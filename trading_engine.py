@@ -15,6 +15,7 @@ from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_mar
 from utils.telegram_notifier import send_telegram_message
 from utils.email_notifier import send_trend_change_alert
 from utils.regime_manager import classify_regime, get_regime_params
+from utils.market_mood import calculate_mood_metrics, save_mood_snapshot
 
 def _log(msg):
     """Timestamped print — makes CI log timelines readable."""
@@ -37,6 +38,16 @@ def generate_daily_master_cache():
     # This also auto-saves the Parquet inside the function
     df = fetch_and_process_market_data(tickers, fundamentals, live_mode=True)
     _log(f"END: generate_daily_master_cache — result shape={df.shape}, columns={list(df.columns[:8])}{'...' if len(df.columns)>8 else ''}")
+
+    # Save daily mood snapshot so the Market Mood History chart stays current
+    try:
+        mood_metrics = calculate_mood_metrics(df)
+        if mood_metrics:
+            save_mood_snapshot(mood_metrics)
+            _log(f"Mood snapshot saved: avg_trend={mood_metrics.get('avg_trend_score')}, uptrends={mood_metrics.get('total_uptrends')}")
+    except Exception as e:
+        _log(f"WARN: mood snapshot failed ({e}) — skipping")
+
     return df
 
 def generate_sub_industry_rotation(df, db):
