@@ -1240,7 +1240,19 @@ elif page == "🌊 Trend Scanner":
             ]
             st.caption(f"Showing {len(filtered_df)} stocks with {filter_col} between {filter_val[0]:.1f} and {filter_val[1]:.1f}")
 
-    display_cols = ['screener_link', 'name', 'sector', 'price', 'trend_signal', 'trend_score', 'comp_rs', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
+    _SIGNAL_EMOJI = {
+        'STRONG UPTREND': '🟢',
+        'UPTREND': '🔵',
+        'NEUTRAL': '🟡',
+        'DOWNTREND': '🟠',
+        'STRONG DOWNTREND': '🔴',
+    }
+    filtered_df = filtered_df.copy()
+    filtered_df['signal_display'] = filtered_df['trend_signal'].map(
+        lambda s: f"{_SIGNAL_EMOJI.get(s, '')} {s}" if s else s
+    )
+
+    display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
 
@@ -1254,7 +1266,7 @@ elif page == "🌊 Trend Scanner":
             "price": st.column_config.NumberColumn("Price", format="₹ %.2f"),
             "dist_52w": st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
             "dist_200dma": st.column_config.NumberColumn("% vs 200DMA", format="%.1f%%"),
-            "trend_signal": st.column_config.TextColumn("Signal"),
+            "signal_display": st.column_config.TextColumn("Signal"),
             "quality": st.column_config.ProgressColumn("Quality", min_value=0, max_value=10, format="%.1f"),
             "value": st.column_config.ProgressColumn("Value", min_value=0, max_value=10, format="%.1f"),
             "growth": st.column_config.ProgressColumn("Growth", min_value=0, max_value=10, format="%.1f"),
@@ -3486,6 +3498,11 @@ elif page == "📊 Sector Pulse":
                 # Sort columns chronologically (Periods sort naturally)
                 score_pivot = score_pivot.sort_index(axis=1)
                 hover_pivot = hover_pivot.sort_index(axis=1)
+
+                # Forward-fill gaps so months with partial EOD data (e.g. Jan-26)
+                # show the last known score instead of blank white cells
+                score_pivot = score_pivot.ffill(axis=1)
+                hover_pivot = hover_pivot.ffill(axis=1)
 
                 # Rename Period columns -> readable month labels
                 score_pivot.columns = [period_to_label.get(p, str(p)) for p in score_pivot.columns]

@@ -403,12 +403,12 @@ def calculate_trend_metrics(data):
     else:
         signal = "STRONG DOWNTREND"
     
-    # Calculate 200DMA distance
-    dist_200dma = ((price - ma200) / ma200 * 100) if ma200 > 0 else 0
-    
+    # Calculate 200DMA distance; None when MA200 is unavailable (avoids misleading 0.0%)
+    dist_200dma = round(((price - ma200) / ma200 * 100), 2) if ma200 > 0 else None
+
     return {
         "trend_score": int(score),
         "trend_signal": signal,
         "dist_52w": round(dist_from_high, 2),
-        "dist_200dma": round(dist_200dma, 2)
+        "dist_200dma": dist_200dma
     }
