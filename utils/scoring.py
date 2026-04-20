@@ -74,11 +74,11 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     roa = safe_num(data.get("roa"), 0)
     roa_pct = roa * 100 if roa < 1 else roa
     
-    npm = safe_num(data.get("profitMargins"), 0)
-    npm_pct = npm * 100 if npm < 1 else npm
-    
-    gpm = safe_num(data.get("grossMargins"), 0)
-    gpm_pct = gpm * 100 if gpm < 1 else gpm
+    _npm_raw = data.get("profitMargins")
+    npm_pct = None if _npm_raw is None else (float(_npm_raw) * 100 if float(_npm_raw) < 1 else float(_npm_raw))
+
+    _gpm_raw = data.get("grossMargins")
+    gpm_pct = None if _gpm_raw is None else (float(_gpm_raw) * 100 if float(_gpm_raw) < 1 else float(_gpm_raw))
     
     de_raw = data.get("debtToEquity")
     
@@ -137,39 +137,41 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
             quality = min(10, quality + bonuses["roe_excellent"]["bonus"])
     
     if "npm_excellent" in bonuses:
-        if npm_pct > bonuses["npm_excellent"]["threshold"]:
+        if npm_pct is not None and npm_pct > bonuses["npm_excellent"]["threshold"]:
             quality = min(10, quality + bonuses["npm_excellent"]["bonus"])
-    
+
     if "npm_decent" in bonuses:
-        if npm_pct > bonuses["npm_decent"]["threshold"]:
+        if npm_pct is not None and npm_pct > bonuses["npm_decent"]["threshold"]:
             quality = min(10, quality + bonuses["npm_decent"]["bonus"])
-    
+
     if "roa_excellent" in bonuses:
         if roa_pct > bonuses["roa_excellent"]["threshold"]:
             quality = min(10, quality + bonuses["roa_excellent"]["bonus"])
-    
+
     if "gpm_excellent" in bonuses:
-        if gpm_pct > bonuses["gpm_excellent"]["threshold"]:
+        if gpm_pct is not None and gpm_pct > bonuses["gpm_excellent"]["threshold"]:
             quality = min(10, quality + bonuses["gpm_excellent"]["bonus"])
     
-    if "low_debt" in bonuses:
+    if "low_debt" in bonuses and de_raw is not None:
         if de * 100 < bonuses["low_debt"]["threshold"]:
             quality = min(10, quality + bonuses["low_debt"]["bonus"])
     
     if "profitability_combo" in bonuses:
         b = bonuses["profitability_combo"]
-        if roe_pct > b["roe_threshold"] and npm_pct > b["npm_threshold"]:
+        if npm_pct is not None and roe_pct > b["roe_threshold"] and npm_pct > b["npm_threshold"]:
             quality = min(10, quality + b["bonus"])
 
 
     # ==========================================
     # PILLAR 2: VALUE (Sector-Aware Valuation)
     # ==========================================
-    pe = safe_num(data.get("pe"), 25)
-    forward_pe = safe_num(data.get("forwardPE"), pe)
-    peg = safe_num(data.get("pegRatio"), 1.5)
+    pe_raw = data.get("pe")
+    pe = safe_num(pe_raw, 0)
+    forward_pe = safe_num(data.get("forwardPE"), 0)
+    peg_raw = data.get("pegRatio")
+    peg = safe_num(peg_raw, 0)
     pb = safe_num(data.get("pb"), 3)
-    
+
     # Get sector-specific value weights
     v_pb_weight = value_config.get("pb_weight", 0.15)
     v_pe_weight = value_config.get("pe_weight", 0.40)
@@ -177,9 +179,13 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     v_fwd_weight = value_config.get("fwd_pe_weight", 0.20)
     pb_range = value_config.get("pb_range", (0.5, 5.0))
     use_pb_primary = value_config.get("use_pb_primary", False)
-    
-    # Handle negative PE (loss-making companies) - they get 0 for PE-based metrics
-    if pe <= 0:
+
+    # Handle missing PE (return neutral 5) vs loss-making (return 0)
+    if pe_raw is None:
+        s_rel_pe = 5
+        s_fwd = 5
+        s_peg = 5 if peg_raw is None else (0 if peg <= 0 or peg > 5 else 10 - normalize(peg, 0.5, 3.0))
+    elif pe <= 0:
         s_rel_pe = 0  # Loss-making = no value score from PE
         s_fwd = 0
         s_peg = 0
@@ -187,21 +193,21 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
         # Sector-Relative PE (if available)
         if sector_pe_median and sector_pe_median > 0:
             relative_pe = pe / sector_pe_median
-            s_rel_pe = 10 - normalize(relative_pe, 0.5, 1.8) 
+            s_rel_pe = 10 - normalize(relative_pe, 0.5, 1.8)
         else:
             # Absolute PE scoring: <12 cheap, >50 expensive
             s_rel_pe = 10 - normalize(pe, 10, 60)
-        
+
         # Forward PE discount
         if forward_pe > 0:
             pe_discount = (pe - forward_pe) / pe
             s_fwd = normalize(pe_discount, -0.2, 0.3)
         else:
             s_fwd = 5
-        
+
         # PEG scoring
         if peg <= 0 or peg > 5:
-            s_peg = 0
+            s_peg = 0 if peg_raw is not None else 5  # missing → neutral, bad value → 0
         else:
             s_peg = 10 - normalize(peg, 0.5, 3.0)
     
@@ -220,27 +226,32 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     # ===============================
     # PILLAR 3: GROWTH (Earnings Trend)
     # ===============================
-    # Revenue Growth (YoY)
-    rev_g = safe_num(data.get("revenueGrowth"), 0) * 100
-    s_rev = normalize(rev_g, -5, 25)
-    
-    # Earnings Growth (from API)
-    earn_g = safe_num(data.get("earningsGrowth"), 0) * 100
-    s_earn = normalize(earn_g, -10, 40)
-    
-    # Earnings Trend (from financials - YoY Net Income)
-    earn_trend = safe_num(data.get("earningsTrend"), 0) * 100
-    s_trend = normalize(earn_trend, -20, 50)
-    
-    # Quarterly Earnings Growth
-    qtr_g = safe_num(data.get("earningsQuarterlyGrowth"), 0) * 100
-    s_qtr = normalize(qtr_g, -15, 30)
-    
+    # Use None-passthrough: normalize() returns 5 (neutral) for None.
+    # safe_num(..., 0) was silently mapping missing data to 0% growth → ~2-3/10.
+    def _pct(raw):
+        """Decimal → percent, or None if unavailable."""
+        if raw is None:
+            return None
+        try:
+            return float(raw) * 100
+        except:
+            return None
+
+    rev_g   = _pct(data.get("revenueGrowth"))
+    earn_g  = _pct(data.get("earningsGrowth"))
+    earn_trend = _pct(data.get("earningsTrend"))
+    qtr_g   = _pct(data.get("earningsQuarterlyGrowth"))
+
+    s_rev   = normalize(rev_g,        -5,  25)
+    s_earn  = normalize(earn_g,       -10, 40)
+    s_trend = normalize(earn_trend,   -20, 50)
+    s_qtr   = normalize(qtr_g,        -15, 30)
+
     # Growth Score: Weighted average
     growth = (s_rev * 0.30) + (s_earn * 0.25) + (s_trend * 0.25) + (s_qtr * 0.20)
-    
-    # Bonus for consistent growth (revenue + earnings both positive)
-    if rev_g > 5 and earn_g > 10:
+
+    # Bonus only when both values are genuinely available and positive
+    if rev_g is not None and earn_g is not None and rev_g > 5 and earn_g > 10:
         growth = min(10, growth + 1.0)
 
     # ================================
