@@ -16,6 +16,7 @@ from utils.telegram_notifier import send_telegram_message
 from utils.email_notifier import send_trend_change_alert
 from utils.regime_manager import classify_regime, get_regime_params
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot
+from utils.market_breadth import calculate_breadth_from_df, save_breadth_snapshot
 
 def _log(msg):
     """Timestamped print — makes CI log timelines readable."""
@@ -47,6 +48,15 @@ def generate_daily_master_cache():
             _log(f"Mood snapshot saved: avg_trend={mood_metrics.get('avg_trend_score')}, uptrends={mood_metrics.get('total_uptrends')}")
     except Exception as e:
         _log(f"WARN: mood snapshot failed ({e}) — skipping")
+
+    # Save daily breadth snapshot so the Market Breadth chart stays current
+    try:
+        breadth_metrics = calculate_breadth_from_df(df)
+        if breadth_metrics:
+            save_breadth_snapshot(breadth_metrics)
+            _log(f"Breadth snapshot saved: {breadth_metrics.get('pct_above_50dma')}% above 50DMA, {breadth_metrics.get('pct_above_200dma')}% above 200DMA")
+    except Exception as e:
+        _log(f"WARN: breadth snapshot failed ({e}) — skipping")
 
     return df
 

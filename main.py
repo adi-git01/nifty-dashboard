@@ -3479,6 +3479,16 @@ elif page == "📊 Sector Pulse":
                 unique_months = sorted(latest_per_month['month_key'].unique())[-12:]
                 latest_per_month = latest_per_month[latest_per_month['month_key'].isin(unique_months)]
 
+                # Filter to only sub-industries present in the MOST RECENT month.
+                # This drops ghost rows from old naming conventions (e.g. "Metals & Mining"
+                # was later renamed to "Non-Ferrous Metals"), which would otherwise show as
+                # mostly-white rows with data only on the left side of the heatmap.
+                most_recent_month = max(unique_months)
+                current_industries = set(
+                    latest_per_month[latest_per_month['month_key'] == most_recent_month]['sub_industry'].unique()
+                )
+                latest_per_month = latest_per_month[latest_per_month['sub_industry'].isin(current_industries)]
+
                 # Map each month_key Period to its month_label string (e.g. 'Jan-26')
                 period_to_label = (
                     latest_per_month[['month_key', 'month_label']]
