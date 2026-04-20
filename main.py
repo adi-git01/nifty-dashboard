@@ -3479,6 +3479,16 @@ elif page == "📊 Sector Pulse":
                 unique_months = sorted(latest_per_month['month_key'].unique())[-12:]
                 latest_per_month = latest_per_month[latest_per_month['month_key'].isin(unique_months)]
 
+                # Filter to only sub-industries present in the MOST RECENT month.
+                # This drops ghost rows from old naming conventions (e.g. "Metals & Mining"
+                # was later renamed to "Non-Ferrous Metals"), which would otherwise show as
+                # mostly-white rows with data only on the left side of the heatmap.
+                most_recent_month = max(unique_months)
+                current_industries = set(
+                    latest_per_month[latest_per_month['month_key'] == most_recent_month]['sub_industry'].unique()
+                )
+                latest_per_month = latest_per_month[latest_per_month['sub_industry'].isin(current_industries)]
+
                 # Map each month_key Period to its month_label string (e.g. 'Jan-26')
                 period_to_label = (
                     latest_per_month[['month_key', 'month_label']]
@@ -3517,70 +3527,121 @@ elif page == "📊 Sector Pulse":
                     score_pivot = score_pivot.sort_values(by=last_month_col, ascending=False, na_position='last')
                     hover_pivot = hover_pivot.reindex(score_pivot.index)
 
-                # Build custom hover text
-                hover_text = []
-                for idx in score_pivot.index:
-                    row_text = []
-                    for col in score_pivot.columns:
-                        score_val = score_pivot.loc[idx, col]
-                        leaders = hover_pivot.loc[idx, col] if pd.notna(hover_pivot.loc[idx, col]) else "N/A"
-                        if pd.notna(score_val):
-                            row_text.append(f"<b>{idx}</b><br>Score: {score_val:.0f}/100<br>Month: {col}<br>Leaders: {leaders}")
+                # ── Two-tab view: sparkline table (primary) + heatmap (fallback) ──
+                rot_tab1, rot_tab2 = st.tabs(["📋 Rotation Table", "🌡️ Heatmap"])
+
+                with rot_tab1:
+                    # Build one row per sub-industry
+                    table_rows = []
+                    for industry in score_pivot.index:
+                        row_scores = score_pivot.loc[industry]
+                        trend_vals = [int(round(float(v))) for v in row_scores.values if pd.notna(v)]
+
+                        current_score = float(row_scores.iloc[-1]) if pd.notna(row_scores.iloc[-1]) else 0.0
+                        prev_score    = float(row_scores.iloc[-2]) if len(row_scores) >= 2 and pd.notna(row_scores.iloc[-2]) else current_score
+                        mom_change    = round(current_score - prev_score, 1)
+
+                        leaders_raw = hover_pivot.loc[industry].iloc[-1]
+                        leaders = leaders_raw if pd.notna(leaders_raw) else '—'
+
+                        if current_score >= 70:
+                            signal = '🟢 Leader'
+                        elif current_score >= 40:
+                            signal = '🟡 Mid'
                         else:
-                            row_text.append(f"<b>{idx}</b><br>No data<br>Month: {col}")
-                    hover_text.append(row_text)
+                            signal = '🔴 Laggard'
 
-                # Plotly Heatmap
-                fig = go.Figure(data=go.Heatmap(
-                    z=score_pivot.values,
-                    x=score_pivot.columns.tolist(),
-                    y=[s.replace('.NS', '') for s in score_pivot.index.tolist()],
-                    colorscale=[
-                        [0.0, '#d32f2f'],     # Deep Red (worst)
-                        [0.25, '#ff7043'],    # Orange-Red
-                        [0.5, '#fdd835'],     # Yellow (mid)
-                        [0.75, '#66bb6a'],    # Light Green
-                        [1.0, '#1b5e20'],     # Deep Green (best)
-                    ],
-                    zmin=0, zmax=100,
-                    text=hover_text,
-                    hovertemplate='%{text}<extra></extra>',
-                    colorbar=dict(
-                        title="Score",
-                        tickvals=[0, 25, 50, 75, 100],
-                        ticktext=["0 \U0001f534", "25", "50 \U0001f7e1", "75", "100 \U0001f7e2"],
-                    ),
-                    xgap=2, ygap=1,
-                ))
+                        table_rows.append({
+                            'Sub-Industry': industry,
+                            'Signal':       signal,
+                            'Score':        round(current_score),
+                            'MoM Δ':        mom_change,
+                            'Trend (12M)':  trend_vals,
+                            'Leaders':      leaders,
+                        })
 
-                fig.update_layout(
-                    height=max(600, len(score_pivot) * 22),
-                    xaxis=dict(title="Month", side="top", tickangle=0),
-                    yaxis=dict(title="", autorange="reversed", tickfont=dict(size=11)),
-                    margin=dict(l=200, r=40, t=60, b=20),
-                    template='plotly_dark',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                )
-                
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Summary stats below heatmap
-                if len(month_order) > 0:
-                    latest_data = latest_per_month[latest_per_month['month_label'] == month_order[-1]]
-                    if not latest_data.empty:
-                        top3 = latest_data.nlargest(3, 'score_0_100')
-                        bot3 = latest_data.nsmallest(3, 'score_0_100')
-                        
-                        sum_col1, sum_col2 = st.columns(2)
-                        with sum_col1:
+                    rot_table_df = (pd.DataFrame(table_rows)
+                                    .sort_values('Score', ascending=False)
+                                    .reset_index(drop=True))
+
+                    st.dataframe(
+                        rot_table_df,
+                        column_config={
+                            'Sub-Industry': st.column_config.TextColumn("Sub-Industry", width="medium"),
+                            'Signal':       st.column_config.TextColumn("Signal",       width="small"),
+                            'Score':        st.column_config.ProgressColumn(
+                                                "Score", min_value=0, max_value=100, format="%d"),
+                            'MoM Δ':        st.column_config.NumberColumn(
+                                                "MoM Δ", format="%+.0f",
+                                                help="Month-over-month percentile rank change"),
+                            'Trend (12M)':  st.column_config.LineChartColumn(
+                                                "12M Trend", y_min=0, y_max=100),
+                            'Leaders':      st.column_config.TextColumn("Leaders", width="medium"),
+                        },
+                        hide_index=True,
+                        use_container_width=True,
+                        height=min(len(rot_table_df) * 38 + 42, 950),
+                    )
+
+                    # Quick summary below table
+                    if table_rows:
+                        top3_t = rot_table_df.head(3)
+                        bot3_t = rot_table_df.tail(3)
+                        sc1, sc2 = st.columns(2)
+                        with sc1:
                             st.markdown("**🟢 Current Leaders**")
-                            for _, r in top3.iterrows():
-                                st.caption(f"**{r['sub_industry']}** — Score: {r['score_0_100']:.0f} | {r['top_components']}")
-                        with sum_col2:
+                            for _, r in top3_t.iterrows():
+                                st.caption(f"**{r['Sub-Industry']}** — {r['Score']}/100 | {r['Leaders']}")
+                        with sc2:
                             st.markdown("**🔴 Current Laggards**")
-                            for _, r in bot3.iterrows():
-                                st.caption(f"**{r['sub_industry']}** — Score: {r['score_0_100']:.0f} | {r['top_components']}")
+                            for _, r in bot3_t.iterrows():
+                                st.caption(f"**{r['Sub-Industry']}** — {r['Score']}/100 | {r['Leaders']}")
+
+                with rot_tab2:
+                    # ── Original heatmap (fallback / detail view) ──
+                    hover_text = []
+                    for idx in score_pivot.index:
+                        row_text = []
+                        for col in score_pivot.columns:
+                            score_val = score_pivot.loc[idx, col]
+                            leaders_h = hover_pivot.loc[idx, col] if pd.notna(hover_pivot.loc[idx, col]) else "N/A"
+                            if pd.notna(score_val):
+                                row_text.append(f"<b>{idx}</b><br>Score: {score_val:.0f}/100<br>Month: {col}<br>Leaders: {leaders_h}")
+                            else:
+                                row_text.append(f"<b>{idx}</b><br>No data<br>Month: {col}")
+                        hover_text.append(row_text)
+
+                    fig = go.Figure(data=go.Heatmap(
+                        z=score_pivot.values,
+                        x=score_pivot.columns.tolist(),
+                        y=[s.replace('.NS', '') for s in score_pivot.index.tolist()],
+                        colorscale=[
+                            [0.0,  '#d32f2f'],
+                            [0.25, '#ff7043'],
+                            [0.5,  '#fdd835'],
+                            [0.75, '#66bb6a'],
+                            [1.0,  '#1b5e20'],
+                        ],
+                        zmin=0, zmax=100,
+                        text=hover_text,
+                        hovertemplate='%{text}<extra></extra>',
+                        colorbar=dict(
+                            title="Score",
+                            tickvals=[0, 25, 50, 75, 100],
+                            ticktext=["0 \U0001f534", "25", "50 \U0001f7e1", "75", "100 \U0001f7e2"],
+                        ),
+                        xgap=2, ygap=1,
+                    ))
+                    fig.update_layout(
+                        height=max(600, len(score_pivot) * 22),
+                        xaxis=dict(title="Month", side="top", tickangle=0),
+                        yaxis=dict(title="", autorange="reversed", tickfont=dict(size=11)),
+                        margin=dict(l=200, r=40, t=60, b=20),
+                        template='plotly_dark',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("Sub-Industry data is empty. Run trading_engine.py first.")
         except Exception as e:

@@ -101,22 +101,36 @@ def fetch_missing_fundamentals(df):
                 
     if new_data:
         update_df = pd.DataFrame(new_data)
-        # Update original DF
-        # We set index to ticker to align updates
         df = df.set_index('ticker')
         update_df = update_df.set_index('ticker')
-        
-        # Only update columns that exist in update_df
-        # This fills NaNs and updates stale values
+
         df.update(update_df)
-        
-        # Add new columns if they were missing in original
         for col in update_df.columns:
             if col not in df.columns:
                 df[col] = update_df[col]
-                
+
         df = df.reset_index()
-            
+
+        # Recompute pillar scores for freshly-fetched stocks so stale cached
+        # scores (computed with all-zero fundamentals by the CI live_mode run)
+        # are replaced immediately rather than persisting until next full run.
+        try:
+            sector_pe = df.groupby('sector')['pe'].median().to_dict() if 'pe' in df.columns else {}
+            updated_tickers = set(update_df.index)
+            df_idx = df.set_index('ticker')
+            for t in updated_tickers:
+                if t not in df_idx.index:
+                    continue
+                row = df_idx.loc[t].to_dict()
+                row['ticker'] = t
+                sector = row.get('sector', 'Unknown')
+                scores = calculate_scores(row, sector_pe_median=sector_pe.get(sector, 20), sector=sector)
+                for k, v in scores.items():
+                    df_idx.loc[t, k] = v
+            df = df_idx.reset_index()
+        except Exception as e:
+            print(f"[ENGINE] Score recomputation after fundamental fetch failed: {e}")
+
     return df
 
 def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):

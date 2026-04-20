@@ -164,6 +164,8 @@ class OptCompV21Engine:
             'equity': INITIAL_CAPITAL,
             'last_rebalance_date': None,   # Force first rebalance
             'rebalance_count': 0,
+            'recently_exited': {},         # {ticker: exit_date} — stop-loss cooldown
+            'last_dd_alert_date': None,    # Dedup drawdown Telegram alerts (1/day)
         }
 
     def fetch_data(self):
@@ -184,7 +186,7 @@ class OptCompV21Engine:
         try:
             bulk_data = yf.download(
                 self.tickers, start=start_date,
-                group_by='ticker', threads=True, progress=False, auto_adjust=True
+                group_by='ticker', threads=False, progress=False, auto_adjust=True
             )
         except Exception as e:
             print(f"  Bulk download failed: {e}")
@@ -338,6 +340,7 @@ class OptCompV21Engine:
         state = self.load_state()
         cash = state['cash']
         holdings = state['holdings']
+        recently_exited = state.get('recently_exited', {})  # stop-loss cooldown tracker
         trade_log = []
         
         today = self.data_cache['NIFTY'].index[-1].strftime('%Y-%m-%d')
@@ -437,29 +440,7 @@ class OptCompV21Engine:
             except Exception as e:
                 print(f"  [ALERT] Circuit breaker Email failed: {e}")
 
-        # 🔔 PORTFOLIO DRAWDOWN ALERT (equity vs peak from equity curve)
-        try:
-            if os.path.exists(EQUITY_CURVE_FILE):
-                eq_df = pd.read_csv(EQUITY_CURVE_FILE)
-                if len(eq_df) > 1:
-                    peak_equity = eq_df['Equity'].max()
-                    current_equity = state.get('equity', peak_equity)
-                    dd_pct = (current_equity - peak_equity) / peak_equity * 100
-                    if dd_pct <= -5:
-                        dd_msg = (f"📉 <b>PORTFOLIO DRAWDOWN WARNING</b>\n\n"
-                                  f"Portfolio: Rs {current_equity:,.0f}\n"
-                                  f"Peak: Rs {peak_equity:,.0f}\n"
-                                  f"Drawdown: {dd_pct:.1f}%\n"
-                                  f"Regime: {regime}")
-                        print(f"  📉 Portfolio Drawdown: {dd_pct:.1f}%")
-                        try:
-                            from utils.telegram_notifier import send_telegram_message, is_telegram_configured
-                            if is_telegram_configured():
-                                send_telegram_message(dd_msg)
-                        except:
-                            pass
-        except Exception as e:
-            print(f"  [ALERT] Drawdown check failed: {e}")
+        # Drawdown alert is sent AFTER equity is recalculated (see section 5 below)
         
         # ============================================================
         # 1. CHECK EXITS (ALWAYS — every run, not just rebalance)
@@ -496,6 +477,10 @@ class OptCompV21Engine:
 
                 cash += proceeds
                 stocks_to_sell.append(t)
+
+                # Track trailing-stop exits for re-entry cooldown (1 rebalance period)
+                if 'Trailing Stop' in exit_reason:
+                    recently_exited[t] = today
 
                 trade_log.append({
                     'Ticker': t, 'Action': 'SELL', 'Date': today,
@@ -538,9 +523,21 @@ class OptCompV21Engine:
                 # ============================================================
                 # 3. SCAN FOR NEW BUYS (only on rebalance day + healthy breadth)
                 # ============================================================
+                # Expire old cooldown entries (older than 1 rebalance period)
+                nifty_idx = self.data_cache['NIFTY'].index
+                today_ts = pd.Timestamp(today)
+                recently_exited = {
+                    t: dt for t, dt in recently_exited.items()
+                    if len(nifty_idx[(nifty_idx > pd.Timestamp(dt)) & (nifty_idx <= today_ts)]) < rebal_days
+                }
+
                 candidates = []
                 for t in self.data_cache:
                     if t == 'NIFTY' or t in holdings:
+                        continue
+
+                    # Skip stocks in stop-loss cooldown (1 rebalance period after trailing stop)
+                    if t in recently_exited:
                         continue
 
                     m = self.calculate_metrics(t)
@@ -673,6 +670,32 @@ class OptCompV21Engine:
 
         portfolio_list.sort(key=lambda x: -x['RS_Score'])
 
+        # 🔔 PORTFOLIO DRAWDOWN ALERT — checked here using CURRENT equity (not stale snapshot)
+        # Deduped to once per calendar day so it doesn't spam Telegram every run.
+        try:
+            if os.path.exists(EQUITY_CURVE_FILE):
+                eq_df = pd.read_csv(EQUITY_CURVE_FILE)
+                if len(eq_df) > 1:
+                    peak_equity = eq_df['Equity'].max()
+                    dd_pct = (equity_val - peak_equity) / peak_equity * 100
+                    last_dd_date = state.get('last_dd_alert_date', '')
+                    if dd_pct <= -5 and last_dd_date != today:
+                        dd_msg = (f"📉 <b>PORTFOLIO DRAWDOWN WARNING</b>\n\n"
+                                  f"Portfolio: Rs {equity_val:,.0f}\n"
+                                  f"Peak: Rs {peak_equity:,.0f}\n"
+                                  f"Drawdown: {dd_pct:.1f}%\n"
+                                  f"Regime: {regime}")
+                        print(f"  📉 Portfolio Drawdown: {dd_pct:.1f}%")
+                        state['last_dd_alert_date'] = today  # persist via new_state below
+                        try:
+                            from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+                            if is_telegram_configured():
+                                send_telegram_message(dd_msg)
+                        except Exception:
+                            pass
+        except Exception as e:
+            print(f"  [ALERT] Drawdown check failed: {e}")
+
         # ============================================================
         # 6. SAVE STATE
         # ============================================================
@@ -682,12 +705,15 @@ class OptCompV21Engine:
             'cash': cash,
             'holdings': holdings,
             'equity': equity_val,
+            'cash_pct': round(cash / equity_val * 100, 1) if equity_val > 0 else 0,
             'count': len(holdings),
             'portfolio': portfolio_list,
             'last_rebalance_date': state.get('last_rebalance_date'),
             'rebalance_count': state.get('rebalance_count', 0),
             'regime': regime,
             'circuit_breaker': cb_active,
+            'recently_exited': recently_exited,
+            'last_dd_alert_date': state.get('last_dd_alert_date', ''),
             'config': {
                 'rs_weights': RS_WEIGHTS,
                 'rebalance_days': rebal_days,
