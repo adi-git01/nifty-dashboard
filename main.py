@@ -3499,6 +3499,11 @@ elif page == "📊 Sector Pulse":
                 score_pivot = score_pivot.sort_index(axis=1)
                 hover_pivot = hover_pivot.sort_index(axis=1)
 
+                # Forward-fill gaps so months with partial EOD data (e.g. Jan-26)
+                # show the last known score instead of blank white cells
+                score_pivot = score_pivot.ffill(axis=1)
+                hover_pivot = hover_pivot.ffill(axis=1)
+
                 # Rename Period columns -> readable month labels
                 score_pivot.columns = [period_to_label.get(p, str(p)) for p in score_pivot.columns]
                 hover_pivot.columns = [period_to_label.get(p, str(p)) for p in hover_pivot.columns]
