@@ -45,6 +45,57 @@ SECTOR_PROFILE_MAP = {
     "Telecom": "CAPGOODS",  # Infra heavy
     "Textiles": "CONSUMER",
     
+    # === NIFTY 1000 SUB-INDUSTRY NAMES (new NSE classification, post-2025) ===
+    # Banking & Finance
+    "Banks":                                        "BANK",
+    "Finance":                                      "NBFC",
+    "Capital Markets":                              "NBFC",
+    "Insurance":                                    "INSURANCE",
+    # IT
+    "IT - Software":                                "IT",
+    "IT - Services":                                "IT",
+    # Pharma
+    "Pharmaceuticals & Biotechnology":              "PHARMA",
+    "Healthcare Services":                          "PHARMA",
+    "Healthcare Equipment & Supplies":              "PHARMA",
+    # Auto
+    "Automobiles":                                  "CONSUMER",
+    "Auto Components":                              "CAPGOODS",
+    "Agricultural, Commercial & Construction Vehicles": "CAPGOODS",
+    # Consumer
+    "Food Products":                                "CONSUMER",
+    "Agricultural Food & other Products":           "CONSUMER",
+    "Personal Products":                            "CONSUMER",
+    "Beverages":                                    "CONSUMER",
+    "Retailing":                                    "CONSUMER",
+    "Leisure Services":                             "CONSUMER",
+    "Entertainment":                                "CONSUMER",
+    "Media":                                        "CONSUMER",
+    "Textiles & Apparels":                          "CONSUMER",
+    # Commodity / Energy / Metals
+    "Petroleum Products":                           "COMMODITY",
+    "Oil":                                          "COMMODITY",
+    "Gas":                                          "COMMODITY",
+    "Consumable Fuels":                             "COMMODITY",
+    "Ferrous Metals":                               "COMMODITY",
+    "Non - Ferrous Metals":                         "COMMODITY",
+    "Metals & Minerals Trading":                    "COMMODITY",
+    "Power":                                        "COMMODITY",
+    "Other Utilities":                              "COMMODITY",
+    "Chemicals & Petrochemicals":                   "COMMODITY",
+    "Fertilizers & Agrochemicals":                  "COMMODITY",
+    "Other Construction Materials":                 "COMMODITY",
+    "Paper, Forest & Jute Products":                "COMMODITY",
+    # Capital Goods / Infra
+    "Electrical Equipment":                         "CAPGOODS",
+    "Industrial Manufacturing":                     "CAPGOODS",
+    "Construction":                                 "CAPGOODS",
+    "Transport Infrastructure":                     "CAPGOODS",
+    "Transport Services":                           "CAPGOODS",
+    "Commercial Services & Supplies":               "CAPGOODS",
+    "Realty":                                       "CAPGOODS",
+    "Telecom - Services":                           "CAPGOODS",
+
     # === NIFTY 500 SECTOR NAMES ===
     # FINANCIALS - BANKS
     "Private Sector Bank": "BANK",
