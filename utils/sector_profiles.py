@@ -224,8 +224,9 @@ QUALITY_PROFILES = {
         },
         "ranges": {
             "npm": (0, 15),   # Widened upper to reward super-premium margins
-            "gpm": (10, 45),  # 
-            "roe": (8, 25),   # RELAXED: 8% base allows ~15% ROE to score decent (~4-5/10)
+            "gpm": (10, 45),
+            "roe": (5, 28),   # Floor lowered 8→5: OEM/durable cos structurally have lower ROE
+                              # Top widened 25→28: rewards Titan/Kalyan-class capital efficiency
         },
         "bonuses": {
             "roe_excellent": {"threshold": 22, "bonus": 1.5}  # ROE >= 22% is king for retail

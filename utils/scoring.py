@@ -224,10 +224,20 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
         s_pb = 5
     else:
         s_pb = 10 - normalize(pb, pb_range[0], pb_range[1])
-    
+
+    # For high-growth stocks (earningsGrowth > 30%), PEG is more informative than
+    # absolute PE — shift 15pp from PE weight to PEG weight so a PEG of 1-1.5
+    # isn't drowned out by a legitimately high PE (e.g. Amber: PE 107x, PEG 1.34).
+    _eg_for_val = data.get("earningsGrowth")
+    if (_eg_for_val is not None and float(_eg_for_val) * 100 > 30
+            and s_peg > 0 and not use_pb_primary):
+        v_pe_weight  = max(v_pe_weight  - 0.15, 0.05)
+        v_peg_weight = min(v_peg_weight + 0.15, 0.50)
+
     # Value Score: Use sector-specific weights
     # Banks: P/B = 50%, PE = 20%, PEG = 15%, Fwd = 15%
     # Others: PE = 40%, PEG = 25%, Fwd = 20%, P/B = 15%
+    # High-growth non-banks: PE ~25%, PEG ~40%, Fwd 20%, P/B 15%
     value = (s_rel_pe * v_pe_weight) + (s_fwd * v_fwd_weight) + (s_peg * v_peg_weight) + (s_pb * v_pb_weight)
 
 
