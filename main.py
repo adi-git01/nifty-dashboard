@@ -4779,7 +4779,7 @@ elif page == "\U0001f3af Turnaround Radar":
     else:
         log_df = pd.read_csv(LOG_CSV_PATH)
 
-        # ── Filters ───────────────────────────────────────────────────────────
+        # ── Categorical filters + sort ────────────────────────────────────────
         col_f1, col_f2, col_f3 = st.columns(3)
         with col_f1:
             status_filter = st.multiselect(
@@ -4800,11 +4800,64 @@ elif page == "\U0001f3af Turnaround Radar":
                 index=0, key="log_sort_by"
             )
 
+        # ── Range filters ─────────────────────────────────────────────────────
+        _RF_DEFS = [
+            # (column,                label,                  step)
+            ("signal_ias",          "IAS (signal)",           1.0),
+            ("signal_rs21",         "RS21 (signal)",          1.0),
+            ("signal_rs63",         "RS63 (signal)",          1.0),
+            ("signal_comp_rs",      "CompRS (signal)",        0.01),
+            ("signal_off_52w_high", "Off 52W High %",         1.0),
+            ("signal_off_ma50",     "Off MA50 %",             1.0),
+            ("signal_off_ma200",    "Off MA200 %",            1.0),
+            ("signal_liq5cr",       "Liq5Cr ₹Cr (signal)",   5.0),
+            ("signal_liq_from_low", "Liq From Low (signal)",  0.5),
+            ("signal_vol_quality",  "Vol Quality (signal)",   0.05),
+            ("signal_shock_ratio",  "Shock Ratio (signal)",   0.05),
+            ("peak_ias",            "Peak IAS",               1.0),
+            ("days_on_watchlist",   "Days on Watchlist",      1.0),
+            ("return_since_signal", "Return Since Signal %",  5.0),
+            ("max_gain",            "Max Gain %",             5.0),
+            ("xirr",                "XIRR / CAGR %",         5.0),
+            ("return_5d",           "Return 5d %",            1.0),
+            ("return_21d",          "Return 21d %",           1.0),
+            ("return_63d",          "Return 63d %",           1.0),
+        ]
+
+        with st.expander("🎚️ Range Filters", expanded=False):
+            import math as _math
+            _range_vals: dict = {}
+            rf_avail = [(c, lbl, step) for c, lbl, step in _RF_DEFS if c in log_df.columns]
+            _N_RF_COLS = 4
+            for _ri in range(0, len(rf_avail), _N_RF_COLS):
+                _row = rf_avail[_ri: _ri + _N_RF_COLS]
+                _rcols = st.columns(_N_RF_COLS)
+                for _j, (col, lbl, step) in enumerate(_row):
+                    _s = pd.to_numeric(log_df[col], errors="coerce").dropna()
+                    if len(_s) < 1:
+                        continue
+                    _lo = _math.floor(float(_s.min()) / step) * step
+                    _hi = _math.ceil( float(_s.max()) / step) * step
+                    if _hi <= _lo:
+                        _hi = _lo + step
+                    with _rcols[_j]:
+                        _sel = st.slider(
+                            lbl, min_value=_lo, max_value=_hi,
+                            value=(_lo, _hi), step=step, key=f"rf_{col}"
+                        )
+                        _range_vals[col] = _sel
+
+        # ── Build combined filter mask ────────────────────────────────────────
         mask = pd.Series([True] * len(log_df))
         if status_filter:
             mask &= log_df["status"].isin(status_filter)
         if tier_filter:
             mask &= log_df["peak_tier"].isin(tier_filter)
+        for _col, (_lo_sel, _hi_sel) in _range_vals.items():
+            _num = pd.to_numeric(log_df[_col], errors="coerce")
+            # rows with NaN are kept (they haven't been measured yet)
+            mask &= (_num.between(_lo_sel, _hi_sel, inclusive="both") | _num.isna())
+
         filtered = log_df[mask].copy()
 
         if sort_by in filtered.columns:
