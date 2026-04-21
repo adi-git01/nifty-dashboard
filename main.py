@@ -4768,3 +4768,129 @@ elif page == "\U0001f3af Turnaround Radar":
 
     if "Date" in wdf.columns and len(wdf):
         st.caption(f"Last run: {wdf['Date'].iloc[0]} | Run turnaround_screener.py or wait for GitHub Actions.")
+
+    # ── IAS Signal Log ────────────────────────────────────────────────────────
+    st.markdown("---")
+    st.subheader("📓 IAS Signal Log — Multibagger Tracker")
+
+    LOG_CSV_PATH = "data/ias_signal_log.csv"
+    if not os.path.exists(LOG_CSV_PATH):
+        st.info("No signal log yet. The log is created automatically after the next screener run.")
+    else:
+        log_df = pd.read_csv(LOG_CSV_PATH)
+
+        # ── Filters ───────────────────────────────────────────────────────────
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            status_filter = st.multiselect(
+                "Status", ["ACTIVE", "GRADUATED", "DROPPED"],
+                default=["ACTIVE", "GRADUATED"],
+                key="log_status_filter"
+            )
+        with col_f2:
+            tier_filter = st.multiselect(
+                "Peak Tier", ["ALERT", "READY", "WATCH"],
+                default=["ALERT", "READY", "WATCH"],
+                key="log_tier_filter"
+            )
+        with col_f3:
+            sort_by = st.selectbox(
+                "Sort by",
+                ["xirr", "return_since_signal", "max_gain", "peak_ias", "signal_date"],
+                index=0, key="log_sort_by"
+            )
+
+        mask = pd.Series([True] * len(log_df))
+        if status_filter:
+            mask &= log_df["status"].isin(status_filter)
+        if tier_filter:
+            mask &= log_df["peak_tier"].isin(tier_filter)
+        filtered = log_df[mask].copy()
+
+        if sort_by in filtered.columns:
+            ascending = sort_by == "signal_date"
+            filtered = filtered.sort_values(sort_by, ascending=ascending, na_position="last")
+
+        # ── Summary KPIs ──────────────────────────────────────────────────────
+        k1, k2, k3, k4, k5 = st.columns(5)
+        k1.metric("Total Logged", len(log_df))
+        k2.metric("Active", int((log_df["status"] == "ACTIVE").sum()))
+        k3.metric("Graduated", int((log_df["status"] == "GRADUATED").sum()))
+        k4.metric("Dropped", int((log_df["status"] == "DROPPED").sum()))
+        multibaggers = int((pd.to_numeric(log_df["return_since_signal"], errors="coerce") >= 100).sum())
+        k5.metric("Multibaggers (2×+)", multibaggers)
+
+        # ── Main table ────────────────────────────────────────────────────────
+        DISPLAY_COLS = [
+            "ticker", "name", "sub_industry", "cycle", "status",
+            "signal_date", "signal_tier", "signal_price",
+            "signal_ias", "signal_rs21", "signal_rs63", "signal_comp_rs",
+            "signal_off_52w_high", "signal_off_ma50",
+            "peak_tier", "peak_ias", "days_on_watchlist",
+            "return_5d", "return_21d", "return_63d",
+            "current_price", "return_since_signal", "max_gain", "xirr",
+        ]
+        show_cols = [c for c in DISPLAY_COLS if c in filtered.columns]
+        st.dataframe(
+            filtered[show_cols].reset_index(drop=True),
+            use_container_width=True,
+            height=420,
+        )
+
+        # ── Multibagger spotlight ──────────────────────────────────────────────
+        mb_df = log_df[pd.to_numeric(log_df["return_since_signal"], errors="coerce") >= 100].copy()
+        if not mb_df.empty:
+            st.markdown("#### 🚀 Multibagger Board (2×+ returns)")
+            mb_show = [c for c in ["ticker", "name", "signal_date", "signal_price",
+                                    "current_price", "return_since_signal", "max_gain",
+                                    "xirr", "status", "days_on_watchlist"] if c in mb_df.columns]
+            st.dataframe(
+                mb_df[mb_show].sort_values("return_since_signal", ascending=False).reset_index(drop=True),
+                use_container_width=True,
+            )
+
+        # ── Forward return distribution ────────────────────────────────────────
+        with st.expander("📊 Forward Return Distribution (5d / 21d / 63d)"):
+            ret_cols = ["return_5d", "return_21d", "return_63d"]
+            avail = [c for c in ret_cols if c in log_df.columns and log_df[c].notna().any()]
+            if avail:
+                import plotly.graph_objects as go
+                fig_ret = go.Figure()
+                colours = {"return_5d": "#4fc3f7", "return_21d": "#81c784", "return_63d": "#ffb74d"}
+                labels  = {"return_5d": "5-day", "return_21d": "21-day", "return_63d": "63-day"}
+                for col in avail:
+                    vals = pd.to_numeric(log_df[col], errors="coerce").dropna()
+                    fig_ret.add_trace(go.Histogram(
+                        x=vals, name=labels[col],
+                        marker_color=colours[col], opacity=0.7, nbinsx=20,
+                    ))
+                fig_ret.update_layout(
+                    barmode="overlay", height=280,
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color="#e0e0e0"),
+                    xaxis_title="Return (%)", yaxis_title="Count",
+                    legend=dict(bgcolor="rgba(0,0,0,0)"),
+                    margin=dict(l=0, r=0, t=10, b=0),
+                )
+                fig_ret.add_vline(x=0, line_dash="dash", line_color="white", opacity=0.4)
+                st.plotly_chart(fig_ret, use_container_width=True, key="log_fwd_ret_hist")
+
+                # Summary table
+                summary_rows = []
+                for col in avail:
+                    vals = pd.to_numeric(log_df[col], errors="coerce").dropna()
+                    summary_rows.append({
+                        "Period": labels[col], "N": len(vals),
+                        "Avg %": round(vals.mean(), 1),
+                        "Median %": round(vals.median(), 1),
+                        "Win Rate %": round((vals > 0).mean() * 100, 1),
+                        "Max %": round(vals.max(), 1),
+                        "Min %": round(vals.min(), 1),
+                    })
+                st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+            else:
+                st.info("Not enough data yet — forward returns will populate once signals age past 5/21/63 trading days.")
+
+        # ── Full detail expander ───────────────────────────────────────────────
+        with st.expander("🔬 Full Signal Detail (all columns)"):
+            st.dataframe(filtered.reset_index(drop=True), use_container_width=True, height=360)
