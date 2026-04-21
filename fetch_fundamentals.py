@@ -19,13 +19,18 @@ from datetime import datetime
 
 # ── Sector mapping (same as data_engine.py, without Streamlit dependency) ──
 try:
-    from utils.nifty1000_list import TICKERS_1000
-    from utils.nifty500_list import SECTOR_MAP
+    from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP as NIFTY1000_SECTOR_MAP
+except ImportError:
+    TICKERS_1000 = []
+    NIFTY1000_SECTOR_MAP = {}
+try:
+    from utils.nifty500_list import SECTOR_MAP as NIFTY500_SECTOR_MAP
+except ImportError:
+    NIFTY500_SECTOR_MAP = {}
+try:
     from utils.sector_mapping import consolidate_sector
 except ImportError:
-    SECTOR_MAP = {}
     consolidate_sector = lambda x: x
-    from utils.nifty1000_list import TICKERS_1000
 
 OUTPUT_PATH = "data/fundamentals_cache.csv"
 
@@ -39,8 +44,11 @@ def fetch_one(ticker: str) -> dict | None:
         stock = yf.Ticker(ticker)
         info  = stock.info
 
-        # ── Sector ──────────────────────────────────────────────────────────
-        granular = SECTOR_MAP.get(ticker, info.get("sector", "Unknown")) or "Unknown"
+        # ── Sector (nifty1000 sub-industry takes priority) ───────────────────
+        granular = (NIFTY1000_SECTOR_MAP.get(ticker)
+                    or NIFTY500_SECTOR_MAP.get(ticker)
+                    or info.get("sector", "Unknown")
+                    or "Unknown")
         broad    = consolidate_sector(granular)
 
         # ── PE ──────────────────────────────────────────────────────────────

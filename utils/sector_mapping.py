@@ -167,6 +167,100 @@ SECTOR_MAPPING = {
     "Diversified Commercial Services": "Diversified",
     "Trading & Distributors": "Diversified",
     "Trading - Minerals": "Metals & Mining",
+
+    # ══════════════════════════════════════════════════════════════════════
+    # NSE NIFTY 1000 SUB-INDUSTRY NAMES (new classification, post-2025)
+    # These differ from the old Nifty 500 granular names above.
+    # ══════════════════════════════════════════════════════════════════════
+
+    # Banking & Finance
+    "Banks":                                "Banking",
+    "Finance":                              "Financial Services",
+    "Capital Markets":                      "Financial Services",
+    "Insurance":                            "Insurance",
+
+    # IT
+    "IT - Software":                        "IT & Technology",
+    "IT - Services":                        "IT & Technology",
+
+    # Pharma & Healthcare
+    "Pharmaceuticals & Biotechnology":      "Pharma & Healthcare",
+    "Healthcare Services":                  "Pharma & Healthcare",
+    "Healthcare Equipment & Supplies":      "Pharma & Healthcare",
+
+    # Auto
+    "Automobiles":                                          "Auto",
+    "Auto Components":                                      "Auto",
+    "Agricultural, Commercial & Construction Vehicles":     "Auto",
+
+    # Consumer Goods / FMCG
+    "Food Products":                        "Consumer Goods",
+    "Agricultural Food & other Products":   "Consumer Goods",
+    "Personal Products":                    "Consumer Goods",
+    "Beverages":                            "Consumer Goods",
+
+    # Retail & Leisure
+    "Retailing":                            "Retail",
+    "Leisure Services":                     "Hospitality",
+    "Entertainment":                        "Media",
+    "Media":                                "Media",
+
+    # Textiles
+    "Textiles & Apparels":                  "Textiles",
+
+    # Oil & Gas
+    "Petroleum Products":                   "Oil & Gas",
+    "Oil":                                  "Oil & Gas",
+    "Gas":                                  "Oil & Gas",
+    "Consumable Fuels":                     "Oil & Gas",
+
+    # Metals & Mining
+    "Ferrous Metals":                       "Metals & Mining",
+    "Non - Ferrous Metals":                 "Metals & Mining",
+    "Metals & Minerals Trading":            "Metals & Mining",
+
+    # Power & Utilities
+    "Power":                                "Power & Utilities",
+    "Other Utilities":                      "Power & Utilities",
+
+    # Capital Goods & Industrials
+    "Electrical Equipment":                 "Capital Goods",
+    "Industrial Manufacturing":             "Capital Goods",
+    "Commercial Services & Supplies":       "Capital Goods",
+
+    # Chemicals
+    "Chemicals & Petrochemicals":           "Chemicals",
+    "Fertilizers & Agrochemicals":          "Chemicals",
+
+    # Infrastructure
+    "Construction":                         "Infrastructure",
+    "Transport Infrastructure":             "Infrastructure",
+    "Transport Services":                   "Infrastructure",
+
+    # Real Estate
+    "Realty":                               "Real Estate",
+
+    # Cement & Building Materials
+    "Other Construction Materials":         "Cement & Materials",
+    "Paper, Forest & Jute Products":        "Cement & Materials",
+
+    # Telecom
+    "Telecom - Services":                   "Telecom",
+
+    # ══════════════════════════════════════════════════════════════════════
+    # YFINANCE BROAD SECTOR NAMES (fallback when ticker not in any CSV)
+    # ══════════════════════════════════════════════════════════════════════
+    "Technology":           "IT & Technology",
+    "Financial Services":   "Financial Services",
+    "Healthcare":           "Pharma & Healthcare",
+    "Consumer Cyclical":    "Consumer Durables",
+    "Consumer Defensive":   "Consumer Goods",
+    "Basic Materials":      "Metals & Mining",
+    "Industrials":          "Capital Goods",
+    "Energy":               "Oil & Gas",
+    "Real Estate":          "Real Estate",
+    "Utilities":            "Power & Utilities",
+    "Communication Services": "Telecom",
 }
 
 

@@ -3,13 +3,22 @@ import yfinance as yf
 import streamlit as st
 import pandas as pd
 
-# Import sector mapping from nifty500 list
+# Sector mapping — nifty1000 sub-industry is authoritative (more stocks, newer names)
 try:
-    from utils.nifty500_list import SECTOR_MAP
+    from utils.nifty1000_list import SUB_INDUSTRY_MAP as NIFTY1000_SECTOR_MAP
+except ImportError:
+    NIFTY1000_SECTOR_MAP = {}
+try:
+    from utils.nifty500_list import SECTOR_MAP as NIFTY500_SECTOR_MAP
+except ImportError:
+    NIFTY500_SECTOR_MAP = {}
+try:
     from utils.sector_mapping import consolidate_sector
 except ImportError:
-    SECTOR_MAP = {}
     consolidate_sector = lambda x: x
+
+# Legacy alias kept for any callers that import SECTOR_MAP directly
+SECTOR_MAP = NIFTY500_SECTOR_MAP
 
 @st.cache_data(ttl=3600)  # Cache data for 1 hour
 def get_stock_info(ticker):
@@ -21,13 +30,14 @@ def get_stock_info(ticker):
         stock = yf.Ticker(ticker)
         info = stock.info
         
-        # PRIORITY: Use CSV sector mapping (more reliable than yfinance)
-        # SECTOR_MAP has the granular sector from our curated CSV
-        granular_sector = SECTOR_MAP.get(ticker, info.get("sector", "Unknown"))
-        if not granular_sector or granular_sector == "Unknown":
-            granular_sector = info.get("sector", "Unknown")
-        
-        # Consolidate to broader sector category
+        # Priority: nifty1000 sub-industry > nifty500 old sector > yfinance sector
+        # nifty1000_list.csv is the most complete and uses current NSE classification.
+        granular_sector = (NIFTY1000_SECTOR_MAP.get(ticker)
+                           or NIFTY500_SECTOR_MAP.get(ticker)
+                           or info.get("sector", "Unknown")
+                           or "Unknown")
+
+        # Consolidate to broader display category
         broad_sector = consolidate_sector(granular_sector)
         
         # === ROBUST PE FETCHING ===
