@@ -1,0 +1,60 @@
+name: Bi-Weekly Fundamentals Refresh
+
+on:
+  schedule:
+    # 1st and 15th of each month at 11 PM IST (5:30 PM UTC)
+    # Runs after markets close, before the nightly engine at 3:45 PM IST next day
+    - cron: '30 17 1 * *'
+    - cron: '30 17 15 * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  fetch-fundamentals:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Fetch fundamentals for all Nifty 1000 stocks
+      run: python fetch_fundamentals.py
+      # ~750 stocks × 0.6s delay ≈ 7-8 minutes. Sequential to stay under Yahoo rate limits.
+
+    - name: Commit fundamentals cache
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 System: Bi-weekly fundamentals refresh (PE, ROE, margins, growth)"
+        file_pattern: 'data/fundamentals_cache.csv'
+        push_options: '--force-with-lease'
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        python -c "
+        import os, requests
+        token   = os.environ.get('TELEGRAM_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        if token and chat_id:
+            msg = '⚠️ <b>Fundamentals Refresh Failed</b>\nThe bi-weekly fundamentals fetch did not complete. Streamlit will fall back to live fetching on next load.'
+            try:
+                requests.post(f'https://api.telegram.org/bot{token}/sendMessage',
+                              json={'chat_id': chat_id, 'text': msg, 'parse_mode': 'HTML'}, timeout=10)
+            except: pass
+        "

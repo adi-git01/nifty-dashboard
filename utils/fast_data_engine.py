@@ -10,48 +10,101 @@ from utils.scoring import calculate_trend_metrics, calculate_scores
 from utils.data_engine import get_stock_info
 import concurrent.futures
 
-CACHE_FILE_CSV = "data/nifty500_cache.csv"
+CACHE_FILE_CSV       = "data/nifty500_cache.csv"
+FUNDAMENTALS_CACHE   = "data/fundamentals_cache.csv"   # written by fetch_fundamentals.py (bi-weekly)
+
+# Fundamental columns that the bi-weekly cache owns.
+# These are merged over the parquet which only has price-derived data.
+_FUND_COLS = [
+    'pe', 'forwardPE', 'pegRatio', 'pb',
+    'roe', 'roa', 'profitMargins', 'grossMargins', 'operatingMargins', 'ebitdaMargins',
+    'revenueGrowth', 'earningsGrowth', 'earningsQuarterlyGrowth',
+    'debtToEquity', 'marketCap', 'beta',
+    'earningsQuality', 'earningsTrend',
+    'name', 'sector', 'sector_granular', 'fund_last_updated',
+]
 
 def get_parquet_cache_path():
     today_str = datetime.now().strftime("%Y_%m_%d")
     os.makedirs("data/cache", exist_ok=True)
     return f"data/cache/market_master_{today_str}.parquet"
 
+def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Merges data/fundamentals_cache.csv (written bi-weekly) into df.
+    The parquet only has price-derived columns; the CSV provides PE, ROE, margins, etc.
+    After merging, fetch_missing_fundamentals() finds 'pe' already populated and
+    skips the 75-second per-restart yf.Ticker().info fetch loop.
+    """
+    if not os.path.exists(FUNDAMENTALS_CACHE):
+        return df
+    try:
+        fund = pd.read_csv(FUNDAMENTALS_CACHE)
+        if 'ticker' not in fund.columns:
+            return df
+
+        # Only bring in columns this cache owns; don't clobber live price data
+        cols_to_merge = [c for c in _FUND_COLS if c in fund.columns]
+        fund = fund[['ticker'] + cols_to_merge].set_index('ticker')
+
+        df = df.set_index('ticker')
+        df.update(fund)                      # fills NaN + updates stale values
+        for col in fund.columns:             # add any columns missing from parquet
+            if col not in df.columns:
+                df[col] = fund[col]
+        df = df.reset_index()
+
+        age_days = ""
+        if 'fund_last_updated' in fund.columns:
+            latest = fund['fund_last_updated'].dropna().max()
+            try:
+                from datetime import date
+                delta = (date.today() - pd.to_datetime(latest).date()).days
+                age_days = f", {delta}d old"
+            except Exception:
+                pass
+        print(f"[ENGINE] Merged bi-weekly fundamentals cache "
+              f"({len(fund)} stocks{age_days})", flush=True)
+    except Exception as e:
+        print(f"[ENGINE] fundamentals_cache merge failed: {e}", flush=True)
+    return df
+
+
 def load_base_fundamentals(live_mode=False):
     """
-    Loads base fundamental data (Sector, Name, PE, MarketCap) from cache.
-    Prefers Parquet (Fast) > CSV (Slow) > Empty DataFrame.
+    Loads base data. Priority: Parquet > CSV > ticker list.
+    Always overlays the bi-weekly fundamentals_cache.csv so the parquet
+    (which has no PE/ROE from CI live_mode runs) gets fundamental columns
+    without a live yfinance fetch.
     """
     parquet_path = get_parquet_cache_path()
-    
+
     # Try Parquet unless in Live Mode
     if not live_mode and os.path.exists(parquet_path):
         try:
             df = pd.read_parquet(parquet_path)
             if 'ticker' in df.columns:
-                return df
+                return _merge_fundamentals_cache(df)
             print("Parquet cache missing 'ticker' column. Ignoring.")
         except Exception as e:
             print(f"Error loading parquet: {e}")
-            
+
     # Try CSV (Legacy)
     if os.path.exists(CACHE_FILE_CSV):
         try:
             df = pd.read_csv(CACHE_FILE_CSV)
-            # Ensure critical columns exist
             required = ['ticker', 'name', 'sector']
             if all(col in df.columns for col in required):
-                return df
+                return _merge_fundamentals_cache(df)
         except Exception as e:
             print(f"Error loading CSV: {e}")
-            
-    # Fallback: Just Tickers
-    # Fallback: Restore from internal list
+
+    # Fallback: bare ticker list
     from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP
     df = pd.DataFrame({'ticker': TICKERS_1000})
     df['sector'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
-    df['name'] = df['ticker'] # Default name
-    return df
+    df['name'] = df['ticker']
+    return _merge_fundamentals_cache(df)
 
 def fetch_missing_fundamentals(df):
     """
