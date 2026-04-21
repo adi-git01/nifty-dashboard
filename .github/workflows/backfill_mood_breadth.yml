@@ -1,0 +1,73 @@
+name: Backfill Market Mood & Breadth History
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run backfill
+      run: python backfill_mood_breadth.py
+      # Downloads 2 years of price history for 750 tickers (~2 min),
+      # then computes trend scores for all missing dates (~30 sec).
+      timeout-minutes: 30
+
+    - name: Commit updated history files
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "🤖 System: Backfill market mood & breadth history (Mar–Apr 2026)"
+        file_pattern: 'data/market_mood_history.csv data/market_breadth_history.csv'
+        push_options: '--force-with-lease'
+
+    - name: Notify on success
+      run: |
+        python -c "
+        import os, requests, csv
+        token   = os.environ.get('TELEGRAM_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        if token and chat_id:
+            try:
+                with open('data/market_mood_history.csv') as f:
+                    rows = sum(1 for _ in f) - 1
+                msg = f'✅ <b>Mood/Breadth Backfill Complete</b>\n{rows} total rows in mood history after backfill.'
+                requests.post(f'https://api.telegram.org/bot{token}/sendMessage',
+                              json={'chat_id': chat_id, 'text': msg, 'parse_mode': 'HTML'}, timeout=10)
+            except: pass
+        "
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        python -c "
+        import os, requests
+        token   = os.environ.get('TELEGRAM_TOKEN')
+        chat_id = os.environ.get('TELEGRAM_CHAT_ID')
+        if token and chat_id:
+            msg = '⚠️ <b>Mood/Breadth Backfill Failed</b>\nCheck GitHub Actions logs.'
+            try:
+                requests.post(f'https://api.telegram.org/bot{token}/sendMessage',
+                              json={'chat_id': chat_id, 'text': msg, 'parse_mode': 'HTML'}, timeout=10)
+            except: pass
+        "
