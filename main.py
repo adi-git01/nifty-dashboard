@@ -348,7 +348,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -4947,3 +4947,268 @@ elif page == "\U0001f3af Turnaround Radar":
         # ── Full detail expander ───────────────────────────────────────────────
         with st.expander("🔬 Full Signal Detail (all columns)"):
             st.dataframe(filtered.reset_index(drop=True), use_container_width=True, height=360)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VIEW: AI CAPEX PLAY
+# ─────────────────────────────────────────────────────────────────────────────
+elif page == "🖥️ AI Capex":
+    st.markdown(page_header(
+        "🖥️ AI Capex Play",
+        "US AI datacenter buildout — Indian power infra, cables, equipment & software beneficiaries"
+    ), unsafe_allow_html=True)
+
+    # ── Universe by sub-theme ─────────────────────────────────────────────────
+    AI_CAPEX_UNIVERSE = {
+        "⚡ Power Infra":           ["ADANIGREEN.NS", "ADANIENSOL.NS", "NTPC.NS", "POWERGRID.NS",
+                                     "TATAPOWER.NS", "TORNTPOWER.NS", "CESC.NS"],
+        "🔌 Cables & Connectivity": ["POLYCAB.NS", "KEI.NS", "APARINDS.NS", "STLTECH.NS", "KECL.NS"],
+        "⚙️ Electrical Equipment":  ["ABB.NS", "SIEMENS.NS", "HAVELLS.NS", "THERMAX.NS", "BHEL.NS"],
+        "❄️ Cooling & HVAC":        ["VOLTAS.NS", "BLUESTAR.NS"],
+        "🔧 Electronics Mfg (EMS)": ["DIXON.NS", "KAYNES.NS", "SYRMA.NS"],
+        "💻 IT / AI Services":      ["PERSISTENT.NS", "COFORGE.NS", "LTTS.NS", "LTIM.NS",
+                                     "MPHASIS.NS", "TATAELXSI.NS", "KPITTECH.NS"],
+        "🔋 Storage & Power Elec":  ["AMARARAJA.NS", "EXIDEIND.NS"],
+    }
+    ALL_AI_TICKERS   = [t for grp in AI_CAPEX_UNIVERSE.values() for t in grp]
+    TICKER_THEME_MAP = {t: theme for theme, tickers in AI_CAPEX_UNIVERSE.items() for t in tickers}
+
+    # ── RS weight config ──────────────────────────────────────────────────────
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**⚖️ AI Capex RS Weights**")
+    st.sidebar.caption("RS63 stays below RS5 & RS21 to front-load theme momentum")
+    w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="ai_w5")
+    w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.45, 0.05, key="ai_w21")
+    raw_w63 = round(1.0 - w5 - w21, 2)
+    w63 = max(0.05, raw_w63)
+    total_w = w5 + w21 + w63
+    w5_n, w21_n, w63_n = w5 / total_w, w21 / total_w, w63 / total_w
+    st.sidebar.caption(f"RS63 auto-set to **{w63_n:.0%}**")
+    if w63_n >= w5_n:
+        st.sidebar.warning("⚠️ RS63 ≥ RS5 — slide RS5 up to prioritise recent momentum")
+
+    # ── Nifty period returns (cached 1 h) ─────────────────────────────────────
+    @st.cache_data(ttl=3600)
+    def _nifty_rs_refs():
+        try:
+            close = yf.Ticker("^NSEI").history(period="100d")['Close'].dropna()
+            if len(close) < 65:
+                return 0.0, 0.0, 0.0
+            n_1w = (close.iloc[-1] - close.iloc[-6])  / close.iloc[-6]  * 100
+            n_1m = (close.iloc[-1] - close.iloc[-22]) / close.iloc[-22] * 100
+            n_3m = (close.iloc[-1] - close.iloc[-64]) / close.iloc[-64] * 100
+            return round(n_1w, 2), round(n_1m, 2), round(n_3m, 2)
+        except Exception:
+            return 0.0, 0.0, 0.0
+
+    n_1w_ref, n_1m_ref, n_3m_ref = _nifty_rs_refs()
+
+    # ── Load & filter market data ─────────────────────────────────────────────
+    md = st.session_state.get('market_data', pd.DataFrame())
+    if md is None or (isinstance(md, pd.DataFrame) and md.empty):
+        st.warning("Market data not yet loaded. Visit the Trend Scanner first to trigger a data refresh.")
+        st.stop()
+
+    ai_df = md[md['ticker'].isin(ALL_AI_TICKERS)].copy()
+    if ai_df.empty:
+        st.warning("No AI Capex stocks found in current market data. Ensure Nifty 1000 universe is loaded.")
+        st.stop()
+
+    # ── Compute AI Comp RS with custom weights ────────────────────────────────
+    # Prefer stored rs_1w / rs_1m from data engine (available after cache refresh);
+    # fall back to stock absolute return minus Nifty period return.
+    if 'rs_1w' in ai_df.columns:
+        ai_df['_rs_1w'] = ai_df['rs_1w'].fillna(ai_df['return_1w'].fillna(0) - n_1w_ref)
+    else:
+        ai_df['_rs_1w'] = ai_df['return_1w'].fillna(0) - n_1w_ref
+
+    if 'rs_1m' in ai_df.columns:
+        ai_df['_rs_1m'] = ai_df['rs_1m'].fillna(ai_df['return_1m'].fillna(0) - n_1m_ref)
+    else:
+        ai_df['_rs_1m'] = ai_df['return_1m'].fillna(0) - n_1m_ref
+
+    if 'rs_3m' in ai_df.columns:
+        ai_df['_rs_3m'] = ai_df['rs_3m'].fillna(ai_df['return_3m'].fillna(0) - n_3m_ref)
+    else:
+        ai_df['_rs_3m'] = ai_df['return_3m'].fillna(0) - n_3m_ref
+
+    ai_df['ai_comp_rs'] = (
+        ai_df['_rs_1w'] * w5_n +
+        ai_df['_rs_1m'] * w21_n +
+        ai_df['_rs_3m'] * w63_n
+    ).round(2)
+    ai_df['sub_theme'] = ai_df['ticker'].map(TICKER_THEME_MAP)
+
+    # ── Theme-level Pulse metrics ─────────────────────────────────────────────
+    n_stocks  = len(ai_df)
+    avg_rs    = round(float(ai_df['ai_comp_rs'].mean()), 2)
+    pct_above = 0.0
+    if 'fiftyDayAverage' in ai_df.columns:
+        pct_above = float((ai_df['price'] > ai_df['fiftyDayAverage']).mean() * 100)
+    buy_watch = 0
+    if 'dna_signal' in ai_df.columns:
+        buy_watch = int(ai_df['dna_signal'].isin(['BUY', 'WATCH']).sum())
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric(
+        "Theme Avg RS vs Nifty", f"{avg_rs:+.2f}%",
+        help=f"Average AI Comp RS — weights RS5={w5_n:.0%} / RS21={w21_n:.0%} / RS63={w63_n:.0%}"
+    )
+    c2.metric("Above MA50", f"{pct_above:.0f}%",
+              help="% of AI Capex stocks trading above their 50-day MA")
+    c3.metric("BUY / WATCH Signals", f"{buy_watch} / {n_stocks}",
+              help="Stocks meeting BUY or WATCH criteria (AI Comp RS > 0 + above MA50)")
+    c4.metric("Universe Coverage", f"{n_stocks} / {len(ALL_AI_TICKERS)}",
+              help="Stocks from the AI Capex basket found in current market data")
+
+    theme_color = COLORS['positive'] if avg_rs > 0 else COLORS['negative']
+    theme_msg   = ("Theme outperforming Nifty — momentum is on." if avg_rs > 0
+                   else "Theme underperforming Nifty — wait for RS turn before adding.")
+    st.markdown(
+        f'<div style="background:{theme_color}18;border-left:4px solid {theme_color};'
+        f'padding:10px 16px;border-radius:6px;margin:4px 0 16px 0;'
+        f'color:{theme_color};font-weight:500">'
+        f'{"🟢" if avg_rs > 0 else "🔴"} {theme_msg}</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("---")
+
+    # ── Sub-theme Momentum — OptComp theme-rotation detector ─────────────────
+    st.markdown("### Sub-theme Momentum")
+    st.caption(
+        "Which cluster is leading? Identifies intra-theme rotation via AI Comp RS. "
+        "Sorted best → worst so you can spot which sub-theme is currently 'in play'."
+    )
+
+    _agg: dict = dict(
+        avg_rs    = ('ai_comp_rs', 'mean'),
+        avg_rs_1w = ('_rs_1w',     'mean'),
+        avg_rs_1m = ('_rs_1m',     'mean'),
+        avg_rs_3m = ('_rs_3m',     'mean'),
+        n         = ('ticker',     'count'),
+    )
+    if 'dna_signal' in ai_df.columns:
+        _agg['pct_sig'] = ('dna_signal', lambda x: x.isin(['BUY', 'WATCH']).mean() * 100)
+
+    theme_stats = (
+        ai_df.groupby('sub_theme')
+             .agg(**_agg)
+             .reset_index()
+             .sort_values('avg_rs', ascending=False)
+    )
+    if 'pct_sig' not in theme_stats.columns:
+        theme_stats['pct_sig'] = 0.0
+
+    max_abs = max(float(theme_stats['avg_rs'].abs().max()), 0.01)
+
+    for _, row in theme_stats.iterrows():
+        rs_val   = float(row['avg_rs'])
+        bar_pct  = abs(rs_val) / max_abs * 160   # px width, max 160px
+        color    = COLORS['positive'] if rs_val >= 0 else COLORS['negative']
+        arrow    = "▲" if rs_val >= 0 else "▼"
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;margin:5px 0;font-size:13px">'
+            f'<span style="min-width:210px;color:{COLORS["text_primary"]}">{row["sub_theme"]}</span>'
+            f'<div style="width:{bar_pct:.0f}px;min-width:4px;height:14px;'
+            f'background:{color}55;border-radius:3px;border-right:2px solid {color}"></div>'
+            f'<span style="color:{color};font-weight:700;min-width:72px">{arrow} {abs(rs_val):.2f}%</span>'
+            f'<span style="color:{COLORS["text_muted"]};font-size:11px">'
+            f'RS5:{row["avg_rs_1w"]:+.1f} &nbsp;RS21:{row["avg_rs_1m"]:+.1f} &nbsp;RS63:{row["avg_rs_3m"]:+.1f}'
+            f'&nbsp;|&nbsp;{row["pct_sig"]:.0f}% signals &nbsp;({int(row["n"])} stocks)'
+            f'</span></div>',
+            unsafe_allow_html=True
+        )
+
+    st.markdown("---")
+
+    # ── Stock Screener ────────────────────────────────────────────────────────
+    st.markdown("### Stock Screener")
+
+    fc1, fc2, fc3 = st.columns([2, 1, 1])
+    theme_filter = fc1.multiselect(
+        "Sub-Theme", list(AI_CAPEX_UNIVERSE.keys()),
+        default=list(AI_CAPEX_UNIVERSE.keys()), key="ai_theme_filter"
+    )
+    if 'dna_signal' in ai_df.columns:
+        signal_filter = fc2.multiselect(
+            "Signal", ["BUY", "WATCH", "HOLD"],
+            default=["BUY", "WATCH", "HOLD"], key="ai_sig_filter"
+        )
+    else:
+        signal_filter = ["BUY", "WATCH", "HOLD"]
+        fc2.caption("Signal filter n/a")
+    min_rs_val = fc3.slider("Min AI Comp RS", -15.0, 10.0, -15.0, 0.5, key="ai_min_rs")
+
+    fdf = ai_df[ai_df['sub_theme'].isin(theme_filter)].copy()
+    if 'dna_signal' in fdf.columns:
+        fdf = fdf[fdf['dna_signal'].isin(signal_filter)]
+    fdf = fdf[fdf['ai_comp_rs'] >= min_rs_val].sort_values('ai_comp_rs', ascending=False)
+
+    disp = fdf.copy()
+    disp['screener_link'] = (
+        "https://www.screener.in/company/"
+        + disp['ticker'].str.replace(r'\.(NS|BO)$', '', regex=True)
+        + "/"
+    )
+
+    _col_map = [
+        ('screener_link', 'Stock'),
+        ('name',          'Name'),
+        ('sub_theme',     'Sub-Theme'),
+        ('price',         'CMP'),
+        ('ai_comp_rs',    'AI Comp RS'),
+        ('_rs_1w',        'RS5 (1W)'),
+        ('_rs_1m',        'RS21 (1M)'),
+        ('_rs_3m',        'RS63 (3M)'),
+        ('comp_rs',       'Std RS (V22)'),
+        ('dna_signal',    'Signal'),
+        ('trend_score',   'Trend'),
+        ('dist_52w',      '52W Off%'),
+    ]
+    avail_cols = [(src, dst) for src, dst in _col_map if src in disp.columns]
+    disp_show  = disp[[src for src, _ in avail_cols]].rename(columns={src: dst for src, dst in avail_cols})
+
+    _col_cfg = {
+        'Stock':        st.column_config.LinkColumn("Stock", display_text="🔗 Screener"),
+        'CMP':          st.column_config.NumberColumn("CMP ₹", format="₹%.1f"),
+        'AI Comp RS':   st.column_config.NumberColumn(
+                            f"AI RS  ({w5_n:.0%}/{w21_n:.0%}/{w63_n:.0%})",
+                            format="%+.2f%%",
+                            help="Composite RS with AI-Capex weights vs standard OptComp-V22"
+                        ),
+        'RS5 (1W)':     st.column_config.NumberColumn("RS5",  format="%+.1f%%"),
+        'RS21 (1M)':    st.column_config.NumberColumn("RS21", format="%+.1f%%"),
+        'RS63 (3M)':    st.column_config.NumberColumn("RS63", format="%+.1f%%"),
+        'Std RS (V22)': st.column_config.NumberColumn("Std RS", format="%+.2f%%",
+                            help="Standard OptComp-V22: RS5=10% RS21=50% RS63=40%"),
+        'Trend':        st.column_config.ProgressColumn("Trend", min_value=0, max_value=100, format="%d"),
+        '52W Off%':     st.column_config.NumberColumn("52W Off%", format="%.1f%%"),
+    }
+
+    st.dataframe(
+        disp_show.reset_index(drop=True),
+        column_config={k: v for k, v in _col_cfg.items() if k in disp_show.columns},
+        use_container_width=True,
+        hide_index=True,
+        height=min(len(disp_show) * 38 + 42, 640),
+    )
+
+    # ── Why different weights? ────────────────────────────────────────────────
+    with st.expander("ℹ️ Why different RS weights for AI Capex?"):
+        st.markdown(f"""
+**Standard OptComp-V22:** RS5 = 10%, RS21 = 50%, RS63 = 40%
+
+**AI Capex (current):** RS5 = {w5_n:.0%}, RS21 = {w21_n:.0%}, RS63 = {w63_n:.0%}
+
+AI Datacenter is a **fast-rotating, news-driven theme**. The 3-month (RS63) lookback often
+includes time *before* the theme ignited, diluting the breakout signal. Elevating RS5
+catches fresh breakouts earlier; RS21 stays dominant as the medium-term confirmation window.
+
+**Sub-theme rotation:** Within AI Capex, leadership rotates — Power leads one week,
+Cables the next, then IT Services. The Sub-theme Momentum panel uses AI Comp RS per cluster
+to show which sub-theme is currently "in play", so you can size into the right pocket.
+
+Use the sidebar sliders to tune weights for current market conditions.
+        """)
+
