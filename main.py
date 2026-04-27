@@ -348,7 +348,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -4978,7 +4978,7 @@ elif page == "🖥️ AI Capex":
     st.sidebar.markdown("**⚖️ AI Capex RS Weights**")
     st.sidebar.caption("RS63 stays below RS5 & RS21 to front-load theme momentum")
     w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="ai_w5")
-    w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.45, 0.05, key="ai_w21")
+    w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="ai_w21")
     raw_w63 = round(1.0 - w5 - w21, 2)
     w63 = max(0.05, raw_w63)
     total_w = w5 + w21 + w63
@@ -5211,4 +5211,363 @@ to show which sub-theme is currently "in play", so you can size into the right p
 
 Use the sidebar sliders to tune weights for current market conditions.
         """)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VIEW: US AI PLAY  (all 12 supply-chain layers, RS vs SPY)
+# ─────────────────────────────────────────────────────────────────────────────
+elif page == "🇺🇸 US AI Play":
+    st.markdown(page_header(
+        "🇺🇸 US AI Play",
+        "Full 12-layer AI datacenter supply chain — RS vs S&P 500 | Monopoly & chokepoint scoring"
+    ), unsafe_allow_html=True)
+
+    # ── Universe — one sub-group per supply-chain layer ───────────────────────
+    US_AI_UNIVERSE = {
+        "🔬 L1-L2 Materials":        ["AXTI", "ENTG", "LIN"],
+        "⚙️ L3 Equipment":           ["ASML", "AMAT", "LRCX", "KLAC", "ACLS"],
+        "📐 EDA & Design IP":        ["SNPS", "CDNS", "ARM"],
+        "💾 L4-L6 Chips & Memory":   ["NVDA", "AMD", "AVGO", "MRVL", "MU",
+                                      "MPWR", "ON", "INTC", "TSM"],
+        "📦 L7 Packaging & OSAT":    ["AMKR", "KLIC"],
+        "🌐 L8 Networking & Optics": ["COHR", "LITE", "MTSI", "FN", "APH"],
+        "⚡ L9-L10 Power & Cooling": ["ETN", "VRT", "GEV", "PWR", "NVT"],
+        "🏗️ L11 Infrastructure":     ["EQIX", "DLR", "CEG", "CCJ", "EME"],
+        "☁️ L12 Hyperscalers":       ["MSFT", "AMZN", "GOOGL", "META"],
+    }
+    ALL_US_TICKERS   = [t for g in US_AI_UNIVERSE.values() for t in g]
+    TICKER_LAYER_MAP = {t: lyr for lyr, ts in US_AI_UNIVERSE.items() for t in ts}
+
+    # Monopoly / oligopoly tier (from dependency analysis document)
+    MONO_TIER = {
+        "ASML": 5, "SNPS": 5, "CDNS": 5,
+        "AXTI": 4, "KLAC": 4, "NVDA": 4, "AVGO": 4, "ARM": 4,
+        "AMAT": 3, "LRCX": 3, "COHR": 3, "LITE": 3, "MU": 3, "MRVL": 3, "TSM": 3,
+        "MSFT": 3, "AMZN": 3, "GOOGL": 3,
+        "AMD": 2, "ETN": 2, "VRT": 2, "GEV": 2, "ENTG": 2, "KLIC": 2,
+        "AMKR": 2, "MPWR": 2, "MTSI": 2, "EQIX": 2, "DLR": 2, "CEG": 2,
+        "CCJ": 2, "INTC": 2, "META": 2,
+        "ON": 1, "ACLS": 1, "LIN": 1, "PWR": 1, "NVT": 1, "APH": 1,
+        "FN": 1, "EME": 1,
+    }
+    MONO_LABEL = {
+        5: "🔴 Monopoly",
+        4: "🟠 Near-Mono",
+        3: "🟡 Oligopoly",
+        2: "🔵 Competitive",
+        1: "⚪ Commodity",
+    }
+
+    # ── RS weight sidebar (vs SPY, default = backtest-optimal Config D) ───────
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**⚖️ US AI RS Weights (vs SPY)**")
+    st.sidebar.caption("Backtest-optimal: RS5=30% RS21=50% RS63=20%")
+    us_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_w5")
+    us_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_w21")
+    us_raw63 = round(1.0 - us_w5 - us_w21, 2)
+    us_w63   = max(0.05, us_raw63)
+    us_tot   = us_w5 + us_w21 + us_w63
+    us_w5_n, us_w21_n, us_w63_n = us_w5/us_tot, us_w21/us_tot, us_w63/us_tot
+    st.sidebar.caption(f"RS63 = **{us_w63_n:.0%}**")
+    if us_w63_n >= us_w5_n:
+        st.sidebar.warning("⚠️ RS63 ≥ RS5 — slide RS5 up for theme focus")
+
+    # ── Data fetch (cached 1 h, benchmark = SPY) ─────────────────────────────
+    @st.cache_data(ttl=3600)
+    def _fetch_us_ai_data(tickers_t):
+        tickers = list(tickers_t)
+        all_tix = tickers + ["SPY"]
+        try:
+            raw = yf.download(
+                all_tix, period="1y", group_by="ticker",
+                threads=False, progress=False, auto_adjust=True
+            )
+        except Exception:
+            return pd.DataFrame()
+        if raw.empty:
+            return pd.DataFrame()
+
+        # SPY baseline
+        try:
+            spy_c = raw["SPY"]["Close"].dropna()
+            if len(spy_c) < 65:
+                return pd.DataFrame()
+            s1w = (spy_c.iloc[-1] - spy_c.iloc[-6])  / spy_c.iloc[-6]  * 100
+            s1m = (spy_c.iloc[-1] - spy_c.iloc[-22]) / spy_c.iloc[-22] * 100
+            s3m = (spy_c.iloc[-1] - spy_c.iloc[-64]) / spy_c.iloc[-64] * 100
+        except Exception:
+            return pd.DataFrame()
+
+        rows = []
+        for t in tickers:
+            try:
+                close = raw[t]["Close"].dropna()
+                vol   = raw[t]["Volume"].dropna()
+                if len(close) < 65:
+                    continue
+                p    = float(close.iloc[-1])
+                ma50 = float(close.rolling(50).mean().iloc[-1])
+                ma200_ser = close.rolling(200).mean()
+                ma200 = float(ma200_ser.iloc[-1]) if len(close) >= 200 else None
+
+                lb   = min(len(close), 252)
+                h52  = float(close.iloc[-lb:].max())
+                l52  = float(close.iloc[-lb:].min())
+
+                r1w = (p - float(close.iloc[-6]))  / float(close.iloc[-6])  * 100
+                r1m = (p - float(close.iloc[-22])) / float(close.iloc[-22]) * 100
+                r3m = (p - float(close.iloc[-64])) / float(close.iloc[-64]) * 100
+
+                rs1w = r1w - s1w
+                rs1m = r1m - s1m
+                rs3m = r3m - s3m
+                crs  = rs1w * 0.10 + rs1m * 0.50 + rs3m * 0.40
+
+                ts = 0
+                if p > ma50:                         ts += 35
+                if ma200 is not None and p > ma200:  ts += 25
+                if ma200 is not None and ma50 > ma200: ts += 15
+                p52w = (p - l52) / (h52 - l52) * 100 if h52 > l52 else 50
+                ts  += int(p52w * 0.25)
+                ts   = min(ts, 100)
+
+                sig = 'HOLD'
+                if crs > 0 and p > ma50:  sig = 'BUY'
+                elif crs > 0:              sig = 'WATCH'
+
+                avg_vol20 = float(vol.iloc[-20:].mean()) if len(vol) >= 20 else float(vol.mean())
+                rows.append({
+                    'ticker':    t,
+                    'price':     round(p, 2),
+                    'ma50':      round(ma50, 2),
+                    'return_1w': round(r1w, 2),
+                    'return_1m': round(r1m, 2),
+                    'return_3m': round(r3m, 2),
+                    'rs_1w':     round(rs1w, 2),
+                    'rs_1m':     round(rs1m, 2),
+                    'rs_3m':     round(rs3m, 2),
+                    'comp_rs':   round(crs, 2),
+                    'trend_score': ts,
+                    'dist_52w':  round((p - h52) / h52 * 100, 1),
+                    'signal':    sig,
+                    'avg_vol_b': round(avg_vol20 * p / 1e9, 2),
+                })
+            except Exception:
+                continue
+        return pd.DataFrame(rows)
+
+    with st.spinner("Fetching US AI supply-chain data from Yahoo Finance…"):
+        us_df = _fetch_us_ai_data(tuple(ALL_US_TICKERS))
+
+    if us_df.empty:
+        st.error("Failed to load US stock data. Check your internet connection and try again.")
+        if st.button("🔄 Clear Cache & Retry"):
+            _fetch_us_ai_data.clear()
+            st.rerun()
+        st.stop()
+
+    # ── Compute AI Comp RS with custom weights ────────────────────────────────
+    us_df['ai_comp_rs'] = (
+        us_df['rs_1w'] * us_w5_n +
+        us_df['rs_1m'] * us_w21_n +
+        us_df['rs_3m'] * us_w63_n
+    ).round(2)
+    us_df['layer']      = us_df['ticker'].map(TICKER_LAYER_MAP)
+    us_df['mono_tier']  = us_df['ticker'].map(lambda t: MONO_TIER.get(t, 1))
+    us_df['mono_label'] = us_df['mono_tier'].map(MONO_LABEL)
+
+    # ── Theme Pulse ───────────────────────────────────────────────────────────
+    n_us      = len(us_df)
+    avg_us_rs = round(float(us_df['ai_comp_rs'].mean()), 2)
+    pct_ma50  = float((us_df['price'] > us_df['ma50']).mean() * 100)
+    buy_w_us  = int(us_df['signal'].isin(['BUY', 'WATCH']).sum())
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Theme Avg RS vs SPY", f"{avg_us_rs:+.2f}%",
+              help=f"Weights: RS5={us_w5_n:.0%} RS21={us_w21_n:.0%} RS63={us_w63_n:.0%}")
+    c2.metric("Above MA50", f"{pct_ma50:.0f}%",
+              help="% of US AI stocks trading above their 50-day MA")
+    c3.metric("BUY / WATCH", f"{buy_w_us} / {n_us}",
+              help="Stocks with AI Comp RS > 0 and above MA50")
+    c4.metric("Stocks Loaded", f"{n_us} / {len(ALL_US_TICKERS)}",
+              help="Tickers successfully fetched from Yahoo Finance")
+
+    tc = COLORS['positive'] if avg_us_rs > 0 else COLORS['negative']
+    tm = ("AI supply chain outperforming S&P 500 — theme momentum is on." if avg_us_rs > 0
+          else "AI supply chain underperforming S&P 500 — wait for RS turn.")
+    st.markdown(
+        f'<div style="background:{tc}18;border-left:4px solid {tc};'
+        f'padding:10px 16px;border-radius:6px;margin:4px 0 16px 0;'
+        f'color:{tc};font-weight:500">{"🟢" if avg_us_rs > 0 else "🔴"} {tm}</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("---")
+
+    # ── Layer Momentum ────────────────────────────────────────────────────────
+    st.markdown("### Layer Momentum")
+    st.caption(
+        "Which supply-chain layer is outperforming SPY right now? "
+        "RS5/RS21/RS63 breakdown shows whether the move is early (RS5) or sustained (RS21/RS63)."
+    )
+
+    ls = (
+        us_df.groupby('layer')
+             .agg(
+                 avg_rs    = ('ai_comp_rs', 'mean'),
+                 avg_rs_1w = ('rs_1w',      'mean'),
+                 avg_rs_1m = ('rs_1m',      'mean'),
+                 avg_rs_3m = ('rs_3m',      'mean'),
+                 n         = ('ticker',     'count'),
+                 pct_sig   = ('signal', lambda x: x.isin(['BUY', 'WATCH']).mean() * 100),
+             )
+             .reset_index()
+             .sort_values('avg_rs', ascending=False)
+    )
+    max_abs_us = max(float(ls['avg_rs'].abs().max()), 0.01)
+
+    for _, row in ls.iterrows():
+        rv  = float(row['avg_rs'])
+        bw  = abs(rv) / max_abs_us * 160
+        cl  = COLORS['positive'] if rv >= 0 else COLORS['negative']
+        arr = "▲" if rv >= 0 else "▼"
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:10px;margin:5px 0;font-size:13px">'
+            f'<span style="min-width:225px;color:{COLORS["text_primary"]}">{row["layer"]}</span>'
+            f'<div style="width:{bw:.0f}px;min-width:4px;height:14px;'
+            f'background:{cl}55;border-radius:3px;border-right:2px solid {cl}"></div>'
+            f'<span style="color:{cl};font-weight:700;min-width:72px">{arr} {abs(rv):.2f}%</span>'
+            f'<span style="color:{COLORS["text_muted"]};font-size:11px">'
+            f'RS5:{row["avg_rs_1w"]:+.1f}&nbsp;RS21:{row["avg_rs_1m"]:+.1f}'
+            f'&nbsp;RS63:{row["avg_rs_3m"]:+.1f}'
+            f'&nbsp;|&nbsp;{row["pct_sig"]:.0f}% signals&nbsp;({int(row["n"])} stocks)'
+            f'</span></div>',
+            unsafe_allow_html=True
+        )
+
+    # ── Chokepoints quick-ref ─────────────────────────────────────────────────
+    st.markdown("---")
+    with st.expander("🔴 Master Chokepoints — Single Points of Failure (from dependency analysis)"):
+        CHOKE_DATA = [
+            ("ASML",  "EUV Lithography",              "L3→L4→L5→L7→L12", "None"),
+            ("SNPS",  "EDA Tools (duopoly w/ CDNS)",  "L4, L6",           "None qualified"),
+            ("CDNS",  "EDA Tools (duopoly w/ SNPS)",  "L4, L6",           "None qualified"),
+            ("KLAC",  "Process Control / Metrology",  "L3→L4",            "Near-monopoly"),
+            ("AXTI",  "InP Substrates — sole Western","L1→L8 CPO",        "Sumitomo (limited)"),
+            ("COHR",  "EML Lasers 200G/lane",         "L8",               "Lumentum only"),
+            ("LITE",  "EML Lasers 200G/lane",         "L8",               "Coherent only"),
+            ("AVGO",  "Optical DSP (w/ MRVL)",        "L8",               "Marvell partial"),
+            ("MU",    "HBM3e (oligopoly)",            "L5→L7",            "SK Hynix, Samsung"),
+            ("ETN",   "DC Power Distribution + UPS",  "L9→L11",           "Vertiv, Schneider"),
+            ("GEV",   "HV Transformers + Gas Turbines","L9→L11",          "Siemens Energy, Mitsubishi"),
+            ("PWR",   "Grid EPC — $44B backlog",      "L9→L11",           "MasTec (limited)"),
+        ]
+        choke_df = pd.DataFrame(
+            CHOKE_DATA,
+            columns=["Ticker", "What They Control", "Layers", "Alternatives"]
+        )
+        st.dataframe(choke_df, use_container_width=True, hide_index=True)
+        st.caption(
+            "Chain ranking: ASML→TSMC chain is the deepest failure cascade. "
+            "GOES steel→Transformers→Grid is the hardest physical bottleneck to fix (2028+ horizon)."
+        )
+
+    st.markdown("---")
+
+    # ── Stock Screener ────────────────────────────────────────────────────────
+    st.markdown("### Stock Screener")
+
+    fc1, fc2, fc3, fc4 = st.columns([2, 1, 1, 1])
+    us_layer_f  = fc1.multiselect(
+        "Layer", list(US_AI_UNIVERSE.keys()),
+        default=list(US_AI_UNIVERSE.keys()), key="us_layer_f"
+    )
+    us_sig_f    = fc2.multiselect(
+        "Signal", ["BUY", "WATCH", "HOLD"],
+        default=["BUY", "WATCH", "HOLD"], key="us_sig_f"
+    )
+    us_mono_min = fc3.select_slider(
+        "Min Monopoly", options=[1, 2, 3, 4, 5], value=1, key="us_mono_f"
+    )
+    us_min_rs   = fc4.slider("Min AI RS", -20.0, 10.0, -20.0, 0.5, key="us_min_rs")
+
+    fdf_us = us_df[
+        us_df['layer'].isin(us_layer_f) &
+        us_df['signal'].isin(us_sig_f) &
+        (us_df['mono_tier'] >= us_mono_min) &
+        (us_df['ai_comp_rs'] >= us_min_rs)
+    ].sort_values(['mono_tier', 'ai_comp_rs'], ascending=[False, False]).copy()
+
+    disp_us = fdf_us.copy()
+    disp_us['yahoo_link'] = "https://finance.yahoo.com/quote/" + disp_us['ticker'] + "/"
+
+    _cm_us = [
+        ('yahoo_link',   'Stock'),
+        ('ticker',       'Ticker'),
+        ('layer',        'Layer'),
+        ('mono_label',   'Monopoly Tier'),
+        ('price',        'Price $'),
+        ('ai_comp_rs',   'AI Comp RS'),
+        ('rs_1w',        'RS5 (1W)'),
+        ('rs_1m',        'RS21 (1M)'),
+        ('rs_3m',        'RS63 (3M)'),
+        ('comp_rs',      'Std RS'),
+        ('signal',       'Signal'),
+        ('trend_score',  'Trend'),
+        ('dist_52w',     '52W Off%'),
+        ('avg_vol_b',    'Vol $B'),
+    ]
+    av_us = [(s, d) for s, d in _cm_us if s in disp_us.columns]
+    ds_us = disp_us[[s for s, _ in av_us]].rename(columns={s: d for s, d in av_us})
+
+    _cc_us = {
+        'Stock':        st.column_config.LinkColumn("Stock", display_text="📊 Yahoo"),
+        'Price $':      st.column_config.NumberColumn("Price $",  format="$%.2f"),
+        'AI Comp RS':   st.column_config.NumberColumn(
+                            f"AI RS ({us_w5_n:.0%}/{us_w21_n:.0%}/{us_w63_n:.0%})",
+                            format="%+.2f%%",
+                            help="Custom RS vs SPY — backtest-optimal Config D weights"
+                        ),
+        'RS5 (1W)':     st.column_config.NumberColumn("RS5",   format="%+.1f%%"),
+        'RS21 (1M)':    st.column_config.NumberColumn("RS21",  format="%+.1f%%"),
+        'RS63 (3M)':    st.column_config.NumberColumn("RS63",  format="%+.1f%%"),
+        'Std RS':       st.column_config.NumberColumn("Std RS",format="%+.2f%%",
+                            help="Standard OptComp-V22: RS5=10% RS21=50% RS63=40%"),
+        'Trend':        st.column_config.ProgressColumn("Trend", min_value=0, max_value=100, format="%d"),
+        '52W Off%':     st.column_config.NumberColumn("52W Off%", format="%.1f%%"),
+        'Vol $B':       st.column_config.NumberColumn("Vol $B",   format="$%.2fB"),
+    }
+
+    st.dataframe(
+        ds_us.reset_index(drop=True),
+        column_config={k: v for k, v in _cc_us.items() if k in ds_us.columns},
+        use_container_width=True,
+        hide_index=True,
+        height=min(len(ds_us) * 38 + 42, 700),
+    )
+
+    st.caption(
+        f"RS vs S&P 500 (SPY) | Weights: RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / RS63={us_w63_n:.0%} "
+        f"(backtest-optimal Config D: +70.3% CAGR, +25.5% alpha vs SMH) | Refreshes hourly"
+    )
+
+    # ── Dependency chain explainer ─────────────────────────────────────────────
+    with st.expander("🗺️ Supply Chain Layer Map"):
+        st.markdown("""
+| Layer | What | Key Companies | Feeds Into |
+|---|---|---|---|
+| **L1-L2** | Raw materials & specialty chemicals | AXTI (InP), ENTG (slurries), LIN (gases) | L3, L4, L8 |
+| **L3** | Semiconductor equipment | ASML (EUV monopoly), AMAT, LRCX, KLAC | L4, L5 |
+| **EDA** | Chip design tools | SNPS, CDNS (duopoly — no chip exists without them) | L4, L6 |
+| **L4-L6** | Foundry, chip design & memory | NVDA, AMD, AVGO, MRVL, MU, TSM | L7, L8 |
+| **L7** | Advanced packaging (CoWoS) | AMKR, KLIC | L8, L12 |
+| **L8** | Networking & photonics | COHR, LITE, MTSI, FN, APH | L12 |
+| **L9-L10** | Power & cooling | ETN, VRT, GEV, PWR, NVT | L11, L12 |
+| **L11** | DC construction & REITs | EQIX, DLR, CEG, CCJ, EME | L12 |
+| **L12** | Hyperscalers (demand signal) | MSFT, AMZN, GOOGL, META | Revenue |
+
+**Key insight:** L12 depends on ALL layers. A disruption anywhere in L1→L11 propagates upward.
+ASML→TSMC is the deepest serial monopoly (2 chokepoints in series). Power (L9) is the #1 rate limiter for near-term AI scaling.
+        """)
+
 
