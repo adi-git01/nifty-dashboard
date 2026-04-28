@@ -394,10 +394,14 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
                 comp_rs = (rs_1w * 0.10) + (rs_1m * 0.50) + (rs_3m_val * 0.40)
             else:
                 comp_rs = 0
+                rs_1w = 0
+                rs_1m = 0
                 rs_3m_val = base_data.get('return_3m', 0)
-                
+
             base_data['comp_rs'] = round(comp_rs, 2)
-            base_data['rs_3m'] = round(rs_3m_val, 2)
+            base_data['rs_3m']   = round(rs_3m_val, 2)
+            base_data['rs_1w']   = round(rs_1w, 2)
+            base_data['rs_1m']   = round(rs_1m, 2)
             
             # Volatility (Annualized)
             if len(df) > 60:
