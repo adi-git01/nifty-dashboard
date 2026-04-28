@@ -43,6 +43,7 @@ from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_m
 from utils.market_breadth import render_breadth_widget
 from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data
 from utils.live_desk import get_cyclicity, get_seasonal_guideline
+from utils.theme_engine import ThemeEngine, AI_CAPEX_THEME
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -5213,361 +5214,313 @@ Use the sidebar sliders to tune weights for current market conditions.
         """)
 
 
+
 # ─────────────────────────────────────────────────────────────────────────────
-# VIEW: US AI PLAY  (all 12 supply-chain layers, RS vs SPY)
+# VIEW: US AI PLAY  (rotation-first, ThemeEngine-powered)
 # ─────────────────────────────────────────────────────────────────────────────
 elif page == "🇺🇸 US AI Play":
     st.markdown(page_header(
-        "🇺🇸 US AI Play",
-        "Full 12-layer AI datacenter supply chain — RS vs S&P 500 | Monopoly & chokepoint scoring"
+        "🇺🇸 US AI Supply Chain",
+        "Full 12-layer datacenter supply chain | Rotation detection vs SMH/SPY | Config D weights"
     ), unsafe_allow_html=True)
 
-    # ── Universe — one sub-group per supply-chain layer ───────────────────────
-    US_AI_UNIVERSE = {
-        "🔬 L1-L2 Materials":        ["AXTI", "ENTG", "LIN"],
-        "⚙️ L3 Equipment":           ["ASML", "AMAT", "LRCX", "KLAC", "ACLS"],
-        "📐 EDA & Design IP":        ["SNPS", "CDNS", "ARM"],
-        "💾 L4-L6 Chips & Memory":   ["NVDA", "AMD", "AVGO", "MRVL", "MU",
-                                      "MPWR", "ON", "INTC", "TSM"],
-        "📦 L7 Packaging & OSAT":    ["AMKR", "KLIC"],
-        "🌐 L8 Networking & Optics": ["COHR", "LITE", "MTSI", "FN", "APH"],
-        "⚡ L9-L10 Power & Cooling": ["ETN", "VRT", "GEV", "PWR", "NVT"],
-        "🏗️ L11 Infrastructure":     ["EQIX", "DLR", "CEG", "CCJ", "EME"],
-        "☁️ L12 Hyperscalers":       ["MSFT", "AMZN", "GOOGL", "META"],
-    }
-    ALL_US_TICKERS   = [t for g in US_AI_UNIVERSE.values() for t in g]
-    TICKER_LAYER_MAP = {t: lyr for lyr, ts in US_AI_UNIVERSE.items() for t in ts}
-
-    # Monopoly / oligopoly tier (from dependency analysis document)
-    MONO_TIER = {
-        "ASML": 5, "SNPS": 5, "CDNS": 5,
-        "AXTI": 4, "KLAC": 4, "NVDA": 4, "AVGO": 4, "ARM": 4,
-        "AMAT": 3, "LRCX": 3, "COHR": 3, "LITE": 3, "MU": 3, "MRVL": 3, "TSM": 3,
-        "MSFT": 3, "AMZN": 3, "GOOGL": 3,
-        "AMD": 2, "ETN": 2, "VRT": 2, "GEV": 2, "ENTG": 2, "KLIC": 2,
-        "AMKR": 2, "MPWR": 2, "MTSI": 2, "EQIX": 2, "DLR": 2, "CEG": 2,
-        "CCJ": 2, "INTC": 2, "META": 2,
-        "ON": 1, "ACLS": 1, "LIN": 1, "PWR": 1, "NVT": 1, "APH": 1,
-        "FN": 1, "EME": 1,
-    }
-    MONO_LABEL = {
-        5: "🔴 Monopoly",
-        4: "🟠 Near-Mono",
-        3: "🟡 Oligopoly",
-        2: "🔵 Competitive",
-        1: "⚪ Commodity",
-    }
-
-    # ── RS weight sidebar (vs SPY, default = backtest-optimal Config D) ───────
+    # ── Sidebar controls ──────────────────────────────────────────────────────
     st.sidebar.markdown("---")
-    st.sidebar.markdown("**⚖️ US AI RS Weights (vs SPY)**")
-    st.sidebar.caption("Backtest-optimal: RS5=30% RS21=50% RS63=20%")
+    st.sidebar.markdown("**🇺🇸 US AI Play Settings**")
+
+    us_benchmark = st.sidebar.selectbox(
+        "Benchmark", ["SMH", "SPY", "QQQ"], index=0, key="us_benchmark",
+        help="SMH = Semis ETF (sector-relative alpha). SPY = broad market."
+    )
+    st.sidebar.markdown("**RS Weights (Config D)**")
     us_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_w5")
     us_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_w21")
-    us_raw63 = round(1.0 - us_w5 - us_w21, 2)
-    us_w63   = max(0.05, us_raw63)
-    us_tot   = us_w5 + us_w21 + us_w63
-    us_w5_n, us_w21_n, us_w63_n = us_w5/us_tot, us_w21/us_tot, us_w63/us_tot
-    st.sidebar.caption(f"RS63 = **{us_w63_n:.0%}**")
+    raw_us_w63 = round(1.0 - us_w5 - us_w21, 2)
+    us_w63 = max(0.05, raw_us_w63)
+    us_total_w = us_w5 + us_w21 + us_w63
+    us_w5_n, us_w21_n, us_w63_n = us_w5 / us_total_w, us_w21 / us_total_w, us_w63 / us_total_w
+    st.sidebar.caption(f"RS63 auto-set to **{us_w63_n:.0%}** | RS5={us_w5_n:.0%} RS21={us_w21_n:.0%}")
     if us_w63_n >= us_w5_n:
-        st.sidebar.warning("⚠️ RS63 ≥ RS5 — slide RS5 up for theme focus")
+        st.sidebar.warning("⚠️ RS63 ≥ RS5 — raise RS5 to front-load theme momentum")
 
-    # ── Data fetch (cached 1 h, benchmark = SPY) ─────────────────────────────
-    @st.cache_data(ttl=3600)
-    def _fetch_us_ai_data(tickers_t):
-        tickers = list(tickers_t)
-        all_tix = tickers + ["SPY"]
-        try:
-            raw = yf.download(
-                all_tix, period="1y", group_by="ticker",
-                threads=False, progress=False, auto_adjust=True
-            )
-        except Exception:
-            return pd.DataFrame()
-        if raw.empty:
-            return pd.DataFrame()
+    # ── Cached ThemeEngine scan ───────────────────────────────────────────────
+    @st.cache_data(ttl=3600, show_spinner=False)
+    def _run_us_ai_scan(rs_weights_t: tuple, benchmark: str) -> pd.DataFrame:
+        cfg = dict(AI_CAPEX_THEME)
+        cfg['benchmark'] = benchmark
+        cfg['rs_weights'] = list(rs_weights_t)
+        engine = ThemeEngine(cfg)
+        return engine.scan()
 
-        # SPY baseline
-        try:
-            spy_c = raw["SPY"]["Close"].dropna()
-            if len(spy_c) < 65:
-                return pd.DataFrame()
-            s1w = (spy_c.iloc[-1] - spy_c.iloc[-6])  / spy_c.iloc[-6]  * 100
-            s1m = (spy_c.iloc[-1] - spy_c.iloc[-22]) / spy_c.iloc[-22] * 100
-            s3m = (spy_c.iloc[-1] - spy_c.iloc[-64]) / spy_c.iloc[-64] * 100
-        except Exception:
-            return pd.DataFrame()
+    rs_weights_t = ((5, round(us_w5_n, 4)), (21, round(us_w21_n, 4)), (63, round(us_w63_n, 4)))
 
-        rows = []
-        for t in tickers:
-            try:
-                close = raw[t]["Close"].dropna()
-                vol   = raw[t]["Volume"].dropna()
-                if len(close) < 65:
-                    continue
-                p    = float(close.iloc[-1])
-                ma50 = float(close.rolling(50).mean().iloc[-1])
-                ma200_ser = close.rolling(200).mean()
-                ma200 = float(ma200_ser.iloc[-1]) if len(close) >= 200 else None
-
-                lb   = min(len(close), 252)
-                h52  = float(close.iloc[-lb:].max())
-                l52  = float(close.iloc[-lb:].min())
-
-                r1w = (p - float(close.iloc[-6]))  / float(close.iloc[-6])  * 100
-                r1m = (p - float(close.iloc[-22])) / float(close.iloc[-22]) * 100
-                r3m = (p - float(close.iloc[-64])) / float(close.iloc[-64]) * 100
-
-                rs1w = r1w - s1w
-                rs1m = r1m - s1m
-                rs3m = r3m - s3m
-                crs  = rs1w * 0.10 + rs1m * 0.50 + rs3m * 0.40
-
-                ts = 0
-                if p > ma50:                         ts += 35
-                if ma200 is not None and p > ma200:  ts += 25
-                if ma200 is not None and ma50 > ma200: ts += 15
-                p52w = (p - l52) / (h52 - l52) * 100 if h52 > l52 else 50
-                ts  += int(p52w * 0.25)
-                ts   = min(ts, 100)
-
-                sig = 'HOLD'
-                if crs > 0 and p > ma50:  sig = 'BUY'
-                elif crs > 0:              sig = 'WATCH'
-
-                avg_vol20 = float(vol.iloc[-20:].mean()) if len(vol) >= 20 else float(vol.mean())
-                rows.append({
-                    'ticker':    t,
-                    'price':     round(p, 2),
-                    'ma50':      round(ma50, 2),
-                    'return_1w': round(r1w, 2),
-                    'return_1m': round(r1m, 2),
-                    'return_3m': round(r3m, 2),
-                    'rs_1w':     round(rs1w, 2),
-                    'rs_1m':     round(rs1m, 2),
-                    'rs_3m':     round(rs3m, 2),
-                    'comp_rs':   round(crs, 2),
-                    'trend_score': ts,
-                    'dist_52w':  round((p - h52) / h52 * 100, 1),
-                    'signal':    sig,
-                    'avg_vol_b': round(avg_vol20 * p / 1e9, 2),
-                })
-            except Exception:
-                continue
-        return pd.DataFrame(rows)
-
-    with st.spinner("Fetching US AI supply-chain data from Yahoo Finance…"):
-        us_df = _fetch_us_ai_data(tuple(ALL_US_TICKERS))
-
-    if us_df.empty:
-        st.error("Failed to load US stock data. Check your internet connection and try again.")
-        if st.button("🔄 Clear Cache & Retry"):
-            _fetch_us_ai_data.clear()
+    col_refresh, _ = st.columns([1, 5])
+    with col_refresh:
+        if st.button("🔄 Refresh Data", key="us_ai_refresh"):
+            st.cache_data.clear()
             st.rerun()
+
+    with st.spinner(f"Loading AI supply chain data vs {us_benchmark}…"):
+        scan_df = _run_us_ai_scan(rs_weights_t, us_benchmark)
+
+    if scan_df.empty:
+        st.error("⚠️ Data fetch failed — check your connection. Click **Refresh Data** to retry.")
         st.stop()
 
-    # ── Compute AI Comp RS with custom weights ────────────────────────────────
-    us_df['ai_comp_rs'] = (
-        us_df['rs_1w'] * us_w5_n +
-        us_df['rs_1m'] * us_w21_n +
-        us_df['rs_3m'] * us_w63_n
-    ).round(2)
-    us_df['layer']      = us_df['ticker'].map(TICKER_LAYER_MAP)
-    us_df['mono_tier']  = us_df['ticker'].map(lambda t: MONO_TIER.get(t, 1))
-    us_df['mono_label'] = us_df['mono_tier'].map(MONO_LABEL)
+    # ── 4 Pulse Metrics ───────────────────────────────────────────────────────
+    pct_up    = scan_df['Signal'].isin(['STRONG UP', 'UPTREND']).mean() * 100
+    avg_rs    = scan_df['CompRS'].mean()
+    vel_vals  = scan_df['RS_Vel'].dropna()
+    avg_vel   = vel_vals.mean() if not vel_vals.empty else 0.0
+    top_layer_full = scan_df.groupby('Layer')['CompRS'].mean().idxmax() if not scan_df.empty else "—"
+    top_layer_label = top_layer_full.split(': ', 1)[-1] if ': ' in top_layer_full else top_layer_full
 
-    # ── Theme Pulse ───────────────────────────────────────────────────────────
-    n_us      = len(us_df)
-    avg_us_rs = round(float(us_df['ai_comp_rs'].mean()), 2)
-    pct_ma50  = float((us_df['price'] > us_df['ma50']).mean() * 100)
-    buy_w_us  = int(us_df['signal'].isin(['BUY', 'WATCH']).sum())
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Theme Avg RS vs SPY", f"{avg_us_rs:+.2f}%",
-              help=f"Weights: RS5={us_w5_n:.0%} RS21={us_w21_n:.0%} RS63={us_w63_n:.0%}")
-    c2.metric("Above MA50", f"{pct_ma50:.0f}%",
-              help="% of US AI stocks trading above their 50-day MA")
-    c3.metric("BUY / WATCH", f"{buy_w_us} / {n_us}",
-              help="Stocks with AI Comp RS > 0 and above MA50")
-    c4.metric("Stocks Loaded", f"{n_us} / {len(ALL_US_TICKERS)}",
-              help="Tickers successfully fetched from Yahoo Finance")
-
-    tc = COLORS['positive'] if avg_us_rs > 0 else COLORS['negative']
-    tm = ("AI supply chain outperforming S&P 500 — theme momentum is on." if avg_us_rs > 0
-          else "AI supply chain underperforming S&P 500 — wait for RS turn.")
-    st.markdown(
-        f'<div style="background:{tc}18;border-left:4px solid {tc};'
-        f'padding:10px 16px;border-radius:6px;margin:4px 0 16px 0;'
-        f'color:{tc};font-weight:500">{"🟢" if avg_us_rs > 0 else "🔴"} {tm}</div>',
-        unsafe_allow_html=True
-    )
+    mc1, mc2, mc3, mc4 = st.columns(4)
+    mc1.metric("Stocks in Uptrend",            f"{pct_up:.0f}%")
+    mc2.metric(f"Avg Comp RS vs {us_benchmark}", f"{avg_rs:+.1f}%")
+    mc3.metric("Avg RS Velocity (5D)",           f"{avg_vel:+.2f}%",
+               delta="↑ Accelerating" if avg_vel > 0 else "↓ Decelerating")
+    mc4.metric("Leading Layer",                  top_layer_label)
 
     st.markdown("---")
 
-    # ── Layer Momentum ────────────────────────────────────────────────────────
-    st.markdown("### Layer Momentum")
+    # ── Layer Rotation Matrix (heatmap) ───────────────────────────────────────
+    st.markdown("### 🔄 Layer Rotation Matrix")
     st.caption(
-        "Which supply-chain layer is outperforming SPY right now? "
-        "RS5/RS21/RS63 breakdown shows whether the move is early (RS5) or sustained (RS21/RS63)."
+        f"Avg per supply-chain layer vs **{us_benchmark}** | "
+        f"RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / RS63={us_w63_n:.0%} | "
+        "Sorted best→worst Composite RS"
     )
 
-    ls = (
-        us_df.groupby('layer')
-             .agg(
-                 avg_rs    = ('ai_comp_rs', 'mean'),
-                 avg_rs_1w = ('rs_1w',      'mean'),
-                 avg_rs_1m = ('rs_1m',      'mean'),
-                 avg_rs_3m = ('rs_3m',      'mean'),
-                 n         = ('ticker',     'count'),
-                 pct_sig   = ('signal', lambda x: x.isin(['BUY', 'WATCH']).mean() * 100),
-             )
-             .reset_index()
-             .sort_values('avg_rs', ascending=False)
-    )
-    max_abs_us = max(float(ls['avg_rs'].abs().max()), 0.01)
-
-    for _, row in ls.iterrows():
-        rv  = float(row['avg_rs'])
-        bw  = abs(rv) / max_abs_us * 160
-        cl  = COLORS['positive'] if rv >= 0 else COLORS['negative']
-        arr = "▲" if rv >= 0 else "▼"
-        st.markdown(
-            f'<div style="display:flex;align-items:center;gap:10px;margin:5px 0;font-size:13px">'
-            f'<span style="min-width:225px;color:{COLORS["text_primary"]}">{row["layer"]}</span>'
-            f'<div style="width:{bw:.0f}px;min-width:4px;height:14px;'
-            f'background:{cl}55;border-radius:3px;border-right:2px solid {cl}"></div>'
-            f'<span style="color:{cl};font-weight:700;min-width:72px">{arr} {abs(rv):.2f}%</span>'
-            f'<span style="color:{COLORS["text_muted"]};font-size:11px">'
-            f'RS5:{row["avg_rs_1w"]:+.1f}&nbsp;RS21:{row["avg_rs_1m"]:+.1f}'
-            f'&nbsp;RS63:{row["avg_rs_3m"]:+.1f}'
-            f'&nbsp;|&nbsp;{row["pct_sig"]:.0f}% signals&nbsp;({int(row["n"])} stocks)'
-            f'</span></div>',
-            unsafe_allow_html=True
+    layer_agg = (
+        scan_df.groupby('Layer')
+        .agg(
+            CompRS=('CompRS', 'mean'),
+            RS_Vel=('RS_Vel', 'mean'),
+            RS5vs=('RS5vs', 'mean'),
+            RS21vs=('RS21vs', 'mean'),
+            RS63vs=('RS63vs', 'mean'),
+            Count=('Ticker', 'count'),
+            Pct_Above_MA=('Above_MA', lambda x: round(x.mean() * 100, 0)),
         )
-
-    # ── Chokepoints quick-ref ─────────────────────────────────────────────────
-    st.markdown("---")
-    with st.expander("🔴 Master Chokepoints — Single Points of Failure (from dependency analysis)"):
-        CHOKE_DATA = [
-            ("ASML",  "EUV Lithography",              "L3→L4→L5→L7→L12", "None"),
-            ("SNPS",  "EDA Tools (duopoly w/ CDNS)",  "L4, L6",           "None qualified"),
-            ("CDNS",  "EDA Tools (duopoly w/ SNPS)",  "L4, L6",           "None qualified"),
-            ("KLAC",  "Process Control / Metrology",  "L3→L4",            "Near-monopoly"),
-            ("AXTI",  "InP Substrates — sole Western","L1→L8 CPO",        "Sumitomo (limited)"),
-            ("COHR",  "EML Lasers 200G/lane",         "L8",               "Lumentum only"),
-            ("LITE",  "EML Lasers 200G/lane",         "L8",               "Coherent only"),
-            ("AVGO",  "Optical DSP (w/ MRVL)",        "L8",               "Marvell partial"),
-            ("MU",    "HBM3e (oligopoly)",            "L5→L7",            "SK Hynix, Samsung"),
-            ("ETN",   "DC Power Distribution + UPS",  "L9→L11",           "Vertiv, Schneider"),
-            ("GEV",   "HV Transformers + Gas Turbines","L9→L11",          "Siemens Energy, Mitsubishi"),
-            ("PWR",   "Grid EPC — $44B backlog",      "L9→L11",           "MasTec (limited)"),
-        ]
-        choke_df = pd.DataFrame(
-            CHOKE_DATA,
-            columns=["Ticker", "What They Control", "Layers", "Alternatives"]
-        )
-        st.dataframe(choke_df, use_container_width=True, hide_index=True)
-        st.caption(
-            "Chain ranking: ASML→TSMC chain is the deepest failure cascade. "
-            "GOES steel→Transformers→Grid is the hardest physical bottleneck to fix (2028+ horizon)."
-        )
-
-    st.markdown("---")
-
-    # ── Stock Screener ────────────────────────────────────────────────────────
-    st.markdown("### Stock Screener")
-
-    fc1, fc2, fc3, fc4 = st.columns([2, 1, 1, 1])
-    us_layer_f  = fc1.multiselect(
-        "Layer", list(US_AI_UNIVERSE.keys()),
-        default=list(US_AI_UNIVERSE.keys()), key="us_layer_f"
+        .round(2)
+        .reset_index()
+        .sort_values('CompRS', ascending=False)
     )
-    us_sig_f    = fc2.multiselect(
-        "Signal", ["BUY", "WATCH", "HOLD"],
-        default=["BUY", "WATCH", "HOLD"], key="us_sig_f"
-    )
-    us_mono_min = fc3.select_slider(
-        "Min Monopoly", options=[1, 2, 3, 4, 5], value=1, key="us_mono_f"
-    )
-    us_min_rs   = fc4.slider("Min AI RS", -20.0, 10.0, -20.0, 0.5, key="us_min_rs")
 
-    fdf_us = us_df[
-        us_df['layer'].isin(us_layer_f) &
-        us_df['signal'].isin(us_sig_f) &
-        (us_df['mono_tier'] >= us_mono_min) &
-        (us_df['ai_comp_rs'] >= us_min_rs)
-    ].sort_values(['mono_tier', 'ai_comp_rs'], ascending=[False, False]).copy()
+    _metrics  = ['RS_Vel', 'RS5vs', 'RS21vs', 'RS63vs', 'CompRS']
+    _m_labels = ['RS Velocity (5D)', f'RS5 vs {us_benchmark}', f'RS21 vs {us_benchmark}',
+                 f'RS63 vs {us_benchmark}', 'Composite RS']
+    _layers   = layer_agg['Layer'].tolist()
+    _z        = layer_agg[_metrics].values.tolist()
 
-    disp_us = fdf_us.copy()
-    disp_us['yahoo_link'] = "https://finance.yahoo.com/quote/" + disp_us['ticker'] + "/"
-
-    _cm_us = [
-        ('yahoo_link',   'Stock'),
-        ('ticker',       'Ticker'),
-        ('layer',        'Layer'),
-        ('mono_label',   'Monopoly Tier'),
-        ('price',        'Price $'),
-        ('ai_comp_rs',   'AI Comp RS'),
-        ('rs_1w',        'RS5 (1W)'),
-        ('rs_1m',        'RS21 (1M)'),
-        ('rs_3m',        'RS63 (3M)'),
-        ('comp_rs',      'Std RS'),
-        ('signal',       'Signal'),
-        ('trend_score',  'Trend'),
-        ('dist_52w',     '52W Off%'),
-        ('avg_vol_b',    'Vol $B'),
+    _text = [
+        [f"{v:+.1f}" if (v is not None and not (isinstance(v, float) and np.isnan(v))) else "—"
+         for v in row]
+        for row in _z
     ]
-    av_us = [(s, d) for s, d in _cm_us if s in disp_us.columns]
-    ds_us = disp_us[[s for s, _ in av_us]].rename(columns={s: d for s, d in av_us})
 
-    _cc_us = {
-        'Stock':        st.column_config.LinkColumn("Stock", display_text="📊 Yahoo"),
-        'Price $':      st.column_config.NumberColumn("Price $",  format="$%.2f"),
-        'AI Comp RS':   st.column_config.NumberColumn(
-                            f"AI RS ({us_w5_n:.0%}/{us_w21_n:.0%}/{us_w63_n:.0%})",
-                            format="%+.2f%%",
-                            help="Custom RS vs SPY — backtest-optimal Config D weights"
-                        ),
-        'RS5 (1W)':     st.column_config.NumberColumn("RS5",   format="%+.1f%%"),
-        'RS21 (1M)':    st.column_config.NumberColumn("RS21",  format="%+.1f%%"),
-        'RS63 (3M)':    st.column_config.NumberColumn("RS63",  format="%+.1f%%"),
-        'Std RS':       st.column_config.NumberColumn("Std RS",format="%+.2f%%",
-                            help="Standard OptComp-V22: RS5=10% RS21=50% RS63=40%"),
-        'Trend':        st.column_config.ProgressColumn("Trend", min_value=0, max_value=100, format="%d"),
-        '52W Off%':     st.column_config.NumberColumn("52W Off%", format="%.1f%%"),
-        'Vol $B':       st.column_config.NumberColumn("Vol $B",   format="$%.2fB"),
-    }
+    fig_heat = go.Figure(go.Heatmap(
+        z=_z,
+        x=_m_labels,
+        y=_layers,
+        colorscale='RdYlGn',
+        zmid=0,
+        text=_text,
+        texttemplate="%{text}",
+        textfont={"size": 11},
+        showscale=True,
+        colorbar=dict(title="% vs Bench", thickness=14),
+    ))
+    fig_heat.update_layout(
+        height=max(380, len(_layers) * 44),
+        margin=dict(l=10, r=10, t=30, b=10),
+        xaxis=dict(side='top'),
+        yaxis=dict(autorange='reversed'),
+    )
+    st.plotly_chart(fig_heat, use_container_width=True)
+
+    st.markdown("---")
+
+    # ── Capex Cycle Position ───────────────────────────────────────────────────
+    st.markdown("### 📍 Capex Cycle Position")
+
+    _early_layers = [
+        'L1: InP Substrate', 'L1: SiC/GaN',
+        'L0: EDA Software', 'L0: IP Cores',
+        'L3: Equipment', 'L3: Photomasks', 'L3: Ion Implant', 'L3: Metrology',
+    ]
+    _mid_layers = [
+        'L4: Foundry', 'L5: HBM Memory',
+        'L6: Chip Design', 'L6: Custom ASIC', 'L6: Power Semi', 'L6: VRM',
+    ]
+    _late_layers = [
+        'L7: Packaging',
+        'L8: Networking', 'L8: Optics', 'L8: Connectors',
+        'L9: Power Dist', 'L9A: Power Gen', 'L9A: Nuclear', 'L9A: Fuel Cell', 'L9A: Solar',
+        'L10: Cooling', 'L10A: Water',
+        'L11: Construction', 'L11: DC REIT',
+        'L12: Hyperscaler',
+    ]
+
+    def _stage_rs(layer_list):
+        sub = scan_df[scan_df['Layer'].isin(layer_list)]
+        return sub['CompRS'].mean() if not sub.empty else 0.0
+
+    rs_early = _stage_rs(_early_layers)
+    rs_mid   = _stage_rs(_mid_layers)
+    rs_late  = _stage_rs(_late_layers)
+
+    _max_rs = max(rs_early, rs_mid, rs_late)
+    if _max_rs == rs_early:
+        _stage_label = "🌱 Early Capex Cycle"
+        _stage_desc  = "Equipment & EDA tools lead — foundries ramping capacity. **Long L3: ASML, AMAT, LRCX, KLAC.**"
+        _stage_color = "#2196F3"
+    elif _max_rs == rs_mid:
+        _stage_label = "⚡ Mid Capex Cycle"
+        _stage_desc  = "Chip production peaks — memory & custom ASIC demand surges. **Long L5-L6: NVDA, MU, AVGO, MRVL.**"
+        _stage_color = "#FF9800"
+    else:
+        _stage_label = "🏗️ Late Capex Cycle"
+        _stage_desc  = "Infrastructure buildout dominant: power, cooling, DC construction. **Long L9-L11: ETN, VRT, PWR, EQIX.**"
+        _stage_color = "#4CAF50"
+
+    st.markdown(
+        f"""<div style="background:{_stage_color}20; border-left:4px solid {_stage_color};
+        padding:14px 18px; border-radius:6px; margin-bottom:14px;">
+        <span style="font-size:1.1em; font-weight:600">{_stage_label}</span><br>
+        <span style="color:#bbb; font-size:0.95em">{_stage_desc}</span><br><br>
+        <span style="font-size:0.85em; color:#aaa">
+        🌱 Early RS: <b style="color:#ddd">{rs_early:+.1f}%</b> &nbsp;|&nbsp;
+        ⚡ Mid RS: <b style="color:#ddd">{rs_mid:+.1f}%</b> &nbsp;|&nbsp;
+        🏗️ Late RS: <b style="color:#ddd">{rs_late:+.1f}%</b>
+        </span></div>""",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("---")
+
+    # ── Entry Signals (top 3 leading layers) ─────────────────────────────────
+    st.markdown("### 🎯 Entry Signals — Leading Layer Picks")
+
+    _top3_layers = layer_agg.head(3)['Layer'].tolist()
+    entry_df = scan_df[scan_df['Layer'].isin(_top3_layers)].copy()
+    entry_df = entry_df[entry_df['RS_Vel'].notna()].copy()
+
+    def _grade(r):
+        if r['CompRS'] > 5 and r['RS_Vel'] > 0 and r['Above_MA']:
+            return "🔥 BUY"
+        if r['CompRS'] > 0 and r['Above_MA']:
+            return "👀 WATCH"
+        return "⚠️ WEAK"
+
+    entry_df['Grade'] = entry_df.apply(_grade, axis=1)
+    entry_df = entry_df.sort_values(['Grade', 'CompRS'], ascending=[True, False])
+
+    _entry_display = entry_df[
+        ['Ticker', 'Layer', 'Grade', 'CompRS', 'RS_Vel', 'RS5vs', 'RS21vs', 'Price', 'Bottleneck']
+    ].copy()
+    _entry_display.columns = ['Ticker', 'Layer', 'Signal', 'Comp RS', 'RS Vel', 'RS5 vs', 'RS21 vs', 'Price $', 'Chokepoint']
 
     st.dataframe(
-        ds_us.reset_index(drop=True),
-        column_config={k: v for k, v in _cc_us.items() if k in ds_us.columns},
+        _entry_display.reset_index(drop=True),
+        column_config={
+            'Comp RS':   st.column_config.NumberColumn("Comp RS",        format="%+.2f%%"),
+            'RS Vel':    st.column_config.NumberColumn("RS Vel (5D)",    format="%+.2f%%"),
+            'RS5 vs':    st.column_config.NumberColumn(f"RS5 vs {us_benchmark}", format="%+.1f%%"),
+            'RS21 vs':   st.column_config.NumberColumn(f"RS21 vs {us_benchmark}", format="%+.1f%%"),
+            'Price $':   st.column_config.NumberColumn("Price $",        format="$%.2f"),
+            'Chokepoint': st.column_config.TextColumn("Chokepoint"),
+        },
         use_container_width=True,
         hide_index=True,
-        height=min(len(ds_us) * 38 + 42, 700),
+        height=min(len(_entry_display) * 38 + 42, 520),
     )
+    st.caption(f"Showing top 3 layers by Composite RS | Refresh hourly | Benchmark: {us_benchmark}")
 
-    st.caption(
-        f"RS vs S&P 500 (SPY) | Weights: RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / RS63={us_w63_n:.0%} "
-        f"(backtest-optimal Config D: +70.3% CAGR, +25.5% alpha vs SMH) | Refreshes hourly"
-    )
+    st.markdown("---")
 
-    # ── Dependency chain explainer ─────────────────────────────────────────────
+    # ── Full Universe Screener (expander) ────────────────────────────────────
+    with st.expander("📋 Full Universe Screener", expanded=False):
+        fc1, fc2, fc3 = st.columns(3)
+        with fc1:
+            _sig_opts   = sorted(scan_df['Signal'].unique().tolist())
+            _sig_def    = [s for s in ['STRONG UP', 'UPTREND'] if s in _sig_opts]
+            sig_filter  = st.multiselect("Signal", _sig_opts, default=_sig_def, key="us_sig_filter")
+        with fc2:
+            layer_opts   = sorted(scan_df['Layer'].unique().tolist())
+            layer_filter = st.multiselect("Layer", layer_opts, default=[], key="us_layer_filter")
+        with fc3:
+            btn_filter   = st.selectbox("Chokepoint", ["All", "CRITICAL", "TIGHT"], key="us_btn_filter")
+
+        _filtered = scan_df.copy()
+        if sig_filter:
+            _filtered = _filtered[_filtered['Signal'].isin(sig_filter)]
+        if layer_filter:
+            _filtered = _filtered[_filtered['Layer'].isin(layer_filter)]
+        if btn_filter != "All":
+            _filtered = _filtered[_filtered['Bottleneck'] == btn_filter]
+
+        _disp_cols = ['Ticker', 'Layer', 'Bottleneck', 'Signal', 'Price',
+                      'CompRS', 'RS_Vel', 'RS5vs', 'RS21vs', 'RS63vs', 'Dist_52W']
+        _disp = _filtered[_disp_cols].copy()
+        _disp.columns = ['Ticker', 'Layer', 'Chokepoint', 'Signal', 'Price $',
+                         'Comp RS', 'RS Vel', 'RS5 vs', 'RS21 vs', 'RS63 vs', '52W Off%']
+
+        st.dataframe(
+            _disp.reset_index(drop=True),
+            column_config={
+                'Price $':  st.column_config.NumberColumn("Price $",       format="$%.2f"),
+                'Comp RS':  st.column_config.NumberColumn("Comp RS",       format="%+.2f%%"),
+                'RS Vel':   st.column_config.NumberColumn("RS Vel (5D)",   format="%+.2f%%"),
+                'RS5 vs':   st.column_config.NumberColumn(f"RS5 vs {us_benchmark}",  format="%+.1f%%"),
+                'RS21 vs':  st.column_config.NumberColumn(f"RS21 vs {us_benchmark}", format="%+.1f%%"),
+                'RS63 vs':  st.column_config.NumberColumn(f"RS63 vs {us_benchmark}", format="%+.1f%%"),
+                '52W Off%': st.column_config.NumberColumn("52W Off%",      format="%.1f%%"),
+            },
+            use_container_width=True,
+            hide_index=True,
+            height=min(len(_disp) * 38 + 42, 700),
+        )
+        st.caption(
+            f"Benchmark: {us_benchmark} | Weights: RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / "
+            f"RS63={us_w63_n:.0%} | {len(_disp)} of {len(scan_df)} stocks shown"
+        )
+
+    # ── Supply Chain Layer Map ────────────────────────────────────────────────
     with st.expander("🗺️ Supply Chain Layer Map"):
         st.markdown("""
-| Layer | What | Key Companies | Feeds Into |
+| Layer | Category | Key Companies | Feeds Into |
 |---|---|---|---|
-| **L1-L2** | Raw materials & specialty chemicals | AXTI (InP), ENTG (slurries), LIN (gases) | L3, L4, L8 |
-| **L3** | Semiconductor equipment | ASML (EUV monopoly), AMAT, LRCX, KLAC | L4, L5 |
-| **EDA** | Chip design tools | SNPS, CDNS (duopoly — no chip exists without them) | L4, L6 |
-| **L4-L6** | Foundry, chip design & memory | NVDA, AMD, AVGO, MRVL, MU, TSM | L7, L8 |
-| **L7** | Advanced packaging (CoWoS) | AMKR, KLIC | L8, L12 |
-| **L8** | Networking & photonics | COHR, LITE, MTSI, FN, APH | L12 |
-| **L9-L10** | Power & cooling | ETN, VRT, GEV, PWR, NVT | L11, L12 |
-| **L11** | DC construction & REITs | EQIX, DLR, CEG, CCJ, EME | L12 |
-| **L12** | Hyperscalers (demand signal) | MSFT, AMZN, GOOGL, META | Revenue |
+| **L0** | EDA & IP Cores | SNPS, CDNS (duopoly), ARM | L4, L6 |
+| **L1-L2** | Raw materials & substrates | AXTI (InP), WOLF (SiC), ENTG | L3, L8 |
+| **L3** | Semiconductor equipment | ASML (EUV monopoly), AMAT, LRCX, KLAC, ACLS | L4, L5 |
+| **L4-L5** | Foundry & memory | TSM (INTC, GFS), MU (HBM) | L6, L7 |
+| **L6** | Chip design | NVDA, AMD, AVGO, MRVL, MPWR, ON | L7, L8 |
+| **L7** | Advanced packaging | AMKR, KLIC | L8, L12 |
+| **L8** | Networking & optics | ANET, COHR, LITE, MTSI, FN, APH | L12 |
+| **L9-L10** | Power & cooling | ETN, VRT, GEV, PWR, NVT, ECL | L11, L12 |
+| **L11** | DC construction & REITs | EQIX, DLR, EME, FIX, CEG, CCJ | L12 |
+| **L12** | Hyperscalers (demand signal) | MSFT, AMZN, GOOGL, META, ORCL | Revenue |
 
-**Key insight:** L12 depends on ALL layers. A disruption anywhere in L1→L11 propagates upward.
-ASML→TSMC is the deepest serial monopoly (2 chokepoints in series). Power (L9) is the #1 rate limiter for near-term AI scaling.
+**Rotation insight:** L3 Equipment leads at the start of each capex wave (new fab orders).  
+L6 Chips peak mid-cycle. L9-L11 Power/Infra run late as sites come online.  
+ASML→TSM is the deepest serial chokepoint — 2 CRITICAL monopolies in series.  
+Power (L9) is the #1 near-term rate limiter for AI scaling.
         """)
 
+    with st.expander("ℹ️ RS Weight Tuning Guide"):
+        st.markdown(f"""
+**Standard OptComp-V22:** RS5 = 10%, RS21 = 50%, RS63 = 40%
 
+**AI Supply Chain (current):** RS5 = {us_w5_n:.0%}, RS21 = {us_w21_n:.0%}, RS63 = {us_w63_n:.0%}
+
+AI datacenter is a **fast-rotating, news-driven theme.** The 3-month (RS63) lookback often
+includes time *before* the theme ignited, diluting the signal. Elevating RS5 catches
+fresh rotations earlier; RS21 stays dominant as the medium-term confirmation window.
+
+**Config D (backtest-optimal):** RS5=30% / RS21=50% / RS63=20% — +70.3% CAGR, +25.5% alpha vs SMH, Sharpe 4.48
+
+**Rotation Matrix** shows which supply-chain layer cluster is currently "in play" so you
+can size into the right pocket before the rotation broadens.
+        """)
