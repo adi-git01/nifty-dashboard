@@ -591,7 +591,7 @@ elif page == "🚀 Live Trading Desk":
             
             @st.cache_data(ttl=3600)
             def get_fast_histories(tickers):
-                d = yf.download(tickers, period="3mo", group_by='ticker', threads=True, progress=False)
+                d = yf.download(tickers, period="3mo", group_by='ticker', threads=False, progress=False, auto_adjust=True)
                 hists = {}
                 for t in tickers:
                     if t in d.columns.get_level_values(0):
@@ -689,12 +689,16 @@ elif page == "🌊 Trend Scanner":
             # Load Equity Curve for returns
             live_return_pct = 0.0
             equity_val = 1000000
-            
+
+            # Read initial capital from snapshot config so it stays in sync
+            # with INITIAL_CAPITAL in dna3_current_portfolio.py
+            _dna3_cfg = dna3_data.get('config', {})
+            start_eq = float(_dna3_cfg.get('initial_capital', 1_000_000))
+
             if os.path.exists(DNA3_EQUITY):
                 eq_df = pd.read_csv(DNA3_EQUITY)
                 if not eq_df.empty:
                     last_eq = eq_df['Equity'].iloc[-1]
-                    start_eq = 1000000
                     live_return_pct = (last_eq - start_eq) / start_eq * 100
                     equity_val = last_eq
 
@@ -717,15 +721,15 @@ elif page == "🌊 Trend Scanner":
                     # Fetch Nifty data for same period
                     start_str = eq_chart_df['Date'].iloc[0].strftime('%Y-%m-%d')
                     try:
-                        nifty_eq = yf.download("^NSEI", start=start_str, progress=False)
+                        nifty_eq = yf.download("^NSEI", start=start_str, progress=False,
+                                               threads=False, auto_adjust=True)
                         if isinstance(nifty_eq.columns, pd.MultiIndex):
                             nifty_eq.columns = nifty_eq.columns.get_level_values(0)
                         if nifty_eq.index.tz is not None:
                             nifty_eq.index = nifty_eq.index.tz_localize(None)
                         
-                        # Normalize both to 100 at inception
-                        port_base = eq_chart_df['Equity'].iloc[0]
-                        port_norm = eq_chart_df['Equity'] / port_base * 100
+                        # Normalize both to 100 at inception (same base as hero card)
+                        port_norm = eq_chart_df['Equity'] / start_eq * 100
                         
                         # Match Nifty to portfolio dates
                         nifty_close = nifty_eq['Close'].reindex(eq_chart_df['Date'].values, method='ffill')
@@ -840,7 +844,8 @@ elif page == "🌊 Trend Scanner":
                             # Fast inline refresh: only fetch held tickers (~10 stocks)
                             held_tickers = [p['Ticker'] for p in dna3_data.get('portfolio', [])]
                             if held_tickers:
-                                live_prices = yf.download(held_tickers, period="100d", group_by='ticker', threads=True, progress=False)
+                                live_prices = yf.download(held_tickers, period="100d", group_by='ticker',
+                                                         threads=False, progress=False, auto_adjust=True)
                                 nifty_hist = yf.Ticker("^NSEI").history(period="100d")
                                 if nifty_hist.index.tz is not None:
                                     nifty_hist.index = nifty_hist.index.tz_localize(None)
@@ -864,12 +869,14 @@ elif page == "🌊 Trend Scanner":
                                             ma50 = float(stock_df['Close'].rolling(50).mean().iloc[-1])
                                             dist_ma50 = (curr_price - ma50) / ma50 * 100
                                             
-                                            # Composite RS calculation
+                                            # Composite RS: iloc[-(period+1)] gives exactly
+                                            # `period` trading-day intervals (same convention
+                                            # as fast_data_engine searchsorted approach)
                                             rs_total = 0.0
                                             for period, weight in rs_weights:
-                                                if len(stock_df) >= period + 1 and len(nifty_hist) >= period + 1:
-                                                    rs_stock = (curr_price / float(stock_df['Close'].iloc[-period]) - 1)
-                                                    rs_nifty = (nifty_price / float(nifty_hist['Close'].iloc[-period]) - 1)
+                                                if len(stock_df) >= period + 2 and len(nifty_hist) >= period + 2:
+                                                    rs_stock = (curr_price / float(stock_df['Close'].iloc[-(period + 1)]) - 1)
+                                                    rs_nifty = (nifty_price / float(nifty_hist['Close'].iloc[-(period + 1)]) - 1)
                                                     rs_total += (rs_stock - rs_nifty) * 100 * weight
                                             
                                             entry_price = dna3_data['holdings'].get(t, {}).get('entry_price', p.get('Entry', curr_price))
@@ -4665,16 +4672,97 @@ elif page == "\U0001f3af Turnaround Radar":
     min_ias      = fcols[2].slider("Min IAS", 35, 90, 35)
     search       = fcols[3].text_input("Search ticker or sub-industry")
 
+    # --- Range filters (numeric columns) ---
+    _WL_RF_DEFS = [
+        # (column,          label,              step)
+        ("IAS",            "IAS Score",         1.0),
+        ("CompRS",         "CompRS",            0.01),
+        ("RS21",           "RS21 %",            1.0),
+        ("RS63",           "RS63 %",            1.0),
+        ("Off_MA50",       "Off MA50 %",        1.0),
+        ("Off_52W_High",   "Off 52W High %",    1.0),
+        ("V21_CRS_Gap",    "V21 CRS Gap",       0.01),
+        ("V21_MA50_Gap",   "V21 MA50 Gap %",    1.0),
+        ("Liq5Cr",         "Liq 5Cr ₹Cr",      5.0),
+        ("LiqFromLow",     "Liq From Low ×",    0.5),
+        ("VolQuality",     "Vol Quality",       0.05),
+    ]
+
+    with st.expander("🎚️ Range Filters", expanded=False):
+        import math as _wl_math
+        _wl_range_vals: dict = {}
+        _wl_rf_avail = [(c, lbl, step) for c, lbl, step in _WL_RF_DEFS if c in wdf.columns]
+        _WL_N_COLS = 4
+        for _ri in range(0, len(_wl_rf_avail), _WL_N_COLS):
+            _row = _wl_rf_avail[_ri: _ri + _WL_N_COLS]
+            _rcols = st.columns(_WL_N_COLS)
+            for _j, (col, lbl, step) in enumerate(_row):
+                _s = pd.to_numeric(wdf[col], errors="coerce").dropna()
+                if len(_s) < 1:
+                    continue
+                _lo = _wl_math.floor(float(_s.min()) / step) * step
+                _hi = _wl_math.ceil( float(_s.max()) / step) * step
+                if _hi <= _lo:
+                    _hi = _lo + step
+                with _rcols[_j]:
+                    _sel = st.slider(lbl, min_value=_lo, max_value=_hi,
+                                     value=(_lo, _hi), step=step, key=f"wl_rf_{col}")
+                    _wl_range_vals[col] = _sel
+
     fdf = wdf[
         wdf["Tier"].isin(tier_filter) &
         wdf["Cycle"].isin(cycle_filter) &
         (wdf["IAS"] >= min_ias)
     ].copy()
+
+    # Apply numeric range filters
+    for _col, (_lo_sel, _hi_sel) in _wl_range_vals.items():
+        _num = pd.to_numeric(fdf[_col], errors="coerce")
+        fdf = fdf[_num.between(_lo_sel, _hi_sel, inclusive="both") | _num.isna()]
+
     if search:
         fdf = fdf[
             fdf["Ticker"].str.contains(search.upper(), na=False) |
             fdf["Sub_Industry"].str.contains(search, case=False, na=False)
         ]
+
+    # --- Lifecycle explainer ---
+    with st.expander("ℹ️ How stocks enter, graduate & drop from the IAS watchlist"):
+        st.markdown("""
+**Entry — IAS ≥ 35, price below MA50**
+
+A stock enters the watchlist when `IAS ≥ 35`. IAS (Institutional Accumulation Score) combines
+RS velocity, liquidity surge from the low, and volume quality — all must confirm simultaneous
+early buying *while the stock is still below MA50* (not yet a V21 breakout, just radar ping).
+
+| Tier | IAS range | Meaning |
+|---|---|---|
+| 🔵 WATCH | 35–59 | Early institutional ping — set a price alert at MA50 |
+| 🟡 READY | 60–79 | RS velocity confirmed, liquidity floor stable — getting warm |
+| 🟢 ALERT | 80+ | RS21 + RS63 both turning, strong liq floor — imminent V21, ready to fire |
+
+**Graduation → GRADUATED (locked permanently)**
+
+When **both** conditions are met on any screener run:
+1. `Off_MA50 ≥ 0` — price has crossed *above* the 50-day MA
+2. `CompRS > 0` — stock is outperforming the benchmark
+
+This is the V21 breakout trigger. The stock is logged as GRADUATED in the IAS Signal Log
+and promoted to the main portfolio scanner. Status can **never** be reverted — once a grad, always a grad.
+
+**V21 CRS Gap & V21 MA50 Gap** tell you exactly how far each stock is from graduating:
+- `V21 CRS Gap = 0` → CompRS is already positive (half-done)
+- `V21 MA50 Gap % = 0` → price is at MA50 (half-done)
+- Both zero → next run may graduate it
+
+**Drop → DROPPED**
+
+When the stock disappears from the daily scan (IAS falls below 35 — accumulation signal evaporated)
+**and** it hasn't already GRADUATED. Typically means the smart-money move reversed or was a false signal.
+DROPPED stocks are tracked in the Signal Log for post-mortem analysis.
+
+**Typical holding time:** 2–12 weeks from ALERT to graduation. WATCH stocks can take months.
+        """)
 
     # --- Watchlist table ---
     st.markdown(f"### Watchlist ({len(fdf)} stocks)")
@@ -4779,6 +4867,97 @@ elif page == "\U0001f3af Turnaround Radar":
         st.info("No signal log yet. The log is created automatically after the next screener run.")
     else:
         log_df = pd.read_csv(LOG_CSV_PATH)
+
+        # ── Live price refresh ────────────────────────────────────────────────
+        # The screener only runs daily via GitHub Actions; refresh current_price
+        # here so the tracker always shows today's prices, not the stale CSV value.
+
+        # Fast path: use prices already loaded in the Trend Scanner session state
+        _md_sess = st.session_state.get('market_data', pd.DataFrame())
+        _md_prices: dict = {}
+        if (isinstance(_md_sess, pd.DataFrame) and not _md_sess.empty
+                and 'ticker' in _md_sess.columns and 'price' in _md_sess.columns):
+            _md_prices = (
+                _md_sess.dropna(subset=['price'])
+                        .set_index('ticker')['price']
+                        .to_dict()
+            )
+
+        @st.cache_data(ttl=1800, show_spinner=False)
+        def _fetch_turnaround_live_prices(tickers_t: tuple) -> dict:
+            """Batch-download last-close for log tickers not already in market_data."""
+            if not tickers_t:
+                return {}
+            try:
+                raw = yf.download(
+                    list(tickers_t), period="5d",
+                    threads=False, progress=False, auto_adjust=True
+                )
+                if raw is None or raw.empty:
+                    return {}
+                close = (raw["Close"] if isinstance(raw.columns, pd.MultiIndex)
+                         else raw.rename(columns={raw.columns[0]: tickers_t[0]
+                                                  if len(tickers_t) == 1 else raw.columns[0]}))
+                result = {}
+                for t in tickers_t:
+                    try:
+                        s = close[t].dropna() if t in close.columns else pd.Series(dtype=float)
+                        if not s.empty:
+                            result[t] = round(float(s.iloc[-1]), 2)
+                    except Exception:
+                        pass
+                return result
+            except Exception:
+                return {}
+
+        _log_tickers_all = log_df["ticker"].dropna().unique().tolist()
+        _need_yf = tuple(t for t in _log_tickers_all if t not in _md_prices)
+
+        _col_btn, _col_info = st.columns([1, 4])
+        with _col_btn:
+            if st.button("🔄 Refresh Prices", key="turnaround_refresh_prices"):
+                st.cache_data.clear()
+                st.rerun()
+        with _col_info:
+            _src_note = (
+                f"Prices from session data ({len(_md_prices)} tickers) "
+                + (f"+ live fetch ({len(_need_yf)} tickers)" if _need_yf else "")
+            )
+            st.caption(_src_note)
+
+        with st.spinner("Fetching live prices for signal log…"):
+            _yf_prices = _fetch_turnaround_live_prices(_need_yf)
+
+        _all_live: dict = {**_yf_prices, **_md_prices}  # md_prices wins (fresher)
+
+        # Vectorised update of current_price, return_since_signal, max_gain, xirr
+        log_df["_live"] = log_df["ticker"].map(_all_live)
+        _sig_p = pd.to_numeric(log_df["signal_price"], errors="coerce")
+        _live_p = pd.to_numeric(log_df["_live"], errors="coerce")
+        _has = _live_p.notna() & (_live_p > 0) & _sig_p.notna() & (_sig_p > 0)
+
+        if _has.any():
+            log_df.loc[_has, "current_price"] = _live_p[_has].round(1)
+            _ret = ((_live_p[_has] / _sig_p[_has]) - 1) * 100
+            log_df.loc[_has, "return_since_signal"] = _ret.round(1)
+            _prev_max = pd.to_numeric(log_df.loc[_has, "max_gain"], errors="coerce").fillna(0)
+            log_df.loc[_has, "max_gain"] = _ret.where(_ret > _prev_max, _prev_max).round(1)
+
+            # XIRR (row-by-row: depends on days elapsed per signal_date)
+            _today = datetime.now()
+            for _idx in log_df.index[_has]:
+                try:
+                    _days = (_today - datetime.strptime(
+                        str(log_df.at[_idx, "signal_date"])[:10], "%Y-%m-%d")).days
+                    _sp = float(log_df.at[_idx, "signal_price"])
+                    _cp = float(log_df.at[_idx, "_live"])
+                    if _days >= 1 and _sp > 0 and _cp > 0:
+                        log_df.at[_idx, "xirr"] = round(
+                            ((_cp / _sp) ** (365.0 / _days) - 1) * 100, 1)
+                except Exception:
+                    pass
+
+        log_df = log_df.drop(columns=["_live"])
 
         # ── Categorical filters + sort ────────────────────────────────────────
         col_f1, col_f2, col_f3 = st.columns(3)

@@ -248,11 +248,14 @@ class OptCompV21Engine:
 
         rs_total = 0.0
         for period, weight in RS_WEIGHTS:
-            if len(df) < period + 1 or len(nifty) < period + 1:
+            # Use iloc[-(period+1)] so the base price is exactly `period`
+            # trading-day intervals before today (iloc[-1]).
+            # iloc[-period] gives only period-1 intervals — off by one day.
+            if len(df) < period + 2 or len(nifty) < period + 2:
                 return None
-            stock_past = df['Close'].iloc[-period]
-            nifty_past = nifty['Close'].iloc[-period]
-            
+            stock_past = df['Close'].iloc[-(period + 1)]
+            nifty_past = nifty['Close'].iloc[-(period + 1)]
+
             rs_stock = (price / stock_past - 1)
             rs_nifty = (nifty_price / nifty_past - 1)
             rs_total += (rs_stock - rs_nifty) * 100 * weight
@@ -715,6 +718,7 @@ class OptCompV21Engine:
             'recently_exited': recently_exited,
             'last_dd_alert_date': state.get('last_dd_alert_date', ''),
             'config': {
+                'initial_capital': INITIAL_CAPITAL,
                 'rs_weights': RS_WEIGHTS,
                 'rebalance_days': rebal_days,
                 'max_positions': MAX_POSITIONS,
