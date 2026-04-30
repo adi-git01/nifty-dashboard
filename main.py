@@ -44,6 +44,7 @@ from utils.market_breadth import render_breadth_widget
 from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_market_data
 from utils.live_desk import get_cyclicity, get_seasonal_guideline
 from utils.theme_engine import ThemeEngine, AI_CAPEX_THEME
+from utils.us_data_engine import fetch_us_market_data, load_sp500_universe
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -349,7 +350,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -5703,3 +5704,351 @@ fresh rotations earlier; RS21 stays dominant as the medium-term confirmation win
 **Rotation Matrix** shows which supply-chain layer cluster is currently "in play" so you
 can size into the right pocket before the rotation broadens.
         """)
+
+
+# ---------------------------------------------------------------------------
+# US SCANNER PAGE
+# ---------------------------------------------------------------------------
+elif page == "🇺🇸 US Scanner":
+
+    st.markdown(page_header("🇺🇸 S&P 500 Momentum Scanner", "OptComp RS • Sector Heatmap • Sub-Industry Matrix | Powered by SPY Benchmark"), unsafe_allow_html=True)
+
+    # --- Sidebar controls ---
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**🇺🇸 US Scanner Settings**")
+    us_scan_benchmark = st.sidebar.selectbox(
+        "Benchmark",
+        ["SPY", "QQQ", "IWM"],
+        index=0,
+        key="us_scan_bm",
+        help="SPY = S&P 500 | QQQ = Nasdaq 100 | IWM = Russell 2000"
+    )
+    st.sidebar.markdown("**RS Weights (Config D)**")
+    us_s_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_s_w5")
+    us_s_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_s_w21")
+    us_s_w63_n = round(1.0 - us_s_w5 - us_s_w21, 4)
+    st.sidebar.caption(f"RS63 auto-set to **{us_s_w63_n:.0%}**")
+    if us_s_w63_n < 0:
+        st.sidebar.error("Weights exceed 100% — reduce RS5 or RS21")
+        us_s_w63_n = 0.0
+
+    us_live_mode = st.sidebar.checkbox("Live Mode (bypass cache)", value=False, key="us_scan_live")
+
+    # --- Cached fetch wrapper ---
+    @st.cache_data(ttl=3600, show_spinner=False)
+    def _run_us_scan(benchmark: str, w5: float, w21: float, w63: float, live: bool) -> pd.DataFrame:
+        weights = [(5, w5), (21, w21), (63, w63)]
+        return fetch_us_market_data(benchmark=benchmark, rs_weights=weights, live_mode=live)
+
+    with st.spinner("Downloading S&P 500 data…  (first load ~60 s, then cached)"):
+        us_df = _run_us_scan(us_scan_benchmark, us_s_w5, us_s_w21, us_s_w63_n, us_live_mode)
+
+    if us_df.empty:
+        st.error("Failed to load US market data. Check internet connection or try Live Mode.")
+        st.stop()
+
+    # Ensure required columns exist
+    for col in ["comp_rs", "volatility", "dna_signal", "sub_industry", "dist_200dma",
+                "rs_5d", "rs_21d", "rs_63d"]:
+        if col not in us_df.columns:
+            us_df[col] = None
+
+    # ── QUICK STATS ──────────────────────────────────────────────────────────
+    qs1, qs2, qs3, qs4 = st.columns(4)
+    _strong = len(us_df[us_df["trend_signal"] == "STRONG UPTREND"])
+    _uptrend = len(us_df[us_df["trend_signal"].isin(["STRONG UPTREND", "UPTREND"])])
+    _avg_ts = us_df["trend_score"].mean()
+    _breakouts = len(us_df[us_df["dist_52w"] > -2.0])
+    qs1.metric("🚀 Strong Momentum", f"{_strong}", help="Trend Score ≥ 75")
+    qs2.metric("📈 Total Uptrends", f"{_uptrend}")
+    qs3.metric("📊 Avg Trend Score", f"{_avg_ts:.0f}/100")
+    qs4.metric("🔥 Breakout Alerts", f"{_breakouts}", help="Within 2% of 52W High")
+
+    st.markdown("---")
+
+    # ── SECTOR RS HEATMAP ────────────────────────────────────────────────────
+    with st.expander("🗺️ **Sector RS Heatmap**", expanded=True):
+        _sec_grp = (
+            us_df.groupby("sector")[["rs_5d", "rs_21d", "rs_63d", "comp_rs", "trend_score"]]
+            .mean()
+            .round(2)
+            .reset_index()
+        )
+        _sec_grp = _sec_grp.sort_values("comp_rs", ascending=False)
+
+        if not _sec_grp.empty:
+            _heat_z  = _sec_grp[["rs_5d", "rs_21d", "rs_63d", "comp_rs"]].values.tolist()
+            _heat_y  = _sec_grp["sector"].tolist()
+            _heat_x  = ["RS5 (1W)", "RS21 (1M)", "RS63 (3M)", "CompRS"]
+            _heat_txt = [[f"{v:+.1f}" for v in row] for row in _heat_z]
+
+            fig_heat = go.Figure(go.Heatmap(
+                z=_heat_z,
+                x=_heat_x,
+                y=_heat_y,
+                text=_heat_txt,
+                texttemplate="%{text}",
+                colorscale="RdYlGn",
+                zmid=0,
+                showscale=True,
+                colorbar=dict(title="RS %", thickness=12),
+            ))
+            fig_heat.update_layout(
+                template="plotly_dark",
+                height=420,
+                margin=dict(l=200, r=20, t=30, b=30),
+                xaxis=dict(side="top"),
+            )
+            st.plotly_chart(fig_heat, use_container_width=True, key="us_sector_heatmap")
+
+            # Sector table
+            st.dataframe(
+                _sec_grp.rename(columns={
+                    "sector": "Sector", "rs_5d": "RS5 (1W)", "rs_21d": "RS21 (1M)",
+                    "rs_63d": "RS63 (3M)", "comp_rs": "CompRS", "trend_score": "Avg Trend"
+                }),
+                column_config={
+                    "RS5 (1W)":  st.column_config.NumberColumn(format="%+.2f%%"),
+                    "RS21 (1M)": st.column_config.NumberColumn(format="%+.2f%%"),
+                    "RS63 (3M)": st.column_config.NumberColumn(format="%+.2f%%"),
+                    "CompRS":    st.column_config.NumberColumn(format="%+.2f%%"),
+                    "Avg Trend": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.0f"),
+                },
+                hide_index=True,
+                use_container_width=True,
+            )
+
+    # ── TOP MOVERS TAPE ──────────────────────────────────────────────────────
+    _top8 = us_df.nlargest(8, "trend_score")[["ticker", "trend_score", "currentPrice"]]
+    _tape_html = " &nbsp;•&nbsp; ".join([
+        f"<span style='color:#34C759;font-weight:600'>{r['ticker']}</span>"
+        f" <span style='color:#888'>${r['currentPrice']:.1f}</span>"
+        f" <span style='background:rgba(52,199,89,0.2);padding:2px 8px;border-radius:10px;color:#34C759'>{r['trend_score']}</span>"
+        for _, r in _top8.iterrows()
+    ])
+    st.markdown(
+        f"""<div style="background:rgba(255,255,255,0.03);padding:12px 20px;border-radius:8px;
+                        overflow-x:auto;white-space:nowrap;border:1px solid rgba(255,255,255,0.1);">
+            <span style='color:#FFD700;margin-right:10px'>🔥 TOP MOVERS:</span> {_tape_html}
+        </div>""",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── BREAKOUT ALERTS ───────────────────────────────────────────────────────
+    _bkouts = us_df[us_df["dist_52w"] > -2.0].copy()
+    if not _bkouts.empty:
+        with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
+            _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
+            _bkouts_s["yf_link"] = "https://finance.yahoo.com/quote/" + _bkouts_s["ticker"]
+            st.dataframe(
+                _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
+                column_config={
+                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.+)"),
+                    "name":         "Company",
+                    "currentPrice": st.column_config.NumberColumn("Price", format="$%.2f"),
+                    "dist_52w":     st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
+                    "trend_score":  st.column_config.ProgressColumn("Trend", min_value=0, max_value=100),
+                    "overall":      st.column_config.NumberColumn("Score", format="%.1f"),
+                },
+                hide_index=True,
+                height=300,
+            )
+
+    # ── FILTERS ───────────────────────────────────────────────────────────────
+    with st.expander("⚡ Filter", expanded=True):
+        ff1, ff2 = st.columns([1, 2])
+        with ff1:
+            us_search = st.text_input("🔍 Search", placeholder="AAPL, Apple…", key="us_search")
+        with ff2:
+            _us_sectors = sorted(us_df["sector"].fillna("Unknown").unique().tolist())
+            us_sel_sector = st.multiselect("Sector (Empty = All)", _us_sectors, default=[], key="us_sectors")
+
+        ff3, ff4 = st.columns(2)
+        with ff3:
+            us_min_score = st.slider("Min Trend Score", 0, 100, 0, key="us_min_score")
+        with ff4:
+            _sig_opts = ["STRONG UPTREND", "UPTREND", "NEUTRAL", "DOWNTREND", "STRONG DOWNTREND"]
+            us_sig_filter = st.multiselect("Signal", _sig_opts, default=_sig_opts, key="us_sig_filter")
+
+        st.markdown("---")
+        st.markdown("**🔬 Fundamental Filters**")
+        uf1, uf2, uf3, uf4 = st.columns(4)
+        with uf1:
+            us_min_quality = st.slider("Min Quality", 0, 10, 0, key="us_min_qual")
+        with uf2:
+            us_min_value = st.slider("Min Value", 0, 10, 0, key="us_min_val")
+        with uf3:
+            us_min_growth = st.slider("Min Growth", 0, 10, 0, key="us_min_growth")
+        with uf4:
+            us_min_vol = st.slider("Min Volume Score", 0, 10, 0, key="us_min_vol")
+
+    # Apply filters
+    us_fdf = us_df.copy()
+    if us_search:
+        _q = us_search.lower()
+        us_fdf = us_fdf[
+            us_fdf["ticker"].str.lower().str.contains(_q) |
+            us_fdf["name"].str.lower().str.contains(_q)
+        ]
+    if us_sel_sector:
+        us_fdf = us_fdf[us_fdf["sector"].isin(us_sel_sector)]
+    us_fdf = us_fdf[us_fdf["trend_score"] >= us_min_score]
+    if us_sig_filter:
+        us_fdf = us_fdf[us_fdf["trend_signal"].isin(us_sig_filter)]
+    if us_min_quality > 0 and "quality" in us_fdf.columns:
+        us_fdf = us_fdf[us_fdf["quality"] >= us_min_quality]
+    if us_min_value > 0 and "value" in us_fdf.columns:
+        us_fdf = us_fdf[us_fdf["value"] >= us_min_value]
+    if us_min_growth > 0 and "growth" in us_fdf.columns:
+        us_fdf = us_fdf[us_fdf["growth"] >= us_min_growth]
+    if us_min_vol > 0 and "volume_signal_score" in us_fdf.columns:
+        us_fdf = us_fdf[us_fdf["volume_signal_score"] >= us_min_vol]
+
+    # Dynamic column filter
+    with st.expander("🌪️ **Custom Column Filter**", expanded=False):
+        dc1, dc2, dc3 = st.columns([2, 1, 2])
+        with dc1:
+            us_filter_col = st.selectbox(
+                "Filter Column",
+                ["RS Score (vs SPY)", "Volatility", "Trend Score", "Distance from 52W High", "Price"],
+                key="us_dyn_col",
+            )
+        _us_col_map = {
+            "RS Score (vs SPY)": "comp_rs",
+            "Volatility": "volatility",
+            "Trend Score": "trend_score",
+            "Distance from 52W High": "dist_52w",
+            "Price": "currentPrice",
+        }
+        _us_tcol = _us_col_map[us_filter_col]
+        with dc3:
+            try:
+                _dmin = float(us_fdf[_us_tcol].min()) if _us_tcol in us_fdf and us_fdf[_us_tcol].notna().any() else 0.0
+                _dmax = float(us_fdf[_us_tcol].max()) if _us_tcol in us_fdf and us_fdf[_us_tcol].notna().any() else 100.0
+                if _dmin == _dmax:
+                    _dmax += 1.0
+            except Exception:
+                _dmin, _dmax = 0.0, 100.0
+            us_dyn_range = st.slider(f"{us_filter_col} Range", _dmin, _dmax, (_dmin, _dmax), key="us_dyn_range")
+        if _us_tcol in us_fdf.columns and (us_dyn_range[0] > _dmin or us_dyn_range[1] < _dmax):
+            us_fdf = us_fdf[
+                ((us_fdf[_us_tcol] >= us_dyn_range[0]) & (us_fdf[_us_tcol] <= us_dyn_range[1])) |
+                us_fdf[_us_tcol].isna()
+            ]
+            st.caption(f"Showing {len(us_fdf)} stocks with {us_filter_col} between {us_dyn_range[0]:.1f} and {us_dyn_range[1]:.1f}")
+
+    # ── MAIN TABLE ────────────────────────────────────────────────────────────
+    if us_fdf.empty:
+        st.warning("No stocks match the current filters.")
+    else:
+        st.subheader(f"Found {len(us_fdf)} US Momentum Stocks")
+
+        _EMOJI = {
+            "STRONG UPTREND": "🟢", "UPTREND": "🔵",
+            "NEUTRAL": "🟡", "DOWNTREND": "🟠", "STRONG DOWNTREND": "🔴",
+        }
+        us_fdf = us_fdf.copy()
+        us_fdf["signal_display"] = us_fdf["trend_signal"].map(
+            lambda s: f"{_EMOJI.get(s, '')} {s}" if s else s
+        )
+        us_fdf["yf_link"] = "https://finance.yahoo.com/quote/" + us_fdf["ticker"]
+
+        _us_disp = [
+            "yf_link", "name", "sector", "sub_industry", "currentPrice",
+            "signal_display", "trend_score", "comp_rs", "rs_5d", "rs_21d", "rs_63d",
+            "volatility", "dna_signal", "dist_52w", "dist_200dma",
+            "quality", "value", "growth", "momentum", "volume_signal_score",
+        ]
+        _us_disp = [c for c in _us_disp if c in us_fdf.columns]
+
+        st.dataframe(
+            us_fdf[_us_disp].sort_values("trend_score", ascending=False),
+            column_config={
+                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.+)"),
+                "name":              "Company",
+                "sector":            "Sector",
+                "sub_industry":      "Sub-Industry",
+                "currentPrice":      st.column_config.NumberColumn("Price", format="$%.2f"),
+                "signal_display":    st.column_config.TextColumn("Signal"),
+                "trend_score":       st.column_config.ProgressColumn("Trend", format="%d", min_value=0, max_value=100),
+                "comp_rs":           st.column_config.NumberColumn("CompRS", format="%+.1f%%", help="Composite RS vs benchmark"),
+                "rs_5d":             st.column_config.NumberColumn("RS5 (1W)", format="%+.1f%%"),
+                "rs_21d":            st.column_config.NumberColumn("RS21 (1M)", format="%+.1f%%"),
+                "rs_63d":            st.column_config.NumberColumn("RS63 (3M)", format="%+.1f%%"),
+                "volatility":        st.column_config.NumberColumn("Volatility", format="%.0f%%"),
+                "dna_signal":        st.column_config.TextColumn("Signal"),
+                "dist_52w":          st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
+                "dist_200dma":       st.column_config.NumberColumn("% vs 200DMA", format="%.1f%%"),
+                "quality":           st.column_config.ProgressColumn("Quality", min_value=0, max_value=10, format="%.1f"),
+                "value":             st.column_config.ProgressColumn("Value",   min_value=0, max_value=10, format="%.1f"),
+                "growth":            st.column_config.ProgressColumn("Growth",  min_value=0, max_value=10, format="%.1f"),
+                "momentum":          st.column_config.ProgressColumn("Momentum",min_value=0, max_value=10, format="%.1f"),
+                "volume_signal_score": st.column_config.ProgressColumn("Volume", min_value=0, max_value=10, format="%.1f"),
+            },
+            height=520,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    # ── SUB-INDUSTRY MATRIX ───────────────────────────────────────────────────
+    st.markdown("---")
+    with st.expander("🔬 **Sub-Industry RS Matrix**", expanded=True):
+        if "sub_industry" in us_df.columns:
+            _sub_grp = (
+                us_df.groupby(["sector", "sub_industry"])[["rs_5d", "rs_21d", "rs_63d", "comp_rs", "trend_score"]]
+                .mean()
+                .round(2)
+                .reset_index()
+                .sort_values("comp_rs", ascending=False)
+            )
+
+            if not _sub_grp.empty:
+                # Heatmap: sub-industries (rows) × RS metrics (cols)
+                _sub_z   = _sub_grp[["rs_5d", "rs_21d", "rs_63d", "comp_rs"]].values.tolist()
+                _sub_y   = [f"{r['sector']} — {r['sub_industry']}" for _, r in _sub_grp.iterrows()]
+                _sub_x   = ["RS5 (1W)", "RS21 (1M)", "RS63 (3M)", "CompRS"]
+                _sub_txt = [[f"{v:+.1f}" for v in row] for row in _sub_z]
+
+                fig_sub = go.Figure(go.Heatmap(
+                    z=_sub_z,
+                    x=_sub_x,
+                    y=_sub_y,
+                    text=_sub_txt,
+                    texttemplate="%{text}",
+                    colorscale="RdYlGn",
+                    zmid=0,
+                    showscale=True,
+                    colorbar=dict(title="RS %", thickness=12),
+                ))
+                _sub_h = max(500, len(_sub_y) * 22)
+                fig_sub.update_layout(
+                    template="plotly_dark",
+                    height=_sub_h,
+                    margin=dict(l=280, r=20, t=30, b=30),
+                    xaxis=dict(side="top"),
+                )
+                st.plotly_chart(fig_sub, use_container_width=True, key="us_sub_industry_heatmap")
+
+                # Summary table
+                _sub_disp = _sub_grp.rename(columns={
+                    "sector": "Sector", "sub_industry": "Sub-Industry",
+                    "rs_5d": "RS5", "rs_21d": "RS21", "rs_63d": "RS63",
+                    "comp_rs": "CompRS", "trend_score": "Avg Trend",
+                })
+                st.dataframe(
+                    _sub_disp,
+                    column_config={
+                        "RS5":       st.column_config.NumberColumn(format="%+.2f%%"),
+                        "RS21":      st.column_config.NumberColumn(format="%+.2f%%"),
+                        "RS63":      st.column_config.NumberColumn(format="%+.2f%%"),
+                        "CompRS":    st.column_config.NumberColumn(format="%+.2f%%"),
+                        "Avg Trend": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.0f"),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    height=400,
+                )
+        else:
+            st.caption("Sub-industry data not available.")
+
