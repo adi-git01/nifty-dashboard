@@ -591,7 +591,7 @@ elif page == "🚀 Live Trading Desk":
             
             @st.cache_data(ttl=3600)
             def get_fast_histories(tickers):
-                d = yf.download(tickers, period="3mo", group_by='ticker', threads=True, progress=False)
+                d = yf.download(tickers, period="3mo", group_by='ticker', threads=False, progress=False, auto_adjust=True)
                 hists = {}
                 for t in tickers:
                     if t in d.columns.get_level_values(0):
@@ -689,12 +689,16 @@ elif page == "🌊 Trend Scanner":
             # Load Equity Curve for returns
             live_return_pct = 0.0
             equity_val = 1000000
-            
+
+            # Read initial capital from snapshot config so it stays in sync
+            # with INITIAL_CAPITAL in dna3_current_portfolio.py
+            _dna3_cfg = dna3_data.get('config', {})
+            start_eq = float(_dna3_cfg.get('initial_capital', 1_000_000))
+
             if os.path.exists(DNA3_EQUITY):
                 eq_df = pd.read_csv(DNA3_EQUITY)
                 if not eq_df.empty:
                     last_eq = eq_df['Equity'].iloc[-1]
-                    start_eq = 1000000
                     live_return_pct = (last_eq - start_eq) / start_eq * 100
                     equity_val = last_eq
 
@@ -717,15 +721,15 @@ elif page == "🌊 Trend Scanner":
                     # Fetch Nifty data for same period
                     start_str = eq_chart_df['Date'].iloc[0].strftime('%Y-%m-%d')
                     try:
-                        nifty_eq = yf.download("^NSEI", start=start_str, progress=False)
+                        nifty_eq = yf.download("^NSEI", start=start_str, progress=False,
+                                               threads=False, auto_adjust=True)
                         if isinstance(nifty_eq.columns, pd.MultiIndex):
                             nifty_eq.columns = nifty_eq.columns.get_level_values(0)
                         if nifty_eq.index.tz is not None:
                             nifty_eq.index = nifty_eq.index.tz_localize(None)
                         
-                        # Normalize both to 100 at inception
-                        port_base = eq_chart_df['Equity'].iloc[0]
-                        port_norm = eq_chart_df['Equity'] / port_base * 100
+                        # Normalize both to 100 at inception (same base as hero card)
+                        port_norm = eq_chart_df['Equity'] / start_eq * 100
                         
                         # Match Nifty to portfolio dates
                         nifty_close = nifty_eq['Close'].reindex(eq_chart_df['Date'].values, method='ffill')
@@ -840,7 +844,8 @@ elif page == "🌊 Trend Scanner":
                             # Fast inline refresh: only fetch held tickers (~10 stocks)
                             held_tickers = [p['Ticker'] for p in dna3_data.get('portfolio', [])]
                             if held_tickers:
-                                live_prices = yf.download(held_tickers, period="100d", group_by='ticker', threads=True, progress=False)
+                                live_prices = yf.download(held_tickers, period="100d", group_by='ticker',
+                                                         threads=False, progress=False, auto_adjust=True)
                                 nifty_hist = yf.Ticker("^NSEI").history(period="100d")
                                 if nifty_hist.index.tz is not None:
                                     nifty_hist.index = nifty_hist.index.tz_localize(None)

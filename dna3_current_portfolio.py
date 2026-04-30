@@ -715,6 +715,7 @@ class OptCompV21Engine:
             'recently_exited': recently_exited,
             'last_dd_alert_date': state.get('last_dd_alert_date', ''),
             'config': {
+                'initial_capital': INITIAL_CAPITAL,
                 'rs_weights': RS_WEIGHTS,
                 'rebalance_days': rebal_days,
                 'max_positions': MAX_POSITIONS,

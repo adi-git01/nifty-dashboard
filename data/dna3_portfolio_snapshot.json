@@ -269,6 +269,7 @@
         "breadth_threshold": 30,
         "trailing_stop": 0.12,
         "min_comp_rs": 17.0,
-        "min_liquidity_cr": 1.2
+        "min_liquidity_cr": 1.2,
+        "initial_capital": 1000000
     }
 }
