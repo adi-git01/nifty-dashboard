@@ -4780,6 +4780,97 @@ elif page == "\U0001f3af Turnaround Radar":
     else:
         log_df = pd.read_csv(LOG_CSV_PATH)
 
+        # ── Live price refresh ────────────────────────────────────────────────
+        # The screener only runs daily via GitHub Actions; refresh current_price
+        # here so the tracker always shows today's prices, not the stale CSV value.
+
+        # Fast path: use prices already loaded in the Trend Scanner session state
+        _md_sess = st.session_state.get('market_data', pd.DataFrame())
+        _md_prices: dict = {}
+        if (isinstance(_md_sess, pd.DataFrame) and not _md_sess.empty
+                and 'ticker' in _md_sess.columns and 'price' in _md_sess.columns):
+            _md_prices = (
+                _md_sess.dropna(subset=['price'])
+                        .set_index('ticker')['price']
+                        .to_dict()
+            )
+
+        @st.cache_data(ttl=1800, show_spinner=False)
+        def _fetch_turnaround_live_prices(tickers_t: tuple) -> dict:
+            """Batch-download last-close for log tickers not already in market_data."""
+            if not tickers_t:
+                return {}
+            try:
+                raw = yf.download(
+                    list(tickers_t), period="5d",
+                    threads=False, progress=False, auto_adjust=True
+                )
+                if raw is None or raw.empty:
+                    return {}
+                close = (raw["Close"] if isinstance(raw.columns, pd.MultiIndex)
+                         else raw.rename(columns={raw.columns[0]: tickers_t[0]
+                                                  if len(tickers_t) == 1 else raw.columns[0]}))
+                result = {}
+                for t in tickers_t:
+                    try:
+                        s = close[t].dropna() if t in close.columns else pd.Series(dtype=float)
+                        if not s.empty:
+                            result[t] = round(float(s.iloc[-1]), 2)
+                    except Exception:
+                        pass
+                return result
+            except Exception:
+                return {}
+
+        _log_tickers_all = log_df["ticker"].dropna().unique().tolist()
+        _need_yf = tuple(t for t in _log_tickers_all if t not in _md_prices)
+
+        _col_btn, _col_info = st.columns([1, 4])
+        with _col_btn:
+            if st.button("🔄 Refresh Prices", key="turnaround_refresh_prices"):
+                st.cache_data.clear()
+                st.rerun()
+        with _col_info:
+            _src_note = (
+                f"Prices from session data ({len(_md_prices)} tickers) "
+                + (f"+ live fetch ({len(_need_yf)} tickers)" if _need_yf else "")
+            )
+            st.caption(_src_note)
+
+        with st.spinner("Fetching live prices for signal log…"):
+            _yf_prices = _fetch_turnaround_live_prices(_need_yf)
+
+        _all_live: dict = {**_yf_prices, **_md_prices}  # md_prices wins (fresher)
+
+        # Vectorised update of current_price, return_since_signal, max_gain, xirr
+        log_df["_live"] = log_df["ticker"].map(_all_live)
+        _sig_p = pd.to_numeric(log_df["signal_price"], errors="coerce")
+        _live_p = pd.to_numeric(log_df["_live"], errors="coerce")
+        _has = _live_p.notna() & (_live_p > 0) & _sig_p.notna() & (_sig_p > 0)
+
+        if _has.any():
+            log_df.loc[_has, "current_price"] = _live_p[_has].round(1)
+            _ret = ((_live_p[_has] / _sig_p[_has]) - 1) * 100
+            log_df.loc[_has, "return_since_signal"] = _ret.round(1)
+            _prev_max = pd.to_numeric(log_df.loc[_has, "max_gain"], errors="coerce").fillna(0)
+            log_df.loc[_has, "max_gain"] = _ret.where(_ret > _prev_max, _prev_max).round(1)
+
+            # XIRR (row-by-row: depends on days elapsed per signal_date)
+            _today = datetime.now()
+            for _idx in log_df.index[_has]:
+                try:
+                    _days = (_today - datetime.strptime(
+                        str(log_df.at[_idx, "signal_date"])[:10], "%Y-%m-%d")).days
+                    _sp = float(log_df.at[_idx, "signal_price"])
+                    _cp = float(log_df.at[_idx, "_live"])
+                    if _days >= 1 and _sp > 0 and _cp > 0:
+                        log_df.at[_idx, "xirr"] = round(
+                            ((_cp / _sp) ** (365.0 / _days) - 1) * 100, 1)
+                except Exception:
+                    pass
+
+        log_df = log_df.drop(columns=["_live"])
+
         # ── Categorical filters + sort ────────────────────────────────────────
         col_f1, col_f2, col_f3 = st.columns(3)
         with col_f1:
