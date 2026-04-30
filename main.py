@@ -4665,16 +4665,97 @@ elif page == "\U0001f3af Turnaround Radar":
     min_ias      = fcols[2].slider("Min IAS", 35, 90, 35)
     search       = fcols[3].text_input("Search ticker or sub-industry")
 
+    # --- Range filters (numeric columns) ---
+    _WL_RF_DEFS = [
+        # (column,          label,              step)
+        ("IAS",            "IAS Score",         1.0),
+        ("CompRS",         "CompRS",            0.01),
+        ("RS21",           "RS21 %",            1.0),
+        ("RS63",           "RS63 %",            1.0),
+        ("Off_MA50",       "Off MA50 %",        1.0),
+        ("Off_52W_High",   "Off 52W High %",    1.0),
+        ("V21_CRS_Gap",    "V21 CRS Gap",       0.01),
+        ("V21_MA50_Gap",   "V21 MA50 Gap %",    1.0),
+        ("Liq5Cr",         "Liq 5Cr ₹Cr",      5.0),
+        ("LiqFromLow",     "Liq From Low ×",    0.5),
+        ("VolQuality",     "Vol Quality",       0.05),
+    ]
+
+    with st.expander("🎚️ Range Filters", expanded=False):
+        import math as _wl_math
+        _wl_range_vals: dict = {}
+        _wl_rf_avail = [(c, lbl, step) for c, lbl, step in _WL_RF_DEFS if c in wdf.columns]
+        _WL_N_COLS = 4
+        for _ri in range(0, len(_wl_rf_avail), _WL_N_COLS):
+            _row = _wl_rf_avail[_ri: _ri + _WL_N_COLS]
+            _rcols = st.columns(_WL_N_COLS)
+            for _j, (col, lbl, step) in enumerate(_row):
+                _s = pd.to_numeric(wdf[col], errors="coerce").dropna()
+                if len(_s) < 1:
+                    continue
+                _lo = _wl_math.floor(float(_s.min()) / step) * step
+                _hi = _wl_math.ceil( float(_s.max()) / step) * step
+                if _hi <= _lo:
+                    _hi = _lo + step
+                with _rcols[_j]:
+                    _sel = st.slider(lbl, min_value=_lo, max_value=_hi,
+                                     value=(_lo, _hi), step=step, key=f"wl_rf_{col}")
+                    _wl_range_vals[col] = _sel
+
     fdf = wdf[
         wdf["Tier"].isin(tier_filter) &
         wdf["Cycle"].isin(cycle_filter) &
         (wdf["IAS"] >= min_ias)
     ].copy()
+
+    # Apply numeric range filters
+    for _col, (_lo_sel, _hi_sel) in _wl_range_vals.items():
+        _num = pd.to_numeric(fdf[_col], errors="coerce")
+        fdf = fdf[_num.between(_lo_sel, _hi_sel, inclusive="both") | _num.isna()]
+
     if search:
         fdf = fdf[
             fdf["Ticker"].str.contains(search.upper(), na=False) |
             fdf["Sub_Industry"].str.contains(search, case=False, na=False)
         ]
+
+    # --- Lifecycle explainer ---
+    with st.expander("ℹ️ How stocks enter, graduate & drop from the IAS watchlist"):
+        st.markdown("""
+**Entry — IAS ≥ 35, price below MA50**
+
+A stock enters the watchlist when `IAS ≥ 35`. IAS (Institutional Accumulation Score) combines
+RS velocity, liquidity surge from the low, and volume quality — all must confirm simultaneous
+early buying *while the stock is still below MA50* (not yet a V21 breakout, just radar ping).
+
+| Tier | IAS range | Meaning |
+|---|---|---|
+| 🔵 WATCH | 35–59 | Early institutional ping — set a price alert at MA50 |
+| 🟡 READY | 60–79 | RS velocity confirmed, liquidity floor stable — getting warm |
+| 🟢 ALERT | 80+ | RS21 + RS63 both turning, strong liq floor — imminent V21, ready to fire |
+
+**Graduation → GRADUATED (locked permanently)**
+
+When **both** conditions are met on any screener run:
+1. `Off_MA50 ≥ 0` — price has crossed *above* the 50-day MA
+2. `CompRS > 0` — stock is outperforming the benchmark
+
+This is the V21 breakout trigger. The stock is logged as GRADUATED in the IAS Signal Log
+and promoted to the main portfolio scanner. Status can **never** be reverted — once a grad, always a grad.
+
+**V21 CRS Gap & V21 MA50 Gap** tell you exactly how far each stock is from graduating:
+- `V21 CRS Gap = 0` → CompRS is already positive (half-done)
+- `V21 MA50 Gap % = 0` → price is at MA50 (half-done)
+- Both zero → next run may graduate it
+
+**Drop → DROPPED**
+
+When the stock disappears from the daily scan (IAS falls below 35 — accumulation signal evaporated)
+**and** it hasn't already GRADUATED. Typically means the smart-money move reversed or was a false signal.
+DROPPED stocks are tracked in the Signal Log for post-mortem analysis.
+
+**Typical holding time:** 2–12 weeks from ALERT to graduation. WATCH stocks can take months.
+        """)
 
     # --- Watchlist table ---
     st.markdown(f"### Watchlist ({len(fdf)} stocks)")
