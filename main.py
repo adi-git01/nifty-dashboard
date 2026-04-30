@@ -869,12 +869,14 @@ elif page == "🌊 Trend Scanner":
                                             ma50 = float(stock_df['Close'].rolling(50).mean().iloc[-1])
                                             dist_ma50 = (curr_price - ma50) / ma50 * 100
                                             
-                                            # Composite RS calculation
+                                            # Composite RS: iloc[-(period+1)] gives exactly
+                                            # `period` trading-day intervals (same convention
+                                            # as fast_data_engine searchsorted approach)
                                             rs_total = 0.0
                                             for period, weight in rs_weights:
-                                                if len(stock_df) >= period + 1 and len(nifty_hist) >= period + 1:
-                                                    rs_stock = (curr_price / float(stock_df['Close'].iloc[-period]) - 1)
-                                                    rs_nifty = (nifty_price / float(nifty_hist['Close'].iloc[-period]) - 1)
+                                                if len(stock_df) >= period + 2 and len(nifty_hist) >= period + 2:
+                                                    rs_stock = (curr_price / float(stock_df['Close'].iloc[-(period + 1)]) - 1)
+                                                    rs_nifty = (nifty_price / float(nifty_hist['Close'].iloc[-(period + 1)]) - 1)
                                                     rs_total += (rs_stock - rs_nifty) * 100 * weight
                                             
                                             entry_price = dna3_data['holdings'].get(t, {}).get('entry_price', p.get('Entry', curr_price))
