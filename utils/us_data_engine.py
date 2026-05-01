@@ -57,7 +57,7 @@ def clear_us_cache() -> int:
     return len(files)
 
 
-def _load_cached(live_mode: bool) -> pd.DataFrame | None:
+def _load_cached(live_mode: bool):
     if live_mode:
         return None
     path = _us_parquet_path()
@@ -114,7 +114,7 @@ def _period_return(series: pd.Series, period: int) -> float:
 
 
 def _comp_rs(stock_series: pd.Series, bench_series: pd.Series,
-             weights: list[tuple]) -> tuple[float, float, float, float]:
+             weights):
     """
     Returns (comp_rs, rs5, rs21, rs63).
     weights: list of (period, weight) tuples.
@@ -140,7 +140,7 @@ def _comp_rs(stock_series: pd.Series, bench_series: pd.Series,
 
 def fetch_us_market_data(
     benchmark: str = "SPY",
-    rs_weights: list[tuple] | None = None,
+    rs_weights=None,  # list of (period, weight) tuples or None
     lookback_days: int = 400,
     live_mode: bool = False,
 ) -> pd.DataFrame:
