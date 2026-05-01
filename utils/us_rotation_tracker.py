@@ -157,7 +157,7 @@ def _period_rs(close: pd.Series, bench: pd.Series, period: int) -> float:
 
 def backfill_us_rotation_if_needed(
     benchmark: str = "SPY",
-    rs_weights: list | None = None,
+    rs_weights=None,  # list of (period, weight) tuples or None
 ) -> bool:
     """
     One-time historical backfill: downloads 400 days of prices and computes
