@@ -45,6 +45,10 @@ from utils.fast_data_engine import load_base_fundamentals, fetch_and_process_mar
 from utils.live_desk import get_cyclicity, get_seasonal_guideline
 from utils.theme_engine import ThemeEngine, AI_CAPEX_THEME
 from utils.us_data_engine import fetch_us_market_data, load_sp500_universe
+from utils.us_rotation_tracker import (
+    save_us_rotation_snapshot, load_us_rotation_history,
+    build_rotation_pivot, render_us_rotation_table, render_us_rotation_heatmap,
+)
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -5991,9 +5995,40 @@ elif page == "🇺🇸 US Scanner":
             hide_index=True,
         )
 
-    # ── SUB-INDUSTRY MATRIX ───────────────────────────────────────────────────
+    # ── SUB-INDUSTRY ROTATION MATRIX (day-by-day accumulating) ─────────────
     st.markdown("---")
-    with st.expander("🔬 **Sub-Industry RS Matrix**", expanded=True):
+    st.markdown("### 🧬 Sub-Industry Rotation Matrix")
+    st.caption(
+        "Capital flow across S&P 500 sub-industries. "
+        "Score 0–100 (percentile rank of CompRS within each day). "
+        "🟢 Leaders → 🟡 Mid → 🔴 Laggards.  Accumulates daily each time you visit this page."
+    )
+
+    # Save today's snapshot (idempotent — safe to call on every page load)
+    try:
+        save_us_rotation_snapshot(us_df)
+    except Exception as _e:
+        st.caption(f"⚠️ Could not save rotation snapshot: {_e}")
+
+    _us_rot_hist = load_us_rotation_history(days=365)
+
+    if _us_rot_hist.empty:
+        st.info("📊 Rotation history will appear after the first page load with live data.")
+    else:
+        _spiv, _hpiv, _morder = build_rotation_pivot(_us_rot_hist)
+
+        if _spiv.empty:
+            st.info("Building rotation history… visit again tomorrow for trend data.")
+        else:
+            rot_tab1, rot_tab2 = st.tabs(["📋 Rotation Table", "🌡️ Heatmap"])
+            with rot_tab1:
+                render_us_rotation_table(_spiv, _hpiv, _morder)
+            with rot_tab2:
+                render_us_rotation_heatmap(_spiv, _hpiv)
+
+    # ── TODAY'S SNAPSHOT: point-in-time RS cross-section heatmap ─────────
+    st.markdown("---")
+    with st.expander("📸 **Today's Sub-Industry RS Snapshot** (RS5 / RS21 / RS63 / CompRS)", expanded=False):
         if "sub_industry" in us_df.columns:
             _sub_grp = (
                 us_df.groupby(["sector", "sub_industry"])[["rs_5d", "rs_21d", "rs_63d", "comp_rs", "trend_score"]]
@@ -6002,42 +6037,32 @@ elif page == "🇺🇸 US Scanner":
                 .reset_index()
                 .sort_values("comp_rs", ascending=False)
             )
-
             if not _sub_grp.empty:
-                # Heatmap: sub-industries (rows) × RS metrics (cols)
                 _sub_z   = _sub_grp[["rs_5d", "rs_21d", "rs_63d", "comp_rs"]].values.tolist()
                 _sub_y   = [f"{r['sector']} — {r['sub_industry']}" for _, r in _sub_grp.iterrows()]
                 _sub_x   = ["RS5 (1W)", "RS21 (1M)", "RS63 (3M)", "CompRS"]
                 _sub_txt = [[f"{v:+.1f}" for v in row] for row in _sub_z]
 
                 fig_sub = go.Figure(go.Heatmap(
-                    z=_sub_z,
-                    x=_sub_x,
-                    y=_sub_y,
-                    text=_sub_txt,
-                    texttemplate="%{text}",
-                    colorscale="RdYlGn",
-                    zmid=0,
-                    showscale=True,
+                    z=_sub_z, x=_sub_x, y=_sub_y,
+                    text=_sub_txt, texttemplate="%{text}",
+                    colorscale="RdYlGn", zmid=0, showscale=True,
                     colorbar=dict(title="RS %", thickness=12),
                 ))
-                _sub_h = max(500, len(_sub_y) * 22)
                 fig_sub.update_layout(
                     template="plotly_dark",
-                    height=_sub_h,
+                    height=max(500, len(_sub_y) * 22),
                     margin=dict(l=280, r=20, t=30, b=30),
                     xaxis=dict(side="top"),
                 )
-                st.plotly_chart(fig_sub, use_container_width=True, key="us_sub_industry_heatmap")
+                st.plotly_chart(fig_sub, use_container_width=True, key="us_sub_industry_snapshot")
 
-                # Summary table
-                _sub_disp = _sub_grp.rename(columns={
-                    "sector": "Sector", "sub_industry": "Sub-Industry",
-                    "rs_5d": "RS5", "rs_21d": "RS21", "rs_63d": "RS63",
-                    "comp_rs": "CompRS", "trend_score": "Avg Trend",
-                })
                 st.dataframe(
-                    _sub_disp,
+                    _sub_grp.rename(columns={
+                        "sector": "Sector", "sub_industry": "Sub-Industry",
+                        "rs_5d": "RS5", "rs_21d": "RS21", "rs_63d": "RS63",
+                        "comp_rs": "CompRS", "trend_score": "Avg Trend",
+                    }),
                     column_config={
                         "RS5":       st.column_config.NumberColumn(format="%+.2f%%"),
                         "RS21":      st.column_config.NumberColumn(format="%+.2f%%"),
@@ -6045,9 +6070,7 @@ elif page == "🇺🇸 US Scanner":
                         "CompRS":    st.column_config.NumberColumn(format="%+.2f%%"),
                         "Avg Trend": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.0f"),
                     },
-                    hide_index=True,
-                    use_container_width=True,
-                    height=400,
+                    hide_index=True, use_container_width=True, height=400,
                 )
         else:
             st.caption("Sub-industry data not available.")
