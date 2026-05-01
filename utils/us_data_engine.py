@@ -45,6 +45,18 @@ def _us_parquet_path() -> str:
     return f"{US_PARQUET_PREFIX}_{today}.parquet"
 
 
+def clear_us_cache() -> int:
+    """Delete all us_market_master_*.parquet files. Returns count deleted."""
+    import glob
+    files = glob.glob(f"{US_PARQUET_PREFIX}_*.parquet")
+    for f in files:
+        try:
+            os.remove(f)
+        except Exception:
+            pass
+    return len(files)
+
+
 def _load_cached(live_mode: bool) -> pd.DataFrame | None:
     if live_mode:
         return None
@@ -54,9 +66,25 @@ def _load_cached(live_mode: bool) -> pd.DataFrame | None:
     try:
         df = pd.read_parquet(path)
         required_cols = {"ticker", "currentPrice", "trend_signal", "comp_rs"}
-        if required_cols.issubset(df.columns):
-            print(f"[US ENGINE] Loaded parquet cache: {path}", flush=True)
-            return df
+        if not required_cols.issubset(df.columns):
+            return None
+        # Invalidate if CSV has grown significantly since parquet was written
+        try:
+            universe = load_sp500_universe()
+            csv_count = len(universe)
+            parquet_count = len(df)
+            if parquet_count < csv_count * 0.85:
+                print(
+                    f"[US ENGINE] Parquet has {parquet_count} rows but CSV has "
+                    f"{csv_count} tickers — invalidating stale cache",
+                    flush=True,
+                )
+                os.remove(path)
+                return None
+        except Exception:
+            pass
+        print(f"[US ENGINE] Loaded parquet cache: {path}", flush=True)
+        return df
     except Exception as e:
         print(f"[US ENGINE] Parquet load failed: {e}", flush=True)
     return None
