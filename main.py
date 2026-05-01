@@ -48,6 +48,7 @@ from utils.us_data_engine import fetch_us_market_data, load_sp500_universe
 from utils.us_rotation_tracker import (
     save_us_rotation_snapshot, load_us_rotation_history,
     build_rotation_pivot, render_us_rotation_table, render_us_rotation_heatmap,
+    backfill_us_rotation_if_needed,
 )
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
@@ -5737,6 +5738,12 @@ elif page == "🇺🇸 US Scanner":
         us_s_w63_n = 0.0
 
     us_live_mode = st.sidebar.checkbox("Live Mode (bypass cache)", value=False, key="us_scan_live")
+    if st.sidebar.button("🗑️ Clear US Cache", key="us_clear_cache", help="Force fresh download (needed after ticker list changes)"):
+        from utils.us_data_engine import clear_us_cache
+        n = clear_us_cache()
+        st.cache_data.clear()
+        st.sidebar.success(f"Cleared {n} cache file(s). Reloading…")
+        st.rerun()
 
     # --- Cached fetch wrapper ---
     @st.cache_data(ttl=3600, show_spinner=False)
@@ -6009,6 +6016,25 @@ elif page == "🇺🇸 US Scanner":
         save_us_rotation_snapshot(us_df)
     except Exception as _e:
         st.caption(f"⚠️ Could not save rotation snapshot: {_e}")
+
+    # One-time historical backfill: pre-populate 12 months of monthly RS
+    # so sparklines are meaningful from day 1 (runs ~30s, skipped thereafter)
+    _us_rot_hist_check = load_us_rotation_history(days=365)
+    _needs_backfill = (
+        _us_rot_hist_check.empty or
+        _us_rot_hist_check["date"].dt.to_period("M").nunique() < 2
+    )
+    if _needs_backfill:
+        with st.spinner("📅 Building 12-month rotation history (one-time, ~30 s)…"):
+            try:
+                _ran = backfill_us_rotation_if_needed(
+                    benchmark=us_scan_benchmark,
+                    rs_weights=[(5, us_s_w5), (21, us_s_w21), (63, us_s_w63_n)],
+                )
+                if _ran:
+                    st.success("✅ Historical rotation data ready!")
+            except Exception as _be:
+                st.caption(f"⚠️ Backfill error: {_be}")
 
     _us_rot_hist = load_us_rotation_history(days=365)
 

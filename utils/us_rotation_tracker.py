@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+import yfinance as yf
 
 ROTATION_FILE = "data/us_sub_industry_rotation.csv"
 ROTATION_COLS = [
@@ -134,6 +135,188 @@ def load_us_rotation_history(days: int = 365) -> pd.DataFrame:
         cutoff = pd.Timestamp.now() - pd.Timedelta(days=days)
         df = df[df["date"] >= cutoff]
     return df
+
+
+# ---------------------------------------------------------------------------
+# Historical backfill
+# ---------------------------------------------------------------------------
+
+def _period_rs(close: pd.Series, bench: pd.Series, period: int) -> float:
+    """Exact N-interval RS (iloc[-(period+1)] base) clamped to available data."""
+    n = min(len(close), len(bench))
+    if n < period + 2:
+        return 0.0
+    s_base = float(close.iloc[-(period + 1)])
+    b_base = float(bench.iloc[-(period + 1)])
+    if s_base == 0 or b_base == 0:
+        return 0.0
+    s_ret = (float(close.iloc[-1]) / s_base - 1.0) * 100.0
+    b_ret = (float(bench.iloc[-1]) / b_base - 1.0) * 100.0
+    return s_ret - b_ret
+
+
+def backfill_us_rotation_if_needed(
+    benchmark: str = "SPY",
+    rs_weights: list | None = None,
+) -> bool:
+    """
+    One-time historical backfill: downloads 400 days of prices and computes
+    monthly sub-industry RS snapshots for the past 12 months.
+
+    Skips if rotation CSV already has ≥ 2 distinct months of data.
+    Returns True if backfill ran, False if skipped.
+    """
+    if rs_weights is None:
+        from utils.us_data_engine import DEFAULT_RS_WEIGHTS
+        rs_weights = DEFAULT_RS_WEIGHTS
+
+    hist = load_us_rotation_history()
+    if not hist.empty:
+        n_months = hist["date"].dt.to_period("M").nunique()
+        if n_months >= 2:
+            return False   # Already has enough history
+
+    # --- Load universe ---
+    try:
+        from utils.us_data_engine import load_sp500_universe
+        universe = load_sp500_universe()
+    except Exception as e:
+        print(f"[US BACKFILL] Could not load universe: {e}", flush=True)
+        return False
+
+    tickers  = universe["ticker"].tolist()
+    sub_map  = universe.set_index("ticker")["sub_industry"].to_dict()
+    sec_map  = universe.set_index("ticker")["sector"].to_dict()
+
+    all_tickers = [benchmark] + tickers
+    print(f"[US BACKFILL] Downloading 400d history for {len(all_tickers)} tickers…", flush=True)
+
+    try:
+        raw = yf.download(
+            all_tickers, period="400d", interval="1d",
+            group_by="ticker", threads=False, progress=False, auto_adjust=True,
+        )
+    except Exception as e:
+        print(f"[US BACKFILL] Download failed: {e}", flush=True)
+        return False
+
+    # Extract benchmark close
+    try:
+        bench_all = (
+            raw[benchmark]["Close"].dropna()
+            if isinstance(raw.columns, pd.MultiIndex)
+            else raw["Close"].dropna()
+        )
+    except Exception as e:
+        print(f"[US BACKFILL] Benchmark extract failed: {e}", flush=True)
+        return False
+
+    # --- Month-end dates (last 13 business month-ends, skip most-recent = today) ---
+    month_ends = pd.date_range(
+        end=pd.Timestamp.now().normalize() - pd.Timedelta(days=1),
+        freq="BME", periods=13
+    )
+
+    snapshot_rows = []
+
+    for me_date in month_ends:
+        # Slice data up to this month-end
+        bench_slice = bench_all.loc[:me_date].dropna()
+        if len(bench_slice) < 65:
+            continue
+
+        # Compute RS for each ticker at this point in time
+        ticker_rs: dict[str, dict] = {}
+        for ticker in tickers:
+            try:
+                if isinstance(raw.columns, pd.MultiIndex):
+                    if ticker not in raw.columns.get_level_values(0):
+                        continue
+                    close_all = raw[ticker]["Close"].dropna()
+                else:
+                    close_all = raw["Close"].dropna()
+
+                close_slice = close_all.loc[:me_date].dropna()
+                if len(close_slice) < 65:
+                    continue
+
+                rs5  = _period_rs(close_slice, bench_slice, 5)
+                rs21 = _period_rs(close_slice, bench_slice, 21)
+                rs63 = _period_rs(close_slice, bench_slice, 63)
+                comp = sum(rs5 * w if p == 5 else rs21 * w if p == 21 else rs63 * w
+                           for p, w in rs_weights)
+
+                ticker_rs[ticker] = {
+                    "rs_5d": rs5, "rs_21d": rs21, "rs_63d": rs63, "comp_rs": comp,
+                    "sub_industry": sub_map.get(ticker, "Unknown"),
+                    "sector": sec_map.get(ticker, "Unknown"),
+                }
+            except Exception:
+                continue
+
+        if not ticker_rs:
+            continue
+
+        rs_df = pd.DataFrame(ticker_rs).T.reset_index().rename(columns={"index": "ticker"})
+
+        # Group by sub-industry
+        grp = (
+            rs_df.groupby(["sector", "sub_industry"])[["rs_5d", "rs_21d", "rs_63d", "comp_rs"]]
+            .mean()
+            .round(2)
+            .reset_index()
+        )
+
+        # Top-3 tickers by comp_rs per sub-industry
+        top_map = {}
+        for sub in grp["sub_industry"]:
+            sub_tickers = [t for t, v in ticker_rs.items() if v["sub_industry"] == sub]
+            top3 = sorted(sub_tickers, key=lambda t: ticker_rs[t]["comp_rs"], reverse=True)[:3]
+            top_map[sub] = ", ".join(top3)
+        grp["top_tickers"] = grp["sub_industry"].map(top_map)
+
+        # Percentile rank
+        rs_vals = grp["comp_rs"].fillna(0)
+        rs_min, rs_max = rs_vals.min(), rs_vals.max()
+        grp["score_0_100"] = (
+            ((rs_vals - rs_min) / (rs_max - rs_min) * 100).round(0).astype(int)
+            if rs_max > rs_min else 50
+        )
+        grp["avg_trend_score"] = 50.0  # not computable from monthly slice
+        grp["date"] = me_date.strftime("%Y-%m-%d")
+
+        for col in ROTATION_COLS:
+            if col not in grp.columns:
+                grp[col] = None
+
+        snapshot_rows.append(grp[ROTATION_COLS])
+        print(f"[US BACKFILL] {me_date.strftime('%Y-%m')} — {len(grp)} sub-industries", flush=True)
+
+    if not snapshot_rows:
+        print("[US BACKFILL] No snapshots computed.", flush=True)
+        return False
+
+    backfill_df = pd.concat(snapshot_rows, ignore_index=True)
+
+    # Merge with any existing history (today's snapshot already saved)
+    if os.path.exists(ROTATION_FILE):
+        existing = pd.read_csv(ROTATION_FILE)
+        existing["date"] = pd.to_datetime(existing["date"])
+        backfill_df["date"] = pd.to_datetime(backfill_df["date"])
+        # Backfill only fills historical months; don't overwrite today
+        combined = pd.concat([backfill_df, existing], ignore_index=True)
+        combined = combined.drop_duplicates(subset=["date", "sub_industry"], keep="last")
+    else:
+        combined = backfill_df
+
+    combined["date"] = pd.to_datetime(combined["date"])
+    cutoff = pd.Timestamp.now() - pd.Timedelta(days=365)
+    combined = combined[combined["date"] >= cutoff].sort_values("date")
+    combined["date"] = combined["date"].dt.strftime("%Y-%m-%d")
+    combined.to_csv(ROTATION_FILE, index=False)
+
+    print(f"[US BACKFILL] Done — {len(combined)} total rows in rotation CSV", flush=True)
+    return True
 
 
 # ---------------------------------------------------------------------------
