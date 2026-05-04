@@ -1208,7 +1208,9 @@ elif page == "🌊 Trend Scanner":
                 del st.session_state[key]
             st.rerun()
 
-    st.subheader(f"Found {len(filtered_df)} Momentum Stocks")
+    _nifty_hdr, _nifty_dl = st.columns([3, 1])
+    with _nifty_hdr:
+        st.subheader(f"Found {len(filtered_df)} Momentum Stocks")
     
     # Ensure columns exist (handle legacy cache)
     for col in ['comp_rs', 'volatility', 'dna_signal']:
@@ -1294,7 +1296,20 @@ elif page == "🌊 Trend Scanner":
         use_container_width=True,
         hide_index=True
     )
-    
+    with _nifty_dl:
+        st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
+        _dl_cols = [c for c in display_cols if c != 'screener_link']
+        _export = filtered_df[_dl_cols].sort_values('trend_score', ascending=False).copy()
+        _export['signal'] = _export.get('trend_signal', _export.get('signal_display', ''))
+        st.download_button(
+            label="⬇️ Download CSV",
+            data=_export.to_csv(index=False),
+            file_name=f"nifty_momentum_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            use_container_width=True,
+            key="nifty_scanner_download",
+        )
+
     # Show filters active message
     active_filters = []
     if min_quality > 0: active_filters.append(f"Quality > {min_quality}")
@@ -5953,7 +5968,9 @@ elif page == "🇺🇸 US Scanner":
     if us_fdf.empty:
         st.warning("No stocks match the current filters.")
     else:
-        st.subheader(f"Found {len(us_fdf)} US Momentum Stocks")
+        _us_hdr, _us_dl = st.columns([3, 1])
+        with _us_hdr:
+            st.subheader(f"Found {len(us_fdf)} US Momentum Stocks")
 
         _EMOJI = {
             "STRONG UPTREND": "🟢", "UPTREND": "🔵",
@@ -6001,6 +6018,18 @@ elif page == "🇺🇸 US Scanner":
             use_container_width=True,
             hide_index=True,
         )
+        with _us_dl:
+            st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
+            _us_export_cols = [c for c in _us_disp if c != 'yf_link']
+            _us_export = us_fdf[_us_export_cols].sort_values('trend_score', ascending=False).copy()
+            st.download_button(
+                label="⬇️ Download CSV",
+                data=_us_export.to_csv(index=False),
+                file_name=f"us_momentum_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+                key="us_scanner_download",
+            )
 
     # ── SUB-INDUSTRY ROTATION MATRIX (day-by-day accumulating) ─────────────
     st.markdown("---")
