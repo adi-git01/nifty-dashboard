@@ -586,15 +586,13 @@ elif page == "🚀 Live Trading Desk":
             st.markdown("---")
             st.markdown("### 🔬 ADVANCED QUANTITATIVE SCANNERS")
             
-            from utils.advanced_scanners import find_vcp_setups, find_rs_divergence, find_live_earnings_shocks
-            
-            # For VCP and Shocks we need full history, which is slow to fetch individually. 
-            # We will use the cached market_data if it has valid columns, else we just show a placeholder warning.
-            
-            # In a production environment with a persistent DB, we would pass the full history dict here.
-            # For this Streamlit demo, we'll try to fetch a localized batch for the top 100 stocks to keep it fast.
-            # We will use a cached helper to get histories quickly.
-            
+            from utils.advanced_scanners import (
+                find_vcp_setups, find_rs_divergence, find_live_earnings_shocks,
+                save_rs_divergence_signals, save_earnings_shock_signals,
+                refresh_signal_log_prices, load_signal_log,
+                RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
+            )
+
             @st.cache_data(ttl=3600)
             def get_fast_histories(tickers):
                 d = yf.download(tickers, period="3mo", group_by='ticker', threads=False, progress=False, auto_adjust=True)
@@ -605,58 +603,78 @@ elif page == "🚀 Live Trading Desk":
                         if not sub_df.empty:
                             hists[t] = sub_df
                 return hists
-            
+
             with st.spinner("Running Advanced Pattern Recognition..."):
-                top_150_tickers = df.nlargest(150, 'trend_score')['ticker'].tolist()
-                hist_dict = get_fast_histories(top_150_tickers)
-                
-                vcp_list = find_vcp_setups(df[df['ticker'].isin(top_150_tickers)], hist_dict)
-                rs_list = find_rs_divergence(df, nifty_live)
-                shock_list = find_live_earnings_shocks(df[df['ticker'].isin(top_150_tickers)], hist_dict)
-            
+                top_300_tickers = df.nlargest(300, 'trend_score')['ticker'].tolist()
+                hist_dict = get_fast_histories(top_300_tickers)
+
+                vcp_list   = find_vcp_setups(df[df['ticker'].isin(top_300_tickers)], hist_dict)
+                rs_list    = find_rs_divergence(df, nifty_live)
+                shock_list = find_live_earnings_shocks(df[df['ticker'].isin(top_300_tickers)], hist_dict)
+
+                # Build price_map for live log refresh (ticker → current price)
+                _price_cols = [c for c in ("price", "currentPrice") if c in df.columns]
+                if _price_cols:
+                    price_map = df.set_index("ticker")[_price_cols[0]].dropna().to_dict()
+                else:
+                    price_map = {}
+
+                # Persist today's signals
+                save_rs_divergence_signals(rs_list)
+                save_earnings_shock_signals(shock_list)
+
+                # Refresh all logged signals with live prices
+                rs_log_df    = refresh_signal_log_prices(RS_LOG_FILE,    RS_LOG_COLS,    price_map)
+                shock_log_df = refresh_signal_log_prices(SHOCK_LOG_FILE, SHOCK_LOG_COLS, price_map)
+
+            # ── Today's Scanner Results ──────────────────────────────────────────
             col_adv1, col_adv2, col_adv3 = st.columns(3)
-            
+
             with col_adv1:
                 with st.expander(f"🗜️ Volatility Contraction (VCP) [{len(vcp_list)}]", expanded=True):
-                    st.caption("Extremely tight 10D range + Volume dried up < 50% of 60D Avg. Indicates supply exhaustion before breakout.")
+                    st.caption("Price tightening (10D ATR < 5.5%) + Volume < 75% of 60D avg. Supply exhaustion before breakout.")
                     if vcp_list:
                         vcp_df = pd.DataFrame(vcp_list)
                         vcp_df['screener_link'] = "https://www.screener.in/company/" + vcp_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
                         st.dataframe(
-                            vcp_df[['screener_link', 'Price', 'Compression', 'Vol_Ratio']],
+                            vcp_df[['screener_link', 'Price', 'Score', 'Compression', 'Vol_Ratio', 'MA50_Dist', 'Dist_52W']],
                             column_config={
                                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
-                                "Price": st.column_config.NumberColumn("Price", format="₹%.2f"),
-                                "Compression": st.column_config.NumberColumn("10D ATR%", format="%.1f%%"),
-                                "Vol_Ratio": st.column_config.NumberColumn("Vol vs 60D", format="%.0f%%")
+                                "Price":       st.column_config.NumberColumn("Price",      format="₹%.2f"),
+                                "Score":       st.column_config.NumberColumn("Trend Score", format="%.0f"),
+                                "Compression": st.column_config.NumberColumn("10D ATR%",   format="%.1f%%"),
+                                "Vol_Ratio":   st.column_config.NumberColumn("Vol vs 60D", format="%.0f%%"),
+                                "MA50_Dist":   st.column_config.NumberColumn("vs MA50",    format="%+.1f%%"),
+                                "Dist_52W":    st.column_config.NumberColumn("Dist 52W",   format="%.1f%%"),
                             },
                             hide_index=True, use_container_width=True
                         )
                     else:
-                        st.info("No pure VCP setups found today.")
-                        
+                        st.info("No VCP setups found today.")
+
             with col_adv2:
-                with st.expander(f"🟢 RS Divergence [{len(rs_list)}]", expanded=True):
-                    st.caption("Green in a sea of Red. Stocks closing positive > 0.5% while Nifty fell > -0.5% today.")
+                with st.expander(f"🟢 RS Divergence — Today [{len(rs_list)}]", expanded=True):
+                    st.caption("Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%.")
                     if rs_list:
                         rs_df = pd.DataFrame(rs_list)
                         rs_df['screener_link'] = "https://www.screener.in/company/" + rs_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
                         st.dataframe(
-                            rs_df[['screener_link', 'Stock_Ret', 'Delta_RS', 'Dist_52W']],
+                            rs_df[['screener_link', 'Stock_Ret', 'Nifty_Ret', 'Delta_RS', 'Dist_52W']],
                             column_config={
                                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
-                                "Stock_Ret": st.column_config.NumberColumn("Today %", format="%+.1f%%"),
-                                "Delta_RS": st.column_config.NumberColumn("vs Nifty %", format="%+.1f%%"),
-                                "Dist_52W": st.column_config.NumberColumn("Dist to 52W", format="%.1f%%")
+                                "Stock_Ret": st.column_config.NumberColumn("Stock %",    format="%+.1f%%"),
+                                "Nifty_Ret": st.column_config.NumberColumn("Nifty %",    format="%+.1f%%"),
+                                "Delta_RS":  st.column_config.NumberColumn("Delta RS",   format="%+.1f%%"),
+                                "Dist_52W":  st.column_config.NumberColumn("Dist 52W",   format="%.1f%%"),
                             },
                             hide_index=True, use_container_width=True
                         )
                     else:
                         st.info("Nifty is not falling today, or no divergences found.")
-                        
+
             with col_adv3:
-                with st.expander(f"⚡ Zero-Lag Earnings Shocks [{len(shock_list)}]", expanded=True):
-                    st.caption("Day-0 >5% Gap on >300% Volume. Use PEAD Edge to Buy vs Fade.")
+                with st.expander(f"⚡ Earnings Shocks — Today [{len(shock_list)}]", expanded=True):
+                    st.caption("Day-0 gap > 4% on > 2.5× volume. Use PEAD Edge to Buy vs Fade.")
                     if shock_list:
                         shk_df = pd.DataFrame(shock_list)
                         shk_df['screener_link'] = "https://www.screener.in/company/" + shk_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
@@ -664,14 +682,87 @@ elif page == "🚀 Live Trading Desk":
                             shk_df[['screener_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                             column_config={
                                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
-                                "Jump_Pct": st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
-                                "Vol_Mult": st.column_config.NumberColumn("Vol Ratio", format="%.1fx average"),
-                                "PEAD_Action": "Playbook Action"
+                                "Jump_Pct":    st.column_config.NumberColumn("Price Jump",  format="%+.1f%%"),
+                                "Vol_Mult":    st.column_config.NumberColumn("Vol Ratio",   format="%.1fx"),
+                                "PEAD_Action": "Playbook",
                             },
                             hide_index=True, use_container_width=True
                         )
                     else:
-                        st.info("No massive >5% on >3x volume earnings shocks detected today.")
+                        st.info("No earnings shocks detected today.")
+
+            # ── Signal Logs (persistent, refreshed with live prices) ─────────────
+            st.markdown("---")
+            st.markdown("### 📋 SIGNAL LOGS — RS Divergence & Earnings Shock")
+
+            log_tab1, log_tab2 = st.tabs(["🟢 RS Divergence Log", "⚡ Earnings Shock Log"])
+
+            with log_tab1:
+                st.caption("All RS Divergence signals fired in the last 365 days, with live return tracking. Auto-closed after 21 days.")
+                if not rs_log_df.empty:
+                    _rs_disp = rs_log_df.copy()
+                    _rs_disp['screener_link'] = "https://www.screener.in/company/" + _rs_disp['ticker'].str.replace('.NS', '', regex=False) + "/"
+                    _rs_disp['signal_date'] = pd.to_datetime(_rs_disp['signal_date']).dt.strftime('%Y-%m-%d')
+                    st.dataframe(
+                        _rs_disp[['signal_date', 'screener_link', 'name', 'sector',
+                                  'signal_price', 'current_price', 'return_since_signal',
+                                  'stock_ret_on_day', 'nifty_ret_on_day', 'delta_rs',
+                                  'dist_52w', 'days_held', 'status']],
+                        column_config={
+                            "signal_date":          st.column_config.TextColumn("Signal Date"),
+                            "screener_link":        st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                            "name":                 st.column_config.TextColumn("Name"),
+                            "sector":               st.column_config.TextColumn("Sector"),
+                            "signal_price":         st.column_config.NumberColumn("Signal ₹",   format="₹%.2f"),
+                            "current_price":        st.column_config.NumberColumn("Current ₹",  format="₹%.2f"),
+                            "return_since_signal":  st.column_config.NumberColumn("Return %",   format="%+.2f%%"),
+                            "stock_ret_on_day":     st.column_config.NumberColumn("Stock Day%", format="%+.2f%%"),
+                            "nifty_ret_on_day":     st.column_config.NumberColumn("Nifty Day%", format="%+.2f%%"),
+                            "delta_rs":             st.column_config.NumberColumn("Delta RS",   format="%+.2f%%"),
+                            "dist_52w":             st.column_config.NumberColumn("Dist 52W",   format="%.1f%%"),
+                            "days_held":            st.column_config.NumberColumn("Days"),
+                            "status":               st.column_config.TextColumn("Status"),
+                        },
+                        hide_index=True, use_container_width=True
+                    )
+                    _rs_csv = _rs_disp.to_csv(index=False).encode()
+                    st.download_button("⬇️ Download RS Log CSV", _rs_csv, "rs_divergence_log.csv", "text/csv", key="dl_rs_log")
+                else:
+                    st.info("No RS Divergence signals logged yet. The log populates on red-market days when stocks show relative strength.")
+
+            with log_tab2:
+                st.caption("All Earnings Shock signals fired in the last 365 days. PEAD drift tracked at 5D and 21D.")
+                if not shock_log_df.empty:
+                    _shk_disp = shock_log_df.copy()
+                    _shk_disp['screener_link'] = "https://www.screener.in/company/" + _shk_disp['ticker'].str.replace('.NS', '', regex=False) + "/"
+                    _shk_disp['signal_date'] = pd.to_datetime(_shk_disp['signal_date']).dt.strftime('%Y-%m-%d')
+                    st.dataframe(
+                        _shk_disp[['signal_date', 'screener_link', 'name', 'sector',
+                                   'signal_price', 'current_price', 'return_since_signal',
+                                   'jump_pct', 'vol_mult', 'pead_action',
+                                   'return_5d', 'return_21d', 'days_held', 'status']],
+                        column_config={
+                            "signal_date":         st.column_config.TextColumn("Signal Date"),
+                            "screener_link":       st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                            "name":                st.column_config.TextColumn("Name"),
+                            "sector":              st.column_config.TextColumn("Sector"),
+                            "signal_price":        st.column_config.NumberColumn("Signal ₹",   format="₹%.2f"),
+                            "current_price":       st.column_config.NumberColumn("Current ₹",  format="₹%.2f"),
+                            "return_since_signal": st.column_config.NumberColumn("Return %",   format="%+.2f%%"),
+                            "jump_pct":            st.column_config.NumberColumn("Gap %",      format="%+.2f%%"),
+                            "vol_mult":            st.column_config.NumberColumn("Vol Ratio",  format="%.1fx"),
+                            "pead_action":         st.column_config.TextColumn("PEAD Playbook"),
+                            "return_5d":           st.column_config.NumberColumn("5D Ret %",   format="%+.2f%%"),
+                            "return_21d":          st.column_config.NumberColumn("21D Ret %",  format="%+.2f%%"),
+                            "days_held":           st.column_config.NumberColumn("Days"),
+                            "status":              st.column_config.TextColumn("Status"),
+                        },
+                        hide_index=True, use_container_width=True
+                    )
+                    _shk_csv = _shk_disp.to_csv(index=False).encode()
+                    st.download_button("⬇️ Download Shock Log CSV", _shk_csv, "earnings_shock_log.csv", "text/csv", key="dl_shock_log")
+                else:
+                    st.info("No Earnings Shock signals logged yet. The log populates on days when stocks gap > 4% on > 2.5× volume.")
                         
         else:
             st.error("Failed to connect to NSE index to calculate regime.")
