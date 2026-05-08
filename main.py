@@ -4745,6 +4745,13 @@ elif page == "\U0001f3af Turnaround Radar":
 
     wdf = load_turnaround_watchlist()
 
+    # Merge sector from main market df (not in watchlist CSV)
+    if not wdf.empty and "Sector" not in wdf.columns and "sector" in df.columns:
+        _sec_map = df.set_index("ticker")["sector"].to_dict()
+        wdf["Sector"] = wdf["Ticker"].map(_sec_map).fillna("Unknown")
+    elif not wdf.empty and "Sector" not in wdf.columns:
+        wdf["Sector"] = "Unknown"
+
     regime = st.session_state.get('market_regime', 'UNKNOWN')
     if regime in ['BEAR', 'CRISIS']:
         st.error(f"🚨 **{regime} REGIME ACTIVE** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
@@ -4778,11 +4785,13 @@ elif page == "\U0001f3af Turnaround Radar":
     st.markdown("---")
 
     # --- Filters ---
-    fcols = st.columns([1, 1, 1, 2])
-    tier_filter  = fcols[0].multiselect("Tier",  ["ALERT","READY","WATCH"], default=["ALERT","READY","WATCH"])
-    cycle_filter = fcols[1].multiselect("Cycle", ["LONG","MID","SHORT"],    default=["LONG","MID","SHORT"])
-    min_ias      = fcols[2].slider("Min IAS", 35, 90, 35)
-    search       = fcols[3].text_input("Search ticker or sub-industry")
+    fcols = st.columns([1, 1, 1, 1.5, 1.5])
+    tier_filter    = fcols[0].multiselect("Tier",  ["ALERT","READY","WATCH"], default=["ALERT","READY","WATCH"])
+    cycle_filter   = fcols[1].multiselect("Cycle", ["LONG","MID","SHORT"],    default=["LONG","MID","SHORT"])
+    min_ias        = fcols[2].slider("Min IAS", 35, 90, 35)
+    _all_sectors   = sorted(wdf["Sector"].dropna().unique().tolist()) if "Sector" in wdf.columns else []
+    sector_filter  = fcols[3].multiselect("Sector", _all_sectors, default=_all_sectors, placeholder="All sectors")
+    search         = fcols[4].text_input("Search ticker or sub-industry")
 
     # --- Range filters (numeric columns) ---
     _WL_RF_DEFS = [
@@ -4824,7 +4833,8 @@ elif page == "\U0001f3af Turnaround Radar":
     fdf = wdf[
         wdf["Tier"].isin(tier_filter) &
         wdf["Cycle"].isin(cycle_filter) &
-        (wdf["IAS"] >= min_ias)
+        (wdf["IAS"] >= min_ias) &
+        (wdf["Sector"].isin(sector_filter) if sector_filter else pd.Series(True, index=wdf.index))
     ].copy()
 
     # Apply numeric range filters
