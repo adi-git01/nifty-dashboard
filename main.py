@@ -5585,7 +5585,7 @@ elif page == "🇺🇸 US AI Play":
 
     st.markdown("---")
 
-    # ── Layer Rotation Matrix (heatmap) ───────────────────────────────────────
+    # ── Layer Rotation Matrix ─────────────────────────────────────────────────
     st.markdown("### 🔄 Layer Rotation Matrix")
     st.caption(
         f"Avg per supply-chain layer vs **{us_benchmark}** | "
@@ -5609,37 +5609,146 @@ elif page == "🇺🇸 US AI Play":
         .sort_values('CompRS', ascending=False)
     )
 
-    _metrics  = ['RS_Vel', 'RS5vs', 'RS21vs', 'RS63vs', 'CompRS']
-    _m_labels = ['RS Velocity (5D)', f'RS5 vs {us_benchmark}', f'RS21 vs {us_benchmark}',
-                 f'RS63 vs {us_benchmark}', 'Composite RS']
-    _layers   = layer_agg['Layer'].tolist()
-    _z        = layer_agg[_metrics].values.tolist()
+    # ── Persist daily layer snapshot ─────────────────────────────────────────
+    _AI_LAYER_FILE = "data/ai_layer_rotation.csv"
+    _today_str = datetime.now().strftime("%Y-%m-%d")
 
-    _text = [
-        [f"{v:+.1f}" if (v is not None and not (isinstance(v, float) and np.isnan(v))) else "—"
-         for v in row]
-        for row in _z
-    ]
+    def _save_ai_layer_snapshot(agg_df):
+        os.makedirs("data", exist_ok=True)
+        rows = agg_df[["Layer", "CompRS", "RS_Vel", "Pct_Above_MA"]].copy()
+        rows["date"] = _today_str
+        if os.path.exists(_AI_LAYER_FILE):
+            existing = pd.read_csv(_AI_LAYER_FILE)
+            existing = existing[existing["date"] != _today_str]  # replace today
+        else:
+            existing = pd.DataFrame()
+        combined = pd.concat([existing, rows], ignore_index=True)
+        combined["date"] = pd.to_datetime(combined["date"])
+        cutoff = pd.Timestamp.now() - pd.Timedelta(days=120)
+        combined = combined[combined["date"] >= cutoff]
+        combined["date"] = combined["date"].dt.strftime("%Y-%m-%d")
+        combined.to_csv(_AI_LAYER_FILE, index=False)
+        return combined
 
-    fig_heat = go.Figure(go.Heatmap(
-        z=_z,
-        x=_m_labels,
-        y=_layers,
-        colorscale='RdYlGn',
-        zmid=0,
-        text=_text,
-        texttemplate="%{text}",
-        textfont={"size": 11},
-        showscale=True,
-        colorbar=dict(title="% vs Bench", thickness=14),
-    ))
-    fig_heat.update_layout(
-        height=max(380, len(_layers) * 44),
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis=dict(side='top'),
-        yaxis=dict(autorange='reversed'),
-    )
-    st.plotly_chart(fig_heat, use_container_width=True)
+    def _load_ai_layer_history():
+        if not os.path.exists(_AI_LAYER_FILE):
+            return pd.DataFrame()
+        df = pd.read_csv(_AI_LAYER_FILE)
+        df["date"] = pd.to_datetime(df["date"])
+        return df
+
+    _save_ai_layer_snapshot(layer_agg)
+    _layer_hist = _load_ai_layer_history()
+
+    # Build pivot: Layer × date (sorted chronologically)
+    if not _layer_hist.empty:
+        _hist_pivot = _layer_hist.pivot_table(
+            index="Layer", columns="date", values="CompRS", aggfunc="mean"
+        )
+        _hist_pivot = _hist_pivot.sort_index(axis=1)  # dates ascending
+        _n_days = len(_hist_pivot.columns)
+    else:
+        _hist_pivot = pd.DataFrame()
+        _n_days = 0
+
+    # ── Tabs: Trend Table | Heatmap ──────────────────────────────────────────
+    rot_tab1, rot_tab2 = st.tabs(["📈 Trend Table (day-by-day)", "🌡️ Current Heatmap"])
+
+    with rot_tab1:
+        if _n_days < 2:
+            st.info("Trend data accumulates from the second visit onwards — come back tomorrow for sparklines.")
+        else:
+            _trend_rows = []
+            for _, r in layer_agg.iterrows():
+                lyr = r["Layer"]
+                if lyr in _hist_pivot.index:
+                    series = _hist_pivot.loc[lyr].dropna().tolist()
+                else:
+                    series = [r["CompRS"]]
+
+                # 5D delta: today vs ~5 sessions ago
+                _delta_5d = None
+                if lyr in _hist_pivot.index:
+                    _valid = _hist_pivot.loc[lyr].dropna()
+                    if len(_valid) >= 6:
+                        _delta_5d = round(float(_valid.iloc[-1]) - float(_valid.iloc[-6]), 2)
+                    elif len(_valid) >= 2:
+                        _delta_5d = round(float(_valid.iloc[-1]) - float(_valid.iloc[0]), 2)
+
+                # Momentum badge
+                if _delta_5d is not None:
+                    if _delta_5d > 1:
+                        badge = "🟢 Rising"
+                    elif _delta_5d < -1:
+                        badge = "🔴 Falling"
+                    else:
+                        badge = "🟡 Flat"
+                else:
+                    badge = "—"
+
+                _trend_rows.append({
+                    "Layer":         lyr,
+                    "Comp RS":       r["CompRS"],
+                    "5D Δ":          _delta_5d,
+                    "Momentum":      badge,
+                    "RS Vel":        r["RS_Vel"],
+                    "% > MA":        r["Pct_Above_MA"],
+                    "Stocks":        int(r["Count"]),
+                    f"Trend ({_n_days}d)": series,
+                })
+
+            _trend_df = pd.DataFrame(_trend_rows)
+            _trend_col_cfg = {
+                "Layer":    st.column_config.TextColumn("Layer"),
+                "Comp RS":  st.column_config.NumberColumn("Comp RS", format="%+.1f%%"),
+                "5D Δ":     st.column_config.NumberColumn("5D Δ", format="%+.1f%%"),
+                "Momentum": st.column_config.TextColumn("Momentum"),
+                "RS Vel":   st.column_config.NumberColumn("RS Velocity", format="%+.2f%%"),
+                "% > MA":   st.column_config.NumberColumn("% > MA", format="%.0f%%"),
+                "Stocks":   st.column_config.NumberColumn("Stocks", format="%d"),
+                f"Trend ({_n_days}d)": st.column_config.LineChartColumn(
+                    f"Trend ({_n_days}d)", y_min=-30, y_max=30
+                ),
+            }
+            st.dataframe(_trend_df, column_config=_trend_col_cfg,
+                         hide_index=True, use_container_width=True)
+
+            _csv_bytes = _trend_df.drop(columns=[f"Trend ({_n_days}d)"]).to_csv(index=False).encode()
+            st.download_button("⬇️ Download Layer Rotation CSV", _csv_bytes,
+                               "ai_layer_rotation.csv", "text/csv", key="dl_layer_rot")
+
+    with rot_tab2:
+        _metrics  = ['RS_Vel', 'RS5vs', 'RS21vs', 'RS63vs', 'CompRS']
+        _m_labels = ['RS Velocity (5D)', f'RS5 vs {us_benchmark}', f'RS21 vs {us_benchmark}',
+                     f'RS63 vs {us_benchmark}', 'Composite RS']
+        _layers   = layer_agg['Layer'].tolist()
+        _z        = layer_agg[_metrics].values.tolist()
+
+        _text = [
+            [f"{v:+.1f}" if (v is not None and not (isinstance(v, float) and np.isnan(v))) else "—"
+             for v in row]
+            for row in _z
+        ]
+
+        fig_heat = go.Figure(go.Heatmap(
+            z=_z,
+            x=_m_labels,
+            y=_layers,
+            colorscale='RdYlGn',
+            zmid=0,
+            text=_text,
+            texttemplate="%{text}",
+            textfont={"size": 11},
+            showscale=True,
+            colorbar=dict(title="% vs Bench", thickness=14),
+        ))
+        fig_heat.update_layout(
+            height=max(380, len(_layers) * 44),
+            margin=dict(l=10, r=10, t=30, b=10),
+            xaxis=dict(side='top'),
+            yaxis=dict(autorange='reversed'),
+        )
+        st.plotly_chart(fig_heat, use_container_width=True)
 
     st.markdown("---")
 

@@ -158,7 +158,8 @@ class ThemeEngine:
         return loaded > 0
 
     def _comp_rs_slice(self, close_series, bench_series):
-        """Compute composite RS from two pre-sliced Close series."""
+        """Compute composite RS from two pre-sliced Close series.
+        Uses iloc[-(period+1)] so RS5 = exactly 5-interval return."""
         if len(close_series) < 64 or len(bench_series) < 64:
             return None
         price = float(close_series.iloc[-1])
@@ -167,8 +168,8 @@ class ThemeEngine:
         for period, weight in self.rs_weights:
             if len(close_series) < period + 1 or len(bench_series) < period + 1:
                 return None
-            s_ret = price / float(close_series.iloc[-period]) - 1
-            b_ret = b_price / float(bench_series.iloc[-period]) - 1
+            s_ret = price / float(close_series.iloc[-(period + 1)]) - 1
+            b_ret = b_price / float(bench_series.iloc[-(period + 1)]) - 1
             rs_total += (s_ret - b_ret) * 100 * weight
         return rs_total
 
