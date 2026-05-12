@@ -302,6 +302,60 @@ class ThemeEngine:
 
         return pd.DataFrame(results).sort_values('CompRS', ascending=False).reset_index(drop=True)
 
+    def backfill_layer_rotation(self, n_months=12):
+        """
+        Compute monthly historical layer CompRS snapshots using already-downloaded
+        price history. Steps back ~21 bars per month and recomputes RS at each point.
+        Returns DataFrame with columns: date, Layer, CompRS, RS_Vel, Pct_Above_MA.
+        """
+        if not self.data_cache:
+            if not self.fetch_data(self.config.get('lookback_days', 400)):
+                return pd.DataFrame()
+
+        bench_close = self.benchmark_data['Close']
+        n_total = len(bench_close)
+        rows = []
+
+        for month_offset in range(n_months, 0, -1):
+            end_idx = n_total - month_offset * 21
+            if end_idx < 65:
+                continue
+
+            b_slice = bench_close.iloc[:end_idx]
+            date_label = bench_close.index[end_idx - 1].strftime("%Y-%m-%d")
+
+            layer_rs = {}
+            layer_above = {}
+            for t in self.tickers:
+                if t not in self.data_cache:
+                    continue
+                df = self.data_cache[t]
+                close = df['Close']
+                n = min(len(close), end_idx)
+                if n < 65:
+                    continue
+                close_slice = close.iloc[:n]
+                rs = self._comp_rs_slice(close_slice, b_slice)
+                if rs is None:
+                    continue
+                layer = self.layer_map.get(t, 'Unknown')
+                layer_rs.setdefault(layer, []).append(rs)
+                # Above MA at that point
+                ma = float(close_slice.rolling(self.ma_period).mean().iloc[-1])
+                layer_above.setdefault(layer, []).append(float(close_slice.iloc[-1]) > ma)
+
+            for layer, rs_vals in layer_rs.items():
+                above_vals = layer_above.get(layer, [])
+                rows.append({
+                    "date":         date_label,
+                    "Layer":        layer,
+                    "CompRS":       round(float(sum(rs_vals)) / len(rs_vals), 2),
+                    "RS_Vel":       None,
+                    "Pct_Above_MA": round(sum(above_vals) / len(above_vals) * 100, 0) if above_vals else None,
+                })
+
+        return pd.DataFrame(rows)
+
     def get_layer_rotation(self):
         """
         Aggregate CompRS, RS_Vel, and signal counts by supply-chain layer.

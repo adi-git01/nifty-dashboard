@@ -5640,6 +5640,35 @@ elif page == "🇺🇸 US AI Play":
     _save_ai_layer_snapshot(layer_agg)
     _layer_hist = _load_ai_layer_history()
 
+    # Backfill 12 months of history on first visit (< 2 distinct dates in file)
+    if _layer_hist["date"].nunique() < 2 if not _layer_hist.empty else True:
+        @st.cache_data(ttl=86400, show_spinner=False)
+        def _backfill_ai_layers(rs_weights_t, benchmark):
+            cfg = dict(AI_CAPEX_THEME)
+            cfg['benchmark'] = benchmark
+            cfg['rs_weights'] = list(rs_weights_t)
+            eng = ThemeEngine(cfg)
+            return eng.backfill_layer_rotation(n_months=12)
+
+        with st.spinner("Building 12-month layer history (first visit only)…"):
+            _bf_df = _backfill_ai_layers(rs_weights_t, us_benchmark)
+
+        if not _bf_df.empty:
+            _existing_dates = set(
+                _layer_hist["date"].dt.strftime("%Y-%m-%d").tolist()
+                if not _layer_hist.empty else []
+            )
+            _bf_new = _bf_df[~_bf_df["date"].isin(_existing_dates)]
+            if not _bf_new.empty:
+                os.makedirs("data", exist_ok=True)
+                if os.path.exists(_AI_LAYER_FILE):
+                    _curr_csv = pd.read_csv(_AI_LAYER_FILE)
+                    _combined_bf = pd.concat([_bf_new, _curr_csv], ignore_index=True)
+                else:
+                    _combined_bf = _bf_new
+                _combined_bf.to_csv(_AI_LAYER_FILE, index=False)
+                _layer_hist = _load_ai_layer_history()
+
     # Build pivot: Layer × date (sorted chronologically)
     if not _layer_hist.empty:
         _hist_pivot = _layer_hist.pivot_table(
