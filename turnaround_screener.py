@@ -32,7 +32,7 @@ CACHE_DIR   = "data/cache"
 # ── Calibrated thresholds (from 12-stock post-mortem) ─────────────────────────
 MIN_OFF_52W_HIGH  = -20.0   # At least 20% below 52W high (not in free-run)
 MAX_OFF_52W_HIGH  = -5.0    # Not too close to high either (stock must be cooling)
-MIN_LIQ5_CR       = 50.0    # Minimum Rs 50Cr/day (5-day avg)
+MIN_LIQ5_CR       = 30.0    # Minimum Rs 30Cr/day (5-day avg)
 MIN_IAS_SCORE     = 35      # Minimum IAS to enter watchlist
 MAX_RS21_FLOOR    = -40.0   # Anti-freefall: RS21 < -40% means still collapsing
 
