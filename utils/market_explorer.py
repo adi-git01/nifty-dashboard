@@ -1,7 +1,9 @@
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 import yfinance as yf
+import plotly.graph_objects as go
 from utils.data_engine import get_stock_info
 from utils.scoring import calculate_scores, calculate_trend_metrics
 from utils.analytics_engine import calculate_cycle_position, analyze_stock_health
@@ -128,6 +130,111 @@ def render_market_explorer():
             f4.metric("Debt/Equity", f"{info.get('debtToEquity', 0):.2f}")
             f5.metric("PEG Ratio", f"{info.get('pegRatio', 0):.2f}")
             
+            # ── 6-Month CompRS History ────────────────────────────────────────
+            st.markdown("---")
+            st.markdown("#### 📈 6-Month Composite RS vs Nifty")
+            st.caption("Daily CompRS = RS5×30% + RS21×50% + RS63×20% vs ^NSEI | Green = outperforming, Red = underperforming")
+
+            @st.cache_data(ttl=3600, show_spinner=False)
+            def _fetch_comprs_history(tkr):
+                try:
+                    raw = yf.download(
+                        [tkr, "^NSEI"], period="400d", interval="1d",
+                        group_by="ticker", threads=False, progress=False, auto_adjust=True
+                    )
+                    if isinstance(raw.columns, pd.MultiIndex):
+                        s_close = raw[tkr]["Close"].dropna()
+                        n_close = raw["^NSEI"]["Close"].dropna()
+                    else:
+                        return pd.DataFrame()
+                    if s_close.index.tz is not None:
+                        s_close.index = s_close.index.tz_localize(None)
+                    if n_close.index.tz is not None:
+                        n_close.index = n_close.index.tz_localize(None)
+                    common = s_close.index.intersection(n_close.index)
+                    s = s_close.reindex(common)
+                    n = n_close.reindex(common)
+                    rs5  = (s.pct_change(5)  - n.pct_change(5))  * 100
+                    rs21 = (s.pct_change(21) - n.pct_change(21)) * 100
+                    rs63 = (s.pct_change(63) - n.pct_change(63)) * 100
+                    comp = rs5 * 0.30 + rs21 * 0.50 + rs63 * 0.20
+                    out = pd.DataFrame({
+                        "date":    common,
+                        "CompRS":  comp.values,
+                        "RS5":     rs5.values,
+                        "RS21":    rs21.values,
+                        "RS63":    rs63.values,
+                        "price":   s.values,
+                    }).dropna(subset=["CompRS"])
+                    return out.tail(126)   # last ~6 months of trading days
+                except Exception:
+                    return pd.DataFrame()
+
+            _crs_df = _fetch_comprs_history(ticker)
+
+            if _crs_df.empty:
+                st.info("CompRS history unavailable for this ticker.")
+            else:
+                _latest_crs = float(_crs_df["CompRS"].iloc[-1])
+                _avg_crs    = float(_crs_df["CompRS"].mean())
+                _pct_above  = (_crs_df["CompRS"] > 0).mean() * 100
+
+                _m1, _m2, _m3 = st.columns(3)
+                _m1.metric("Current CompRS", f"{_latest_crs:+.2f}%",
+                           delta=f"{_latest_crs - float(_crs_df['CompRS'].iloc[-6]):+.2f}% vs 5d ago" if len(_crs_df) >= 6 else None)
+                _m2.metric("6M Avg CompRS", f"{_avg_crs:+.2f}%")
+                _m3.metric("Days Outperforming", f"{_pct_above:.0f}%",
+                           help="% of last 6 months where CompRS > 0")
+
+                # Build Plotly area chart
+                _dates = _crs_df["date"]
+                _vals  = _crs_df["CompRS"]
+                _pos   = _vals.clip(lower=0)
+                _neg   = _vals.clip(upper=0)
+
+                _fig = go.Figure()
+                _fig.add_trace(go.Scatter(
+                    x=_dates, y=_pos, fill="tozeroy", mode="none",
+                    fillcolor="rgba(0,200,83,0.25)", name="Above 0"
+                ))
+                _fig.add_trace(go.Scatter(
+                    x=_dates, y=_neg, fill="tozeroy", mode="none",
+                    fillcolor="rgba(213,0,0,0.25)", name="Below 0"
+                ))
+                _fig.add_trace(go.Scatter(
+                    x=_dates, y=_vals, mode="lines",
+                    line=dict(color="#42A5F5", width=1.5), name="CompRS"
+                ))
+                _fig.add_hline(y=0, line_dash="dash", line_color="rgba(255,255,255,0.4)", line_width=1)
+                _fig.update_layout(
+                    height=240,
+                    margin=dict(l=0, r=0, t=10, b=10),
+                    showlegend=False,
+                    yaxis=dict(title="CompRS %", zeroline=False, tickformat="+.1f"),
+                    xaxis=dict(showgrid=False),
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                )
+                st.plotly_chart(_fig, use_container_width=True)
+
+                # Mini breakdown table
+                with st.expander("RS component breakdown", expanded=False):
+                    _breakdown = _crs_df[["date", "RS5", "RS21", "RS63", "CompRS"]].tail(10).copy()
+                    _breakdown["date"] = pd.to_datetime(_breakdown["date"]).dt.strftime("%d %b")
+                    st.dataframe(
+                        _breakdown.rename(columns={
+                            "date": "Date", "RS5": "RS5 (1W)", "RS21": "RS21 (1M)",
+                            "RS63": "RS63 (3M)", "CompRS": "CompRS"
+                        }),
+                        column_config={
+                            "RS5 (1W)":  st.column_config.NumberColumn(format="%+.2f%%"),
+                            "RS21 (1M)": st.column_config.NumberColumn(format="%+.2f%%"),
+                            "RS63 (3M)": st.column_config.NumberColumn(format="%+.2f%%"),
+                            "CompRS":    st.column_config.NumberColumn(format="%+.2f%%"),
+                        },
+                        hide_index=True, use_container_width=True
+                    )
+
             st.markdown("---")
             if st.button("📄 Generate Structural Report", use_container_width=True):
                 with st.spinner("Generating Institutional-Grade Report..."):
