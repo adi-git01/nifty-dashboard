@@ -1,0 +1,11 @@
+signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead_action,return_since_signal,return_5d,return_21d,days_held,status
+2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2219.2,13.69,21.5,🟡 Neutral (Priced-In),4.48,,,1,ACTIVE
+2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1787.0,10.97,7.3,🟡 Neutral (Priced-In),4.99,,,1,ACTIVE
+2026-05-19,PURVA.NS,Puravankara Limited,Real Estate,242.8,242.84,13.97,36.0,🟢 Buy (Drifter),0.02,,,0,ACTIVE
+2026-05-19,SPARC.NS,Sun Pharma Advanced Research Company Limited,Pharma & Healthcare,171.3,171.26,5.57,3.6,🟡 Neutral (Priced-In),-0.02,,,0,ACTIVE
+2026-05-19,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,Chemicals,543.0,543.0,4.6,9.3,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-05-19,JKPAPER.NS,JK Paper Limited,Cement & Materials,387.6,387.65,4.39,4.5,Unknown,0.01,,,0,ACTIVE
+2026-05-19,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1787.0,1787.0,5.33,3.8,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-05-19,ANGELONE.NS,Angel One Limited,Financial Services,319.4,319.4,5.08,3.2,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
+2026-05-19,SUPRIYA.NS,Supriya Lifescience Limited,Pharma & Healthcare,714.3,714.35,4.44,2.7,🟡 Neutral (Priced-In),0.01,,,0,ACTIVE
+2026-05-19,ENTERO.NS,Entero Healthcare Solutions Limited,Pharma & Healthcare,1240.1,1240.1,4.05,2.7,🟡 Neutral (Priced-In),-0.0,,,0,ACTIVE
