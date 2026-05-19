@@ -620,6 +620,10 @@ elif page == "🚀 Live Trading Desk":
             def _get_spy_history():
                 return yf.Ticker("SPY").history(period="5d")
 
+            @st.cache_data(ttl=3600, show_spinner=False)
+            def _get_us_mkt_for_desk():
+                return fetch_us_market_data(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
+
             _scan_tab_in, _scan_tab_us = st.tabs(["🇮🇳 Nifty Universe", "🇺🇸 S&P 500"])
 
             with _scan_tab_in:
@@ -782,12 +786,6 @@ elif page == "🚀 Live Trading Desk":
                 st.caption("RS Divergence vs SPY | VCP setups | Earnings Gaps — across S&P 500 universe.")
 
                 with st.spinner("Running US Alpha Scanners..."):
-                    from utils.us_data_engine import fetch_us_market_data as _fetch_us_mkt
-
-                    @st.cache_data(ttl=3600, show_spinner=False)
-                    def _get_us_mkt_for_desk():
-                        return _fetch_us_mkt(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
-
                     us_mkt_df = _get_us_mkt_for_desk()
                     spy_live  = _get_spy_history()
 
