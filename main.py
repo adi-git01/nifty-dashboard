@@ -6547,3 +6547,48 @@ elif page == "🇺🇸 US Scanner":
         else:
             st.caption("Sub-industry data not available.")
 
+    # ── VCP BACKTEST ─────────────────────────────────────────────────────────
+    st.markdown("---")
+    with st.expander("📊 **VCP Backtest — Last 6 Months (S&P 500)**", expanded=False):
+        st.caption(
+            "Walk-forward scan: weekly steps over the last 6 months. "
+            "Applies all 5 VCP gates at each point using only data available on that day. "
+            "Shows top 15 signals by 10D forward return + summary stats."
+        )
+        if st.button("▶️ Run VCP Backtest", key="run_vcp_backtest"):
+            from utils.advanced_scanners import backtest_vcp_us
+            _bt_tickers = us_df.nlargest(150, "trend_score")["ticker"].dropna().tolist()
+            with st.spinner(f"Running walk-forward VCP backtest on {len(_bt_tickers)} S&P 500 stocks… (~30–60 s)"):
+                _bt_top, _bt_summary = backtest_vcp_us(_bt_tickers, n_months=6, top_n=15)
+            if _bt_summary:
+                _bm1, _bm2, _bm3, _bm4, _bm5 = st.columns(5)
+                _bm1.metric("Total Signals", f"{_bt_summary['total_signals']}")
+                _bm2.metric("Hit Rate (10D)", f"{_bt_summary['hit_rate_pct']}%")
+                _bm3.metric("Avg Return (10D)", f"{_bt_summary['avg_10d_ret']:+.2f}%")
+                _bm4.metric("Best (10D)", f"{_bt_summary['best_10d_ret']:+.2f}%")
+                _bm5.metric("Worst (10D)", f"{_bt_summary['worst_10d_ret']:+.2f}%")
+            if not _bt_top.empty:
+                st.markdown("#### Top 15 Signals by 10D Return")
+                _bt_top["INDmoney"] = "https://www.indmoney.com/us-stocks/" + _bt_top["Ticker"]
+                st.dataframe(
+                    _bt_top[["INDmoney", "Signal Date", "Signal Price",
+                              "Compression", "Vol Ratio %", "Dist 52W %",
+                              "Return 5D %", "Return 10D %", "Return 21D %"]],
+                    column_config={
+                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.+)"),
+                        "Signal Price":  st.column_config.NumberColumn(format="$%.2f"),
+                        "Compression":   st.column_config.NumberColumn("ATR% (10D)", format="%.2f%%"),
+                        "Vol Ratio %":   st.column_config.NumberColumn("Vol %", format="%.1f%%"),
+                        "Dist 52W %":    st.column_config.NumberColumn("Dist 52W", format="%.1f%%"),
+                        "Return 5D %":   st.column_config.NumberColumn("5D Ret", format="%+.2f%%"),
+                        "Return 10D %":  st.column_config.NumberColumn("10D Ret", format="%+.2f%%"),
+                        "Return 21D %":  st.column_config.NumberColumn("21D Ret", format="%+.2f%%"),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                )
+            elif _bt_summary:
+                st.info("No VCP signals found in the last 6 months with the current criteria.")
+            else:
+                st.warning("Backtest returned no data — check internet connection or reduce ticker count.")
+
