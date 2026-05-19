@@ -28,5 +28,8 @@ alerts.json
 .DS_Store
 Thumbs.db
 
+# Claude Code agent workspace
+.claude/
+
 # Logs
 *.log

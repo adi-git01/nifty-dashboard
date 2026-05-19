@@ -1,0 +1,23 @@
+signal_date,ticker,name,sector,signal_price,current_price,stock_ret_on_day,nifty_ret_on_day,delta_rs,dist_52w,return_since_signal,days_held,status
+2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2219.2,13.69,-0.95,14.64,-0.6,4.48,1,ACTIVE
+2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1787.0,10.97,-0.95,11.92,-1.0,4.99,1,ACTIVE
+2026-05-18,SCI.NS,The Shipping Corporation of India Limited,Infrastructure,344.55,346.45,3.97,-0.95,4.92,-6.6,0.55,1,ACTIVE
+2026-05-18,CARBORUNIV.NS,Carborundum Universal Limited,Capital Goods,1136.35,1092.0,3.08,-0.95,4.03,-2.6,-3.9,1,ACTIVE
+2026-05-18,UNOMINDA.NS,Uno Minda Limited,Auto,1147.9,1028.0,2.33,-0.95,3.28,-16.9,-10.45,1,ACTIVE
+2026-05-18,SOLARINDS.NS,Solar Industries India Limited,Chemicals,17642.0,18340.0,1.89,-0.95,2.85,-1.7,3.96,1,ACTIVE
+2026-05-18,IPCALAB.NS,Ipca Laboratories Limited,Pharma & Healthcare,1631.9,1643.0,1.68,-0.95,2.63,-1.4,0.68,1,ACTIVE
+2026-05-18,ARVIND.NS,Arvind Limited,Textiles,458.45,486.45,1.63,-0.95,2.58,-3.0,6.11,1,ACTIVE
+2026-05-18,OFSS.NS,Oracle Financial Services Software Limited,IT & Technology,9137.5,9749.5,1.36,-0.95,2.31,-5.0,6.7,1,ACTIVE
+2026-05-18,COALINDIA.NS,Coal India Limited,Oil & Gas,467.55,457.7,1.16,-0.95,2.11,-4.8,-2.11,1,ACTIVE
+2026-05-18,VIJAYA.NS,Vijaya Diagnostic Centre Limited,Pharma & Healthcare,1340.6,1285.7,0.86,-0.95,1.81,-2.8,-4.1,1,ACTIVE
+2026-05-18,ACUTAAS.NS,Acutaas Chemicals Limited,Chemicals,2753.0,2889.1,0.81,-0.95,1.76,-3.4,4.94,1,ACTIVE
+2026-05-18,SHILPAMED.NS,Shilpa Medicare Limited,Pharma & Healthcare,482.25,469.6,0.8,-0.95,1.76,-3.4,-2.62,1,ACTIVE
+2026-05-18,BSE.NS,BSE Limited,Financial Services,4029.0,4261.0,0.71,-0.95,1.66,-1.4,5.76,1,ACTIVE
+2026-05-18,INNOVACAP.NS,Innova Captab Limited,Pharma & Healthcare,864.1,891.85,0.68,-0.95,1.63,-15.1,3.21,1,ACTIVE
+2026-05-18,RATEGAIN.NS,RateGain Travel Technologies Limited,IT & Technology,629.5,649.5,0.66,-0.95,1.62,-15.1,3.18,1,ACTIVE
+2026-05-18,PREMIERENE.NS,PREMIERENE.NS,Capital Goods,987.8,994.4,0.63,-0.95,1.58,-15.0,0.67,1,ACTIVE
+2026-05-18,AJANTPHARM.NS,Ajanta Pharma Limited,Pharma & Healthcare,3196.0,3241.4,0.59,-0.95,1.54,-2.9,1.42,1,ACTIVE
+2026-05-18,BHARTIARTL.NS,Bharti Airtel Limited,Telecom,1915.5,1924.2,0.53,-0.95,1.48,-11.9,0.45,1,ACTIVE
+2026-05-18,LALPATHLAB.NS,Dr. Lal PathLabs Limited,Pharma & Healthcare,1611.2,1691.3,0.52,-0.95,1.47,-8.5,4.97,1,ACTIVE
+2026-05-18,TORNTPOWER.NS,Torrent Power Limited,Power & Utilities,1471.5,1523.5,0.38,-0.95,1.33,-19.3,3.53,1,ACTIVE
+2026-05-18,ONESOURCE.NS,ONESOURCE.NS,Pharma & Healthcare,1841.2,1845.9,0.35,-0.95,1.3,-18.1,0.26,1,ACTIVE

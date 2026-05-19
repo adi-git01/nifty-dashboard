@@ -33,6 +33,9 @@ SHOCK_LOG_COLS = [
     "return_since_signal", "return_5d", "return_21d", "days_held", "status",
 ]
 
+US_RS_LOG_FILE    = "data/us_rs_divergence_log.csv"
+US_SHOCK_LOG_FILE = "data/us_earnings_shock_log.csv"
+
 
 # ---------------------------------------------------------------------------
 # VCP
@@ -348,3 +351,54 @@ def load_signal_log(log_file, cols):
         df["signal_date"] = pd.to_datetime(df["signal_date"])
         df = df.sort_values("signal_date", ascending=False)
     return df
+
+
+def save_us_rs_divergence_signals(rs_list):
+    """Append today's US RS divergence signals (vs SPY) to the US log."""
+    if not rs_list:
+        return
+    today = datetime.now().strftime("%Y-%m-%d")
+    rows = []
+    for r in rs_list:
+        rows.append({
+            "signal_date":       today,
+            "ticker":            r["Ticker"],
+            "name":              r["Name"],
+            "sector":            r["Sector"],
+            "signal_price":      r["Price"],
+            "current_price":     r["Price"],
+            "stock_ret_on_day":  r["Stock_Ret"],
+            "nifty_ret_on_day":  r["Nifty_Ret"],
+            "delta_rs":          r["Delta_RS"],
+            "dist_52w":          r["Dist_52W"],
+            "return_since_signal": 0.0,
+            "days_held":         0,
+            "status":            "ACTIVE",
+        })
+    _append_to_log(US_RS_LOG_FILE, pd.DataFrame(rows), ["signal_date", "ticker"], RS_LOG_COLS)
+
+
+def save_us_earnings_shock_signals(shock_list):
+    """Append today's US earnings shock signals to the US log."""
+    if not shock_list:
+        return
+    today = datetime.now().strftime("%Y-%m-%d")
+    rows = []
+    for r in shock_list:
+        rows.append({
+            "signal_date":         today,
+            "ticker":              r["Ticker"],
+            "name":                r["Name"],
+            "sector":              r["Sector"],
+            "signal_price":        r["Price"],
+            "current_price":       r["Price"],
+            "jump_pct":            r["Jump_Pct"],
+            "vol_mult":            r["Vol_Mult"],
+            "pead_action":         r["PEAD_Action"],
+            "return_since_signal": 0.0,
+            "return_5d":           None,
+            "return_21d":          None,
+            "days_held":           0,
+            "status":              "ACTIVE",
+        })
+    _append_to_log(US_SHOCK_LOG_FILE, pd.DataFrame(rows), ["signal_date", "ticker"], SHOCK_LOG_COLS)
