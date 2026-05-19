@@ -816,11 +816,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Price tightening + volume dry-up across top S&P 500 momentum names.")
                         if us_vcp_list:
                             _uvcp = pd.DataFrame(us_vcp_list)
-                            _uvcp['yf_link'] = "https://finance.yahoo.com/quote/" + _uvcp['Ticker']
+                            _uvcp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _uvcp['Ticker']
                             st.dataframe(
                                 _uvcp[['yf_link', 'Price', 'Score', 'Compression', 'Vol_Ratio', 'MA50_Dist', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.*?)$"),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
                                     "Price":       st.column_config.NumberColumn("Price",       format="$%.2f"),
                                     "Score":       st.column_config.NumberColumn("Trend Score", format="%.0f"),
                                     "Compression": st.column_config.NumberColumn("10D ATR%",    format="%.1f%%"),
@@ -838,11 +838,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("US stocks closing positive while SPY falls > -0.3%.")
                         if us_rs_list:
                             _urs = pd.DataFrame(us_rs_list)
-                            _urs['yf_link'] = "https://finance.yahoo.com/quote/" + _urs['Ticker']
+                            _urs['yf_link'] = "https://www.indmoney.com/us-stocks/" + _urs['Ticker']
                             st.dataframe(
                                 _urs[['yf_link', 'Stock_Ret', 'Nifty_Ret', 'Delta_RS', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.*?)$"),
+                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
                                     "Stock_Ret": st.column_config.NumberColumn("Stock %",  format="%+.1f%%"),
                                     "Nifty_Ret": st.column_config.NumberColumn("SPY %",    format="%+.1f%%"),
                                     "Delta_RS":  st.column_config.NumberColumn("Delta RS", format="%+.1f%%"),
@@ -858,11 +858,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Day-0 gap > 4% on > 2.5× volume across S&P 500.")
                         if us_shock_list:
                             _ushk = pd.DataFrame(us_shock_list)
-                            _ushk['yf_link'] = "https://finance.yahoo.com/quote/" + _ushk['Ticker']
+                            _ushk['yf_link'] = "https://www.indmoney.com/us-stocks/" + _ushk['Ticker']
                             st.dataframe(
                                 _ushk[['yf_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.*?)$"),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
                                     "Jump_Pct":    st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
                                     "Vol_Mult":    st.column_config.NumberColumn("Vol Ratio",  format="%.1fx"),
                                     "PEAD_Action": "Playbook",
@@ -881,7 +881,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US stocks showing RS vs SPY in the last 365 days. Auto-closed after 21 days.")
                     if not us_rs_log_df.empty:
                         _urs_disp = us_rs_log_df.copy()
-                        _urs_disp['yf_link'] = "https://finance.yahoo.com/quote/" + _urs_disp['ticker']
+                        _urs_disp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _urs_disp['ticker']
                         _urs_disp['signal_date'] = pd.to_datetime(_urs_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _urs_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -890,7 +890,7 @@ elif page == "🚀 Live Trading Desk":
                                        'dist_52w', 'days_held', 'status']],
                             column_config={
                                 "signal_date":          st.column_config.TextColumn("Signal Date"),
-                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.*?)$"),
+                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
                                 "name":                 st.column_config.TextColumn("Name"),
                                 "sector":               st.column_config.TextColumn("Sector"),
                                 "signal_price":         st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -913,7 +913,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US earnings gap signals from the last 365 days. PEAD drift tracked at 5D and 21D.")
                     if not us_shock_log_df.empty:
                         _ushk_disp = us_shock_log_df.copy()
-                        _ushk_disp['yf_link'] = "https://finance.yahoo.com/quote/" + _ushk_disp['ticker']
+                        _ushk_disp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _ushk_disp['ticker']
                         _ushk_disp['signal_date'] = pd.to_datetime(_ushk_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _ushk_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -922,7 +922,7 @@ elif page == "🚀 Live Trading Desk":
                                         'return_5d', 'return_21d', 'days_held', 'status']],
                             column_config={
                                 "signal_date":         st.column_config.TextColumn("Signal Date"),
-                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.*?)$"),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
                                 "name":                st.column_config.TextColumn("Name"),
                                 "sector":              st.column_config.TextColumn("Sector"),
                                 "signal_price":        st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -6283,11 +6283,11 @@ elif page == "🇺🇸 US Scanner":
     if not _bkouts.empty:
         with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
             _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
-            _bkouts_s["yf_link"] = "https://finance.yahoo.com/quote/" + _bkouts_s["ticker"]
+            _bkouts_s["yf_link"] = "https://www.indmoney.com/us-stocks/" + _bkouts_s["ticker"]
             st.dataframe(
                 _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
                 column_config={
-                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.+)"),
+                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.+)"),
                     "name":         "Company",
                     "currentPrice": st.column_config.NumberColumn("Price", format="$%.2f"),
                     "dist_52w":     st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -6397,7 +6397,7 @@ elif page == "🇺🇸 US Scanner":
         us_fdf["signal_display"] = us_fdf["trend_signal"].map(
             lambda s: f"{_EMOJI.get(s, '')} {s}" if s else s
         )
-        us_fdf["yf_link"] = "https://finance.yahoo.com/quote/" + us_fdf["ticker"]
+        us_fdf["yf_link"] = "https://www.indmoney.com/us-stocks/" + us_fdf["ticker"]
 
         _us_disp = [
             "yf_link", "name", "sector", "sub_industry", "currentPrice",
@@ -6410,7 +6410,7 @@ elif page == "🇺🇸 US Scanner":
         st.dataframe(
             us_fdf[_us_disp].sort_values("trend_score", ascending=False),
             column_config={
-                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=r"https://finance\.yahoo\.com/quote/(.+)"),
+                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.+)"),
                 "name":              "Company",
                 "sector":            "Sector",
                 "sub_industry":      "Sub-Industry",
