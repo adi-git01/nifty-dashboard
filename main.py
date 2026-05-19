@@ -50,6 +50,14 @@ from utils.us_rotation_tracker import (
     build_rotation_pivot, render_us_rotation_table, render_us_rotation_heatmap,
     backfill_us_rotation_if_needed,
 )
+from utils.advanced_scanners import (
+    find_vcp_setups, find_rs_divergence, find_live_earnings_shocks,
+    save_rs_divergence_signals, save_earnings_shock_signals,
+    save_us_rs_divergence_signals, save_us_earnings_shock_signals,
+    refresh_signal_log_prices, load_signal_log,
+    RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
+    US_RS_LOG_FILE, US_SHOCK_LOG_FILE,
+)
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -586,15 +594,6 @@ elif page == "🚀 Live Trading Desk":
             st.markdown("---")
             st.markdown("### 🔬 ADVANCED QUANTITATIVE SCANNERS")
             
-            from utils.advanced_scanners import (
-                find_vcp_setups, find_rs_divergence, find_live_earnings_shocks,
-                save_rs_divergence_signals, save_earnings_shock_signals,
-                save_us_rs_divergence_signals, save_us_earnings_shock_signals,
-                refresh_signal_log_prices, load_signal_log,
-                RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
-                US_RS_LOG_FILE, US_SHOCK_LOG_FILE,
-            )
-
             @st.cache_data(ttl=3600)
             def get_fast_histories(tickers_tuple):
                 d = yf.download(list(tickers_tuple), period="5mo", group_by='ticker', threads=False, progress=False, auto_adjust=True)
@@ -620,6 +619,10 @@ elif page == "🚀 Live Trading Desk":
             @st.cache_data(ttl=3600)
             def _get_spy_history():
                 return yf.Ticker("SPY").history(period="5d")
+
+            @st.cache_data(ttl=3600, show_spinner=False)
+            def _get_us_mkt_for_desk():
+                return fetch_us_market_data(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
 
             _scan_tab_in, _scan_tab_us = st.tabs(["🇮🇳 Nifty Universe", "🇺🇸 S&P 500"])
 
@@ -783,12 +786,6 @@ elif page == "🚀 Live Trading Desk":
                 st.caption("RS Divergence vs SPY | VCP setups | Earnings Gaps — across S&P 500 universe.")
 
                 with st.spinner("Running US Alpha Scanners..."):
-                    from utils.us_data_engine import fetch_us_market_data as _fetch_us_mkt
-
-                    @st.cache_data(ttl=3600, show_spinner=False)
-                    def _get_us_mkt_for_desk():
-                        return _fetch_us_mkt(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
-
                     us_mkt_df = _get_us_mkt_for_desk()
                     spy_live  = _get_spy_history()
 
