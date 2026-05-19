@@ -53,10 +53,8 @@ from utils.us_rotation_tracker import (
 from utils.advanced_scanners import (
     find_vcp_setups, find_rs_divergence, find_live_earnings_shocks,
     save_rs_divergence_signals, save_earnings_shock_signals,
-    save_us_rs_divergence_signals, save_us_earnings_shock_signals,
     refresh_signal_log_prices, load_signal_log,
     RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
-    US_RS_LOG_FILE, US_SHOCK_LOG_FILE,
 )
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
@@ -788,6 +786,11 @@ elif page == "🚀 Live Trading Desk":
                 with st.spinner("Running US Alpha Scanners..."):
                     us_mkt_df = _get_us_mkt_for_desk()
                     spy_live  = _get_spy_history()
+
+                    from utils.advanced_scanners import (
+                        save_us_rs_divergence_signals, save_us_earnings_shock_signals,
+                        US_RS_LOG_FILE, US_SHOCK_LOG_FILE,
+                    )
 
                     if not us_mkt_df.empty:
                         _us_top = us_mkt_df.nlargest(150, 'trend_score')['ticker'].tolist()
