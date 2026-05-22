@@ -402,3 +402,166 @@ def save_us_earnings_shock_signals(shock_list):
             "status":              "ACTIVE",
         })
     _append_to_log(US_SHOCK_LOG_FILE, pd.DataFrame(rows), ["signal_date", "ticker"], SHOCK_LOG_COLS)
+
+
+# ---------------------------------------------------------------------------
+# VCP Backtest (US stocks, walk-forward)
+# ---------------------------------------------------------------------------
+
+def backtest_vcp_us(tickers, n_months=6, top_n=15):
+    """
+    Walk-forward VCP backtest over the last n_months on a list of US tickers.
+
+    Method:
+    - Download ~(n_months + 3) months of daily OHLCV for each ticker.
+    - Scan weekly scan points (every 5 trading days) over the backtest window.
+    - At each scan point apply all 5 VCP gates using only data up to that date.
+    - Record 5D, 10D, 21D forward returns from the signal date.
+    - Return all signals + summary stats (hit rate @ 10D, avg/best/worst 10D).
+
+    tickers : list[str]   — e.g. top 150 by trend score
+    n_months: int         — lookback window in calendar months (default 6)
+    top_n   : int         — rows returned in the "top signals" table
+    """
+    import yfinance as yf
+
+    if not tickers:
+        return pd.DataFrame(), {}
+
+    # Download enough history: backtest window + 3 months of warm-up for indicators
+    total_months = n_months + 3
+    raw = yf.download(
+        tickers,
+        period=f"{total_months}mo",
+        group_by="ticker",
+        threads=False,
+        progress=False,
+        auto_adjust=True,
+    )
+    if raw.empty:
+        return pd.DataFrame(), {}
+
+    # Build per-ticker dict
+    hist_dict = {}
+    for t in tickers:
+        try:
+            if t in raw.columns.get_level_values(0):
+                sub = raw[t].dropna(how="all")
+                if len(sub) >= 65:
+                    hist_dict[t] = sub
+        except Exception:
+            pass
+
+    if not hist_dict:
+        return pd.DataFrame(), {}
+
+    # Backtest window: last n_months calendar days
+    cutoff_start = datetime.now() - timedelta(days=n_months * 30)
+    signals = []
+
+    for ticker, full_hist in hist_dict.items():
+        dates = full_hist.index
+
+        # Weekly scan steps within the backtest window (every 5 trading days)
+        scan_dates = [d for d in dates if d >= pd.Timestamp(cutoff_start)]
+        scan_dates = scan_dates[::5]  # every 5 trading days ≈ weekly
+
+        for scan_date in scan_dates:
+            # Slice history up to scan_date (no look-ahead)
+            hist = full_hist.loc[:scan_date]
+            if len(hist) < 65:
+                continue
+
+            price = float(hist["Close"].iloc[-1])
+            if price < 1:
+                continue
+
+            # Gate 1: price > MA50
+            ma50 = hist["Close"].rolling(50).mean().iloc[-1]
+            if pd.isna(ma50) or price < ma50 * 0.98:
+                continue
+
+            # Gate 2: volume dry-up < 75% of 60D avg
+            vol_60d = hist["Volume"].rolling(60).mean().iloc[-1]
+            if not vol_60d or vol_60d == 0:
+                continue
+            vol_ratio = hist["Volume"].iloc[-1] / vol_60d
+            if vol_ratio > 0.75:
+                continue
+
+            # Gate 3: 10D ATR% < 5.5%
+            recent10 = hist.iloc[-10:]
+            if len(recent10) < 10:
+                continue
+            atr_pct = ((recent10["High"].values - recent10["Low"].values) / recent10["Low"].values).mean() * 100
+            if atr_pct > 5.5:
+                continue
+
+            # Gate 4: not already within 1% of 52W high
+            hi_52w = hist["Close"].rolling(252).max().iloc[-1]
+            if pd.isna(hi_52w) or hi_52w <= 0:
+                continue
+            dist_hi = (price / hi_52w - 1) * 100
+            if dist_hi > -1.0:
+                continue
+
+            # Gate 5: mild uptrend — price above MA50 already checked; also check MA50 > MA100
+            if len(hist) >= 100:
+                ma100 = hist["Close"].rolling(100).mean().iloc[-1]
+                if not pd.isna(ma100) and ma50 < ma100 * 0.98:
+                    continue
+
+            # Forward returns (using actual future prices)
+            future = full_hist.loc[scan_date:]
+            ret_5d  = ret_10d = ret_21d = None
+            if len(future) > 5:
+                ret_5d  = (float(future["Close"].iloc[5])  / price - 1) * 100
+            if len(future) > 10:
+                ret_10d = (float(future["Close"].iloc[10]) / price - 1) * 100
+            if len(future) > 21:
+                ret_21d = (float(future["Close"].iloc[21]) / price - 1) * 100
+
+            signals.append({
+                "Signal Date":  scan_date.strftime("%Y-%m-%d"),
+                "Ticker":       ticker,
+                "Signal Price": round(price, 2),
+                "Compression":  round(atr_pct, 2),
+                "Vol Ratio %":  round(vol_ratio * 100, 1),
+                "Dist 52W %":   round(dist_hi, 1),
+                "Return 5D %":  round(ret_5d,  2) if ret_5d  is not None else None,
+                "Return 10D %": round(ret_10d, 2) if ret_10d is not None else None,
+                "Return 21D %": round(ret_21d, 2) if ret_21d is not None else None,
+            })
+
+    if not signals:
+        return pd.DataFrame(), {}
+
+    df_signals = pd.DataFrame(signals)
+
+    # Summary stats on signals that have 10D forward data
+    df_with_10d = df_signals.dropna(subset=["Return 10D %"])
+    n_total   = len(df_with_10d)
+    n_winners = (df_with_10d["Return 10D %"] > 0).sum()
+    hit_rate  = (n_winners / n_total * 100) if n_total else 0
+    avg_ret   = df_with_10d["Return 10D %"].mean() if n_total else 0
+    best_ret  = df_with_10d["Return 10D %"].max()  if n_total else 0
+    worst_ret = df_with_10d["Return 10D %"].min()  if n_total else 0
+
+    summary = {
+        "total_signals": n_total,
+        "hit_rate_pct":  round(hit_rate, 1),
+        "avg_10d_ret":   round(avg_ret, 2),
+        "best_10d_ret":  round(best_ret, 2),
+        "worst_10d_ret": round(worst_ret, 2),
+    }
+
+    # Top N by 10D return
+    top_df = (
+        df_signals
+        .dropna(subset=["Return 10D %"])
+        .sort_values("Return 10D %", ascending=False)
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+
+    return top_df, summary

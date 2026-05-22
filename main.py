@@ -57,6 +57,17 @@ from utils.advanced_scanners import (
     RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
 )
 
+import re as _re
+
+def _indmoney_url(name: str, ticker: str) -> str:
+    """Build correct INDmoney individual-stock URL: [company-slug]-share-price-[ticker-lower]"""
+    slug = _re.sub(r"[^a-z0-9 ]", "", str(name).lower().strip())
+    slug = _re.sub(r" +", "-", slug)
+    slug = _re.sub(r"-+", "-", slug).strip("-") or ticker.lower()
+    return f"https://www.indmoney.com/us-stocks/{slug}-share-price-{ticker.lower()}"
+
+_INDMONEY_DISPLAY_RE = r"https://www\.indmoney\.com/us-stocks/.+-share-price-(.+)$"
+
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
 
@@ -816,11 +827,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Price tightening + volume dry-up across top S&P 500 momentum names.")
                         if us_vcp_list:
                             _uvcp = pd.DataFrame(us_vcp_list)
-                            _uvcp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _uvcp['Ticker']
+                            _uvcp['yf_link'] = _uvcp.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
                             st.dataframe(
                                 _uvcp[['yf_link', 'Price', 'Score', 'Compression', 'Vol_Ratio', 'MA50_Dist', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                                     "Price":       st.column_config.NumberColumn("Price",       format="$%.2f"),
                                     "Score":       st.column_config.NumberColumn("Trend Score", format="%.0f"),
                                     "Compression": st.column_config.NumberColumn("10D ATR%",    format="%.1f%%"),
@@ -838,11 +849,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("US stocks closing positive while SPY falls > -0.3%.")
                         if us_rs_list:
                             _urs = pd.DataFrame(us_rs_list)
-                            _urs['yf_link'] = "https://www.indmoney.com/us-stocks/" + _urs['Ticker']
+                            _urs['yf_link'] = _urs.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
                             st.dataframe(
                                 _urs[['yf_link', 'Stock_Ret', 'Nifty_Ret', 'Delta_RS', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
+                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                                     "Stock_Ret": st.column_config.NumberColumn("Stock %",  format="%+.1f%%"),
                                     "Nifty_Ret": st.column_config.NumberColumn("SPY %",    format="%+.1f%%"),
                                     "Delta_RS":  st.column_config.NumberColumn("Delta RS", format="%+.1f%%"),
@@ -858,11 +869,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Day-0 gap > 4% on > 2.5× volume across S&P 500.")
                         if us_shock_list:
                             _ushk = pd.DataFrame(us_shock_list)
-                            _ushk['yf_link'] = "https://www.indmoney.com/us-stocks/" + _ushk['Ticker']
+                            _ushk['yf_link'] = _ushk.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
                             st.dataframe(
                                 _ushk[['yf_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                                     "Jump_Pct":    st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
                                     "Vol_Mult":    st.column_config.NumberColumn("Vol Ratio",  format="%.1fx"),
                                     "PEAD_Action": "Playbook",
@@ -881,7 +892,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US stocks showing RS vs SPY in the last 365 days. Auto-closed after 21 days.")
                     if not us_rs_log_df.empty:
                         _urs_disp = us_rs_log_df.copy()
-                        _urs_disp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _urs_disp['ticker']
+                        _urs_disp['yf_link'] = _urs_disp.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
                         _urs_disp['signal_date'] = pd.to_datetime(_urs_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _urs_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -890,7 +901,7 @@ elif page == "🚀 Live Trading Desk":
                                        'dist_52w', 'days_held', 'status']],
                             column_config={
                                 "signal_date":          st.column_config.TextColumn("Signal Date"),
-                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
+                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                                 "name":                 st.column_config.TextColumn("Name"),
                                 "sector":               st.column_config.TextColumn("Sector"),
                                 "signal_price":         st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -913,7 +924,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US earnings gap signals from the last 365 days. PEAD drift tracked at 5D and 21D.")
                     if not us_shock_log_df.empty:
                         _ushk_disp = us_shock_log_df.copy()
-                        _ushk_disp['yf_link'] = "https://www.indmoney.com/us-stocks/" + _ushk_disp['ticker']
+                        _ushk_disp['yf_link'] = _ushk_disp.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
                         _ushk_disp['signal_date'] = pd.to_datetime(_ushk_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _ushk_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -922,7 +933,7 @@ elif page == "🚀 Live Trading Desk":
                                         'return_5d', 'return_21d', 'days_held', 'status']],
                             column_config={
                                 "signal_date":         st.column_config.TextColumn("Signal Date"),
-                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.*?)$"),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                                 "name":                st.column_config.TextColumn("Name"),
                                 "sector":              st.column_config.TextColumn("Sector"),
                                 "signal_price":        st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -6283,11 +6294,11 @@ elif page == "🇺🇸 US Scanner":
     if not _bkouts.empty:
         with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
             _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
-            _bkouts_s["yf_link"] = "https://www.indmoney.com/us-stocks/" + _bkouts_s["ticker"]
+            _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
             st.dataframe(
                 _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
                 column_config={
-                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.+)"),
+                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                     "name":         "Company",
                     "currentPrice": st.column_config.NumberColumn("Price", format="$%.2f"),
                     "dist_52w":     st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -6397,7 +6408,7 @@ elif page == "🇺🇸 US Scanner":
         us_fdf["signal_display"] = us_fdf["trend_signal"].map(
             lambda s: f"{_EMOJI.get(s, '')} {s}" if s else s
         )
-        us_fdf["yf_link"] = "https://www.indmoney.com/us-stocks/" + us_fdf["ticker"]
+        us_fdf["yf_link"] = us_fdf.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
 
         _us_disp = [
             "yf_link", "name", "sector", "sub_industry", "currentPrice",
@@ -6410,7 +6421,7 @@ elif page == "🇺🇸 US Scanner":
         st.dataframe(
             us_fdf[_us_disp].sort_values("trend_score", ascending=False),
             column_config={
-                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=r"https://www\.indmoney\.com/us-stocks/(.+)"),
+                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
                 "name":              "Company",
                 "sector":            "Sector",
                 "sub_industry":      "Sub-Industry",
@@ -6546,4 +6557,52 @@ elif page == "🇺🇸 US Scanner":
                 )
         else:
             st.caption("Sub-industry data not available.")
+
+    # ── VCP BACKTEST ─────────────────────────────────────────────────────────
+    st.markdown("---")
+    with st.expander("📊 **VCP Backtest — Last 6 Months (S&P 500)**", expanded=False):
+        st.caption(
+            "Walk-forward scan: weekly steps over the last 6 months. "
+            "Applies all 5 VCP gates at each point using only data available on that day. "
+            "Shows top 15 signals by 10D forward return + summary stats."
+        )
+        if st.button("▶️ Run VCP Backtest", key="run_vcp_backtest"):
+            from utils.advanced_scanners import backtest_vcp_us
+            _bt_tickers = us_df.nlargest(150, "trend_score")["ticker"].dropna().tolist()
+            with st.spinner(f"Running walk-forward VCP backtest on {len(_bt_tickers)} S&P 500 stocks… (~30–60 s)"):
+                _bt_top, _bt_summary = backtest_vcp_us(_bt_tickers, n_months=6, top_n=15)
+            if _bt_summary:
+                _bm1, _bm2, _bm3, _bm4, _bm5 = st.columns(5)
+                _bm1.metric("Total Signals", f"{_bt_summary['total_signals']}")
+                _bm2.metric("Hit Rate (10D)", f"{_bt_summary['hit_rate_pct']}%")
+                _bm3.metric("Avg Return (10D)", f"{_bt_summary['avg_10d_ret']:+.2f}%")
+                _bm4.metric("Best (10D)", f"{_bt_summary['best_10d_ret']:+.2f}%")
+                _bm5.metric("Worst (10D)", f"{_bt_summary['worst_10d_ret']:+.2f}%")
+            if not _bt_top.empty:
+                st.markdown("#### Top 15 Signals by 10D Return")
+                _bt_name_map = us_df.set_index("ticker")["name"].dropna().to_dict()
+                _bt_top["INDmoney"] = _bt_top.apply(
+                    lambda r: _indmoney_url(_bt_name_map.get(r["Ticker"], r["Ticker"]), r["Ticker"]), axis=1
+                )
+                st.dataframe(
+                    _bt_top[["INDmoney", "Signal Date", "Signal Price",
+                              "Compression", "Vol Ratio %", "Dist 52W %",
+                              "Return 5D %", "Return 10D %", "Return 21D %"]],
+                    column_config={
+                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                        "Signal Price":  st.column_config.NumberColumn(format="$%.2f"),
+                        "Compression":   st.column_config.NumberColumn("ATR% (10D)", format="%.2f%%"),
+                        "Vol Ratio %":   st.column_config.NumberColumn("Vol %", format="%.1f%%"),
+                        "Dist 52W %":    st.column_config.NumberColumn("Dist 52W", format="%.1f%%"),
+                        "Return 5D %":   st.column_config.NumberColumn("5D Ret", format="%+.2f%%"),
+                        "Return 10D %":  st.column_config.NumberColumn("10D Ret", format="%+.2f%%"),
+                        "Return 21D %":  st.column_config.NumberColumn("21D Ret", format="%+.2f%%"),
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                )
+            elif _bt_summary:
+                st.info("No VCP signals found in the last 6 months with the current criteria.")
+            else:
+                st.warning("Backtest returned no data — check internet connection or reduce ticker count.")
 
