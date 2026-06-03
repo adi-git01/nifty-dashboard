@@ -371,7 +371,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -3853,6 +3853,378 @@ elif page == "🔬 Strategy Lab":
                         st.error(f"Backtest failed: {result.get('error', 'Unknown error')}")
             else:
                 st.info("👆 Select at least one stock to build your portfolio")
+elif page == "☀️ Morning Pulse":
+
+    st.markdown(page_header("☀️ Morning Pulse", "Daily market intelligence from parquet cache — breadth, rotation, catalysts, accumulation"), unsafe_allow_html=True)
+
+    import glob as _glob
+    import plotly.graph_objects as _pgo
+
+    @st.cache_data(ttl=1800, show_spinner=False)
+    def _load_pulse_data():
+        files = sorted(_glob.glob("data/cache/market_master_*.parquet"))
+        if len(files) < 2:
+            return None
+        dfs, labels = [], []
+        for f in files[-7:]:
+            df = pd.read_parquet(f)
+            if "rs_1m" in df.columns and "return_1m" not in df.columns:
+                df["return_1m"] = df["rs_1m"]
+            if "rs_1w" in df.columns and "return_1w" not in df.columns:
+                df["return_1w"] = df["rs_1w"]
+            dfs.append(df)
+            labels.append(f.split("market_master_")[1].replace(".parquet","").replace("_","-"))
+        return dfs, labels
+
+    _pulse = _load_pulse_data()
+    if _pulse is None:
+        st.warning("No parquet cache found. Run the trading engine first.")
+    else:
+        _dfs, _labels = _pulse
+        _today  = _dfs[-1]
+        _prev   = _dfs[-2]
+        _d2     = _dfs[-3] if len(_dfs) >= 3 else _dfs[-2]
+        _d5     = _dfs[-6] if len(_dfs) >= 6 else _dfs[0]
+        _today_label = _labels[-1]
+
+        # ── SECTION 1: MARKET BREADTH ─────────────────────────────────────────
+        st.markdown("### 🌡️ Market Breadth")
+
+        def _breadth(df):
+            ts = df["trend_score"].dropna()
+            rs = df["return_1m"].dropna() if "return_1m" in df.columns else pd.Series(dtype=float)
+            above50 = (df.get("dist_200dma", pd.Series(dtype=float)).dropna() > -20).sum() / max(len(df),1) * 100
+            return dict(
+                avg_ts=round(ts.mean(),1), med_ts=round(ts.median(),1),
+                pct60=round((ts>=60).sum()/max(len(ts),1)*100,1),
+                pct40=round((ts>=40).sum()/max(len(ts),1)*100,1),
+                pct30=round((ts<30).sum()/max(len(ts),1)*100,1),
+                rs_p75=round(rs.quantile(0.75),1) if len(rs) else 0,
+                rs_p50=round(rs.quantile(0.50),1) if len(rs) else 0,
+                rs_p25=round(rs.quantile(0.25),1) if len(rs) else 0,
+                n=len(ts),
+            )
+
+        _b0 = _breadth(_today)
+        _b1 = _breadth(_prev)
+        _b2 = _breadth(_d2)
+
+        def _arrow(val, ref, good_up=True):
+            delta = val - ref
+            if abs(delta) < 0.3:
+                return "→"
+            if good_up:
+                return "🟢 ↑" if delta > 0 else "🔴 ↓"
+            return "🟢 ↓" if delta < 0 else "🔴 ↑"
+
+        _bc1, _bc2, _bc3, _bc4 = st.columns(4)
+        with _bc1:
+            st.metric("Avg Trend Score", f"{_b0['avg_ts']}", f"{_b0['avg_ts']-_b2['avg_ts']:+.1f} vs D-2")
+        with _bc2:
+            st.metric("% TS ≥ 60 (Strong)", f"{_b0['pct60']}%", f"{_b0['pct60']-_b2['pct60']:+.1f}%")
+        with _bc3:
+            st.metric("% TS < 30 (Weak)", f"{_b0['pct30']}%", f"{_b0['pct30']-_b2['pct30']:+.1f}%", delta_color="inverse")
+        with _bc4:
+            st.metric("RS21 Median", f"{_b0['rs_p50']:+.1f}%", f"{_b0['rs_p50']-_b2['rs_p50']:+.1f}%")
+
+        _mb1, _mb2 = st.columns(2)
+        with _mb1:
+            _breadth_rows = {
+                "Avg Trend Score":   [_b2["avg_ts"],  _b1["avg_ts"],  _b0["avg_ts"]],
+                "Median TS":         [_b2["med_ts"],  _b1["med_ts"],  _b0["med_ts"]],
+                "% TS ≥ 60":         [_b2["pct60"],   _b1["pct60"],   _b0["pct60"]],
+                "% TS ≥ 40":         [_b2["pct40"],   _b1["pct40"],   _b0["pct40"]],
+                "% TS < 30 (weak)":  [_b2["pct30"],   _b1["pct30"],   _b0["pct30"]],
+                "RS21 P75":          [_b2["rs_p75"],  _b1["rs_p75"],  _b0["rs_p75"]],
+                "RS21 P50 (median)": [_b2["rs_p50"],  _b1["rs_p50"],  _b0["rs_p50"]],
+                "RS21 P25":          [_b2["rs_p25"],  _b1["rs_p25"],  _b0["rs_p25"]],
+            }
+            _bdf = pd.DataFrame(_breadth_rows, index=[_labels[-3], _labels[-2], _labels[-1]]).T
+            _bdf["Slope (D-2)"] = (_bdf[_labels[-1]] - _bdf[_labels[-3]]).round(1)
+            st.caption("Breadth Table (D-2 → Today)")
+            st.dataframe(_bdf, use_container_width=True)
+
+        with _mb2:
+            # Breadth history chart
+            _mb_hist = pd.read_csv("data/market_breadth_history.csv") if os.path.exists("data/market_breadth_history.csv") else pd.DataFrame()
+            if not _mb_hist.empty:
+                _mb_hist["date"] = pd.to_datetime(_mb_hist["date"])
+                _mb_hist = _mb_hist.sort_values("date").tail(30)
+                _fig_mb = _pgo.Figure()
+                _fig_mb.add_trace(_pgo.Scatter(x=_mb_hist["date"], y=_mb_hist["pct_uptrends"], name="% TS≥60", line=dict(color="#00F0FF")))
+                _fig_mb.add_trace(_pgo.Scatter(x=_mb_hist["date"], y=100-_mb_hist["pct_uptrends"], name="% TS<30", line=dict(color="#FF4B4B", dash="dash")))
+                _fig_mb.update_layout(height=220, margin=dict(l=0,r=0,t=20,b=0), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", legend=dict(orientation="h"), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#333"))
+                st.caption("30-day Breadth Trend")
+                st.plotly_chart(_fig_mb, use_container_width=True)
+
+        st.markdown("---")
+
+        # ── SECTION 2: SECTOR ROTATION ────────────────────────────────────────
+        st.markdown("### 🔄 Sector Rotation")
+
+        _sec_t  = _today.groupby("sector")["trend_score"].mean().round(1)
+        _sec_p  = _prev.groupby("sector")["trend_score"].mean().round(1)
+        _sec_d2 = _d2.groupby("sector")["trend_score"].mean().round(1)
+        _sec_d5 = _d5.groupby("sector")["trend_score"].mean().round(1)
+        _sec_n  = _today.groupby("sector")["ticker"].count()
+        _sec_acc = _today.groupby("sector").apply(
+            lambda g: round((g.get("volume_signal_text", pd.Series(dtype=str)) == "ACCUMULATION").sum() / max(len(g),1) * 100, 0)
+        ) if "volume_signal_text" in _today.columns else pd.Series(dtype=float)
+
+        _sec_df = pd.DataFrame({
+            "TS Today": _sec_t,
+            "TS Prev":  _sec_p,
+            "TS D-2":   _sec_d2,
+            "1D Slope": (_sec_t - _sec_p).round(1),
+            "5D Slope": (_sec_t - _sec_d5).round(1),
+            "Stocks":   _sec_n,
+        }).dropna(subset=["TS Today"]).sort_values("TS Today", ascending=False)
+
+        if not _sec_acc.empty:
+            _sec_df["Accum%"] = _sec_acc
+
+        def _slope_arrow(v):
+            if v >= 3: return f"🟢 +{v:.1f}"
+            if v >= 1: return f"↑ +{v:.1f}"
+            if v > -1: return f"→ {v:.1f}"
+            if v > -3: return f"↓ {v:.1f}"
+            return f"🔴 {v:.1f}"
+
+        _sec_df["1D"] = _sec_df["1D Slope"].apply(_slope_arrow)
+        _sec_df["5D"] = _sec_df["5D Slope"].apply(_slope_arrow)
+
+        _src1, _src2 = st.columns([3, 2])
+        with _src1:
+            st.caption("Sector TS with momentum arrows (1D / 5D slope)")
+            st.dataframe(
+                _sec_df[["TS Today", "1D", "5D", "Stocks"] + (["Accum%"] if "Accum%" in _sec_df.columns else [])],
+                use_container_width=True,
+                column_config={
+                    "TS Today": st.column_config.NumberColumn("TS Today", format="%.0f"),
+                    "1D":       st.column_config.TextColumn("1D Slope"),
+                    "5D":       st.column_config.TextColumn("5D Slope"),
+                    "Stocks":   st.column_config.NumberColumn("N", format="%.0f"),
+                    "Accum%":   st.column_config.NumberColumn("Accum%", format="%.0f%%"),
+                },
+                height=420,
+            )
+        with _src2:
+            # Bar chart: 5D slope ranked
+            _slope_sorted = _sec_df["5D Slope"].sort_values()
+            _colors = ["#FF4B4B" if v < 0 else "#00F0FF" for v in _slope_sorted.values]
+            _fig_sec = _pgo.Figure(_pgo.Bar(
+                x=_slope_sorted.values, y=_slope_sorted.index,
+                orientation="h", marker_color=_colors,
+            ))
+            _fig_sec.update_layout(height=420, margin=dict(l=0,r=0,t=20,b=0),
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                xaxis=dict(showgrid=True, gridcolor="#333", zeroline=True, zerolinecolor="#666"),
+                yaxis=dict(showgrid=False))
+            st.caption("5D Sector TS Slope")
+            st.plotly_chart(_fig_sec, use_container_width=True)
+
+        st.markdown("---")
+
+        # ── SECTION 3: TODAY'S TS MOVERS ────────────────────────────────────
+        st.markdown("### 📈 Today's TS Movers")
+
+        _merged = _today.set_index("ticker")[["trend_score","change_p","volume_score","dist_52w","name","sector"]].join(
+            _prev.set_index("ticker")[["trend_score"]].rename(columns={"trend_score":"ts_prev"}), how="inner"
+        )
+        _merged["ts_gain"] = (_merged["trend_score"] - _merged["ts_prev"]).round(0)
+        _merged["vol_signal"] = _today.set_index("ticker").get("volume_signal_text", pd.Series(dtype=str))
+
+        _mv1, _mv2 = st.columns(2)
+
+        with _mv1:
+            st.markdown("#### 🟢 Top TS Gainers — Turnaround Candidates")
+            _gainers = (_merged[_merged["ts_gain"] > 0]
+                        .sort_values("ts_gain", ascending=False).head(12))
+            if not _gainers.empty:
+                _g_display = _gainers.copy().reset_index()
+                _g_display["screener_link"] = "https://www.screener.in/company/" + _g_display["ticker"].str.replace(".NS","",regex=False) + "/"
+                _g_display["Pattern"] = _g_display.apply(
+                    lambda r: "A+B" if (r["change_p"] >= 5 and r["volume_score"] >= 7 and r["ts_gain"] >= 20)
+                    else ("A" if (r["change_p"] >= 5 and r["volume_score"] >= 7)
+                    else ("B" if (r["ts_gain"] >= 20 and r["volume_score"] >= 6 and r["change_p"] >= 2.5)
+                    else "")), axis=1
+                )
+                st.dataframe(
+                    _g_display[["screener_link","name","sector","change_p","volume_score","dist_52w","ts_prev","trend_score","ts_gain","Pattern"]],
+                    column_config={
+                        "screener_link":  st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                        "name":           st.column_config.TextColumn("Name"),
+                        "sector":         st.column_config.TextColumn("Sector"),
+                        "change_p":       st.column_config.NumberColumn("Day %",     format="%+.1f%%"),
+                        "volume_score":   st.column_config.NumberColumn("Vol",       format="%.0f /10"),
+                        "dist_52w":       st.column_config.NumberColumn("Dist 52W",  format="%.0f%%"),
+                        "ts_prev":        st.column_config.NumberColumn("TS Prev",   format="%.0f"),
+                        "trend_score":    st.column_config.NumberColumn("TS Now",    format="%.0f"),
+                        "ts_gain":        st.column_config.NumberColumn("TS Gain",   format="+%.0f"),
+                        "Pattern":        st.column_config.TextColumn("Pattern"),
+                    },
+                    hide_index=True, use_container_width=True, height=380,
+                )
+            else:
+                st.info("No TS gainers today.")
+
+        with _mv2:
+            st.markdown("#### 🔴 Top TS Losers — Caution / Exit Watch")
+            _losers = (_merged[_merged["ts_gain"] < 0]
+                       .sort_values("ts_gain").head(12))
+            if not _losers.empty:
+                _l_display = _losers.copy().reset_index()
+                _l_display["screener_link"] = "https://www.screener.in/company/" + _l_display["ticker"].str.replace(".NS","",regex=False) + "/"
+                st.dataframe(
+                    _l_display[["screener_link","name","sector","change_p","volume_score","ts_prev","trend_score","ts_gain"]],
+                    column_config={
+                        "screener_link":  st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                        "name":           st.column_config.TextColumn("Name"),
+                        "sector":         st.column_config.TextColumn("Sector"),
+                        "change_p":       st.column_config.NumberColumn("Day %",   format="%+.1f%%"),
+                        "volume_score":   st.column_config.NumberColumn("Vol",     format="%.0f /10"),
+                        "ts_prev":        st.column_config.NumberColumn("TS Prev", format="%.0f"),
+                        "trend_score":    st.column_config.NumberColumn("TS Now",  format="%.0f"),
+                        "ts_gain":        st.column_config.NumberColumn("TS Gain", format="%.0f"),
+                    },
+                    hide_index=True, use_container_width=True, height=380,
+                )
+            else:
+                st.info("No TS losers today.")
+
+        st.markdown("---")
+
+        # ── SECTION 4: INSTITUTIONAL ACCUMULATION ────────────────────────────
+        st.markdown("### 🏦 Institutional Accumulation Leaders")
+        st.caption("Vol score ≥ 8 + positive day change — institutional fingerprint")
+
+        if "volume_signal_text" in _today.columns:
+            _accum = _today[
+                (_today["volume_score"] >= 8) &
+                (_today["change_p"] > 0)
+            ].copy()
+            if "return_1m" in _accum.columns:
+                pass
+            _accum = _accum.sort_values("volume_score", ascending=False)
+
+            _ac1, _ac2 = st.columns([3, 2])
+            with _ac1:
+                _accum_disp = _accum.head(15).copy()
+                _accum_disp["screener_link"] = "https://www.screener.in/company/" + _accum_disp["ticker"].str.replace(".NS","",regex=False) + "/"
+                _disp_cols = ["screener_link","name","sector","price","change_p","volume_score","dist_52w","trend_score"]
+                _disp_cols += ["return_1m"] if "return_1m" in _accum_disp.columns else []
+                st.dataframe(
+                    _accum_disp[_disp_cols],
+                    column_config={
+                        "screener_link":  st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                        "name":           st.column_config.TextColumn("Name"),
+                        "sector":         st.column_config.TextColumn("Sector"),
+                        "price":          st.column_config.NumberColumn("Price",    format="₹%.1f"),
+                        "change_p":       st.column_config.NumberColumn("Day %",    format="%+.1f%%"),
+                        "volume_score":   st.column_config.NumberColumn("Vol Score",format="%.0f /10"),
+                        "dist_52w":       st.column_config.NumberColumn("Dist 52W", format="%.0f%%"),
+                        "trend_score":    st.column_config.NumberColumn("TS",       format="%.0f"),
+                        "return_1m":      st.column_config.NumberColumn("RS21",     format="%+.1f%%"),
+                    },
+                    hide_index=True, use_container_width=True, height=400,
+                )
+            with _ac2:
+                # Accumulation% by sector
+                _sec_accum = _today.groupby("sector").apply(
+                    lambda g: round((g["volume_signal_text"] == "ACCUMULATION").sum() / max(len(g),1) * 100, 0)
+                ).sort_values(ascending=False)
+                _sa_colors = ["#00F0FF" if v >= 60 else ("#FFD700" if v >= 40 else "#888") for v in _sec_accum.values]
+                _fig_acc = _pgo.Figure(_pgo.Bar(
+                    x=_sec_accum.values, y=_sec_accum.index,
+                    orientation="h", marker_color=_sa_colors,
+                    text=[f"{v:.0f}%" for v in _sec_accum.values],
+                    textposition="outside",
+                ))
+                _fig_acc.update_layout(height=400, margin=dict(l=0,r=0,t=20,b=0),
+                    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                    xaxis=dict(range=[0,110], showgrid=False),
+                    yaxis=dict(showgrid=False))
+                st.caption("% ACCUMULATION signal by sector")
+                st.plotly_chart(_fig_acc, use_container_width=True)
+        else:
+            st.info("Volume signal data not available in cache.")
+
+        st.markdown("---")
+
+        # ── SECTION 5: IAS ACTIVE SIGNALS ─────────────────────────────────────
+        st.markdown("### 📋 Active Watchlist Signals (IAS)")
+
+        try:
+            _ias = pd.read_csv("data/ias_signal_log.csv")
+            _active = _ias[_ias["status"] == "ACTIVE"].sort_values("signal_date", ascending=False)
+            if not _active.empty:
+                _is1, _is2, _is3 = st.columns(3)
+                _alerts = _active[_active["signal_tier"] == "ALERT"]
+                _readys = _active[_active["signal_tier"] == "READY"]
+                _watchs = _active[_active["signal_tier"] == "WATCH"]
+                for _col, _tier_df, _label, _color in [
+                    (_is1, _alerts, "🚨 ALERT", "#FF4B4B"),
+                    (_is2, _readys, "✅ READY", "#00C853"),
+                    (_is3, _watchs, "👁️ WATCH", "#FFD700"),
+                ]:
+                    with _col:
+                        st.markdown(f"**{_label} ({len(_tier_df)})**")
+                        if not _tier_df.empty:
+                            for _, _r in _tier_df.iterrows():
+                                _ias_delta = _r.get("last_ias", _r["signal_ias"]) - _r["signal_ias"]
+                                _rs_delta  = _r.get("last_rs21", _r["signal_rs21"]) - _r["signal_rs21"]
+                                st.markdown(
+                                    f"**{_r['ticker'].replace('.NS','')}** — "
+                                    f"IAS {_r['signal_ias']:.0f}→{_r.get('last_ias',_r['signal_ias']):.0f} "
+                                    f"({_ias_delta:+.0f})  "
+                                    f"RS21 {_r['signal_rs21']:.1f}→{_r.get('last_rs21',_r['signal_rs21']):.1f}"
+                                )
+                        else:
+                            st.caption("None")
+            else:
+                st.info("No active IAS signals.")
+        except Exception:
+            st.info("IAS signal log not available.")
+
+        # ── SECTION 6: TC LOG RECENT ──────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("### 🔄 Recent Turnaround Catalyst Signals")
+        try:
+            _tc = pd.read_csv("data/tc_log.csv")
+            if not _tc.empty:
+                _tc["signal_date"] = pd.to_datetime(_tc["signal_date"])
+                _tc7 = _tc[_tc["signal_date"] >= pd.Timestamp.now() - pd.Timedelta(days=7)].sort_values("signal_date", ascending=False)
+                if not _tc7.empty:
+                    _tc7_disp = _tc7.copy()
+                    _tc7_disp["screener_link"] = "https://www.screener.in/company/" + _tc7_disp["ticker"].str.replace(".NS","",regex=False) + "/"
+                    _tc7_disp["signal_date"] = _tc7_disp["signal_date"].dt.strftime("%Y-%m-%d")
+                    st.dataframe(
+                        _tc7_disp[["signal_date","screener_link","name","sector","pattern","jump_pct","vol_score","dist_52w","ts_pre","ts_now","ts_gain","rs21_vel","return_since_signal","status"]],
+                        column_config={
+                            "signal_date":         st.column_config.TextColumn("Date"),
+                            "screener_link":       st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                            "name":                st.column_config.TextColumn("Name"),
+                            "sector":              st.column_config.TextColumn("Sector"),
+                            "pattern":             st.column_config.TextColumn("Pattern"),
+                            "jump_pct":            st.column_config.NumberColumn("Day %",    format="%+.1f%%"),
+                            "vol_score":           st.column_config.NumberColumn("Vol",      format="%.0f /10"),
+                            "dist_52w":            st.column_config.NumberColumn("Dist 52W", format="%.0f%%"),
+                            "ts_pre":              st.column_config.NumberColumn("TS Pre",   format="%.0f"),
+                            "ts_now":              st.column_config.NumberColumn("TS Now",   format="%.0f"),
+                            "ts_gain":             st.column_config.NumberColumn("TS Gain",  format="+%.0f"),
+                            "rs21_vel":            st.column_config.NumberColumn("RS21 Vel", format="%+.1f"),
+                            "return_since_signal": st.column_config.NumberColumn("Return",   format="%+.1f%%"),
+                            "status":              st.column_config.TextColumn("Status"),
+                        },
+                        hide_index=True, use_container_width=True,
+                    )
+                else:
+                    st.info("No TC signals in the last 7 days.")
+            else:
+                st.info("TC log is empty — will populate after next engine run.")
+        except Exception:
+            st.info("TC log not yet available.")
+
 # --- VIEW 2: SECTOR PULSE ---
 elif page == "📊 Sector Pulse":
     
