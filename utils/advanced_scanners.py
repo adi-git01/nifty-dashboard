@@ -353,6 +353,149 @@ def load_signal_log(log_file, cols):
     return df
 
 
+# ---------------------------------------------------------------------------
+# Turnaround Catalyst Scanner
+# ---------------------------------------------------------------------------
+
+TC_LOG_FILE    = "data/tc_log.csv"
+US_TC_LOG_FILE = "data/us_tc_log.csv"
+
+TC_LOG_COLS = [
+    "signal_date", "ticker", "name", "sector",
+    "signal_price", "current_price",
+    "pattern", "jump_pct", "vol_score", "dist_52w",
+    "ts_pre", "ts_now", "ts_gain", "rs21_vel",
+    "return_since_signal", "days_held", "status",
+]
+
+
+def find_turnaround_catalysts(market_df, prev_scores_map=None, prev_rs21_map=None):
+    """
+    Two-pattern scanner for beaten-down stocks showing an initial catalyst.
+
+    Pattern A (BigDay):  change_p >= 5% + vol_score >= 7 + dist_52w < -20% + ts_pre < 80
+    Pattern B (TSJump):  ts_gain >= 20 in one day + vol_score >= 6 + dist_52w < -20%
+                         + ts_pre < 55 + change_p >= 2.5%
+
+    prev_scores_map : {ticker -> yesterday's trend_score}  — needed for Pattern B
+    prev_rs21_map   : {ticker -> yesterday's return_1m}    — for RS21 velocity flag
+    """
+    if market_df is None or market_df.empty:
+        return []
+
+    results = []
+    for _, row in market_df.iterrows():
+        ticker    = row["ticker"]
+        price     = row.get("price", 0) or row.get("currentPrice", 0) or 0
+        pct_chg   = float(row.get("change_p", 0) or 0)
+        vol_score = float(row.get("volume_score", 0) or 0)
+        dist52    = float(row.get("dist_52w", 0) or 0)
+        ts_now    = float(row.get("trend_score", 0) or 0)
+        rs21_now  = float(row.get("return_1m", row.get("rs_1m", 0)) or 0)
+
+        if dist52 > -20:
+            continue
+        if price < 10:
+            continue
+
+        ts_pre   = float(prev_scores_map.get(ticker, ts_now)) if prev_scores_map else ts_now
+        ts_gain  = ts_now - ts_pre
+
+        rs21_prev = float(prev_rs21_map.get(ticker, rs21_now)) if prev_rs21_map else rs21_now
+        rs21_vel  = rs21_now - rs21_prev
+
+        pattern = None
+        if pct_chg >= 5.0 and vol_score >= 7 and ts_pre < 80:
+            pattern = "A-BigDay"
+        if ts_gain >= 20 and vol_score >= 6 and ts_pre < 55 and pct_chg >= 2.5:
+            pattern = "A+B" if pattern else "B-TSJump"
+
+        if not pattern:
+            continue
+
+        results.append({
+            "Ticker":    ticker,
+            "Name":      row.get("name", ticker),
+            "Sector":    row.get("sector", "Unknown"),
+            "Price":     round(price, 1),
+            "Pattern":   pattern,
+            "Jump%":     round(pct_chg, 1),
+            "Vol_Score": round(vol_score, 1),
+            "Dist_52W":  round(dist52, 1),
+            "TS_Pre":    int(ts_pre),
+            "TS_Now":    int(ts_now),
+            "TS_Gain":   int(ts_gain),
+            "RS21_Vel":  round(rs21_vel, 1),
+        })
+
+    return sorted(results, key=lambda x: x["TS_Gain"], reverse=True)
+
+
+def save_turnaround_catalyst_signals(tc_list, log_file=TC_LOG_FILE):
+    """Append today's turnaround catalyst signals to log."""
+    if not tc_list:
+        return
+    today = datetime.now().strftime("%Y-%m-%d")
+    rows = []
+    for r in tc_list:
+        rows.append({
+            "signal_date":         today,
+            "ticker":              r["Ticker"],
+            "name":                r["Name"],
+            "sector":              r["Sector"],
+            "signal_price":        r["Price"],
+            "current_price":       r["Price"],
+            "pattern":             r["Pattern"],
+            "jump_pct":            r["Jump%"],
+            "vol_score":           r["Vol_Score"],
+            "dist_52w":            r["Dist_52W"],
+            "ts_pre":              r["TS_Pre"],
+            "ts_now":              r["TS_Now"],
+            "ts_gain":             r["TS_Gain"],
+            "rs21_vel":            r["RS21_Vel"],
+            "return_since_signal": 0.0,
+            "days_held":           0,
+            "status":              "ACTIVE",
+        })
+    _append_to_log(log_file, pd.DataFrame(rows), ["signal_date", "ticker"], TC_LOG_COLS)
+
+
+def find_earnings_shocks_from_cache(market_df):
+    """
+    Earnings shock scanner using only the daily cache (no OHLCV download).
+    Gates: change_p >= 4% AND volume_score >= 7 (equivalent to vol > 2.5x avg).
+    Used by the automated pipeline; the Streamlit page uses find_live_earnings_shocks()
+    which has access to full OHLCV history.
+    """
+    if market_df is None or market_df.empty:
+        return []
+
+    from utils.live_desk import get_pead_edge
+
+    results = []
+    for _, row in market_df.iterrows():
+        pct_chg   = float(row.get("change_p", 0) or 0)
+        vol_score = float(row.get("volume_score", 0) or 0)
+        if pct_chg < 4.0 or vol_score < 7:
+            continue
+
+        ticker  = row["ticker"]
+        price   = row.get("price", 0) or row.get("currentPrice", 0) or 0
+        sector  = row.get("sector", "Unknown")
+
+        results.append({
+            "Ticker":      ticker,
+            "Name":        row.get("name", ticker),
+            "Sector":      sector,
+            "Price":       round(price, 1),
+            "Jump_Pct":    round(pct_chg, 1),
+            "Vol_Mult":    round(vol_score / 3.0, 1),   # approximate multiplier from score
+            "PEAD_Action": get_pead_edge(sector),
+        })
+
+    return sorted(results, key=lambda x: x["Jump_Pct"], reverse=True)
+
+
 def save_us_rs_divergence_signals(rs_list):
     """Append today's US RS divergence signals (vs SPY) to the US log."""
     if not rs_list:
