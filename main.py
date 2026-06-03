@@ -55,18 +55,17 @@ from utils.advanced_scanners import (
     save_rs_divergence_signals, save_earnings_shock_signals,
     refresh_signal_log_prices, load_signal_log,
     RS_LOG_FILE, RS_LOG_COLS, SHOCK_LOG_FILE, SHOCK_LOG_COLS,
+    find_turnaround_catalysts, save_turnaround_catalyst_signals,
+    TC_LOG_FILE, US_TC_LOG_FILE, TC_LOG_COLS,
 )
 
 import re as _re
 
-def _indmoney_url(name: str, ticker: str) -> str:
-    """Build correct INDmoney individual-stock URL: [company-slug]-share-price-[ticker-lower]"""
-    slug = _re.sub(r"[^a-z0-9 ]", "", str(name).lower().strip())
-    slug = _re.sub(r" +", "-", slug)
-    slug = _re.sub(r"-+", "-", slug).strip("-") or ticker.lower()
-    return f"https://www.indmoney.com/us-stocks/{slug}-share-price-{ticker.lower()}"
+def _google_finance_url(ticker: str) -> str:
+    """Google Finance URL for a US stock ticker."""
+    return f"https://www.google.com/finance/quote/{ticker}"
 
-_INDMONEY_DISPLAY_RE = r"https://www\.indmoney\.com/us-stocks/.+-share-price-(.+)$"
+_GF_DISPLAY_RE = r"https://www\.google\.com/finance/quote/(.+)$"
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -633,6 +632,18 @@ elif page == "🚀 Live Trading Desk":
             def _get_us_mkt_for_desk():
                 return fetch_us_market_data(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
 
+            @st.cache_data(ttl=3600, show_spinner=False)
+            def _get_prev_day_maps():
+                import glob
+                files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+                if len(files) < 2:
+                    return {}, {}
+                prev_df = pd.read_parquet(files[-2])
+                scores  = prev_df.set_index("ticker")["trend_score"].dropna().to_dict()
+                rs_col  = "rs_1m" if "rs_1m" in prev_df.columns else "return_1m"
+                rs21    = prev_df.set_index("ticker")[rs_col].dropna().to_dict() if rs_col in prev_df.columns else {}
+                return scores, rs21
+
             _scan_tab_in, _scan_tab_us = st.tabs(["🇮🇳 Nifty Universe", "🇺🇸 S&P 500"])
 
             with _scan_tab_in:
@@ -644,6 +655,12 @@ elif page == "🚀 Live Trading Desk":
                     rs_list    = find_rs_divergence(df, nifty_live)
                     shock_list = find_live_earnings_shocks(df[df['ticker'].isin(top_300_tickers)], hist_dict)
 
+                    _prev_scores, _prev_rs21 = _get_prev_day_maps()
+                    _in_df = df.copy()
+                    if "rs_1m" in _in_df.columns and "return_1m" not in _in_df.columns:
+                        _in_df["return_1m"] = _in_df["rs_1m"]
+                    tc_list = find_turnaround_catalysts(_in_df, _prev_scores, _prev_rs21)
+
                     _price_cols = [c for c in ("price", "currentPrice") if c in df.columns]
                     if _price_cols:
                         price_map = df.set_index("ticker")[_price_cols[0]].dropna().to_dict()
@@ -652,9 +669,11 @@ elif page == "🚀 Live Trading Desk":
 
                     save_rs_divergence_signals(rs_list)
                     save_earnings_shock_signals(shock_list)
+                    save_turnaround_catalyst_signals(tc_list)
 
                     rs_log_df    = refresh_signal_log_prices(RS_LOG_FILE,    RS_LOG_COLS,    price_map)
                     shock_log_df = refresh_signal_log_prices(SHOCK_LOG_FILE, SHOCK_LOG_COLS, price_map)
+                    tc_log_df    = refresh_signal_log_prices(TC_LOG_FILE,    TC_LOG_COLS,    price_map)
 
                 col_adv1, col_adv2, col_adv3 = st.columns(3)
 
@@ -720,9 +739,38 @@ elif page == "🚀 Live Trading Desk":
                             st.info("No earnings shocks detected today.")
 
                 st.markdown("---")
-                st.markdown("### 📋 SIGNAL LOGS — RS Divergence & Earnings Shock")
+                with st.expander(f"🔄 Turnaround Catalysts — Today [{len(tc_list)}]", expanded=bool(tc_list)):
+                    st.caption("Beaten-down stocks (>20% off 52W high) showing a big reversal day. Pattern A = price gap ≥5% + vol score ≥7. Pattern B = TS jump ≥20 pts in one day. RS21 Vel ≥5 = 🚀")
+                    if tc_list:
+                        tc_df = pd.DataFrame(tc_list)
+                        tc_df['screener_link'] = "https://www.screener.in/company/" + tc_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
+                        tc_df['RS21_Flag'] = tc_df['RS21_Vel'].apply(lambda v: "🚀" if v >= 5 else "")
+                        st.dataframe(
+                            tc_df[['screener_link', 'Name', 'Sector', 'Price', 'Pattern', 'Jump%',
+                                   'Vol_Score', 'Dist_52W', 'TS_Pre', 'TS_Now', 'TS_Gain', 'RS21_Vel', 'RS21_Flag']],
+                            column_config={
+                                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                                "Name":      st.column_config.TextColumn("Name"),
+                                "Sector":    st.column_config.TextColumn("Sector"),
+                                "Price":     st.column_config.NumberColumn("Price",     format="₹%.1f"),
+                                "Pattern":   st.column_config.TextColumn("Pattern"),
+                                "Jump%":     st.column_config.NumberColumn("Day Jump",  format="%+.1f%%"),
+                                "Vol_Score": st.column_config.NumberColumn("Vol Score", format="%.1f /10"),
+                                "Dist_52W":  st.column_config.NumberColumn("Dist 52W",  format="%.1f%%"),
+                                "TS_Pre":    st.column_config.NumberColumn("TS Prev",   format="%.0f"),
+                                "TS_Now":    st.column_config.NumberColumn("TS Now",    format="%.0f"),
+                                "TS_Gain":   st.column_config.NumberColumn("TS Gain",   format="+%.0f"),
+                                "RS21_Vel":  st.column_config.NumberColumn("RS21 Vel",  format="%+.1f"),
+                                "RS21_Flag": st.column_config.TextColumn("Vel"),
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                    else:
+                        st.info("No turnaround catalyst events detected today.")
 
-                log_tab1, log_tab2 = st.tabs(["🟢 RS Divergence Log", "⚡ Earnings Shock Log"])
+                st.markdown("### 📋 SIGNAL LOGS — RS Divergence, Earnings Shock & Turnaround Catalysts")
+
+                log_tab1, log_tab2, log_tab3 = st.tabs(["🟢 RS Divergence Log", "⚡ Earnings Shock Log", "🔄 Turnaround Catalyst Log"])
 
                 with log_tab1:
                     st.caption("All RS Divergence signals fired in the last 365 days, with live return tracking. Auto-closed after 21 days.")
@@ -791,6 +839,46 @@ elif page == "🚀 Live Trading Desk":
                     else:
                         st.info("No Earnings Shock signals logged yet. The log populates on days when stocks gap > 4% on > 2.5× volume.")
 
+                with log_tab3:
+                    st.caption("All Turnaround Catalyst signals. Pattern A = big gap day. Pattern B = TS jump ≥20 pts. 🚀 = RS21 velocity ≥5.")
+                    if not tc_log_df.empty:
+                        _tc_disp = tc_log_df.copy()
+                        _tc_disp['screener_link'] = "https://www.screener.in/company/" + _tc_disp['ticker'].str.replace('.NS', '', regex=False) + "/"
+                        _tc_disp['signal_date'] = pd.to_datetime(_tc_disp['signal_date']).dt.strftime('%Y-%m-%d')
+                        _tc_disp['vel_flag'] = _tc_disp['rs21_vel'].apply(lambda v: "🚀" if float(v or 0) >= 5 else "")
+                        _tc_cols = [c for c in ['signal_date', 'screener_link', 'name', 'sector',
+                                                 'signal_price', 'current_price', 'return_since_signal',
+                                                 'pattern', 'jump_pct', 'vol_score', 'dist_52w',
+                                                 'ts_pre', 'ts_now', 'ts_gain', 'rs21_vel', 'vel_flag',
+                                                 'days_held', 'status'] if c in _tc_disp.columns or c in ('screener_link','vel_flag')]
+                        st.dataframe(
+                            _tc_disp[_tc_cols],
+                            column_config={
+                                "signal_date":         st.column_config.TextColumn("Signal Date"),
+                                "screener_link":       st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                                "name":                st.column_config.TextColumn("Name"),
+                                "sector":              st.column_config.TextColumn("Sector"),
+                                "signal_price":        st.column_config.NumberColumn("Signal ₹",  format="₹%.2f"),
+                                "current_price":       st.column_config.NumberColumn("Current ₹", format="₹%.2f"),
+                                "return_since_signal": st.column_config.NumberColumn("Return %",  format="%+.2f%%"),
+                                "pattern":             st.column_config.TextColumn("Pattern"),
+                                "jump_pct":            st.column_config.NumberColumn("Day Jump",  format="%+.1f%%"),
+                                "vol_score":           st.column_config.NumberColumn("Vol Score", format="%.1f /10"),
+                                "dist_52w":            st.column_config.NumberColumn("Dist 52W",  format="%.1f%%"),
+                                "ts_pre":              st.column_config.NumberColumn("TS Prev",   format="%.0f"),
+                                "ts_now":              st.column_config.NumberColumn("TS Now",    format="%.0f"),
+                                "ts_gain":             st.column_config.NumberColumn("TS Gain",   format="+%.0f"),
+                                "rs21_vel":            st.column_config.NumberColumn("RS21 Vel",  format="%+.1f"),
+                                "vel_flag":            st.column_config.TextColumn("Vel"),
+                                "days_held":           st.column_config.NumberColumn("Days"),
+                                "status":              st.column_config.TextColumn("Status"),
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                        st.download_button("⬇️ Download TC Log CSV", _tc_disp.to_csv(index=False).encode(), "tc_log.csv", "text/csv", key="dl_tc_log")
+                    else:
+                        st.info("No Turnaround Catalyst signals logged yet. The log populates on days with big reversal moves in beaten-down stocks.")
+
             with _scan_tab_us:
                 st.caption("RS Divergence vs SPY | VCP setups | Earnings Gaps — across S&P 500 universe.")
 
@@ -811,14 +899,21 @@ elif page == "🚀 Live Trading Desk":
                         us_rs_list    = find_rs_divergence(us_mkt_df, spy_live)
                         us_shock_list = find_live_earnings_shocks(us_mkt_df[us_mkt_df['ticker'].isin(_us_top)], us_hist_dict)
 
+                        _us_df_tc = us_mkt_df.copy()
+                        if "rs_1m" in _us_df_tc.columns and "return_1m" not in _us_df_tc.columns:
+                            _us_df_tc["return_1m"] = _us_df_tc["rs_1m"]
+                        us_tc_list = find_turnaround_catalysts(_us_df_tc)
+
                         _us_price_map = us_mkt_df.set_index('ticker')['price'].dropna().to_dict()
                         save_us_rs_divergence_signals(us_rs_list)
                         save_us_earnings_shock_signals(us_shock_list)
+                        save_turnaround_catalyst_signals(us_tc_list, log_file=US_TC_LOG_FILE)
                         us_rs_log_df    = refresh_signal_log_prices(US_RS_LOG_FILE,    RS_LOG_COLS,    _us_price_map)
                         us_shock_log_df = refresh_signal_log_prices(US_SHOCK_LOG_FILE, SHOCK_LOG_COLS, _us_price_map)
+                        us_tc_log_df    = refresh_signal_log_prices(US_TC_LOG_FILE,    TC_LOG_COLS,    _us_price_map)
                     else:
-                        us_vcp_list = []; us_rs_list = []; us_shock_list = []
-                        us_rs_log_df = pd.DataFrame(); us_shock_log_df = pd.DataFrame()
+                        us_vcp_list = []; us_rs_list = []; us_shock_list = []; us_tc_list = []
+                        us_rs_log_df = pd.DataFrame(); us_shock_log_df = pd.DataFrame(); us_tc_log_df = pd.DataFrame()
 
                 us_adv1, us_adv2, us_adv3 = st.columns(3)
 
@@ -827,11 +922,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Price tightening + volume dry-up across top S&P 500 momentum names.")
                         if us_vcp_list:
                             _uvcp = pd.DataFrame(us_vcp_list)
-                            _uvcp['yf_link'] = _uvcp.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
+                            _uvcp['yf_link'] = _uvcp.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _uvcp[['yf_link', 'Price', 'Score', 'Compression', 'Vol_Ratio', 'MA50_Dist', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                                     "Price":       st.column_config.NumberColumn("Price",       format="$%.2f"),
                                     "Score":       st.column_config.NumberColumn("Trend Score", format="%.0f"),
                                     "Compression": st.column_config.NumberColumn("10D ATR%",    format="%.1f%%"),
@@ -849,11 +944,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("US stocks closing positive while SPY falls > -0.3%.")
                         if us_rs_list:
                             _urs = pd.DataFrame(us_rs_list)
-                            _urs['yf_link'] = _urs.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
+                            _urs['yf_link'] = _urs.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _urs[['yf_link', 'Stock_Ret', 'Nifty_Ret', 'Delta_RS', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                                     "Stock_Ret": st.column_config.NumberColumn("Stock %",  format="%+.1f%%"),
                                     "Nifty_Ret": st.column_config.NumberColumn("SPY %",    format="%+.1f%%"),
                                     "Delta_RS":  st.column_config.NumberColumn("Delta RS", format="%+.1f%%"),
@@ -869,11 +964,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Day-0 gap > 4% on > 2.5× volume across S&P 500.")
                         if us_shock_list:
                             _ushk = pd.DataFrame(us_shock_list)
-                            _ushk['yf_link'] = _ushk.apply(lambda r: _indmoney_url(r['Name'], r['Ticker']), axis=1)
+                            _ushk['yf_link'] = _ushk.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _ushk[['yf_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                                     "Jump_Pct":    st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
                                     "Vol_Mult":    st.column_config.NumberColumn("Vol Ratio",  format="%.1fx"),
                                     "PEAD_Action": "Playbook",
@@ -884,15 +979,44 @@ elif page == "🚀 Live Trading Desk":
                             st.info("No US earnings gaps detected today.")
 
                 st.markdown("---")
-                st.markdown("### 📋 US SIGNAL LOGS — RS Divergence & Earnings Shock")
+                with st.expander(f"🔄 US Turnaround Catalysts — Today [{len(us_tc_list)}]", expanded=bool(us_tc_list)):
+                    st.caption("Beaten-down S&P 500 stocks showing an initial reversal catalyst. Pattern A = price gap ≥5% + vol score ≥7. Pattern B = TS jump ≥20 pts.")
+                    if us_tc_list:
+                        _utc = pd.DataFrame(us_tc_list)
+                        _utc['yf_link'] = _utc.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
+                        _utc['RS21_Flag'] = _utc['RS21_Vel'].apply(lambda v: "🚀" if v >= 5 else "")
+                        st.dataframe(
+                            _utc[['yf_link', 'Name', 'Sector', 'Price', 'Pattern', 'Jump%',
+                                  'Vol_Score', 'Dist_52W', 'TS_Pre', 'TS_Now', 'TS_Gain', 'RS21_Vel', 'RS21_Flag']],
+                            column_config={
+                                "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "Name":      st.column_config.TextColumn("Name"),
+                                "Sector":    st.column_config.TextColumn("Sector"),
+                                "Price":     st.column_config.NumberColumn("Price",     format="$%.2f"),
+                                "Pattern":   st.column_config.TextColumn("Pattern"),
+                                "Jump%":     st.column_config.NumberColumn("Day Jump",  format="%+.1f%%"),
+                                "Vol_Score": st.column_config.NumberColumn("Vol Score", format="%.1f /10"),
+                                "Dist_52W":  st.column_config.NumberColumn("Dist 52W",  format="%.1f%%"),
+                                "TS_Pre":    st.column_config.NumberColumn("TS Prev",   format="%.0f"),
+                                "TS_Now":    st.column_config.NumberColumn("TS Now",    format="%.0f"),
+                                "TS_Gain":   st.column_config.NumberColumn("TS Gain",   format="+%.0f"),
+                                "RS21_Vel":  st.column_config.NumberColumn("RS21 Vel",  format="%+.1f"),
+                                "RS21_Flag": st.column_config.TextColumn("Vel"),
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                    else:
+                        st.info("No US turnaround catalyst events detected today.")
 
-                us_log_tab1, us_log_tab2 = st.tabs(["🟢 US RS Divergence Log", "⚡ US Earnings Shock Log"])
+                st.markdown("### 📋 US SIGNAL LOGS — RS Divergence, Earnings Shock & Turnaround Catalysts")
+
+                us_log_tab1, us_log_tab2, us_log_tab3 = st.tabs(["🟢 US RS Divergence Log", "⚡ US Earnings Shock Log", "🔄 US Turnaround Catalyst Log"])
 
                 with us_log_tab1:
                     st.caption("US stocks showing RS vs SPY in the last 365 days. Auto-closed after 21 days.")
                     if not us_rs_log_df.empty:
                         _urs_disp = us_rs_log_df.copy()
-                        _urs_disp['yf_link'] = _urs_disp.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
+                        _urs_disp['yf_link'] = _urs_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
                         _urs_disp['signal_date'] = pd.to_datetime(_urs_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _urs_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -901,7 +1025,7 @@ elif page == "🚀 Live Trading Desk":
                                        'dist_52w', 'days_held', 'status']],
                             column_config={
                                 "signal_date":          st.column_config.TextColumn("Signal Date"),
-                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                                 "name":                 st.column_config.TextColumn("Name"),
                                 "sector":               st.column_config.TextColumn("Sector"),
                                 "signal_price":         st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -924,7 +1048,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US earnings gap signals from the last 365 days. PEAD drift tracked at 5D and 21D.")
                     if not us_shock_log_df.empty:
                         _ushk_disp = us_shock_log_df.copy()
-                        _ushk_disp['yf_link'] = _ushk_disp.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
+                        _ushk_disp['yf_link'] = _ushk_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
                         _ushk_disp['signal_date'] = pd.to_datetime(_ushk_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _ushk_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -933,7 +1057,7 @@ elif page == "🚀 Live Trading Desk":
                                         'return_5d', 'return_21d', 'days_held', 'status']],
                             column_config={
                                 "signal_date":         st.column_config.TextColumn("Signal Date"),
-                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                                 "name":                st.column_config.TextColumn("Name"),
                                 "sector":              st.column_config.TextColumn("Sector"),
                                 "signal_price":        st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -952,7 +1076,47 @@ elif page == "🚀 Live Trading Desk":
                         st.download_button("⬇️ Download US Shock Log CSV", _ushk_disp.to_csv(index=False).encode(), "us_earnings_shock_log.csv", "text/csv", key="dl_us_shock_log")
                     else:
                         st.info("No US Earnings Shock signals logged yet.")
-                        
+
+                with us_log_tab3:
+                    st.caption("US turnaround catalyst signals. Pattern A = big gap day. Pattern B = TS jump ≥20 pts. 🚀 = RS21 velocity ≥5.")
+                    if not us_tc_log_df.empty:
+                        _utc_disp = us_tc_log_df.copy()
+                        _utc_disp['yf_link'] = _utc_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+                        _utc_disp['signal_date'] = pd.to_datetime(_utc_disp['signal_date']).dt.strftime('%Y-%m-%d')
+                        _utc_disp['vel_flag'] = _utc_disp['rs21_vel'].apply(lambda v: "🚀" if float(v or 0) >= 5 else "")
+                        _utc_cols = [c for c in ['signal_date', 'yf_link', 'name', 'sector',
+                                                  'signal_price', 'current_price', 'return_since_signal',
+                                                  'pattern', 'jump_pct', 'vol_score', 'dist_52w',
+                                                  'ts_pre', 'ts_now', 'ts_gain', 'rs21_vel', 'vel_flag',
+                                                  'days_held', 'status'] if c in _utc_disp.columns or c in ('yf_link','vel_flag')]
+                        st.dataframe(
+                            _utc_disp[_utc_cols],
+                            column_config={
+                                "signal_date":         st.column_config.TextColumn("Signal Date"),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "name":                st.column_config.TextColumn("Name"),
+                                "sector":              st.column_config.TextColumn("Sector"),
+                                "signal_price":        st.column_config.NumberColumn("Signal $",  format="$%.2f"),
+                                "current_price":       st.column_config.NumberColumn("Current $", format="$%.2f"),
+                                "return_since_signal": st.column_config.NumberColumn("Return %",  format="%+.2f%%"),
+                                "pattern":             st.column_config.TextColumn("Pattern"),
+                                "jump_pct":            st.column_config.NumberColumn("Day Jump",  format="%+.1f%%"),
+                                "vol_score":           st.column_config.NumberColumn("Vol Score", format="%.1f /10"),
+                                "dist_52w":            st.column_config.NumberColumn("Dist 52W",  format="%.1f%%"),
+                                "ts_pre":              st.column_config.NumberColumn("TS Prev",   format="%.0f"),
+                                "ts_now":              st.column_config.NumberColumn("TS Now",    format="%.0f"),
+                                "ts_gain":             st.column_config.NumberColumn("TS Gain",   format="+%.0f"),
+                                "rs21_vel":            st.column_config.NumberColumn("RS21 Vel",  format="%+.1f"),
+                                "vel_flag":            st.column_config.TextColumn("Vel"),
+                                "days_held":           st.column_config.NumberColumn("Days"),
+                                "status":              st.column_config.TextColumn("Status"),
+                            },
+                            hide_index=True, use_container_width=True
+                        )
+                        st.download_button("⬇️ Download US TC Log CSV", _utc_disp.to_csv(index=False).encode(), "us_tc_log.csv", "text/csv", key="dl_us_tc_log")
+                    else:
+                        st.info("No US Turnaround Catalyst signals logged yet.")
+
         else:
             st.error("Failed to connect to NSE index to calculate regime.")
 
@@ -6294,11 +6458,11 @@ elif page == "🇺🇸 US Scanner":
     if not _bkouts.empty:
         with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
             _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
-            _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
+            _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
             st.dataframe(
                 _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
                 column_config={
-                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                     "name":         "Company",
                     "currentPrice": st.column_config.NumberColumn("Price", format="$%.2f"),
                     "dist_52w":     st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -6408,7 +6572,7 @@ elif page == "🇺🇸 US Scanner":
         us_fdf["signal_display"] = us_fdf["trend_signal"].map(
             lambda s: f"{_EMOJI.get(s, '')} {s}" if s else s
         )
-        us_fdf["yf_link"] = us_fdf.apply(lambda r: _indmoney_url(r['name'], r['ticker']), axis=1)
+        us_fdf["yf_link"] = us_fdf.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
 
         _us_disp = [
             "yf_link", "name", "sector", "sub_industry", "currentPrice",
@@ -6421,7 +6585,7 @@ elif page == "🇺🇸 US Scanner":
         st.dataframe(
             us_fdf[_us_disp].sort_values("trend_score", ascending=False),
             column_config={
-                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                 "name":              "Company",
                 "sector":            "Sector",
                 "sub_industry":      "Sub-Industry",
@@ -6580,16 +6744,13 @@ elif page == "🇺🇸 US Scanner":
                 _bm5.metric("Worst (10D)", f"{_bt_summary['worst_10d_ret']:+.2f}%")
             if not _bt_top.empty:
                 st.markdown("#### Top 15 Signals by 10D Return")
-                _bt_name_map = us_df.set_index("ticker")["name"].dropna().to_dict()
-                _bt_top["INDmoney"] = _bt_top.apply(
-                    lambda r: _indmoney_url(_bt_name_map.get(r["Ticker"], r["Ticker"]), r["Ticker"]), axis=1
-                )
+                _bt_top["INDmoney"] = _bt_top["Ticker"].apply(_google_finance_url)
                 st.dataframe(
                     _bt_top[["INDmoney", "Signal Date", "Signal Price",
                               "Compression", "Vol Ratio %", "Dist 52W %",
                               "Return 5D %", "Return 10D %", "Return 21D %"]],
                     column_config={
-                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=_INDMONEY_DISPLAY_RE),
+                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
                         "Signal Price":  st.column_config.NumberColumn(format="$%.2f"),
                         "Compression":   st.column_config.NumberColumn("ATR% (10D)", format="%.2f%%"),
                         "Vol Ratio %":   st.column_config.NumberColumn("Vol %", format="%.1f%%"),
