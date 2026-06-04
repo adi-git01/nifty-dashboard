@@ -1,0 +1,1246 @@
+{
+  "patterns": {
+    "A": {
+      "3d": {
+        "label": "A 3d",
+        "n": 339,
+        "win_rate": 53.7,
+        "median": 0.3,
+        "mean": 0.7,
+        "std": 5.2,
+        "p25": -1.99,
+        "p75": 2.66,
+        "avg_win": 3.94,
+        "avg_loss": -3.06,
+        "reward_risk": 1.29,
+        "sharpe_ann": 2.04,
+        "max_dd_pct": -88.23,
+        "best": 30.32,
+        "worst": -14.72,
+        "total_ret": 236.13,
+        "edge_vs_baseline": -0.05
+      },
+      "5d": {
+        "label": "A 5d",
+        "n": 339,
+        "win_rate": 62.5,
+        "median": 1.51,
+        "mean": 2.29,
+        "std": 6.64,
+        "p25": -1.99,
+        "p75": 5.73,
+        "avg_win": 5.97,
+        "avg_loss": -3.86,
+        "reward_risk": 1.55,
+        "sharpe_ann": 5.41,
+        "max_dd_pct": -83.47,
+        "best": 31.11,
+        "worst": -13.62,
+        "total_ret": 775.68,
+        "edge_vs_baseline": 1.06
+      },
+      "10d": {
+        "label": "A 10d",
+        "n": 339,
+        "win_rate": 65.5,
+        "median": 2.89,
+        "mean": 3.61,
+        "std": 9.56,
+        "p25": -2.99,
+        "p75": 9.77,
+        "avg_win": 8.78,
+        "avg_loss": -6.2,
+        "reward_risk": 1.41,
+        "sharpe_ann": 5.94,
+        "max_dd_pct": -96.01,
+        "best": 41.77,
+        "worst": -17.03,
+        "total_ret": 1222.33,
+        "edge_vs_baseline": 1.67
+      },
+      "20d": {
+        "label": "A 20d",
+        "n": 339,
+        "win_rate": 61.4,
+        "median": 3.69,
+        "mean": 5.29,
+        "std": 12.72,
+        "p25": -4.67,
+        "p75": 12.69,
+        "avg_win": 12.72,
+        "avg_loss": -6.5,
+        "reward_risk": 1.96,
+        "sharpe_ann": 6.57,
+        "max_dd_pct": -91.24,
+        "best": 60.42,
+        "worst": -20.31,
+        "total_ret": 1793.89,
+        "edge_vs_baseline": -0.33
+      }
+    },
+    "B": {
+      "3d": {
+        "label": "B 3d",
+        "n": 247,
+        "win_rate": 52.2,
+        "median": 0.22,
+        "mean": 0.79,
+        "std": 4.3,
+        "p25": -1.68,
+        "p75": 3.22,
+        "avg_win": 3.91,
+        "avg_loss": -2.61,
+        "reward_risk": 1.5,
+        "sharpe_ann": 2.83,
+        "max_dd_pct": -75.37,
+        "best": 15.52,
+        "worst": -11.06,
+        "total_ret": 196.33,
+        "edge_vs_baseline": -0.13
+      },
+      "5d": {
+        "label": "B 5d",
+        "n": 247,
+        "win_rate": 55.5,
+        "median": 0.59,
+        "mean": 1.44,
+        "std": 5.75,
+        "p25": -2.8,
+        "p75": 5.48,
+        "avg_win": 5.45,
+        "avg_loss": -3.57,
+        "reward_risk": 1.53,
+        "sharpe_ann": 3.89,
+        "max_dd_pct": -70.79,
+        "best": 19.72,
+        "worst": -12.14,
+        "total_ret": 354.56,
+        "edge_vs_baseline": 0.14
+      },
+      "10d": {
+        "label": "B 10d",
+        "n": 247,
+        "win_rate": 59.5,
+        "median": 1.82,
+        "mean": 2.86,
+        "std": 9.11,
+        "p25": -3.0,
+        "p75": 7.84,
+        "avg_win": 8.26,
+        "avg_loss": -5.08,
+        "reward_risk": 1.63,
+        "sharpe_ann": 4.94,
+        "max_dd_pct": -81.56,
+        "best": 66.78,
+        "worst": -17.68,
+        "total_ret": 706.99,
+        "edge_vs_baseline": 0.6
+      },
+      "20d": {
+        "label": "B 20d",
+        "n": 247,
+        "win_rate": 65.2,
+        "median": 4.91,
+        "mean": 5.93,
+        "std": 12.9,
+        "p25": -3.12,
+        "p75": 13.1,
+        "avg_win": 12.67,
+        "avg_loss": -6.68,
+        "reward_risk": 1.9,
+        "sharpe_ann": 7.26,
+        "max_dd_pct": -78.57,
+        "best": 61.78,
+        "worst": -19.91,
+        "total_ret": 1465.46,
+        "edge_vs_baseline": 0.89
+      }
+    },
+    "A+B": {
+      "3d": {
+        "label": "A+B 3d",
+        "n": 168,
+        "win_rate": 54.2,
+        "median": 0.31,
+        "mean": 0.4,
+        "std": 5.33,
+        "p25": -2.54,
+        "p75": 3.5,
+        "avg_win": 3.89,
+        "avg_loss": -3.73,
+        "reward_risk": 1.04,
+        "sharpe_ann": 1.11,
+        "max_dd_pct": -66.71,
+        "best": 17.29,
+        "worst": -18.39,
+        "total_ret": 67.22,
+        "edge_vs_baseline": -0.04
+      },
+      "5d": {
+        "label": "A+B 5d",
+        "n": 168,
+        "win_rate": 61.9,
+        "median": 1.74,
+        "mean": 1.65,
+        "std": 7.07,
+        "p25": -2.64,
+        "p75": 5.53,
+        "avg_win": 5.71,
+        "avg_loss": -4.94,
+        "reward_risk": 1.16,
+        "sharpe_ann": 3.65,
+        "max_dd_pct": -68.39,
+        "best": 44.25,
+        "worst": -20.32,
+        "total_ret": 277.73,
+        "edge_vs_baseline": 1.29
+      },
+      "10d": {
+        "label": "A+B 10d",
+        "n": 168,
+        "win_rate": 60.7,
+        "median": 2.12,
+        "mean": 2.78,
+        "std": 9.38,
+        "p25": -2.94,
+        "p75": 6.54,
+        "avg_win": 8.19,
+        "avg_loss": -5.59,
+        "reward_risk": 1.47,
+        "sharpe_ann": 4.66,
+        "max_dd_pct": -69.16,
+        "best": 44.04,
+        "worst": -19.08,
+        "total_ret": 466.74,
+        "edge_vs_baseline": 0.9
+      },
+      "20d": {
+        "label": "A+B 20d",
+        "n": 168,
+        "win_rate": 60.7,
+        "median": 3.01,
+        "mean": 5.48,
+        "std": 12.72,
+        "p25": -3.64,
+        "p75": 14.2,
+        "avg_win": 12.94,
+        "avg_loss": -6.06,
+        "reward_risk": 2.14,
+        "sharpe_ann": 6.8,
+        "max_dd_pct": -87.89,
+        "best": 60.57,
+        "worst": -18.4,
+        "total_ret": 919.89,
+        "edge_vs_baseline": -1.01
+      }
+    },
+    "ALL": {
+      "3d": {
+        "label": "ALL 3d",
+        "n": 754,
+        "win_rate": 53.3,
+        "median": 0.26,
+        "mean": 0.66,
+        "std": 4.95,
+        "p25": -1.91,
+        "p75": 3.05,
+        "avg_win": 3.92,
+        "avg_loss": -3.06,
+        "reward_risk": 1.28,
+        "sharpe_ann": 2.04,
+        "max_dd_pct": -98.77,
+        "best": 30.32,
+        "worst": -18.39,
+        "total_ret": 499.68,
+        "edge_vs_baseline": -0.09
+      },
+      "5d": {
+        "label": "ALL 5d",
+        "n": 754,
+        "win_rate": 60.1,
+        "median": 1.32,
+        "mean": 1.87,
+        "std": 6.47,
+        "p25": -2.48,
+        "p75": 5.54,
+        "avg_win": 5.75,
+        "avg_loss": -3.98,
+        "reward_risk": 1.44,
+        "sharpe_ann": 4.52,
+        "max_dd_pct": -98.13,
+        "best": 44.25,
+        "worst": -20.32,
+        "total_ret": 1407.97,
+        "edge_vs_baseline": 0.87
+      },
+      "10d": {
+        "label": "ALL 10d",
+        "n": 754,
+        "win_rate": 62.5,
+        "median": 2.27,
+        "mean": 3.18,
+        "std": 9.37,
+        "p25": -3.0,
+        "p75": 8.82,
+        "avg_win": 8.49,
+        "avg_loss": -5.66,
+        "reward_risk": 1.5,
+        "sharpe_ann": 5.34,
+        "max_dd_pct": -99.65,
+        "best": 66.78,
+        "worst": -19.08,
+        "total_ret": 2396.05,
+        "edge_vs_baseline": 1.05
+      },
+      "20d": {
+        "label": "ALL 20d",
+        "n": 754,
+        "win_rate": 62.5,
+        "median": 3.9,
+        "mean": 5.54,
+        "std": 12.77,
+        "p25": -3.86,
+        "p75": 13.33,
+        "avg_win": 12.75,
+        "avg_loss": -6.45,
+        "reward_risk": 1.98,
+        "sharpe_ann": 6.86,
+        "max_dd_pct": -98.82,
+        "best": 61.78,
+        "worst": -20.31,
+        "total_ret": 4179.24,
+        "edge_vs_baseline": -0.12
+      }
+    }
+  },
+  "sectors": {
+    "5d": [
+      {
+        "sector": "Automobiles",
+        "n": 10,
+        "win_rate": 70.0,
+        "median": 6.78,
+        "mean": 11.88
+      },
+      {
+        "sector": "Electrical Equipment",
+        "n": 9,
+        "win_rate": 88.9,
+        "median": 6.7,
+        "mean": 5.79
+      },
+      {
+        "sector": "Capital Markets",
+        "n": 6,
+        "win_rate": 100.0,
+        "median": 6.22,
+        "mean": 7.83
+      },
+      {
+        "sector": "Other Construction Materials",
+        "n": 5,
+        "win_rate": 80.0,
+        "median": 4.87,
+        "mean": 5.29
+      },
+      {
+        "sector": "Power",
+        "n": 16,
+        "win_rate": 75.0,
+        "median": 4.78,
+        "mean": 5.27
+      },
+      {
+        "sector": "Leisure Services",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 4.71,
+        "mean": 4.01
+      },
+      {
+        "sector": "Industrial Products",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 4.65,
+        "mean": 2.18
+      },
+      {
+        "sector": "Aerospace & Defense",
+        "n": 7,
+        "win_rate": 71.4,
+        "median": 4.61,
+        "mean": 4.1
+      },
+      {
+        "sector": "Chemicals & Petrochemicals",
+        "n": 13,
+        "win_rate": 69.2,
+        "median": 4.44,
+        "mean": 3.55
+      },
+      {
+        "sector": "Retailing",
+        "n": 7,
+        "win_rate": 85.7,
+        "median": 3.59,
+        "mean": 3.16
+      },
+      {
+        "sector": "Diversified",
+        "n": 5,
+        "win_rate": 80.0,
+        "median": 3.34,
+        "mean": 2.02
+      },
+      {
+        "sector": "Telecom - Services",
+        "n": 8,
+        "win_rate": 75.0,
+        "median": 3.18,
+        "mean": 3.07
+      },
+      {
+        "sector": "IT - Services",
+        "n": 24,
+        "win_rate": 75.0,
+        "median": 3.12,
+        "mean": 3.34
+      },
+      {
+        "sector": "Diversified Metals",
+        "n": 24,
+        "win_rate": 62.5,
+        "median": 2.74,
+        "mean": 2.37
+      },
+      {
+        "sector": "Healthcare Services",
+        "n": 11,
+        "win_rate": 54.5,
+        "median": 2.62,
+        "mean": 2.53
+      },
+      {
+        "sector": "Transport Services",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": 2.62,
+        "mean": 1.93
+      },
+      {
+        "sector": "Diversified FMCG",
+        "n": 7,
+        "win_rate": 85.7,
+        "median": 2.52,
+        "mean": 3.51
+      },
+      {
+        "sector": "Gas",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 2.46,
+        "mean": 1.61
+      },
+      {
+        "sector": "Consumer Durables",
+        "n": 52,
+        "win_rate": 61.5,
+        "median": 1.91,
+        "mean": 2.66
+      },
+      {
+        "sector": "Realty",
+        "n": 6,
+        "win_rate": 66.7,
+        "median": 1.9,
+        "mean": 1.35
+      },
+      {
+        "sector": "Industrial Manufacturing",
+        "n": 47,
+        "win_rate": 61.7,
+        "median": 1.83,
+        "mean": 3.42
+      },
+      {
+        "sector": "Finance",
+        "n": 30,
+        "win_rate": 73.3,
+        "median": 1.67,
+        "mean": 1.5
+      },
+      {
+        "sector": "IT & Technology",
+        "n": 5,
+        "win_rate": 60.0,
+        "median": 1.33,
+        "mean": 2.16
+      },
+      {
+        "sector": "Transport Infrastructure",
+        "n": 5,
+        "win_rate": 60.0,
+        "median": 1.26,
+        "mean": -0.44
+      },
+      {
+        "sector": "Pharmaceuticals & Biotechnology",
+        "n": 11,
+        "win_rate": 72.7,
+        "median": 1.01,
+        "mean": 2.37
+      },
+      {
+        "sector": "Other",
+        "n": 49,
+        "win_rate": 53.1,
+        "median": 0.23,
+        "mean": -0.01
+      },
+      {
+        "sector": "Auto Components",
+        "n": 5,
+        "win_rate": 60.0,
+        "median": 0.19,
+        "mean": 1.98
+      },
+      {
+        "sector": "Construction",
+        "n": 8,
+        "win_rate": 50.0,
+        "median": 0.07,
+        "mean": -0.73
+      },
+      {
+        "sector": "Financial Services",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -0.24,
+        "mean": -0.19
+      },
+      {
+        "sector": "Pharma & Healthcare",
+        "n": 14,
+        "win_rate": 50.0,
+        "median": -0.43,
+        "mean": 0.24
+      },
+      {
+        "sector": "Commercial Services & Supplies",
+        "n": 10,
+        "win_rate": 40.0,
+        "median": -0.97,
+        "mean": -1.47
+      },
+      {
+        "sector": "Fertilizers & Agrochemicals",
+        "n": 9,
+        "win_rate": 44.4,
+        "median": -1.25,
+        "mean": -0.05
+      },
+      {
+        "sector": "Telecom - Equipment & Accessories",
+        "n": 7,
+        "win_rate": 42.9,
+        "median": -1.59,
+        "mean": 0.7
+      },
+      {
+        "sector": "IT - Software",
+        "n": 12,
+        "win_rate": 41.7,
+        "median": -1.97,
+        "mean": -1.4
+      },
+      {
+        "sector": "Telecom",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -3.21,
+        "mean": -1.39
+      },
+      {
+        "sector": "Metals & Mining",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -3.3,
+        "mean": -1.09
+      },
+      {
+        "sector": "Capital Goods",
+        "n": 8,
+        "win_rate": 12.5,
+        "median": -3.73,
+        "mean": -3.34
+      },
+      {
+        "sector": "Chemicals",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -3.98,
+        "mean": -3.65
+      }
+    ],
+    "10d": [
+      {
+        "sector": "Leisure Services",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 10.92,
+        "mean": 9.4
+      },
+      {
+        "sector": "Other Construction Materials",
+        "n": 5,
+        "win_rate": 80.0,
+        "median": 8.66,
+        "mean": 10.79
+      },
+      {
+        "sector": "Aerospace & Defense",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 8.63,
+        "mean": 2.64
+      },
+      {
+        "sector": "Chemicals & Petrochemicals",
+        "n": 13,
+        "win_rate": 100.0,
+        "median": 8.16,
+        "mean": 8.55
+      },
+      {
+        "sector": "Power",
+        "n": 16,
+        "win_rate": 68.8,
+        "median": 7.93,
+        "mean": 8.34
+      },
+      {
+        "sector": "Diversified",
+        "n": 5,
+        "win_rate": 100.0,
+        "median": 6.74,
+        "mean": 9.41
+      },
+      {
+        "sector": "Healthcare Services",
+        "n": 11,
+        "win_rate": 72.7,
+        "median": 5.94,
+        "mean": 6.41
+      },
+      {
+        "sector": "Electrical Equipment",
+        "n": 9,
+        "win_rate": 77.8,
+        "median": 5.82,
+        "mean": 7.37
+      },
+      {
+        "sector": "Industrial Manufacturing",
+        "n": 47,
+        "win_rate": 70.2,
+        "median": 5.8,
+        "mean": 5.93
+      },
+      {
+        "sector": "IT - Services",
+        "n": 24,
+        "win_rate": 83.3,
+        "median": 5.48,
+        "mean": 6.57
+      },
+      {
+        "sector": "Industrial Products",
+        "n": 6,
+        "win_rate": 66.7,
+        "median": 5.17,
+        "mean": 3.41
+      },
+      {
+        "sector": "Capital Markets",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 5.11,
+        "mean": 7.41
+      },
+      {
+        "sector": "Retailing",
+        "n": 7,
+        "win_rate": 100.0,
+        "median": 5.08,
+        "mean": 6.54
+      },
+      {
+        "sector": "Automobiles",
+        "n": 10,
+        "win_rate": 70.0,
+        "median": 5.06,
+        "mean": 12.17
+      },
+      {
+        "sector": "Pharmaceuticals & Biotechnology",
+        "n": 11,
+        "win_rate": 72.7,
+        "median": 4.87,
+        "mean": 8.42
+      },
+      {
+        "sector": "Transport Infrastructure",
+        "n": 5,
+        "win_rate": 60.0,
+        "median": 4.85,
+        "mean": 0.52
+      },
+      {
+        "sector": "Diversified Metals",
+        "n": 24,
+        "win_rate": 75.0,
+        "median": 4.02,
+        "mean": 3.68
+      },
+      {
+        "sector": "Gas",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 3.68,
+        "mean": 1.07
+      },
+      {
+        "sector": "Transport Services",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": 3.63,
+        "mean": 3.42
+      },
+      {
+        "sector": "IT - Software",
+        "n": 12,
+        "win_rate": 58.3,
+        "median": 3.17,
+        "mean": 3.44
+      },
+      {
+        "sector": "Telecom - Services",
+        "n": 8,
+        "win_rate": 62.5,
+        "median": 2.63,
+        "mean": 4.89
+      },
+      {
+        "sector": "Realty",
+        "n": 6,
+        "win_rate": 50.0,
+        "median": 2.4,
+        "mean": 0.95
+      },
+      {
+        "sector": "Consumer Durables",
+        "n": 52,
+        "win_rate": 67.3,
+        "median": 2.32,
+        "mean": 4.35
+      },
+      {
+        "sector": "Finance",
+        "n": 30,
+        "win_rate": 60.0,
+        "median": 1.52,
+        "mean": 2.1
+      },
+      {
+        "sector": "Construction",
+        "n": 8,
+        "win_rate": 75.0,
+        "median": 1.44,
+        "mean": 0.95
+      },
+      {
+        "sector": "Auto Components",
+        "n": 5,
+        "win_rate": 80.0,
+        "median": 1.33,
+        "mean": 2.92
+      },
+      {
+        "sector": "Diversified FMCG",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 0.77,
+        "mean": 0.02
+      },
+      {
+        "sector": "Other",
+        "n": 49,
+        "win_rate": 51.0,
+        "median": 0.66,
+        "mean": -0.9
+      },
+      {
+        "sector": "Pharma & Healthcare",
+        "n": 14,
+        "win_rate": 50.0,
+        "median": 0.06,
+        "mean": 1.01
+      },
+      {
+        "sector": "Metals & Mining",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -0.81,
+        "mean": 1.78
+      },
+      {
+        "sector": "Financial Services",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -1.93,
+        "mean": -1.15
+      },
+      {
+        "sector": "Chemicals",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -2.82,
+        "mean": -2.86
+      },
+      {
+        "sector": "Commercial Services & Supplies",
+        "n": 10,
+        "win_rate": 40.0,
+        "median": -3.3,
+        "mean": -2.2
+      },
+      {
+        "sector": "IT & Technology",
+        "n": 5,
+        "win_rate": 20.0,
+        "median": -3.7,
+        "mean": -3.88
+      },
+      {
+        "sector": "Fertilizers & Agrochemicals",
+        "n": 9,
+        "win_rate": 44.4,
+        "median": -3.85,
+        "mean": -1.16
+      },
+      {
+        "sector": "Capital Goods",
+        "n": 8,
+        "win_rate": 37.5,
+        "median": -4.8,
+        "mean": -3.62
+      },
+      {
+        "sector": "Telecom",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -5.46,
+        "mean": -4.59
+      },
+      {
+        "sector": "Telecom - Equipment & Accessories",
+        "n": 7,
+        "win_rate": 42.9,
+        "median": -8.45,
+        "mean": -3.62
+      }
+    ]
+  },
+  "sub_industries": {
+    "5d": [
+      {
+        "sub_industry": "",
+        "n": 398,
+        "win_rate": 66.8,
+        "median": 2.74,
+        "mean": 2.8
+      },
+      {
+        "sub_industry": "Pharmaceuticals",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 1.13,
+        "mean": 0.69
+      },
+      {
+        "sub_industry": "Basic Materials",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 1.06,
+        "mean": 0.35
+      },
+      {
+        "sub_industry": "Industrials",
+        "n": 15,
+        "win_rate": 60.0,
+        "median": 0.83,
+        "mean": 1.56
+      },
+      {
+        "sub_industry": "Healthcare",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": 0.67,
+        "mean": 0.37
+      },
+      {
+        "sub_industry": "Computers - Software & Consulting",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": 0.57,
+        "mean": 1.49
+      },
+      {
+        "sub_industry": "Technology",
+        "n": 6,
+        "win_rate": 33.3,
+        "median": -0.76,
+        "mean": -0.15
+      },
+      {
+        "sub_industry": "Consumer Cyclical",
+        "n": 10,
+        "win_rate": 30.0,
+        "median": -1.46,
+        "mean": -2.96
+      },
+      {
+        "sub_industry": "Telecom - Equipment & Accessories",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -3.21,
+        "mean": -1.39
+      },
+      {
+        "sub_industry": "Diversified Metals",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -3.3,
+        "mean": -1.09
+      },
+      {
+        "sub_industry": "Heavy Electrical Equipment",
+        "n": 4,
+        "win_rate": 0.0,
+        "median": -3.73,
+        "mean": -3.32
+      }
+    ],
+    "10d": [
+      {
+        "sub_industry": "Healthcare",
+        "n": 4,
+        "win_rate": 75.0,
+        "median": 4.85,
+        "mean": 5.04
+      },
+      {
+        "sub_industry": "Basic Materials",
+        "n": 6,
+        "win_rate": 83.3,
+        "median": 3.76,
+        "mean": 2.56
+      },
+      {
+        "sub_industry": "",
+        "n": 398,
+        "win_rate": 69.3,
+        "median": 3.65,
+        "mean": 4.57
+      },
+      {
+        "sub_industry": "Industrials",
+        "n": 15,
+        "win_rate": 53.3,
+        "median": 0.66,
+        "mean": -1.12
+      },
+      {
+        "sub_industry": "Pharmaceuticals",
+        "n": 7,
+        "win_rate": 57.1,
+        "median": 0.3,
+        "mean": 1.32
+      },
+      {
+        "sub_industry": "Technology",
+        "n": 6,
+        "win_rate": 50.0,
+        "median": -0.15,
+        "mean": -0.95
+      },
+      {
+        "sub_industry": "Heavy Electrical Equipment",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -0.19,
+        "mean": -0.38
+      },
+      {
+        "sub_industry": "Diversified Metals",
+        "n": 4,
+        "win_rate": 50.0,
+        "median": -0.81,
+        "mean": 1.78
+      },
+      {
+        "sub_industry": "Computers - Software & Consulting",
+        "n": 4,
+        "win_rate": 0.0,
+        "median": -5.16,
+        "mean": -5.11
+      },
+      {
+        "sub_industry": "Telecom - Equipment & Accessories",
+        "n": 4,
+        "win_rate": 25.0,
+        "median": -5.46,
+        "mean": -4.59
+      },
+      {
+        "sub_industry": "Consumer Cyclical",
+        "n": 10,
+        "win_rate": 20.0,
+        "median": -7.23,
+        "mean": -5.16
+      }
+    ]
+  },
+  "stop_loss": {
+    "sl_5pct": {
+      "A": {
+        "label": "A SL-5.0%",
+        "n": 339,
+        "win_rate": 49.9,
+        "median": -0.26,
+        "mean": 3.62,
+        "std": 12.27,
+        "p25": -6.1,
+        "p75": 12.23,
+        "avg_win": 13.45,
+        "avg_loss": -6.15,
+        "reward_risk": 2.19,
+        "sharpe_ann": 4.65,
+        "max_dd_pct": -91.37,
+        "best": 60.42,
+        "worst": -12.09,
+        "total_ret": 1227.1
+      },
+      "B": {
+        "label": "B SL-5.0%",
+        "n": 247,
+        "win_rate": 52.2,
+        "median": 0.97,
+        "mean": 4.29,
+        "std": 12.24,
+        "p25": -5.69,
+        "p75": 11.39,
+        "avg_win": 13.34,
+        "avg_loss": -5.61,
+        "reward_risk": 2.38,
+        "sharpe_ann": 5.52,
+        "max_dd_pct": -76.21,
+        "best": 61.78,
+        "worst": -14.49,
+        "total_ret": 1058.95
+      },
+      "A+B": {
+        "label": "A+B SL-5.0%",
+        "n": 168,
+        "win_rate": 48.8,
+        "median": -0.55,
+        "mean": 3.39,
+        "std": 12.69,
+        "p25": -6.0,
+        "p75": 10.76,
+        "avg_win": 13.34,
+        "avg_loss": -6.09,
+        "reward_risk": 2.19,
+        "sharpe_ann": 4.21,
+        "max_dd_pct": -82.52,
+        "best": 60.57,
+        "worst": -13.5,
+        "total_ret": 569.75
+      }
+    },
+    "sl_7pct": {
+      "A": {
+        "label": "A SL-7.0%",
+        "n": 339,
+        "win_rate": 52.8,
+        "median": 1.43,
+        "mean": 3.47,
+        "std": 12.68,
+        "p25": -7.6,
+        "p75": 12.28,
+        "avg_win": 13.04,
+        "avg_loss": -7.25,
+        "reward_risk": 1.8,
+        "sharpe_ann": 4.3,
+        "max_dd_pct": -95.79,
+        "best": 60.42,
+        "worst": -14.72,
+        "total_ret": 1174.88
+      },
+      "B": {
+        "label": "B SL-7.0%",
+        "n": 247,
+        "win_rate": 58.3,
+        "median": 2.87,
+        "mean": 4.52,
+        "std": 12.73,
+        "p25": -7.43,
+        "p75": 12.29,
+        "avg_win": 12.81,
+        "avg_loss": -7.08,
+        "reward_risk": 1.81,
+        "sharpe_ann": 5.6,
+        "max_dd_pct": -78.39,
+        "best": 61.78,
+        "worst": -17.21,
+        "total_ret": 1116.0
+      },
+      "A+B": {
+        "label": "A+B SL-7.0%",
+        "n": 168,
+        "win_rate": 53.6,
+        "median": 1.47,
+        "mean": 3.8,
+        "std": 13.27,
+        "p25": -7.83,
+        "p75": 12.31,
+        "avg_win": 13.4,
+        "avg_loss": -7.27,
+        "reward_risk": 1.84,
+        "sharpe_ann": 4.51,
+        "max_dd_pct": -89.37,
+        "best": 60.57,
+        "worst": -14.08,
+        "total_ret": 638.61
+      }
+    },
+    "sl_10pct": {
+      "A": {
+        "label": "A SL-10.0%",
+        "n": 339,
+        "win_rate": 57.8,
+        "median": 2.88,
+        "mean": 4.28,
+        "std": 13.41,
+        "p25": -6.51,
+        "p75": 12.61,
+        "avg_win": 13.14,
+        "avg_loss": -7.85,
+        "reward_risk": 1.67,
+        "sharpe_ann": 5.04,
+        "max_dd_pct": -97.0,
+        "best": 60.42,
+        "worst": -14.8,
+        "total_ret": 1452.3
+      },
+      "B": {
+        "label": "B SL-10.0%",
+        "n": 247,
+        "win_rate": 62.3,
+        "median": 4.5,
+        "mean": 4.95,
+        "std": 12.94,
+        "p25": -4.91,
+        "p75": 12.82,
+        "avg_win": 12.6,
+        "avg_loss": -7.72,
+        "reward_risk": 1.63,
+        "sharpe_ann": 6.04,
+        "max_dd_pct": -72.41,
+        "best": 61.78,
+        "worst": -17.21,
+        "total_ret": 1222.54
+      },
+      "A+B": {
+        "label": "A+B SL-10.0%",
+        "n": 168,
+        "win_rate": 56.0,
+        "median": 1.97,
+        "mean": 4.09,
+        "std": 13.54,
+        "p25": -6.14,
+        "p75": 13.74,
+        "avg_win": 13.29,
+        "avg_loss": -7.59,
+        "reward_risk": 1.75,
+        "sharpe_ann": 4.77,
+        "max_dd_pct": -90.51,
+        "best": 60.57,
+        "worst": -18.39,
+        "total_ret": 687.56
+      }
+    }
+  },
+  "baseline": {
+    "3d": {
+      "median": 0.35,
+      "mean": 0.69,
+      "win_rate": 53.2,
+      "n": 35971
+    },
+    "5d": {
+      "median": 0.45,
+      "mean": 1.1,
+      "win_rate": 53.3,
+      "n": 35969
+    },
+    "10d": {
+      "median": 1.22,
+      "mean": 2.09,
+      "win_rate": 55.7,
+      "n": 35964
+    },
+    "20d": {
+      "median": 4.02,
+      "mean": 5.03,
+      "win_rate": 63.7,
+      "n": 35944
+    }
+  },
+  "meta": {
+    "date_range": "2026-02-24 to 2026-06-02",
+    "total_files": 70,
+    "total_signals": 754,
+    "pattern_counts": {
+      "A": 339,
+      "B": 247,
+      "A+B": 168
+    },
+    "hold_periods": [
+      3,
+      5,
+      10,
+      20
+    ],
+    "stop_levels": [
+      -5.0,
+      -7.0,
+      -10.0
+    ],
+    "pattern_rules": {
+      "A": {
+        "min_chg": 5.0,
+        "min_vol": 7,
+        "max_dist": -20,
+        "max_ts_pre": 80
+      },
+      "B": {
+        "min_ts_gain": 20,
+        "min_vol": 6,
+        "max_dist": -20,
+        "max_ts_pre": 55,
+        "min_chg": 2.5
+      }
+    }
+  }
+}
