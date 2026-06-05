@@ -1,18 +1,24 @@
 signal_date,ticker,name,sector,signal_price,current_price,pattern,jump_pct,vol_score,dist_52w,ts_pre,ts_now,ts_gain,rs21_vel,return_since_signal,days_held,status
-2026-06-03,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,524.15,A+B,8.6,9.0,-24.5,31,75,44,2.3,-3.76,1,ACTIVE
-2026-06-03,OLAELEC.NS,OLAELEC.NS,Auto,43.7,43.32,A+B,9.8,10.0,-38.6,31,64,33,14.1,-0.87,1,ACTIVE
-2026-06-03,RHIM.NS,RHI Magnesita India Limited,Capital Goods,377.5,401.15,A-BigDay,9.5,8.0,-29.4,0,13,13,5.2,6.26,1,ACTIVE
-2026-06-03,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,1961.7,1913.3,A-BigDay,9.3,8.0,-40.4,25,28,3,-4.2,-2.47,1,ACTIVE
-2026-06-03,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,164.6,161.11,A-BigDay,9.2,7.0,-31.7,30,33,3,0.8,-2.12,1,ACTIVE
-2026-06-03,TEJASNET.NS,Tejas Networks Limited,Telecom,569.2,601.95,A-BigDay,5.9,7.0,-23.8,76,78,2,-7.1,5.75,1,ACTIVE
-2026-06-04,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,104.4,104.42,A+B,10.5,9.0,-29.7,30,74,44,3.1,0.02,0,ACTIVE
-2026-06-04,GANESHHOU.NS,Ganesh Housing Limited,Real Estate,758.2,758.2,A+B,5.4,8.0,-29.4,32,74,42,-3.6,0.0,0,ACTIVE
-2026-06-04,ANANTRAJ.NS,Anant Raj Limited,Real Estate,589.3,589.35,A+B,7.5,7.0,-20.8,43,76,33,-2.2,0.01,0,ACTIVE
-2026-06-04,IIFL.NS,IIFL Finance Limited,Financial Services,530.3,530.3,A+B,6.3,7.0,-20.9,41,74,33,2.5,-0.0,0,ACTIVE
-2026-06-04,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,30.3,30.27,B-TSJump,3.5,7.0,-52.9,28,59,31,-3.6,-0.1,0,ACTIVE
-2026-06-04,RHIM.NS,RHI Magnesita India Limited,Capital Goods,401.1,401.15,A+B,6.3,8.0,-25.0,13,42,29,0.8,0.01,0,ACTIVE
-2026-06-04,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,31.5,31.47,B-TSJump,8.1,6.0,-52.6,0,24,24,-4.1,-0.1,0,ACTIVE
-2026-06-04,RELINFRA.NS,Reliance Infrastructure Limited,Power & Utilities,77.9,77.87,B-TSJump,5.0,8.0,-81.6,0,22,22,2.0,-0.04,0,ACTIVE
-2026-06-04,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,454.3,454.3,A-BigDay,9.7,8.0,-36.3,29,32,3,4.3,-0.0,0,ACTIVE
-2026-06-04,RTNINDIA.NS,RattanIndia Enterprises Limited,Financial Services,38.8,38.84,A-BigDay,10.0,7.0,-44.3,28,30,2,-3.1,0.1,0,ACTIVE
-2026-06-04,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,475.6,475.6,A-BigDay,6.4,8.0,-53.6,26,27,1,0.1,0.0,0,ACTIVE
+2026-06-03,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,524.3,A+B,8.6,9.0,-24.5,31,75,44,2.3,-3.73,2,ACTIVE
+2026-06-03,OLAELEC.NS,OLAELEC.NS,Auto,43.7,44.88,A+B,9.8,10.0,-38.6,31,64,33,14.1,2.7,2,ACTIVE
+2026-06-03,RHIM.NS,RHI Magnesita India Limited,Capital Goods,377.5,399.6,A-BigDay,9.5,8.0,-29.4,0,13,13,5.2,5.85,2,ACTIVE
+2026-06-03,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,1961.7,1958.4,A-BigDay,9.3,8.0,-40.4,25,28,3,-4.2,-0.17,2,ACTIVE
+2026-06-03,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,164.6,158.66,A-BigDay,9.2,7.0,-31.7,30,33,3,0.8,-3.61,2,ACTIVE
+2026-06-03,TEJASNET.NS,Tejas Networks Limited,Telecom,569.2,576.2,A-BigDay,5.9,7.0,-23.8,76,78,2,-7.1,1.23,2,ACTIVE
+2026-06-04,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,104.4,112.27,A+B,10.5,9.0,-29.7,30,74,44,3.1,7.54,1,ACTIVE
+2026-06-04,GANESHHOU.NS,Ganesh Housing Limited,Real Estate,758.2,780.75,A+B,5.4,8.0,-29.4,32,74,42,-3.6,2.97,1,ACTIVE
+2026-06-04,ANANTRAJ.NS,Anant Raj Limited,Real Estate,589.3,570.05,A+B,7.5,7.0,-20.8,43,76,33,-2.2,-3.27,1,ACTIVE
+2026-06-04,IIFL.NS,IIFL Finance Limited,Financial Services,530.3,516.9,A+B,6.3,7.0,-20.9,41,74,33,2.5,-2.53,1,ACTIVE
+2026-06-04,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,30.3,29.39,B-TSJump,3.5,7.0,-52.9,28,59,31,-3.6,-3.0,1,ACTIVE
+2026-06-04,RHIM.NS,RHI Magnesita India Limited,Capital Goods,401.1,399.6,A+B,6.3,8.0,-25.0,13,42,29,0.8,-0.37,1,ACTIVE
+2026-06-04,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,31.5,31.89,B-TSJump,8.1,6.0,-52.6,0,24,24,-4.1,1.24,1,ACTIVE
+2026-06-04,RELINFRA.NS,Reliance Infrastructure Limited,Power & Utilities,77.9,81.76,B-TSJump,5.0,8.0,-81.6,0,22,22,2.0,4.96,1,ACTIVE
+2026-06-04,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,454.3,453.5,A-BigDay,9.7,8.0,-36.3,29,32,3,4.3,-0.18,1,ACTIVE
+2026-06-04,RTNINDIA.NS,RattanIndia Enterprises Limited,Financial Services,38.8,39.13,A-BigDay,10.0,7.0,-44.3,28,30,2,-3.1,0.85,1,ACTIVE
+2026-06-04,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,475.6,465.15,A-BigDay,6.4,8.0,-53.6,26,27,1,0.1,-2.2,1,ACTIVE
+2026-06-05,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1529.1,1529.1,B-TSJump,2.6,8.0,-28.4,2,38,36,-0.5,-0.0,0,ACTIVE
+2026-06-05,RITES.NS,RITES Limited,Infrastructure,210.5,210.49,A+B,5.1,8.0,-31.3,1,29,28,1.7,-0.0,0,ACTIVE
+2026-06-05,NETWORK18.NS,Network18 Media & Investments Limited,Media,33.4,33.41,A+B,11.4,9.0,-48.8,0,25,25,8.2,0.03,0,ACTIVE
+2026-06-05,QUESS.NS,Quess Corp Limited,Capital Goods,235.7,235.71,A-BigDay,9.6,9.0,-24.7,61,75,14,5.1,0.0,0,ACTIVE
+2026-06-05,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,192.2,192.2,A-BigDay,5.0,8.0,-21.3,75,77,2,3.9,-0.0,0,ACTIVE
+2026-06-05,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,112.3,112.27,A-BigDay,7.5,9.0,-24.4,74,76,2,5.0,-0.03,0,ACTIVE
