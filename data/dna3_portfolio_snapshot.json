@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-06-08",
+    "date": "2026-06-09",
     "cash": 227260.0356714171,
     "holdings": {
         "POWERINDIA.NS": {
@@ -19,7 +19,7 @@
             "entry_price": 193.66000366210938,
             "entry_date": "2026-03-24",
             "shares": 313,
-            "peak_price": 227.94000244140625
+            "peak_price": 234.72999572753906
         },
         "EMCURE.NS": {
             "entry_price": 1539.699951171875,
@@ -55,13 +55,13 @@
             "entry_price": 1920.9000244140625,
             "entry_date": "2026-05-25",
             "shares": 31,
-            "peak_price": 2122.199951171875
+            "peak_price": 2242.10009765625
         },
         "AVALON.NS": {
             "entry_price": 1511.199951171875,
             "entry_date": "2026-05-25",
             "shares": 39,
-            "peak_price": 1637.699951171875
+            "peak_price": 1639.5
         },
         "BHEL.NS": {
             "entry_price": 419.3999938964844,
@@ -70,141 +70,141 @@
             "peak_price": 422.3500061035156
         }
     },
-    "equity": 1054464.5816614074,
-    "cash_pct": 21.6,
+    "equity": 1077231.416317169,
+    "cash_pct": 21.1,
     "count": 11,
     "portfolio": [
         {
             "Ticker": "STLTECH.NS",
             "Sector": "Telecom - Equipment & Accessories",
-            "Price": 588.2999877929688,
-            "RS_Score": 129.7,
+            "Price": 613.0,
+            "RS_Score": 127.3,
             "Entry": 256.3500061035156,
-            "PnL%": 129.49092014275584,
-            "Dist_MA50": 65.45190652650902,
-            "MA50": 355.57,
+            "PnL%": 139.12618896231547,
+            "Dist_MA50": 68.41631074884916,
+            "MA50": 363.98,
             "Trail_Stop": 573.41,
-            "Danger": "\u26a0\ufe0f 2.6% to trail"
-        },
-        {
-            "Ticker": "HFCL.NS",
-            "Sector": "Telecom - Equipment & Accessories",
-            "Price": 177.8699951171875,
-            "RS_Score": 79.7,
-            "Entry": 141.4600067138672,
-            "PnL%": 25.73871530839612,
-            "Dist_MA50": 41.879890190652795,
-            "MA50": 125.37,
-            "Trail_Stop": 175.48,
-            "Danger": "\u26a0\ufe0f 1.4% to trail"
+            "Danger": ""
         },
         {
             "Ticker": "BALAMINES.NS",
             "Sector": "Chemicals & Petrochemicals",
-            "Price": 2090.89990234375,
-            "RS_Score": 65.7,
+            "Price": 2242.10009765625,
+            "RS_Score": 80.3,
             "Entry": 1920.9000244140625,
-            "PnL%": 8.850011753294815,
-            "Dist_MA50": 43.66674163786653,
-            "MA50": 1455.38,
-            "Trail_Stop": 1867.54,
+            "PnL%": 16.721332144298557,
+            "Dist_MA50": 51.592193951199846,
+            "MA50": 1479.03,
+            "Trail_Stop": 1973.05,
             "Danger": ""
+        },
+        {
+            "Ticker": "HFCL.NS",
+            "Sector": "Telecom - Equipment & Accessories",
+            "Price": 178.00999450683594,
+            "RS_Score": 75.6,
+            "Entry": 141.4600067138672,
+            "PnL%": 25.837682778355042,
+            "Dist_MA50": 39.60670292462688,
+            "MA50": 127.51,
+            "Trail_Stop": 175.48,
+            "Danger": "\u26a0\ufe0f 1.4% to trail"
         },
         {
             "Ticker": "AVALON.NS",
             "Sector": "Industrial Manufacturing",
-            "Price": 1605.0999755859375,
-            "RS_Score": 42.5,
+            "Price": 1639.5,
+            "RS_Score": 46.6,
             "Entry": 1511.199951171875,
-            "PnL%": 6.2136068983622454,
-            "Dist_MA50": 30.98227129066054,
-            "MA50": 1225.43,
-            "Trail_Stop": 1441.18,
+            "PnL%": 8.48994527353137,
+            "Dist_MA50": 32.34336147854147,
+            "MA50": 1238.82,
+            "Trail_Stop": 1442.76,
             "Danger": ""
         },
         {
             "Ticker": "PREMIERENE.NS",
             "Sector": "Electrical Equipment",
-            "Price": 1090.5,
-            "RS_Score": 30.3,
+            "Price": 1086.699951171875,
+            "RS_Score": 28.4,
             "Entry": 889.3499755859375,
-            "PnL%": 22.61764546420966,
-            "Dist_MA50": 8.904008141634515,
-            "MA50": 1001.34,
+            "PnL%": 22.19036161280781,
+            "Dist_MA50": 8.156246739919473,
+            "MA50": 1004.75,
             "Trail_Stop": 959.64,
             "Danger": ""
         },
         {
             "Ticker": "BHEL.NS",
             "Sector": "Electrical Equipment",
-            "Price": 386.29998779296875,
-            "RS_Score": 22.7,
+            "Price": 396.54998779296875,
+            "RS_Score": 24.4,
             "Entry": 419.3999938964844,
-            "PnL%": -7.892228561091804,
-            "Dist_MA50": 9.267881786874831,
-            "MA50": 353.53,
+            "PnL%": -5.4482609528018795,
+            "Dist_MA50": 11.32015158151444,
+            "MA50": 356.22,
             "Trail_Stop": 371.67,
-            "Danger": "\u26a0\ufe0f 3.9% to trail"
-        },
-        {
-            "Ticker": "POWERINDIA.NS",
-            "Sector": "Electrical Equipment",
-            "Price": 35010.0,
-            "RS_Score": 21.8,
-            "Entry": 25305.0,
-            "PnL%": 38.35210432720807,
-            "Dist_MA50": 9.727889877202548,
-            "MA50": 31906.2,
-            "Trail_Stop": 33831.6,
-            "Danger": "\u26a0\ufe0f 3.5% to trail"
+            "Danger": ""
         },
         {
             "Ticker": "GVT&D.NS",
             "Sector": "Electrical Equipment",
-            "Price": 4744.0,
-            "RS_Score": 16.3,
+            "Price": 4931.0,
+            "RS_Score": 21.0,
             "Entry": 3824.39990234375,
-            "PnL%": 24.04560509199577,
-            "Dist_MA50": 7.384252056162674,
-            "MA50": 4417.78,
+            "PnL%": 28.93526111058835,
+            "Dist_MA50": 11.030251041271418,
+            "MA50": 4441.13,
             "Trail_Stop": 4530.77,
-            "Danger": "\u26a0\ufe0f 4.7% to trail"
-        },
-        {
-            "Ticker": "EMCURE.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1719.5999755859375,
-            "RS_Score": 15.1,
-            "Entry": 1539.699951171875,
-            "PnL%": 11.684096260257688,
-            "Dist_MA50": 3.3688022977564875,
-            "MA50": 1663.56,
-            "Trail_Stop": 1578.02,
-            "Danger": "\u26a0\ufe0f 3.4% to MA50"
-        },
-        {
-            "Ticker": "VTL.NS",
-            "Sector": "Textiles & Apparels",
-            "Price": 618.8499755859375,
-            "RS_Score": 14.3,
-            "Entry": 534.5999755859375,
-            "PnL%": 15.759447034702815,
-            "Dist_MA50": 5.619135055485608,
-            "MA50": 585.93,
-            "Trail_Stop": 559.72,
             "Danger": ""
+        },
+        {
+            "Ticker": "POWERINDIA.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 34610.0,
+            "RS_Score": 19.9,
+            "Entry": 25305.0,
+            "PnL%": 36.771389053546734,
+            "Dist_MA50": 7.8697210534517685,
+            "MA50": 32085.0,
+            "Trail_Stop": 33831.6,
+            "Danger": "\u26a0\ufe0f 2.3% to trail"
         },
         {
             "Ticker": "BELRISE.NS",
             "Sector": "Auto Components",
-            "Price": 215.72000122070312,
-            "RS_Score": 9.9,
+            "Price": 234.72999572753906,
+            "RS_Score": 16.3,
             "Entry": 193.66000366210938,
-            "PnL%": 11.391096324196708,
-            "Dist_MA50": 2.4720213820895305,
-            "MA50": 210.52,
-            "Trail_Stop": 200.59,
-            "Danger": "\u26a0\ufe0f 2.5% to MA50"
+            "PnL%": 21.207265975832083,
+            "Dist_MA50": 11.080506831308934,
+            "MA50": 211.32,
+            "Trail_Stop": 206.56,
+            "Danger": ""
+        },
+        {
+            "Ticker": "EMCURE.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 1744.5999755859375,
+            "RS_Score": 15.6,
+            "Entry": 1539.699951171875,
+            "PnL%": 13.307789238943071,
+            "Dist_MA50": 4.681316683395672,
+            "MA50": 1666.58,
+            "Trail_Stop": 1578.02,
+            "Danger": "\u26a0\ufe0f 4.7% to MA50"
+        },
+        {
+            "Ticker": "VTL.NS",
+            "Sector": "Textiles & Apparels",
+            "Price": 620.8499755859375,
+            "RS_Score": 11.5,
+            "Entry": 534.5999755859375,
+            "PnL%": 16.133558537010302,
+            "Dist_MA50": 5.610079489811009,
+            "MA50": 587.87,
+            "Trail_Stop": 559.72,
+            "Danger": ""
         }
     ],
     "last_rebalance_date": "2026-05-25",
