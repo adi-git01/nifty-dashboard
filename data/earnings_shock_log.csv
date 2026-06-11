@@ -1,11 +1,36 @@
 signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead_action,return_since_signal,return_5d,return_21d,days_held,status
-2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2219.2,13.69,21.5,🟡 Neutral (Priced-In),4.48,,,1,ACTIVE
-2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1787.0,10.97,7.3,🟡 Neutral (Priced-In),4.99,,,1,ACTIVE
-2026-05-19,PURVA.NS,Puravankara Limited,Real Estate,242.8,242.84,13.97,36.0,🟢 Buy (Drifter),0.02,,,0,ACTIVE
-2026-05-19,SPARC.NS,Sun Pharma Advanced Research Company Limited,Pharma & Healthcare,171.3,171.26,5.57,3.6,🟡 Neutral (Priced-In),-0.02,,,0,ACTIVE
-2026-05-19,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,Chemicals,543.0,543.0,4.6,9.3,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
-2026-05-19,JKPAPER.NS,JK Paper Limited,Cement & Materials,387.6,387.65,4.39,4.5,Unknown,0.01,,,0,ACTIVE
-2026-05-19,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1787.0,1787.0,5.33,3.8,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
-2026-05-19,ANGELONE.NS,Angel One Limited,Financial Services,319.4,319.4,5.08,3.2,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
-2026-05-19,SUPRIYA.NS,Supriya Lifescience Limited,Pharma & Healthcare,714.3,714.35,4.44,2.7,🟡 Neutral (Priced-In),0.01,,,0,ACTIVE
-2026-05-19,ENTERO.NS,Entero Healthcare Solutions Limited,Pharma & Healthcare,1240.1,1240.1,4.05,2.7,🟡 Neutral (Priced-In),-0.0,,,0,ACTIVE
+2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2232.3,13.69,21.5,🟡 Neutral (Priced-In),5.1,,,16,ACTIVE
+2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1480.2,10.97,7.3,🟡 Neutral (Priced-In),-13.04,,,16,ACTIVE
+2026-05-19,PURVA.NS,Puravankara Limited,Real Estate,242.8,212.86,13.97,36.0,🟢 Buy (Drifter),-12.33,,,15,ACTIVE
+2026-05-19,SPARC.NS,Sun Pharma Advanced Research Company Limited,Pharma & Healthcare,171.3,208.5,5.57,3.6,🟡 Neutral (Priced-In),21.72,,,15,ACTIVE
+2026-05-19,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,Chemicals,543.0,502.95,4.6,9.3,🟡 Neutral (Priced-In),-7.38,,,15,ACTIVE
+2026-05-19,JKPAPER.NS,JK Paper Limited,Cement & Materials,387.6,355.05,4.39,4.5,Unknown,-8.4,,,15,ACTIVE
+2026-05-19,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1787.0,1480.2,5.33,3.8,🟡 Neutral (Priced-In),-17.17,,,15,ACTIVE
+2026-05-19,ANGELONE.NS,Angel One Limited,Financial Services,319.4,334.75,5.08,3.2,🟢 Buy (Drifter),4.81,,,15,ACTIVE
+2026-05-19,SUPRIYA.NS,Supriya Lifescience Limited,Pharma & Healthcare,714.3,900.95,4.44,2.7,🟡 Neutral (Priced-In),26.13,,,15,ACTIVE
+2026-05-19,ENTERO.NS,Entero Healthcare Solutions Limited,Pharma & Healthcare,1240.1,1127.4,4.05,2.7,🟡 Neutral (Priced-In),-9.09,,,15,ACTIVE
+2026-06-03,IFCI.NS,IFCI Limited,Financial Services,80.4,80.42,12.3,3.0,🟢 Buy (Drifter),0.02,,,0,ACTIVE
+2026-06-03,OLAELEC.NS,OLAELEC.NS,Auto,43.7,43.74,9.8,3.3,🟡 Neutral (Priced-In),0.09,,,0,ACTIVE
+2026-06-03,RHIM.NS,RHI Magnesita India Limited,Capital Goods,377.5,377.45,9.5,2.7,🟢 Buy (Drifter),-0.01,,,0,ACTIVE
+2026-06-03,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,1961.7,1961.7,9.3,2.7,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
+2026-06-03,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,164.6,164.55,9.2,2.3,🟡 Neutral (Priced-In),-0.03,,,0,ACTIVE
+2026-06-03,KPRMILL.NS,K.P.R. Mill Limited,Textiles,1085.8,1085.8,8.7,3.0,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-06-03,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,544.6,8.6,3.0,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
+2026-06-03,RRKABEL.NS,R R Kabel Limited,Capital Goods,2155.9,2155.9,6.5,3.0,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
+2026-06-03,ATHERENERG.NS,Ather Energy Limited,Auto,1022.0,1022.05,6.4,2.7,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-06-03,TEJASNET.NS,Tejas Networks Limited,Telecom,569.2,569.25,5.9,2.3,🟡 Neutral (Priced-In),0.01,,,0,ACTIVE
+2026-06-03,WOCKPHARMA.NS,Wockhardt Limited,Pharma & Healthcare,2073.9,2073.9,5.5,2.3,🟡 Neutral (Priced-In),-0.0,,,0,ACTIVE
+2026-06-03,BALAMINES.NS,Balaji Amines Limited,Chemicals,2122.2,2122.2,5.3,3.0,🟡 Neutral (Priced-In),-0.0,,,0,ACTIVE
+2026-06-03,HFCL.NS,HFCL Limited,Telecom,199.4,199.41,5.0,3.0,🟡 Neutral (Priced-In),0.01,,,0,ACTIVE
+2026-06-03,RELINFRA.NS,Reliance Infrastructure Limited,Power & Utilities,74.2,74.17,5.0,2.7,🟢 Buy (Drifter),-0.04,,,0,ACTIVE
+2026-06-03,STLTECH.NS,Sterlite Technologies Limited,Telecom,620.6,620.6,5.0,3.3,🟡 Neutral (Priced-In),-0.0,,,0,ACTIVE
+2026-06-03,IDEA.NS,Vodafone Idea Limited,Telecom,14.9,14.85,4.9,3.3,🟡 Neutral (Priced-In),-0.34,,,0,ACTIVE
+2026-06-03,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,154.2,154.16,4.9,3.0,🟡 Neutral (Priced-In),-0.03,,,0,ACTIVE
+2026-06-03,ABDL.NS,ABDL.NS,Consumer Goods,572.2,572.2,4.7,3.0,🟢 Buy (Drifter),0.0,,,0,ACTIVE
+2026-06-03,J&KBANK.NS,Jammu and Kashmir Bank Limited,Banking,148.6,148.65,4.7,3.0,🟡 Neutral (Priced-In),0.03,,,0,ACTIVE
+2026-06-03,THANGAMAYL.NS,Thangamayil Jewellery Limited,Consumer Durables,4795.0,4795.0,4.5,2.3,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-06-03,VIPIND.NS,V.I.P. Industries Limited,Consumer Durables,332.5,332.45,4.5,3.0,🟡 Neutral (Priced-In),-0.02,,,0,ACTIVE
+2026-06-03,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1189.8,1189.8,4.2,2.3,🟡 Neutral (Priced-In),0.0,,,0,ACTIVE
+2026-06-03,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1286.3,1286.3,4.2,2.7,🟢 Buy (Drifter),0.0,,,0,ACTIVE
+2026-06-03,IIFL.NS,IIFL Finance Limited,Financial Services,498.8,498.8,4.0,2.3,🟢 Buy (Drifter),-0.0,,,0,ACTIVE
+2026-06-03,JINDALSAW.NS,Jindal Saw Limited,Metals & Mining,250.9,250.87,4.0,2.7,🟢 Buy (Drifter),-0.01,,,0,ACTIVE
