@@ -4372,6 +4372,21 @@ elif page == "📊 Sector Pulse":
                     score_pivot = score_pivot.sort_values(by=last_month_col, ascending=False, na_position='last')
                     hover_pivot = hover_pivot.reindex(score_pivot.index)
 
+                # ── Compute 7D delta from raw daily data (so table updates every day) ──
+                # Use last 10 records per sub_industry; compare today vs ~7 trading days ago
+                _recent = sub_df[sub_df['sub_industry'].isin(current_industries)].copy()
+                _recent = _recent.sort_values('record_date')
+                _score_7d_ago = {}
+                _score_today  = {}
+                for _si, _grp in _recent.groupby('sub_industry'):
+                    _grp = _grp.sort_values('record_date')
+                    if len(_grp) >= 1:
+                        _score_today[_si]  = float(_grp['score_0_100'].iloc[-1])
+                    if len(_grp) >= 7:
+                        _score_7d_ago[_si] = float(_grp['score_0_100'].iloc[-7])
+                    elif len(_grp) >= 2:
+                        _score_7d_ago[_si] = float(_grp['score_0_100'].iloc[0])
+
                 # ── Two-tab view: sparkline table (primary) + heatmap (fallback) ──
                 rot_tab1, rot_tab2 = st.tabs(["📋 Rotation Table", "🌡️ Heatmap"])
 
@@ -4382,9 +4397,11 @@ elif page == "📊 Sector Pulse":
                         row_scores = score_pivot.loc[industry]
                         trend_vals = [int(round(float(v))) for v in row_scores.values if pd.notna(v)]
 
-                        current_score = float(row_scores.iloc[-1]) if pd.notna(row_scores.iloc[-1]) else 0.0
-                        prev_score    = float(row_scores.iloc[-2]) if len(row_scores) >= 2 and pd.notna(row_scores.iloc[-2]) else current_score
-                        mom_change    = round(current_score - prev_score, 1)
+                        current_score = _score_today.get(industry, float(row_scores.iloc[-1]) if pd.notna(row_scores.iloc[-1]) else 0.0)
+                        prev_month    = float(row_scores.iloc[-2]) if len(row_scores) >= 2 and pd.notna(row_scores.iloc[-2]) else current_score
+                        mom_change    = round(current_score - prev_month, 1)
+                        week_score    = _score_7d_ago.get(industry, current_score)
+                        wow_change    = round(current_score - week_score, 1)
 
                         leaders_raw = hover_pivot.loc[industry].iloc[-1]
                         leaders = leaders_raw if pd.notna(leaders_raw) else '—'
@@ -4400,6 +4417,7 @@ elif page == "📊 Sector Pulse":
                             'Sub-Industry': industry,
                             'Signal':       signal,
                             'Score':        round(current_score),
+                            '7D Δ':         wow_change,
                             'MoM Δ':        mom_change,
                             'Trend (12M)':  trend_vals,
                             'Leaders':      leaders,
@@ -4416,6 +4434,9 @@ elif page == "📊 Sector Pulse":
                             'Signal':       st.column_config.TextColumn("Signal",       width="small"),
                             'Score':        st.column_config.ProgressColumn(
                                                 "Score", min_value=0, max_value=100, format="%d"),
+                            '7D Δ':         st.column_config.NumberColumn(
+                                                "7D Δ", format="%+.0f",
+                                                help="Score change over last 7 trading days — updates daily"),
                             'MoM Δ':        st.column_config.NumberColumn(
                                                 "MoM Δ", format="%+.0f",
                                                 help="Month-over-month percentile rank change"),

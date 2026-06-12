@@ -206,7 +206,7 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
             "CompRS":        round(crs_now, 3),
             "RS21_Delta5":   round(rs21d_now, 2),
             "Liq5Cr":        round(liq5_now, 1),
-            "LiqFromLow":    round(min(lfl_now, 50), 1),
+            "LiqFromLow":    round(lfl_now, 1),
             "VolQuality":    round(vol_quality, 2),
             "Shock_Ratio":   round(shock_ratio, 3),
             "IAS":           ias,
