@@ -67,22 +67,27 @@ def generate_sub_industry_rotation(df, db):
     Appends historical data (one snapshot per date) for monthly heatmap tracking.
     """
     _log("START: generate_sub_industry_rotation")
-    if df.empty or 'sector' not in df.columns or 'comp_rs' not in df.columns:
+    if df.empty or 'comp_rs' not in df.columns:
         _log(f"SKIP sub_industry_rotation — df.empty={df.empty}, columns={list(df.columns[:5])}")
         return
-        
+
+    # Use sector_granular (54 sub-industries) if available, else fall back to sector
+    group_col = 'sector_granular' if 'sector_granular' in df.columns else 'sector'
+    if group_col not in df.columns:
+        _log("SKIP sub_industry_rotation — no sector column found")
+        return
+
     today_str = datetime.now().strftime("%Y-%m-%d")
-    
-    # Group by the Sub-Industry (which is in the `sector` column due to our mapping)
-    groups = df.groupby('sector')
+
+    groups = df.groupby(group_col)
     rotation_rows = []
-    
+
     for sector, group in groups:
-        if sector == "Unknown": continue
+        if not sector or sector in ("Unknown", "nan"): continue
         avg_rs = float(group['comp_rs'].mean())
         # Find top 3 stocks in this sub-industry by RS
         top_stocks = group.sort_values(by='comp_rs', ascending=False).head(3)['ticker'].tolist()
-        top_comps_str = ", ".join(top_stocks)
+        top_comps_str = ", ".join([t.replace(".NS", "") for t in top_stocks])
         
         rotation_rows.append({
             'record_date': today_str,
