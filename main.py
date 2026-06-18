@@ -4311,7 +4311,7 @@ elif page == "📊 Sector Pulse":
                             sub_df.loc[mask, 'score_0_100'] = 50
                 
                 # Create month label for grouping (e.g., "Mar-26")
-                sub_df['record_date'] = pd.to_datetime(sub_df['record_date'])
+                sub_df['record_date'] = pd.to_datetime(sub_df['record_date'], format='mixed')
                 sub_df['month_label'] = sub_df['record_date'].dt.strftime('%b-%y')
                 
                 # For each month, take the latest snapshot (in case multiple dates per month)
