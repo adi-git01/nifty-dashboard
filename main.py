@@ -3997,14 +3997,14 @@ elif page == "☀️ Morning Pulse":
         with _src1:
             st.caption("Sector TS with momentum arrows (1D / 5D slope)")
             st.dataframe(
-                _sec_df[["TS Today", "1D", "5D", "Stocks"] + (["Accum%"] if "Accum%" in _sec_df.columns else [])],
+                _sec_df[["TS Today", "1D Slope", "5D Slope", "Stocks"] + (["Accum%"] if "Accum%" in _sec_df.columns else [])],
                 use_container_width=True,
                 column_config={
-                    "TS Today": st.column_config.NumberColumn("TS Today", format="%.0f"),
-                    "1D":       st.column_config.TextColumn("1D Slope"),
-                    "5D":       st.column_config.TextColumn("5D Slope"),
-                    "Stocks":   st.column_config.NumberColumn("N", format="%.0f"),
-                    "Accum%":   st.column_config.NumberColumn("Accum%", format="%.0f%%"),
+                    "TS Today":  st.column_config.NumberColumn("TS Today",  format="%.0f"),
+                    "1D Slope":  st.column_config.NumberColumn("1D Slope",  format="%+.1f"),
+                    "5D Slope":  st.column_config.NumberColumn("5D Slope",  format="%+.1f"),
+                    "Stocks":    st.column_config.NumberColumn("N",         format="%.0f"),
+                    "Accum%":    st.column_config.NumberColumn("Accum%",    format="%.0f%%"),
                 },
                 height=420,
             )

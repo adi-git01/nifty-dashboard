@@ -98,12 +98,11 @@ def generate_sub_industry_rotation(df, db):
         
     rot_df = pd.DataFrame(rotation_rows)
     
-    # Normalize rs_momentum to 0-100 percentile rank within this snapshot
+    # Rank-based percentile score (0-100). One outlier sub-industry can't compress
+    # all other scores toward zero the way min-max normalization would.
     if not rot_df.empty:
-        rs_min = rot_df['rs_momentum'].min()
-        rs_max = rot_df['rs_momentum'].max()
-        if rs_max > rs_min:
-            rot_df['score_0_100'] = ((rot_df['rs_momentum'] - rs_min) / (rs_max - rs_min) * 100).round(0).astype(int)
+        if len(rot_df) > 1:
+            rot_df['score_0_100'] = (rot_df['rs_momentum'].rank(pct=True) * 100).round(0).astype(int)
         else:
             rot_df['score_0_100'] = 50
     
