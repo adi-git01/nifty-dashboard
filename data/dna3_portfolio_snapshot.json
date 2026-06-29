@@ -1,7 +1,7 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-06-25",
-    "cash": 148247.83951590717,
+    "date": "2026-06-29",
+    "cash": 276641.1401189345,
     "holdings": {
         "GVT&D.NS": {
             "entry_price": 3824.39990234375,
@@ -21,29 +21,17 @@
             "shares": 39,
             "peak_price": 1880.199951171875
         },
-        "PREMIERENE.NS": {
-            "entry_price": 889.3499755859375,
-            "entry_date": "2026-03-24",
-            "shares": 68,
-            "peak_price": 1090.5
-        },
         "VTL.NS": {
             "entry_price": 534.5999755859375,
             "entry_date": "2026-03-24",
             "shares": 113,
             "peak_price": 661.4000244140625
         },
-        "BALAMINES.NS": {
-            "entry_price": 1920.9000244140625,
-            "entry_date": "2026-05-25",
-            "shares": 31,
-            "peak_price": 2242.10009765625
-        },
         "AVALON.NS": {
             "entry_price": 1511.199951171875,
             "entry_date": "2026-05-25",
             "shares": 39,
-            "peak_price": 1760.0
+            "peak_price": 1784.699951171875
         },
         "OLAELEC.NS": {
             "entry_price": 45.7400016784668,
@@ -55,7 +43,7 @@
             "entry_price": 944.4000244140625,
             "entry_date": "2026-06-12",
             "shares": 73,
-            "peak_price": 1140.6500244140625
+            "peak_price": 1174.0999755859375
         },
         "ORCHPHARMA.NS": {
             "entry_price": 917.0999755859375,
@@ -82,165 +70,141 @@
             "peak_price": 591.1500244140625
         }
     },
-    "equity": 1090378.5642359084,
-    "cash_pct": 13.6,
-    "count": 13,
+    "equity": 1078130.001527168,
+    "cash_pct": 25.7,
+    "count": 11,
     "portfolio": [
         {
             "Ticker": "AEGISLOG.NS",
             "Sector": "Gas",
-            "Price": 1140.6500244140625,
-            "RS_Score": 65.4,
+            "Price": 1174.0999755859375,
+            "RS_Score": 68.0,
             "Entry": 944.4000244140625,
-            "PnL%": 20.78038912819386,
-            "Dist_MA50": 44.999665649962104,
-            "MA50": 786.66,
-            "Trail_Stop": 1003.77,
-            "Danger": ""
-        },
-        {
-            "Ticker": "SYRMA.NS",
-            "Sector": "Industrial Products",
-            "Price": 1440.5,
-            "RS_Score": 50.0,
-            "Entry": 1266.699951171875,
-            "PnL%": 13.720695944397535,
-            "Dist_MA50": 28.826679454994412,
-            "MA50": 1118.17,
-            "Trail_Stop": 1267.64,
+            "PnL%": 24.32231525135639,
+            "Dist_MA50": 47.5087060749056,
+            "MA50": 795.95,
+            "Trail_Stop": 1033.21,
             "Danger": ""
         },
         {
             "Ticker": "ORCHPHARMA.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 963.2999877929688,
-            "RS_Score": 46.3,
+            "Price": 950.7999877929688,
+            "RS_Score": 41.1,
             "Entry": 917.0999755859375,
-            "PnL%": 5.037620045460577,
-            "Dist_MA50": 26.899273276348996,
-            "MA50": 759.11,
+            "PnL%": 3.6746279690499635,
+            "Dist_MA50": 24.006500049101383,
+            "MA50": 766.73,
             "Trail_Stop": 922.37,
-            "Danger": "\u26a0\ufe0f 4.4% to trail"
+            "Danger": "\u26a0\ufe0f 3.1% to trail"
         },
         {
             "Ticker": "AVALON.NS",
             "Sector": "Industrial Manufacturing",
-            "Price": 1750.300048828125,
-            "RS_Score": 40.3,
+            "Price": 1784.699951171875,
+            "RS_Score": 40.8,
             "Entry": 1511.199951171875,
-            "PnL%": 15.821870393182417,
-            "Dist_MA50": 24.251869145792586,
-            "MA50": 1408.67,
-            "Trail_Stop": 1548.8,
+            "PnL%": 18.098200690643996,
+            "Dist_MA50": 25.508179262671298,
+            "MA50": 1421.98,
+            "Trail_Stop": 1570.54,
             "Danger": ""
         },
         {
-            "Ticker": "BALAMINES.NS",
-            "Sector": "Chemicals & Petrochemicals",
-            "Price": 1989.0,
-            "RS_Score": 37.8,
-            "Entry": 1920.9000244140625,
-            "PnL%": 3.545211865292689,
-            "Dist_MA50": 15.016173351727103,
-            "MA50": 1729.32,
-            "Trail_Stop": 1973.05,
-            "Danger": "\u26a0\ufe0f 0.8% to trail"
+            "Ticker": "SYRMA.NS",
+            "Sector": "Industrial Products",
+            "Price": 1368.300048828125,
+            "RS_Score": 39.5,
+            "Entry": 1266.699951171875,
+            "PnL%": 8.020849575485943,
+            "Dist_MA50": 21.52156764129071,
+            "MA50": 1125.97,
+            "Trail_Stop": 1267.64,
+            "Danger": ""
         },
         {
             "Ticker": "SHILPAMED.NS",
             "Sector": "Healthcare Services",
-            "Price": 571.5999755859375,
-            "RS_Score": 34.4,
+            "Price": 573.5999755859375,
+            "RS_Score": 32.6,
             "Entry": 546.75,
-            "PnL%": 4.545034400720165,
-            "Dist_MA50": 18.00310821729373,
-            "MA50": 484.39,
+            "PnL%": 4.9108322973822585,
+            "Dist_MA50": 17.624135157818184,
+            "MA50": 487.65,
             "Trail_Stop": 520.21,
+            "Danger": ""
+        },
+        {
+            "Ticker": "APARINDS.NS",
+            "Sector": "Electrical Equipment",
+            "Price": 15986.0,
+            "RS_Score": 30.6,
+            "Entry": 15221.0,
+            "PnL%": 5.025950988765522,
+            "Dist_MA50": 18.62491271578032,
+            "MA50": 13476.09,
+            "Trail_Stop": 14665.2,
             "Danger": ""
         },
         {
             "Ticker": "OLAELEC.NS",
             "Sector": "Automobiles",
-            "Price": 41.79999923706055,
-            "RS_Score": 33.2,
+            "Price": 40.380001068115234,
+            "RS_Score": 26.1,
             "Entry": 45.7400016784668,
-            "PnL%": -8.613909700097585,
-            "Dist_MA50": 6.070368925396099,
-            "MA50": 39.41,
+            "PnL%": -11.718409299654468,
+            "Dist_MA50": 2.48991259044271,
+            "MA50": 39.4,
             "Trail_Stop": 40.25,
-            "Danger": "\u26a0\ufe0f 3.8% to trail"
-        },
-        {
-            "Ticker": "APARINDS.NS",
-            "Sector": "Electrical Equipment",
-            "Price": 16022.0,
-            "RS_Score": 32.9,
-            "Entry": 15221.0,
-            "PnL%": 5.262466329413311,
-            "Dist_MA50": 19.692126331894265,
-            "MA50": 13386.01,
-            "Trail_Stop": 14665.2,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 2.5% to MA50 | \u26a0\ufe0f 0.3% to trail"
         },
         {
             "Ticker": "BELRISE.NS",
             "Sector": "Auto Components",
-            "Price": 245.66000366210938,
-            "RS_Score": 15.4,
+            "Price": 240.4600067138672,
+            "RS_Score": 11.9,
             "Entry": 193.66000366210938,
-            "PnL%": 26.851181977011436,
-            "Dist_MA50": 11.107896181562664,
-            "MA50": 221.1,
+            "PnL%": 24.16606535514307,
+            "Dist_MA50": 8.497319803895225,
+            "MA50": 221.63,
             "Trail_Stop": 217.8,
-            "Danger": ""
-        },
-        {
-            "Ticker": "GVT&D.NS",
-            "Sector": "Electrical Equipment",
-            "Price": 5043.0,
-            "RS_Score": 14.5,
-            "Entry": 3824.39990234375,
-            "PnL%": 31.86382514311439,
-            "Dist_MA50": 6.482893233299854,
-            "MA50": 4735.97,
-            "Trail_Stop": 4869.48,
-            "Danger": "\u26a0\ufe0f 3.6% to trail"
-        },
-        {
-            "Ticker": "EMCURE.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1880.199951171875,
-            "RS_Score": 12.2,
-            "Entry": 1539.699951171875,
-            "PnL%": 22.114698369694914,
-            "Dist_MA50": 10.181050582240823,
-            "MA50": 1706.46,
-            "Trail_Stop": 1654.58,
             "Danger": ""
         },
         {
             "Ticker": "VTL.NS",
             "Sector": "Textiles & Apparels",
-            "Price": 634.2999877929688,
-            "RS_Score": 8.4,
+            "Price": 632.9000244140625,
+            "RS_Score": 8.5,
             "Entry": 534.5999755859375,
-            "PnL%": 18.649460673423537,
-            "Dist_MA50": 3.9050791958696998,
-            "MA50": 610.46,
+            "PnL%": 18.3875894719945,
+            "Dist_MA50": 3.420612734292855,
+            "MA50": 611.97,
             "Trail_Stop": 582.03,
-            "Danger": "\u26a0\ufe0f 3.9% to MA50"
+            "Danger": "\u26a0\ufe0f 3.4% to MA50"
         },
         {
-            "Ticker": "PREMIERENE.NS",
+            "Ticker": "EMCURE.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 1849.5,
+            "RS_Score": 7.8,
+            "Entry": 1539.699951171875,
+            "PnL%": 20.120806563144612,
+            "Dist_MA50": 8.157136387951153,
+            "MA50": 1710.01,
+            "Trail_Stop": 1654.58,
+            "Danger": ""
+        },
+        {
+            "Ticker": "GVT&D.NS",
             "Sector": "Electrical Equipment",
-            "Price": 1050.5999755859375,
-            "RS_Score": 5.6,
-            "Entry": 889.3499755859375,
-            "PnL%": 18.131219927651358,
-            "Dist_MA50": 1.9320492523102049,
-            "MA50": 1030.69,
-            "Trail_Stop": 959.64,
-            "Danger": "\u26a0\ufe0f 1.9% to MA50"
+            "Price": 4956.5,
+            "RS_Score": 7.7,
+            "Entry": 3824.39990234375,
+            "PnL%": 29.60203238585098,
+            "Dist_MA50": 4.296033073030406,
+            "MA50": 4752.34,
+            "Trail_Stop": 4869.48,
+            "Danger": "\u26a0\ufe0f 4.3% to MA50 | \u26a0\ufe0f 1.8% to trail"
         }
     ],
     "last_rebalance_date": "2026-06-12",
@@ -256,7 +220,8 @@
         "STLTECH.NS": "2026-06-11",
         "BHEL.NS": "2026-06-11",
         "PARAS.NS": "2026-06-25",
-        "IFCI.NS": "2026-06-25"
+        "IFCI.NS": "2026-06-25",
+        "BALAMINES.NS": "2026-06-29"
     },
     "last_dd_alert_date": "2026-06-11",
     "config": {
