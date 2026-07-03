@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-07-02",
+    "date": "2026-07-03",
     "cash": 124610.34893531025,
     "holdings": {
         "BELRISE.NS": {
@@ -37,7 +37,7 @@
             "entry_price": 944.4000244140625,
             "entry_date": "2026-06-12",
             "shares": 73,
-            "peak_price": 1321.9000244140625
+            "peak_price": 1325.4000244140625
         },
         "ORCHPHARMA.NS": {
             "entry_price": 917.0999755859375,
@@ -61,19 +61,19 @@
             "entry_price": 1431.4000244140625,
             "entry_date": "2026-07-02",
             "shares": 34,
-            "peak_price": 1431.4000244140625
+            "peak_price": 1449.0
         },
         "CUPID.NS": {
             "entry_price": 192.05999755859375,
             "entry_date": "2026-07-02",
             "shares": 253,
-            "peak_price": 192.05999755859375
+            "peak_price": 198.83999633789062
         },
         "BLUSPRING.NS": {
             "entry_price": 119.83999633789062,
             "entry_date": "2026-07-02",
             "shares": 406,
-            "peak_price": 119.83999633789062
+            "peak_price": 123.61000061035156
         },
         "GOLDTECH.NS": {
             "entry_price": 67.86000061035156,
@@ -91,130 +91,130 @@
             "entry_price": 1795.699951171875,
             "entry_date": "2026-07-02",
             "shares": 27,
-            "peak_price": 1795.699951171875
+            "peak_price": 1848.5
         }
     },
-    "equity": 729800.0844089431,
+    "equity": 727494.8447086257,
     "cash_pct": 17.1,
     "count": 15,
     "portfolio": [
         {
             "Ticker": "AEGISLOG.NS",
             "Sector": "Oil & Gas Refining & Marketing",
-            "Price": 1321.9000244140625,
-            "RS_Score": 84.3,
+            "Price": 1325.4000244140625,
+            "RS_Score": 82.6,
             "Entry": 944.4000244140625,
-            "PnL%": 39.972468259328316,
-            "Dist_MA50": 58.11160994837849,
-            "MA50": 836.06,
-            "Trail_Stop": 1163.27,
+            "PnL%": 40.34307392530884,
+            "Dist_MA50": 56.24687097626795,
+            "MA50": 848.27,
+            "Trail_Stop": 1166.35,
             "Danger": ""
         },
         {
             "Ticker": "CEMPRO.NS",
             "Sector": "Engineering & Construction",
-            "Price": 1431.4000244140625,
-            "RS_Score": 84.3,
+            "Price": 1449.0,
+            "RS_Score": 76.0,
             "Entry": 1431.4000244140625,
-            "PnL%": 0.0,
-            "Dist_MA50": 39.362821208432216,
-            "MA50": 1027.1,
-            "Trail_Stop": 1259.63,
+            "PnL%": 1.22956373380963,
+            "Dist_MA50": 38.906952294830035,
+            "MA50": 1043.14,
+            "Trail_Stop": 1275.12,
             "Danger": ""
         },
         {
             "Ticker": "CUPID.NS",
             "Sector": "Household & Personal Products",
-            "Price": 192.05999755859375,
-            "RS_Score": 68.3,
+            "Price": 198.83999633789062,
+            "RS_Score": 70.0,
             "Entry": 192.05999755859375,
-            "PnL%": 0.0,
-            "Dist_MA50": 35.00727452816301,
-            "MA50": 142.26,
-            "Trail_Stop": 169.01,
+            "PnL%": 3.5301462384057514,
+            "Dist_MA50": 38.108267795482305,
+            "MA50": 143.97,
+            "Trail_Stop": 174.98,
             "Danger": ""
         },
         {
             "Ticker": "BLUSPRING.NS",
             "Sector": "Specialty Business Services",
-            "Price": 119.83999633789062,
-            "RS_Score": 67.4,
+            "Price": 123.61000061035156,
+            "RS_Score": 69.4,
             "Entry": 119.83999633789062,
-            "PnL%": 0.0,
-            "Dist_MA50": 46.496140820901374,
-            "MA50": 81.8,
-            "Trail_Stop": 105.46,
+            "PnL%": 3.14586480946758,
+            "Dist_MA50": 48.99341194297212,
+            "MA50": 82.96,
+            "Trail_Stop": 108.78,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ASTRAMICRO.NS",
+            "Sector": "Communication Equipment",
+            "Price": 1848.5,
+            "RS_Score": 52.8,
+            "Entry": 1795.699951171875,
+            "PnL%": 2.9403603198667825,
+            "Dist_MA50": 36.35616056481352,
+            "MA50": 1355.64,
+            "Trail_Stop": 1626.68,
             "Danger": ""
         },
         {
             "Ticker": "GOLDTECH.NS",
             "Sector": "Information Technology Services",
-            "Price": 67.86000061035156,
-            "RS_Score": 64.0,
+            "Price": 64.47000122070312,
+            "RS_Score": 52.4,
             "Entry": 67.86000061035156,
-            "PnL%": 0.0,
-            "Dist_MA50": 53.93759106556899,
-            "MA50": 44.08,
+            "PnL%": -4.99557818915097,
+            "Dist_MA50": 44.60733964152565,
+            "MA50": 44.58,
             "Trail_Stop": 59.72,
             "Danger": ""
         },
         {
             "Ticker": "BLISSGVS.NS",
             "Sector": "Drug Manufacturers - Specialty & Generic",
-            "Price": 527.0999755859375,
-            "RS_Score": 56.8,
+            "Price": 505.95001220703125,
+            "RS_Score": 45.6,
             "Entry": 527.0999755859375,
-            "PnL%": 0.0,
-            "Dist_MA50": 39.44222493226574,
-            "MA50": 378.01,
+            "PnL%": -4.012514581393297,
+            "Dist_MA50": 32.14620178472828,
+            "MA50": 382.87,
             "Trail_Stop": 463.85,
-            "Danger": ""
-        },
-        {
-            "Ticker": "ASTRAMICRO.NS",
-            "Sector": "Communication Equipment",
-            "Price": 1795.699951171875,
-            "RS_Score": 54.8,
-            "Entry": 1795.699951171875,
-            "PnL%": 0.0,
-            "Dist_MA50": 33.86939500955082,
-            "MA50": 1341.38,
-            "Trail_Stop": 1580.22,
             "Danger": ""
         },
         {
             "Ticker": "AVALON.NS",
             "Sector": "Electronic Components",
-            "Price": 1799.5999755859375,
-            "RS_Score": 42.5,
+            "Price": 1788.300048828125,
+            "RS_Score": 33.7,
             "Entry": 1511.199951171875,
-            "PnL%": 19.084173751489327,
-            "Dist_MA50": 21.731211434100402,
-            "MA50": 1478.34,
+            "PnL%": 18.33642844160827,
+            "Dist_MA50": 19.755549918512212,
+            "MA50": 1493.29,
             "Trail_Stop": 1585.67,
             "Danger": ""
         },
         {
             "Ticker": "BELRISE.NS",
             "Sector": "Auto Parts",
-            "Price": 238.1999969482422,
-            "RS_Score": 10.0,
+            "Price": 230.74000549316406,
+            "RS_Score": 5.5,
             "Entry": 193.66000366210938,
-            "PnL%": 22.999066634246535,
-            "Dist_MA50": 6.72186282368845,
-            "MA50": 223.2,
+            "PnL%": 19.146959170645513,
+            "Dist_MA50": 3.213237502458361,
+            "MA50": 223.56,
             "Trail_Stop": 217.8,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 3.2% to MA50"
         },
         {
             "Ticker": "EMCURE.NS",
             "Sector": "Drug Manufacturers - Specialty & Generic",
-            "Price": 1856.5,
-            "RS_Score": 8.5,
+            "Price": 1839.0999755859375,
+            "RS_Score": 4.5,
             "Entry": 1539.699951171875,
-            "PnL%": 20.57544059717652,
-            "Dist_MA50": 7.3369571277824255,
-            "MA50": 1729.6,
+            "PnL%": 19.445348698373817,
+            "Dist_MA50": 6.083276060379831,
+            "MA50": 1733.64,
             "Trail_Stop": 1654.58,
             "Danger": ""
         }
@@ -230,7 +230,7 @@
         "APARINDS.NS": "2026-07-01",
         "GVT&D.NS": "2026-07-02"
     },
-    "last_dd_alert_date": "2026-07-02",
+    "last_dd_alert_date": "2026-07-03",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
