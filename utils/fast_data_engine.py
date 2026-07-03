@@ -24,17 +24,30 @@ _FUND_COLS = [
     'name', 'sector', 'sector_granular', 'fund_last_updated',
 ]
 
+# Columns that legitimately hold text; everything else exchanged between the
+# caches and yfinance is numeric and must come back out of _safe_update numeric.
+_TEXT_COLS = {'ticker', 'name', 'sector', 'sector_granular', 'industry',
+              'summary', 'fund_last_updated', 'trend_signal', 'dna_signal'}
+
 def _safe_update(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
     """
     DataFrame.update() in modern pandas raises TypeError instead of silently
     upcasting a column's dtype (e.g. a float64 NaN column receiving a string
     from yfinance). Cast the overlapping columns to object first so the
-    in-place update never needs to upcast.
+    in-place update never needs to upcast, then coerce the numeric columns
+    back — leaving them as object would crash every downstream median()/
+    nlargest()/comparison under pandas' strict object-dtype rules, and
+    pd.to_numeric conveniently drops junk like Yahoo's literal 'Infinity'
+    sentinel (parsed to inf, stripped to NaN here) in the same pass.
     """
     common = df.columns.intersection(other.columns)
     if len(common):
         df[common] = df[common].astype(object)
     df.update(other)
+    for col in common:
+        if col in _TEXT_COLS:
+            continue
+        df[col] = pd.to_numeric(df[col], errors='coerce').replace([np.inf, -np.inf], np.nan)
     return df
 
 def get_parquet_cache_path():

@@ -217,8 +217,11 @@ if _needs_refresh:
     st.session_state['data_loaded_at'] = datetime.now()
     
     # Cache sector PE for scoring consistency
+    # 'pe' can arrive object-dtype / carry junk (Yahoo 'Infinity' sentinels in
+    # cached data) — coerce before median or pandas raises TypeError.
     if 'pe' in df.columns and 'sector' in df.columns:
-         st.session_state['sector_pe_cache'] = df.groupby('sector')['pe'].median().to_dict()
+         _pe_num = pd.to_numeric(df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+         st.session_state['sector_pe_cache'] = df.assign(pe=_pe_num).groupby('sector')['pe'].median().to_dict()
     
     progress_bar.progress(100, text="✅ Ready!")
     time.sleep(0.5)
