@@ -24,6 +24,19 @@ _FUND_COLS = [
     'name', 'sector', 'sector_granular', 'fund_last_updated',
 ]
 
+def _safe_update(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
+    """
+    DataFrame.update() in modern pandas raises TypeError instead of silently
+    upcasting a column's dtype (e.g. a float64 NaN column receiving a string
+    from yfinance). Cast the overlapping columns to object first so the
+    in-place update never needs to upcast.
+    """
+    common = df.columns.intersection(other.columns)
+    if len(common):
+        df[common] = df[common].astype(object)
+    df.update(other)
+    return df
+
 def get_parquet_cache_path():
     today_str = datetime.now().strftime("%Y_%m_%d")
     os.makedirs("data/cache", exist_ok=True)
@@ -48,7 +61,7 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
         fund = fund[['ticker'] + cols_to_merge].set_index('ticker')
 
         df = df.set_index('ticker')
-        df.update(fund)                      # fills NaN + updates stale values
+        df = _safe_update(df, fund)          # fills NaN + updates stale values
         for col in fund.columns:             # add any columns missing from parquet
             if col not in df.columns:
                 df[col] = fund[col]
@@ -157,7 +170,7 @@ def fetch_missing_fundamentals(df):
         df = df.set_index('ticker')
         update_df = update_df.set_index('ticker')
 
-        df.update(update_df)
+        df = _safe_update(df, update_df)
         for col in update_df.columns:
             if col not in df.columns:
                 df[col] = update_df[col]
