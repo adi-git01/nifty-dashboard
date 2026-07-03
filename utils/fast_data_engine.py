@@ -181,7 +181,13 @@ def fetch_missing_fundamentals(df):
         # scores (computed with all-zero fundamentals by the CI live_mode run)
         # are replaced immediately rather than persisting until next full run.
         try:
-            sector_pe = df.groupby('sector')['pe'].median().to_dict() if 'pe' in df.columns else {}
+            if 'pe' in df.columns:
+                # errors='coerce' still parses 'Infinity'/'-Infinity' strings into
+                # real inf floats (Python float() semantics) instead of NaN — strip those too.
+                pe_numeric = pd.to_numeric(df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+                sector_pe = df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
+            else:
+                sector_pe = {}
             updated_tickers = set(update_df.index)
             df_idx = df.set_index('ticker')
             for t in updated_tickers:
@@ -269,9 +275,12 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     processed_rows = []
     
     # Pre-calculate sector medians for scoring
+    # NB: 'pe' can carry non-numeric junk (e.g. Yahoo's literal 'Infinity'
+    # sentinel for near-zero EPS); coerce so groupby().median() can't raise.
     sector_pe = {}
     if 'pe' in fundamental_df.columns and 'sector' in fundamental_df.columns:
-        sector_pe = fundamental_df.groupby('sector')['pe'].median().to_dict()
+        pe_numeric = pd.to_numeric(fundamental_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+        sector_pe = fundamental_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
 
     # 2. Process each ticker (CPU bound, but fast)
     total_tickers = len(tickers)
