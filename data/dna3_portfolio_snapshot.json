@@ -94,8 +94,8 @@
             "peak_price": 1848.5
         }
     },
-    "equity": 727494.8447086257,
-    "cash_pct": 17.1,
+    "equity": 1093361.02,
+    "cash_pct": 11.4,
     "count": 15,
     "portfolio": [
         {
@@ -217,6 +217,66 @@
             "MA50": 1733.64,
             "Trail_Stop": 1654.58,
             "Danger": ""
+        },
+        {
+            "Ticker": "VTL.NS",
+            "Sector": "Unknown",
+            "Price": 666.25,
+            "RS_Score": 0,
+            "Entry": 534.5999755859375,
+            "PnL%": 24.625894206181016,
+            "Dist_MA50": 0.0,
+            "MA50": 0.0,
+            "Trail_Stop": 582.03,
+            "Danger": "\u26a0\ufe0f price via NSE (Yahoo fetch miss)"
+        },
+        {
+            "Ticker": "OLAELEC.NS",
+            "Sector": "Unknown",
+            "Price": 44.48,
+            "RS_Score": 0,
+            "Entry": 45.7400016784668,
+            "PnL%": -2.754704049475311,
+            "Dist_MA50": 0.0,
+            "MA50": 0.0,
+            "Trail_Stop": 40.25,
+            "Danger": "\u26a0\ufe0f price via NSE (Yahoo fetch miss)"
+        },
+        {
+            "Ticker": "ORCHPHARMA.NS",
+            "Sector": "Unknown",
+            "Price": 956.4,
+            "RS_Score": 0,
+            "Entry": 917.0999755859375,
+            "PnL%": 4.285249750328866,
+            "Dist_MA50": 0.0,
+            "MA50": 0.0,
+            "Trail_Stop": 922.37,
+            "Danger": "\u26a0\ufe0f price via NSE (Yahoo fetch miss)"
+        },
+        {
+            "Ticker": "SYRMA.NS",
+            "Sector": "Unknown",
+            "Price": 1376.0,
+            "RS_Score": 0,
+            "Entry": 1266.699951171875,
+            "PnL%": 8.62872448420063,
+            "Dist_MA50": 0.0,
+            "MA50": 0.0,
+            "Trail_Stop": 1267.64,
+            "Danger": "\u26a0\ufe0f price via NSE (Yahoo fetch miss)"
+        },
+        {
+            "Ticker": "SHILPAMED.NS",
+            "Sector": "Unknown",
+            "Price": 608.95,
+            "RS_Score": 0,
+            "Entry": 546.75,
+            "PnL%": 11.376314586191137,
+            "Dist_MA50": 0.0,
+            "MA50": 0.0,
+            "Trail_Stop": 526.59,
+            "Danger": "\u26a0\ufe0f price via NSE (Yahoo fetch miss)"
         }
     ],
     "last_rebalance_date": "2026-07-02",
