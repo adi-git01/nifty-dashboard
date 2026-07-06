@@ -63,11 +63,11 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
     skips the 75-second per-restart yf.Ticker().info fetch loop.
     """
     if not os.path.exists(FUNDAMENTALS_CACHE):
-        return df
+        return _overlay_sub_industry(df)
     try:
         fund = pd.read_csv(FUNDAMENTALS_CACHE)
         if 'ticker' not in fund.columns:
-            return df
+            return _overlay_sub_industry(df)
 
         # Only bring in columns this cache owns; don't clobber live price data
         cols_to_merge = [c for c in _FUND_COLS if c in fund.columns]
@@ -93,6 +93,24 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
               f"({len(fund)} stocks{age_days})", flush=True)
     except Exception as e:
         print(f"[ENGINE] fundamentals_cache merge failed: {e}", flush=True)
+    return _overlay_sub_industry(df)
+
+
+def _overlay_sub_industry(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    The in-repo Playbook-58 map covers the full universe; the fundamentals
+    cache only covers tickers it was built from, which left hundreds of
+    stocks with sector_granular = Unknown in the UI and rotation matrix.
+    """
+    try:
+        from utils.nifty1000_list import SUB_INDUSTRY_MAP
+        mapped = df['ticker'].map(SUB_INDUSTRY_MAP)
+        if 'sector_granular' in df.columns:
+            df['sector_granular'] = mapped.fillna(df['sector_granular'])
+        else:
+            df['sector_granular'] = mapped
+    except Exception as e:
+        print(f"[ENGINE] sector_granular overlay failed: {e}", flush=True)
     return df
 
 
