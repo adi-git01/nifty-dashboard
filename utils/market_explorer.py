@@ -10,6 +10,29 @@ from utils.analytics_engine import calculate_cycle_position, analyze_stock_healt
 from utils.visuals import chart_score_radar, chart_gauge
 from utils.ui_components import card_metric, card_verdict
 import time
+import os
+
+# Tickers that no longer trade standalone after a merger/renaming, mapped to
+# the entity investors actually mean today. HDFC Ltd merged into HDFC Bank
+# in July 2023 and delisted — "HDFC" is the single most common gotcha here.
+TICKER_ALIASES = {
+    "HDFC": "HDFCBANK",
+}
+
+
+def _suggest_tickers(query, limit=5):
+    """Best-effort ticker/company-name suggestions when a lookup fails."""
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "nifty1000_list.csv")
+    try:
+        df = pd.read_csv(path)
+    except Exception:
+        return []
+    q = query.upper()
+    by_ticker = df[df["Ticker"].str.upper().str.startswith(q)]
+    by_name = df[df["Company_Name"].str.upper().str.contains(q, na=False)]
+    hits = pd.concat([by_ticker, by_name]).drop_duplicates(subset="Ticker")
+    return list(hits["Ticker"].str.replace(".NS", "", regex=False).head(limit))
+
 
 def render_market_explorer():
     """
@@ -34,21 +57,33 @@ def render_market_explorer():
 
     # 2. Logic execution
     if query:
-        ticker = query.strip().upper()
+        raw = query.strip().upper()
+        # Redirect known merged/renamed tickers (e.g. HDFC -> HDFCBANK) before
+        # appending the exchange suffix, so a delisted-entity typo doesn't
+        # just dead-end with "check the symbol".
+        base = raw.split(".")[0]
+        redirected = TICKER_ALIASES.get(base)
+        ticker = redirected if redirected else raw
         # Smart suffix logic
         if not ticker.endswith(".NS") and not ticker.endswith(".BO") and not any(c.isdigit() for c in ticker) and "." not in ticker:
              # Assume NSE by default for simple alpha strings
              ticker += ".NS"
-        
+
+        if redirected:
+            st.info(f"ℹ️ **{base}** no longer trades standalone (merged) — showing **{ticker}** instead.")
+
         with st.spinner(f"🔍 Deep Diving into {ticker}..."):
             # A. Fetch Data
             try:
                 info = get_stock_info(ticker)
             except Exception as e:
                 info = None
-            
+
             if not info or not info.get("currentPrice"):
                 st.error(f"❌ Could not fetch data for **{ticker}**. Please check the symbol.")
+                suggestions = _suggest_tickers(base)
+                if suggestions:
+                    st.caption(f"Did you mean: {', '.join(suggestions)}?")
                 return
 
             # B. Calculate Metrics & Scores

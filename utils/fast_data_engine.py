@@ -145,8 +145,15 @@ def load_base_fundamentals(live_mode=False):
 
     # Fallback: bare ticker list
     from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP
+    from utils.sector_mapping import consolidate_sector
     df = pd.DataFrame({'ticker': TICKERS_1000})
-    df['sector'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
+    # sector_granular keeps the raw Playbook-58 label (used by the rotation
+    # matrix); 'sector' must go through consolidate_sector() to land in one
+    # of the ~25 broad buckets — skipping that step is what fragmented the
+    # "Sector Rotation" panel into single-stock groups like "Automobiles"
+    # sitting alongside the properly-consolidated "Auto" bucket.
+    df['sector_granular'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
+    df['sector'] = df['sector_granular'].map(consolidate_sector)
     df['name'] = df['ticker']
     return _merge_fundamentals_cache(df)
 
