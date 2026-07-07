@@ -3870,13 +3870,23 @@ elif page == "☀️ Morning Pulse":
             return None
         dfs, labels = [], []
         for f in files[-7:]:
-            df = pd.read_parquet(f)
+            # A parquet can be unreadable if it was written mid-crash by the
+            # engine, or caught mid-sync during a Streamlit Cloud redeploy.
+            # One bad day's file shouldn't take down the whole Pulse page —
+            # skip it and keep the rolling window from the rest.
+            try:
+                df = pd.read_parquet(f)
+            except Exception as e:
+                print(f"[Morning Pulse] Skipping unreadable cache file {f}: {e}", flush=True)
+                continue
             if "rs_1m" in df.columns and "return_1m" not in df.columns:
                 df["return_1m"] = df["rs_1m"]
             if "rs_1w" in df.columns and "return_1w" not in df.columns:
                 df["return_1w"] = df["rs_1w"]
             dfs.append(df)
             labels.append(f.split("market_master_")[1].replace(".parquet","").replace("_","-"))
+        if len(dfs) < 2:
+            return None
         return dfs, labels
 
     _pulse = _load_pulse_data()

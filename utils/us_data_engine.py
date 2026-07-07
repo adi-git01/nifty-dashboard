@@ -91,11 +91,20 @@ def _load_cached(live_mode: bool):
 
 
 def _save_cache(df: pd.DataFrame) -> None:
+    # Write to a temp file and rename (atomic on POSIX) so a mid-write crash
+    # can't leave a truncated parquet at the real path for readers to trip over.
+    path = _us_parquet_path()
+    tmp_path = f"{path}.tmp{os.getpid()}"
     try:
-        df.to_parquet(_us_parquet_path())
-        print(f"[US ENGINE] Cache saved to {_us_parquet_path()}", flush=True)
+        df.to_parquet(tmp_path)
+        os.replace(tmp_path, path)
+        print(f"[US ENGINE] Cache saved to {path}", flush=True)
     except Exception as e:
         print(f"[US ENGINE] Cache save failed: {e}", flush=True)
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------------

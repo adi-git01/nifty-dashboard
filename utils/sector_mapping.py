@@ -182,6 +182,7 @@ SECTOR_MAPPING = {
     # IT
     "IT - Software":                        "IT & Technology",
     "IT - Services":                        "IT & Technology",
+    "IT - Hardware":                         "IT & Technology",
 
     # Pharma & Healthcare
     "Pharmaceuticals & Biotechnology":      "Pharma & Healthcare",
@@ -201,6 +202,7 @@ SECTOR_MAPPING = {
 
     # Retail & Leisure
     "Retailing":                            "Retail",
+    "Other Consumer Services":               "Hospitality",
     "Leisure Services":                     "Hospitality",
     "Entertainment":                        "Media",
     "Media":                                "Media",
@@ -218,6 +220,7 @@ SECTOR_MAPPING = {
     "Ferrous Metals":                       "Metals & Mining",
     "Non - Ferrous Metals":                 "Metals & Mining",
     "Metals & Minerals Trading":            "Metals & Mining",
+    "Minerals & Mining":                    "Metals & Mining",
 
     # Power & Utilities
     "Power":                                "Power & Utilities",
@@ -242,6 +245,7 @@ SECTOR_MAPPING = {
 
     # Cement & Building Materials
     "Other Construction Materials":         "Cement & Materials",
+    "Printing & Publication":                "Media",
     "Paper, Forest & Jute Products":        "Cement & Materials",
 
     # Telecom

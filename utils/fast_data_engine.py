@@ -145,8 +145,15 @@ def load_base_fundamentals(live_mode=False):
 
     # Fallback: bare ticker list
     from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP
+    from utils.sector_mapping import consolidate_sector
     df = pd.DataFrame({'ticker': TICKERS_1000})
-    df['sector'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
+    # sector_granular keeps the raw Playbook-58 label (used by the rotation
+    # matrix); 'sector' must go through consolidate_sector() to land in one
+    # of the ~25 broad buckets — skipping that step is what fragmented the
+    # "Sector Rotation" panel into single-stock groups like "Automobiles"
+    # sitting alongside the properly-consolidated "Auto" bucket.
+    df['sector_granular'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
+    df['sector'] = df['sector_granular'].map(consolidate_sector)
     df['name'] = df['ticker']
     return _merge_fundamentals_cache(df)
 
@@ -500,11 +507,20 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     else:
         print("[ENGINE] ⚠️  final_df is EMPTY — yfinance returned no usable data.", flush=True)
     
-    # Save to Parquet Cache for next time
+    # Save to Parquet Cache for next time. Write to a temp file and rename
+    # (atomic on POSIX) so a mid-write crash (OOM, CI timeout, disk full)
+    # can never leave a truncated file at the real path for readers to trip
+    # over — os.replace() only lands the fully-written file, or nothing.
     try:
         parquet_path = get_parquet_cache_path()
-        final_df.to_parquet(parquet_path)
-    except Exception:
-        pass
+        tmp_path = f"{parquet_path}.tmp{os.getpid()}"
+        final_df.to_parquet(tmp_path)
+        os.replace(tmp_path, parquet_path)
+    except Exception as e:
+        print(f"[ENGINE] Parquet cache write failed: {e}", flush=True)
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
         
     return final_df
