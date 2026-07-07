@@ -24,6 +24,32 @@ _FUND_COLS = [
     'name', 'sector', 'sector_granular', 'fund_last_updated',
 ]
 
+# Columns that legitimately hold text; everything else exchanged between the
+# caches and yfinance is numeric and must come back out of _safe_update numeric.
+_TEXT_COLS = {'ticker', 'name', 'sector', 'sector_granular', 'industry',
+              'summary', 'fund_last_updated', 'trend_signal', 'dna_signal'}
+
+def _safe_update(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
+    """
+    DataFrame.update() in modern pandas raises TypeError instead of silently
+    upcasting a column's dtype (e.g. a float64 NaN column receiving a string
+    from yfinance). Cast the overlapping columns to object first so the
+    in-place update never needs to upcast, then coerce the numeric columns
+    back — leaving them as object would crash every downstream median()/
+    nlargest()/comparison under pandas' strict object-dtype rules, and
+    pd.to_numeric conveniently drops junk like Yahoo's literal 'Infinity'
+    sentinel (parsed to inf, stripped to NaN here) in the same pass.
+    """
+    common = df.columns.intersection(other.columns)
+    if len(common):
+        df[common] = df[common].astype(object)
+    df.update(other)
+    for col in common:
+        if col in _TEXT_COLS:
+            continue
+        df[col] = pd.to_numeric(df[col], errors='coerce').replace([np.inf, -np.inf], np.nan)
+    return df
+
 def get_parquet_cache_path():
     today_str = datetime.now().strftime("%Y_%m_%d")
     os.makedirs("data/cache", exist_ok=True)
@@ -37,18 +63,18 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
     skips the 75-second per-restart yf.Ticker().info fetch loop.
     """
     if not os.path.exists(FUNDAMENTALS_CACHE):
-        return df
+        return _overlay_sub_industry(df)
     try:
         fund = pd.read_csv(FUNDAMENTALS_CACHE)
         if 'ticker' not in fund.columns:
-            return df
+            return _overlay_sub_industry(df)
 
         # Only bring in columns this cache owns; don't clobber live price data
         cols_to_merge = [c for c in _FUND_COLS if c in fund.columns]
         fund = fund[['ticker'] + cols_to_merge].set_index('ticker')
 
         df = df.set_index('ticker')
-        df.update(fund)                      # fills NaN + updates stale values
+        df = _safe_update(df, fund)          # fills NaN + updates stale values
         for col in fund.columns:             # add any columns missing from parquet
             if col not in df.columns:
                 df[col] = fund[col]
@@ -67,6 +93,24 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
               f"({len(fund)} stocks{age_days})", flush=True)
     except Exception as e:
         print(f"[ENGINE] fundamentals_cache merge failed: {e}", flush=True)
+    return _overlay_sub_industry(df)
+
+
+def _overlay_sub_industry(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    The in-repo Playbook-58 map covers the full universe; the fundamentals
+    cache only covers tickers it was built from, which left hundreds of
+    stocks with sector_granular = Unknown in the UI and rotation matrix.
+    """
+    try:
+        from utils.nifty1000_list import SUB_INDUSTRY_MAP
+        mapped = df['ticker'].map(SUB_INDUSTRY_MAP)
+        if 'sector_granular' in df.columns:
+            df['sector_granular'] = mapped.fillna(df['sector_granular'])
+        else:
+            df['sector_granular'] = mapped
+    except Exception as e:
+        print(f"[ENGINE] sector_granular overlay failed: {e}", flush=True)
     return df
 
 
@@ -157,7 +201,7 @@ def fetch_missing_fundamentals(df):
         df = df.set_index('ticker')
         update_df = update_df.set_index('ticker')
 
-        df.update(update_df)
+        df = _safe_update(df, update_df)
         for col in update_df.columns:
             if col not in df.columns:
                 df[col] = update_df[col]
@@ -168,7 +212,13 @@ def fetch_missing_fundamentals(df):
         # scores (computed with all-zero fundamentals by the CI live_mode run)
         # are replaced immediately rather than persisting until next full run.
         try:
-            sector_pe = df.groupby('sector')['pe'].median().to_dict() if 'pe' in df.columns else {}
+            if 'pe' in df.columns:
+                # errors='coerce' still parses 'Infinity'/'-Infinity' strings into
+                # real inf floats (Python float() semantics) instead of NaN — strip those too.
+                pe_numeric = pd.to_numeric(df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+                sector_pe = df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
+            else:
+                sector_pe = {}
             updated_tickers = set(update_df.index)
             df_idx = df.set_index('ticker')
             for t in updated_tickers:
@@ -256,9 +306,12 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     processed_rows = []
     
     # Pre-calculate sector medians for scoring
+    # NB: 'pe' can carry non-numeric junk (e.g. Yahoo's literal 'Infinity'
+    # sentinel for near-zero EPS); coerce so groupby().median() can't raise.
     sector_pe = {}
     if 'pe' in fundamental_df.columns and 'sector' in fundamental_df.columns:
-        sector_pe = fundamental_df.groupby('sector')['pe'].median().to_dict()
+        pe_numeric = pd.to_numeric(fundamental_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+        sector_pe = fundamental_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
 
     # 2. Process each ticker (CPU bound, but fast)
     total_tickers = len(tickers)

@@ -38,6 +38,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import sys
+import time
 
 # Ensure utils import works
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -229,8 +230,47 @@ class OptCompV21Engine:
                         self.data_cache[t] = df
                         loaded += 1
 
+        # 4. HELD tickers are non-negotiable: a bulk miss on a held stock must
+        # not slip through, or the position gets valued at zero downstream
+        # (2026-07-02: 5 held stocks missed by bulk download -> equity showed
+        # -27% instead of +9.8%). Retry each missing held ticker individually,
+        # accepting shorter history than the 200-day scan threshold since
+        # valuation/exits only need ~64 days.
+        held = list(self.load_state().get('holdings', {}).keys())
+        for t in [h for h in held if h not in self.data_cache]:
+            for _attempt in range(2):
+                try:
+                    df = yf.Ticker(t).history(start=start_date)
+                    if not df.empty and len(df) >= 64:
+                        df.index = df.index.tz_localize(None) if df.index.tz is not None else df.index
+                        self.data_cache[t] = df
+                        loaded += 1
+                        print(f"  [HELD RETRY] Recovered {t} ({len(df)} days)")
+                        break
+                except Exception:
+                    pass
+                time.sleep(2)
+            else:
+                print(f"  [HELD RETRY] WARNING: no data for held ticker {t} — "
+                      f"will value at last known price")
+
         print(f"  Loaded {loaded} stocks. Nifty: {len(nifty)} days.")
         return True
+
+    def held_price(self, ticker, holdings, prev_state):
+        """
+        Price for valuing a HELD position. Never returns 0/None: if the data
+        fetch missed this ticker, fall back to the last snapshot's price, then
+        to entry price. Valuing a held position at zero corrupts the equity
+        curve and every downstream sizing decision.
+        Returns (price, is_live) — is_live False means fallback was used.
+        """
+        if ticker in self.data_cache:
+            return float(self.data_cache[ticker]['Close'].iloc[-1]), True
+        for p in prev_state.get('portfolio', []):
+            if p.get('Ticker') == ticker and p.get('Price'):
+                return float(p['Price']), False
+        return float(holdings[ticker]['entry_price']), False
 
     def composite_rs(self, ticker):
         """
@@ -582,10 +622,12 @@ class OptCompV21Engine:
                     print(f"     {len(candidates)} candidates found, {free_slots} slots open")
                     
                     for cand in candidates[:free_slots]:
-                        # Equal-weight sizing
+                        # Equal-weight sizing (held_price never values a
+                        # fetch-missed position at zero, which would deflate
+                        # total_equity and under-size every new buy)
                         total_equity = cash + sum([
-                            holdings[h]['shares'] * self.data_cache[h]['Close'].iloc[-1]
-                            for h in holdings if h in self.data_cache
+                            holdings[h]['shares'] * self.held_price(h, holdings, state)[0]
+                            for h in holdings
                         ])
                         target_per_stock = total_equity / MAX_POSITIONS
                         invest_amount = min(target_per_stock, cash / max(free_slots, 1))
@@ -636,27 +678,34 @@ class OptCompV21Engine:
         portfolio_list = []
 
         for t, h in holdings.items():
-            if t not in self.data_cache:
-                continue
-            curr_price = self.data_cache[t]['Close'].iloc[-1]
+            # Every held position MUST contribute to equity. If the fetch
+            # missed this ticker, held_price falls back to the last snapshot
+            # price (then entry) instead of silently valuing it at zero —
+            # that zero is what turned +9.8% into -27% on 2026-07-02.
+            curr_price, is_live = self.held_price(t, holdings, state)
             equity_val += h['shares'] * curr_price
-
-            ma50 = self.data_cache[t]['Close'].rolling(50).mean().iloc[-1]
-            dist_ma50 = (curr_price - ma50) / ma50 * 100
 
             peak = h.get('peak_price', h['entry_price'])
             trail_stop_price = peak * trail_keep
             dist_trail = (curr_price - trail_stop_price) / trail_stop_price * 100
 
-            # Danger flag: within 5% of either exit trigger
-            danger = ''
-            if dist_ma50 < 5:
-                danger = f'⚠️ {dist_ma50:.1f}% to MA50'
-            if dist_trail < 5:
-                trail_warn = f'⚠️ {dist_trail:.1f}% to trail'
-                danger = trail_warn if not danger else f'{danger} | {trail_warn}'
+            if is_live:
+                ma50 = self.data_cache[t]['Close'].rolling(50).mean().iloc[-1]
+                dist_ma50 = (curr_price - ma50) / ma50 * 100
 
-            rs = self.composite_rs(t)
+                # Danger flag: within 5% of either exit trigger
+                danger = ''
+                if dist_ma50 < 5:
+                    danger = f'⚠️ {dist_ma50:.1f}% to MA50'
+                if dist_trail < 5:
+                    trail_warn = f'⚠️ {dist_trail:.1f}% to trail'
+                    danger = trail_warn if not danger else f'{danger} | {trail_warn}'
+
+                rs = self.composite_rs(t)
+            else:
+                print(f"  [PRICE FALLBACK] {t}: no fresh data, valued at Rs {curr_price:.2f}")
+                ma50, dist_ma50, rs = 0.0, 0.0, None
+                danger = '⚠️ stale price (fetch miss)'
 
             portfolio_list.append({
                 'Ticker': t,

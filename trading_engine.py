@@ -71,40 +71,61 @@ def generate_sub_industry_rotation(df, db):
         _log(f"SKIP sub_industry_rotation — df.empty={df.empty}, columns={list(df.columns[:5])}")
         return
 
-    # Use sector_granular (54 sub-industries) if available, else fall back to sector
-    group_col = 'sector_granular' if 'sector_granular' in df.columns else 'sector'
-    if group_col not in df.columns:
-        _log("SKIP sub_industry_rotation — no sector column found")
-        return
+    # Membership comes from the in-repo Playbook-58 map (authoritative, full
+    # 777-ticker coverage) — NOT from sector_granular, which is only populated
+    # for tickers that went through a live fundamentals fetch and left 464/777
+    # stocks as "Unknown" (dropped), so groups were tiny and rankings were
+    # driven by whichever 1-3 stocks happened to be mapped.
+    from utils.nifty1000_list import SUB_INDUSTRY_MAP
+    work = df.copy()
+    mapped = work['ticker'].map(SUB_INDUSTRY_MAP)
+    fallback_col = 'sector_granular' if 'sector_granular' in work.columns else 'sector'
+    work['_grp'] = mapped.where(mapped.notna() & (mapped != 'Unknown'),
+                                work.get(fallback_col))
+    work['comp_rs'] = pd.to_numeric(work['comp_rs'], errors='coerce')
+    work = work[work['_grp'].notna() & ~work['_grp'].isin(('Unknown', 'nan', ''))]
+    work = work.dropna(subset=['comp_rs'])
 
+    # Bounded-influence ranking: each stock is converted to its cross-sectional
+    # RS percentile (0-100) BEFORE aggregation, so one +300% outlier counts the
+    # same as any other top-percentile stock and cannot single-handedly carry
+    # its sub-industry. Group strength blends:
+    #   70% average member percentile (level of relative strength)
+    #   30% breadth = % of members with positive comp_rs (participation)
+    # rs_momentum stays as the group's MEDIAN comp_rs — a robust, readable
+    # pp-vs-Nifty number for the heatmap tooltip.
+    work['_pctile'] = work['comp_rs'].rank(pct=True) * 100
+
+    MIN_MEMBERS = 3  # below this it's a stock bet, not industry rotation
     today_str = datetime.now().strftime("%Y-%m-%d")
-
-    groups = df.groupby(group_col)
     rotation_rows = []
 
-    for sector, group in groups:
-        if not sector or sector in ("Unknown", "nan"): continue
-        avg_rs = float(group['comp_rs'].mean())
-        # Find top 3 stocks in this sub-industry by RS
+    for sector, group in work.groupby('_grp'):
+        if len(group) < MIN_MEMBERS:
+            _log(f"SKIP {sector}: only {len(group)} member(s)")
+            continue
         top_stocks = group.sort_values(by='comp_rs', ascending=False).head(3)['ticker'].tolist()
-        top_comps_str = ", ".join([t.replace(".NS", "") for t in top_stocks])
-        
         rotation_rows.append({
             'record_date': today_str,
             'sub_industry': sector,
-            'rs_momentum': round(avg_rs, 2),
-            'top_components': top_comps_str
+            'rs_momentum': round(float(group['comp_rs'].median()), 2),
+            'top_components': ", ".join([t.replace(".NS", "") for t in top_stocks]),
+            'members': len(group),
+            'breadth_pct': round(float((group['comp_rs'] > 0).mean() * 100), 1),
+            '_strength': 0.7 * float(group['_pctile'].mean())
+                         + 0.3 * float((group['comp_rs'] > 0).mean() * 100),
         })
-        
+
     rot_df = pd.DataFrame(rotation_rows)
-    
-    # Rank-based percentile score (0-100). One outlier sub-industry can't compress
-    # all other scores toward zero the way min-max normalization would.
+
+    # Rank-based percentile score (0-100) across sub-industries. One outlier
+    # sub-industry can't compress all other scores the way min-max would.
     if not rot_df.empty:
         if len(rot_df) > 1:
-            rot_df['score_0_100'] = (rot_df['rs_momentum'].rank(pct=True) * 100).round(0).astype(int)
+            rot_df['score_0_100'] = (rot_df['_strength'].rank(pct=True) * 100).round(0).astype(int)
         else:
             rot_df['score_0_100'] = 50
+        rot_df = rot_df.drop(columns=['_strength'])
     
     # Delete existing rows for today to prevent duplicates, then append
     try:

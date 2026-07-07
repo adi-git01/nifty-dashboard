@@ -20,6 +20,23 @@ except ImportError:
 # Legacy alias kept for any callers that import SECTOR_MAP directly
 SECTOR_MAP = NIFTY500_SECTOR_MAP
 
+def _safe_float(value):
+    """
+    yfinance/Yahoo occasionally returns non-numeric sentinels — notably the
+    literal string 'Infinity' — for ratio fields (PE, PEG, margins, beta...)
+    when the denominator (e.g. EPS) is near zero. Left as-is, that string
+    poisons the column dtype for every stock once merged into a DataFrame,
+    breaking arithmetic (str / float) and later groupby().median() calls.
+    Coerce to a finite float, or None if that's not possible.
+    """
+    if value is None:
+        return None
+    try:
+        f = float(value)
+        return f if f == f and abs(f) != float("inf") else None  # reject NaN/Inf
+    except (TypeError, ValueError):
+        return None
+
 @st.cache_data(ttl=3600)  # Cache data for 1 hour
 def get_stock_info(ticker):
     """
@@ -42,8 +59,8 @@ def get_stock_info(ticker):
         
         # === ROBUST PE FETCHING ===
         # Try multiple fields for PE
-        pe = info.get("trailingPE") or info.get("pe") or info.get("priceToEarnings")
-        
+        pe = _safe_float(info.get("trailingPE") or info.get("pe") or info.get("priceToEarnings"))
+
         # If still None, calculate from Price / EPS
         if pe is None:
             price = info.get("currentPrice") or info.get("previousClose") or info.get("regularMarketPrice")
@@ -52,7 +69,7 @@ def get_stock_info(ticker):
                 pe = price / eps
         
         # Forward PE
-        forward_pe = info.get("forwardPE")
+        forward_pe = _safe_float(info.get("forwardPE"))
         if forward_pe is None:
             price = info.get("currentPrice") or info.get("previousClose")
             fwd_eps = info.get("forwardEps")
@@ -60,8 +77,8 @@ def get_stock_info(ticker):
                 forward_pe = price / fwd_eps
         
         # === ROBUST PEG FETCHING ===
-        peg = info.get("pegRatio") or info.get("trailingPegRatio")
-        
+        peg = _safe_float(info.get("pegRatio") or info.get("trailingPegRatio"))
+
         # If PEG missing, calculate from PE / Growth
         if peg is None and pe:
             growth_rate = info.get("earningsGrowth") or info.get("revenueGrowth")
@@ -69,8 +86,8 @@ def get_stock_info(ticker):
                 peg = pe / (growth_rate * 100)  # Growth is decimal, convert to %
         
         # === ROBUST ROE/ROA FETCHING ===
-        roe = info.get("returnOnEquity") or info.get("roe")
-        roa = info.get("returnOnAssets") or info.get("roa")
+        roe = _safe_float(info.get("returnOnEquity") or info.get("roe"))
+        roa = _safe_float(info.get("returnOnAssets") or info.get("roa"))
         
         # If ROE still None, try calculating from financials
         if roe is None:
@@ -136,7 +153,7 @@ def get_stock_info(ticker):
             pass
         
         # === ROBUST MARGINS FETCHING ===
-        profit_margins = info.get("profitMargins")
+        profit_margins = _safe_float(info.get("profitMargins"))
         if profit_margins is None:
             try:
                 inc = stock.financials
@@ -153,6 +170,14 @@ def get_stock_info(ticker):
             except:
                 pass
         
+        # Ratio-style fields taken straight from `info` are the ones Yahoo
+        # occasionally reports as the literal string 'Infinity' (near-zero
+        # denominators). Route them through _safe_float so a dirty value
+        # from one ticker can't poison the column dtype for the whole batch.
+        def _num(key, default=None):
+            v = _safe_float(info.get(key))
+            return v if v is not None else default
+
         # Extract only what we need to minimize data transfer/storage
         data = {
             "ticker": ticker,
@@ -162,21 +187,21 @@ def get_stock_info(ticker):
             "industry": info.get("industry", "Unknown"),
             "price": info.get("currentPrice") or info.get("previousClose") or info.get("regularMarketPrice") or 0.0,
             "currentPrice": info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose") or 0.0,
-            "marketCap": info.get("marketCap", 0),
+            "marketCap": _num("marketCap", 0),
             "pe": pe,  # Robust PE
             "forwardPE": forward_pe,  # Robust Forward PE
             "pegRatio": peg,  # Robust PEG
-            "pb": info.get("priceToBook"),
+            "pb": _num("priceToBook"),
             "roe": roe,
             "roa": roa,  # Use our enhanced lookup (renamed from roic)
             "profitMargins": profit_margins,
-            "grossMargins": info.get("grossMargins"),
-            "revenueGrowth": info.get("revenueGrowth"),
-            "earningsGrowth": info.get("earningsGrowth"),
-            "debtToEquity": info.get("debtToEquity"),
-            "freeCashflow": info.get("freeCashflow"),
-            "52WeekChange": info.get("52WeekChange", 0),
-            "beta": info.get("beta", 1.0),
+            "grossMargins": _num("grossMargins"),
+            "revenueGrowth": _num("revenueGrowth"),
+            "earningsGrowth": _num("earningsGrowth"),
+            "debtToEquity": _num("debtToEquity"),
+            "freeCashflow": _num("freeCashflow"),
+            "52WeekChange": _num("52WeekChange", 0),
+            "beta": _num("beta", 1.0),
             "summary": info.get("longBusinessSummary", "No summary available."),
             # === TECHNICAL FIELDS FOR TREND SCORING ===
             "fiftyDayAverage": info.get("fiftyDayAverage", 0),
@@ -189,9 +214,9 @@ def get_stock_info(ticker):
             "volume": info.get("volume", 0),
             "averageDailyVolume10Day": info.get("averageDailyVolume10Day", 0),
             # === GROWTH METRICS ===
-            "earningsQuarterlyGrowth": info.get("earningsQuarterlyGrowth"),  # QoQ
-            "operatingMargins": info.get("operatingMargins"),      # Operating margin
-            "ebitdaMargins": info.get("ebitdaMargins"),           # EBITDA margin
+            "earningsQuarterlyGrowth": _num("earningsQuarterlyGrowth"),  # QoQ
+            "operatingMargins": _num("operatingMargins"),      # Operating margin
+            "ebitdaMargins": _num("ebitdaMargins"),           # EBITDA margin
             # === EARNINGS QUALITY & TREND ===
             "earningsQuality": earnings_quality,  # OCF/Net Income (>1 is good)
             "earningsTrend": earnings_trend,      # YoY earnings growth from financials
