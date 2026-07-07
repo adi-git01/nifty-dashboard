@@ -500,11 +500,20 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     else:
         print("[ENGINE] ⚠️  final_df is EMPTY — yfinance returned no usable data.", flush=True)
     
-    # Save to Parquet Cache for next time
+    # Save to Parquet Cache for next time. Write to a temp file and rename
+    # (atomic on POSIX) so a mid-write crash (OOM, CI timeout, disk full)
+    # can never leave a truncated file at the real path for readers to trip
+    # over — os.replace() only lands the fully-written file, or nothing.
     try:
         parquet_path = get_parquet_cache_path()
-        final_df.to_parquet(parquet_path)
-    except Exception:
-        pass
+        tmp_path = f"{parquet_path}.tmp{os.getpid()}"
+        final_df.to_parquet(tmp_path)
+        os.replace(tmp_path, parquet_path)
+    except Exception as e:
+        print(f"[ENGINE] Parquet cache write failed: {e}", flush=True)
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
         
     return final_df
