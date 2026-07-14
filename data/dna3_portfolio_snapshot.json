@@ -1,7 +1,7 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-07-13",
-    "cash": 339929.7080687026,
+    "date": "2026-07-14",
+    "cash": 428993.7230687026,
     "holdings": {
         "EMCURE.NS": {
             "entry_price": 1539.699951171875,
@@ -21,17 +21,11 @@
             "shares": 39,
             "peak_price": 1801.9000244140625
         },
-        "AEGISLOG.NS": {
-            "entry_price": 944.4000244140625,
-            "entry_date": "2026-06-12",
-            "shares": 73,
-            "peak_price": 1409.199951171875
-        },
         "ORCHPHARMA.NS": {
             "entry_price": 917.0999755859375,
             "entry_date": "2026-06-12",
             "shares": 75,
-            "peak_price": 1048.1500244140625
+            "peak_price": 1052.949951171875
         },
         "SYRMA.NS": {
             "entry_price": 1266.699951171875,
@@ -49,7 +43,7 @@
             "entry_price": 1431.4000244140625,
             "entry_date": "2026-07-02",
             "shares": 34,
-            "peak_price": 1583.699951171875
+            "peak_price": 1596.5999755859375
         },
         "CUPID.NS": {
             "entry_price": 192.05999755859375,
@@ -70,141 +64,129 @@
             "peak_price": 1850.0
         }
     },
-    "equity": 1078664.8478849868,
-    "cash_pct": 31.5,
-    "count": 11,
+    "equity": 1079021.2767643812,
+    "cash_pct": 39.8,
+    "count": 10,
     "portfolio": [
         {
             "Ticker": "CEMPRO.NS",
             "Sector": "Construction",
-            "Price": 1583.699951171875,
-            "RS_Score": 77.3,
+            "Price": 1596.5999755859375,
+            "RS_Score": 76.4,
             "Entry": 1431.4000244140625,
-            "PnL%": 10.639927634495873,
-            "Dist_MA50": 39.48367858070425,
-            "MA50": 1135.4,
-            "Trail_Stop": 1393.66,
+            "PnL%": 11.54114491785753,
+            "Dist_MA50": 38.94046951348372,
+            "MA50": 1149.13,
+            "Trail_Stop": 1405.01,
             "Danger": ""
         },
         {
             "Ticker": "CUPID.NS",
             "Sector": "Personal Products",
-            "Price": 206.8300018310547,
-            "RS_Score": 60.0,
+            "Price": 216.77000427246094,
+            "RS_Score": 65.5,
             "Entry": 192.05999755859375,
-            "PnL%": 7.6903074352871945,
-            "Dist_MA50": 33.379336381602556,
-            "MA50": 155.07,
+            "PnL%": 12.865774772452887,
+            "Dist_MA50": 38.25746331420465,
+            "MA50": 156.79,
             "Trail_Stop": 194.58,
             "Danger": ""
         },
         {
-            "Ticker": "AEGISLOG.NS",
-            "Sector": "Petroleum Products",
-            "Price": 1293.5999755859375,
-            "RS_Score": 54.1,
-            "Entry": 944.4000244140625,
-            "PnL%": 36.97585156126297,
-            "Dist_MA50": 41.341382499814436,
-            "MA50": 915.23,
-            "Trail_Stop": 1240.1,
-            "Danger": "\u26a0\ufe0f 4.3% to trail"
-        },
-        {
             "Ticker": "BLISSGVS.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 524.0999755859375,
-            "RS_Score": 49.4,
+            "Price": 521.0999755859375,
+            "RS_Score": 49.5,
             "Entry": 527.0999755859375,
-            "PnL%": -0.5691519899360885,
-            "Dist_MA50": 27.473967063420936,
-            "MA50": 411.14,
+            "PnL%": -1.138303979872177,
+            "Dist_MA50": 25.21015174288605,
+            "MA50": 416.18,
             "Trail_Stop": 463.85,
             "Danger": ""
         },
         {
             "Ticker": "ORCHPHARMA.NS",
             "Sector": "Unknown",
-            "Price": 1007.4000244140625,
-            "RS_Score": 34.0,
+            "Price": 1052.949951171875,
+            "RS_Score": 39.9,
             "Entry": 917.0999755859375,
-            "PnL%": 9.846260084178072,
-            "Dist_MA50": 18.05985652683908,
-            "MA50": 853.3,
-            "Trail_Stop": 922.37,
+            "PnL%": 14.81299522433665,
+            "Dist_MA50": 22.179181559629583,
+            "MA50": 861.81,
+            "Trail_Stop": 926.6,
             "Danger": ""
         },
         {
             "Ticker": "ASTRAMICRO.NS",
             "Sector": "Telecom - Equipment & Accessories",
-            "Price": 1719.699951171875,
-            "RS_Score": 32.6,
+            "Price": 1720.0,
+            "RS_Score": 31.9,
             "Entry": 1795.699951171875,
-            "PnL%": -4.2323329100946046,
-            "Dist_MA50": 18.642545502604676,
-            "MA50": 1449.48,
+            "PnL%": -4.215623613648436,
+            "Dist_MA50": 17.663317138298833,
+            "MA50": 1461.8,
             "Trail_Stop": 1628.0,
-            "Danger": ""
-        },
-        {
-            "Ticker": "SYRMA.NS",
-            "Sector": "Unknown",
-            "Price": 1431.699951171875,
-            "RS_Score": 27.9,
-            "Entry": 1266.699951171875,
-            "PnL%": 13.025973502829292,
-            "Dist_MA50": 17.341585856142505,
-            "MA50": 1220.11,
-            "Trail_Stop": 1277.67,
             "Danger": ""
         },
         {
             "Ticker": "SHILPAMED.NS",
             "Sector": "Unknown",
-            "Price": 630.2000122070312,
-            "RS_Score": 26.1,
+            "Price": 624.25,
+            "RS_Score": 28.8,
             "Entry": 546.75,
-            "PnL%": 15.262919470879059,
-            "Dist_MA50": 18.99816708056072,
-            "MA50": 529.59,
+            "PnL%": 14.174668495656151,
+            "Dist_MA50": 16.99166968975148,
+            "MA50": 533.58,
             "Trail_Stop": 554.58,
+            "Danger": ""
+        },
+        {
+            "Ticker": "SYRMA.NS",
+            "Sector": "Unknown",
+            "Price": 1421.800048828125,
+            "RS_Score": 23.1,
+            "Entry": 1266.699951171875,
+            "PnL%": 12.244422802160896,
+            "Dist_MA50": 15.840059532835554,
+            "MA50": 1227.38,
+            "Trail_Stop": 1277.67,
             "Danger": ""
         },
         {
             "Ticker": "AVALON.NS",
             "Sector": "Industrial Manufacturing",
-            "Price": 1720.9000244140625,
-            "RS_Score": 22.5,
+            "Price": 1748.0999755859375,
+            "RS_Score": 23.0,
             "Entry": 1511.199951171875,
-            "PnL%": 13.876394919121953,
-            "Dist_MA50": 9.67070253691527,
-            "MA50": 1569.15,
+            "PnL%": 15.676285870070075,
+            "Dist_MA50": 10.588843874058314,
+            "MA50": 1580.72,
             "Trail_Stop": 1585.67,
             "Danger": ""
         },
         {
             "Ticker": "VTL.NS",
             "Sector": "Unknown",
-            "Price": 650.6500244140625,
-            "RS_Score": 5.4,
+            "Price": 643.5499877929688,
+            "RS_Score": 6.9,
             "Entry": 534.5999755859375,
-            "PnL%": 21.70782905497343,
-            "Dist_MA50": 4.308949192472665,
-            "MA50": 623.77,
+            "PnL%": 20.37972637159566,
+            "Dist_MA50": 3.14590317396798,
+            "MA50": 623.92,
             "Trail_Stop": 582.43,
-            "Danger": "\u26a0\ufe0f 4.3% to MA50"
+            "Danger": "\u26a0\ufe0f 3.1% to MA50"
         },
         {
             "Ticker": "EMCURE.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1793.300048828125,
-            "RS_Score": 2.1,
+            "Price": 1810.0999755859375,
+            "RS_Score": 6.3,
             "Entry": 1539.699951171875,
-            "PnL%": 16.47074791833522,
-            "Dist_MA50": 2.524203402661356,
-            "MA50": 1749.15,
+            "PnL%": 17.561864843098775,
+            "Dist_MA50": 3.343106518659971,
+            "MA50": 1751.54,
             "Trail_Stop": 1654.58,
-            "Danger": "\u26a0\ufe0f 2.5% to MA50"
+            "Danger": "\u26a0\ufe0f 3.3% to MA50"
         }
     ],
     "last_rebalance_date": "2026-07-02",
@@ -218,7 +200,8 @@
         "APARINDS.NS": "2026-07-01",
         "GVT&D.NS": "2026-07-02",
         "BLUSPRING.NS": "2026-07-07",
-        "GOLDTECH.NS": "2026-07-07"
+        "GOLDTECH.NS": "2026-07-07",
+        "AEGISLOG.NS": "2026-07-14"
     },
     "last_dd_alert_date": "2026-07-03",
     "config": {
