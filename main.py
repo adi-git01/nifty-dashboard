@@ -567,6 +567,7 @@ elif page == "🚀 Live Trading Desk":
                 <div style="background: {regime_data['color']}22; border-left: 5px solid {regime_data['color']}; padding: 15px; border-radius: 4px;">
                     <h3 style="margin:0; color: {regime_data['color']};">Current Trend: {regime_data['regime']}</h3>
                     <p style="margin-top: 5px;">{regime_data['description']}</p>
+                    <p style="margin-top: 5px; opacity: 0.6; font-size: 0.8em;">As of {_regime_asof_str}</p>
                 </div>
                 """, unsafe_allow_html=True)
             with rg_col2:
@@ -706,19 +707,21 @@ elif page == "🚀 Live Trading Desk":
                             st.info("No VCP setups found today.")
 
                 with col_adv2:
-                    with st.expander(f"🟢 RS Divergence — Today [{len(rs_list)}]", expanded=True):
-                        # "Today" here means the last completed daily Nifty
-                        # bar in the cached session data, which can lag the
-                        # live intraday tape by up to AUTO_REFRESH_MINUTES —
-                        # show the actual bar date so a stale -X% doesn't get
-                        # mistaken for "Nifty is red right now."
-                        if nifty_live is not None and not nifty_live.empty:
-                            _rs_asof = nifty_live.index[-1]
-                            _rs_asof_str = _rs_asof.strftime('%Y-%m-%d') if hasattr(_rs_asof, 'strftime') else str(_rs_asof)
-                            st.caption(f"Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%. "
-                                       f"(Nifty bar as of **{_rs_asof_str}** — refreshes every {AUTO_REFRESH_MINUTES} min)")
-                        else:
-                            st.caption("Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%.")
+                    # "Today" is misleading here: this is the last COMPLETED
+                    # daily Nifty bar in the cached session data (can lag the
+                    # live intraday tape by up to AUTO_REFRESH_MINUTES), not
+                    # the live running session. Put the actual bar date in
+                    # the expander title itself — a caption underneath wasn't
+                    # prominent enough and this got reported twice.
+                    if nifty_live is not None and not nifty_live.empty:
+                        _rs_asof = nifty_live.index[-1]
+                        _rs_asof_str = _rs_asof.strftime('%Y-%m-%d') if hasattr(_rs_asof, 'strftime') else str(_rs_asof)
+                    else:
+                        _rs_asof_str = "unknown"
+                    with st.expander(f"🟢 RS Divergence — as of {_rs_asof_str} [{len(rs_list)}]", expanded=True):
+                        st.caption(f"Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3% "
+                                   f"on the bar dated **{_rs_asof_str}** (refreshes every {AUTO_REFRESH_MINUTES} min — "
+                                   f"may lag the live intraday tape).")
                         if rs_list:
                             rs_df = pd.DataFrame(rs_list)
                             rs_df['screener_link'] = "https://www.screener.in/company/" + rs_df['Ticker'].str.replace('.NS', '', regex=False) + "/"
