@@ -1,0 +1,77 @@
+{
+    "FINOPB.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "ECLERX.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "DYCL.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "HARIOMPIPE.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "ABBOTINDIA.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 93.0
+    },
+    "DBCORP.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 91.1
+    },
+    "ICICIPRULI.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 88.8
+    },
+    "HYUNDAI.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 70.9
+    },
+    "AMBUJACEM.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 70.8
+    },
+    "GMDCLTD.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 62.6
+    },
+    "BPCL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 54.9
+    },
+    "DALBHARAT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 52.9
+    },
+    "HINDPETRO.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 52.1
+    },
+    "AVANTIFEED.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.9
+    },
+    "ASTRAL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.1
+    }
+}
