@@ -25,11 +25,19 @@ def calculate_mood_metrics(df):
     """
     if df.empty:
         return None
-        
+
     total_stocks = len(df)
     if total_stocks == 0:
         return None
-    
+
+    # A degraded upstream fetch (e.g. yfinance download failure) can return a
+    # df with one row per ticker but none of the *computed* columns
+    # (trend_score, trend_signal, dist_52w...). Every metric below silently
+    # defaults to 0 (or 50 for avg_trend_score) in that case, producing a
+    # fake "market mood collapsed" data point instead of a skipped day.
+    if 'trend_score' not in df.columns or df['trend_score'].notna().sum() == 0:
+        return None
+
     # 1. Strong Momentum: trend_score >= 80 (as % of universe)
     strong_momentum_count = len(df[df.get('trend_score', pd.Series([0]*len(df))) >= 80])
     strong_momentum = (strong_momentum_count / total_stocks) * 100

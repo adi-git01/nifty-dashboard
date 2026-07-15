@@ -557,7 +557,10 @@ elif page == "🚀 Live Trading Desk":
             
             # Show Auto-Regime detection Results
             st.markdown("### 🧭 MACRO REGIME DETECTOR")
-            
+            _regime_asof = nifty_live.index[-1]
+            _regime_asof_str = _regime_asof.strftime('%Y-%m-%d') if hasattr(_regime_asof, 'strftime') else str(_regime_asof)
+            st.caption(f"Nifty data as of **{_regime_asof_str}** — refreshes every {AUTO_REFRESH_MINUTES} min")
+
             rg_col1, rg_col2, rg_col3 = st.columns([1.5, 1, 1])
             with rg_col1:
                 st.markdown(f"""
@@ -704,7 +707,18 @@ elif page == "🚀 Live Trading Desk":
 
                 with col_adv2:
                     with st.expander(f"🟢 RS Divergence — Today [{len(rs_list)}]", expanded=True):
-                        st.caption("Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%.")
+                        # "Today" here means the last completed daily Nifty
+                        # bar in the cached session data, which can lag the
+                        # live intraday tape by up to AUTO_REFRESH_MINUTES —
+                        # show the actual bar date so a stale -X% doesn't get
+                        # mistaken for "Nifty is red right now."
+                        if nifty_live is not None and not nifty_live.empty:
+                            _rs_asof = nifty_live.index[-1]
+                            _rs_asof_str = _rs_asof.strftime('%Y-%m-%d') if hasattr(_rs_asof, 'strftime') else str(_rs_asof)
+                            st.caption(f"Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%. "
+                                       f"(Nifty bar as of **{_rs_asof_str}** — refreshes every {AUTO_REFRESH_MINUTES} min)")
+                        else:
+                            st.caption("Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3%.")
                         if rs_list:
                             rs_df = pd.DataFrame(rs_list)
                             rs_df['screener_link'] = "https://www.screener.in/company/" + rs_df['Ticker'].str.replace('.NS', '', regex=False) + "/"

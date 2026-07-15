@@ -51,6 +51,15 @@ def calculate_breadth_from_df(df):
     if total == 0:
         return None
 
+    # A degraded upstream fetch (e.g. yfinance download failure) can return a
+    # df that still has one row per ticker but is missing every *computed*
+    # column (trend_score, trend_signal, dist_200dma...). Every metric below
+    # silently defaults to 0 in that case, which looks like a real "breadth
+    # collapsed to zero" reading instead of a failed run — bail out instead
+    # so a bad day gets skipped, not written as a fake data point.
+    if 'trend_score' not in df.columns or df['trend_score'].notna().sum() == 0:
+        return None
+
     # % above 50DMA: Use dist_200dma and price/MA data available in df
     # The dashboard's fast_data_engine pre-computes MA50 and MA200 in trend_engine
     # We can calculate from trend_score components or dist_52w
