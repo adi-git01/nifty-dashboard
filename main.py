@@ -164,18 +164,13 @@ st.sidebar.markdown("### 🔔 Alerts")
 # ============================================================
 AUTO_REFRESH_MINUTES = 30  # Auto-refresh data after 30 minutes
 
-# The staleness check below only runs when the script reruns — which
-# Streamlit does on user interaction, but NOT on a timer by itself. A tab
-# left open and just watched (no clicks) never re-triggers it, so
-# "refreshes every 30 min" wasn't actually happening for a passive viewer;
-# nifty_data could sit hours stale, showing a prior session's close under a
-# "Today" label. This fragment's own client-side timer forces a full rerun
-# every AUTO_REFRESH_MINUTES regardless of interaction, so the check below
-# actually fires on schedule.
-@st.fragment(run_every=f"{AUTO_REFRESH_MINUTES}m")
-def _autorefresh_heartbeat():
-    st.rerun()
-_autorefresh_heartbeat()
+# NOTE: the client-side auto-refresh heartbeat is defined AFTER the data
+# load block below (see _autorefresh_heartbeat). It must run after
+# data_loaded_at is set on a refresh, otherwise its inline execution during
+# a full rerun would see perpetually-stale data and re-trigger st.rerun()
+# forever (that infinite loop took the app down — connection timeout — when
+# the heartbeat was placed here at the top and called st.rerun()
+# unconditionally).
 
 # Check if data needs refresh (stale data)
 _needs_refresh = 'market_data' not in st.session_state
@@ -243,6 +238,32 @@ if _needs_refresh:
 
 
 df = st.session_state['market_data']
+
+# --- Auto-refresh heartbeat (placed here, AFTER the data-load block) ---
+# A Streamlit script only reruns on user interaction, not on a timer, so a
+# tab left open and just watched never refreshes — data could sit hours
+# stale under a "Today" label. This fragment's run_every timer fires on its
+# own every AUTO_REFRESH_MINUTES even with no interaction.
+#
+# Two things make it safe (an earlier version that just called st.rerun()
+# unconditionally at the top of the script infinite-looped and took the app
+# down):
+#   1. It only escalates to a full rerun when data is ACTUALLY stale.
+#   2. It lives after the data-load block, so on the resulting full rerun the
+#      data reloads and data_loaded_at resets BEFORE this fragment's inline
+#      execution checks staleness again — so it sees fresh data and stops,
+#      instead of re-triggering.
+# It also pops 'market_data' before rerunning so the top-of-script loader
+# treats data as stale unconditionally (robust to any threshold edge case).
+@st.fragment(run_every=f"{AUTO_REFRESH_MINUTES}m")
+def _autorefresh_heartbeat():
+    _loaded_at = st.session_state.get('data_loaded_at')
+    if _loaded_at is None:
+        return
+    if (datetime.now() - _loaded_at).total_seconds() >= AUTO_REFRESH_MINUTES * 60:
+        st.session_state.pop('market_data', None)
+        st.rerun()
+_autorefresh_heartbeat()
 
 # Data freshness indicator
 if 'data_loaded_at' in st.session_state:
