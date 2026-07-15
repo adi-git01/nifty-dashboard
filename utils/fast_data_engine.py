@@ -52,6 +52,44 @@ def _safe_update(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
         df[col] = pd.to_numeric(df[col], errors='coerce').replace([np.inf, -np.inf], np.nan)
     return df
 
+def _sanitize_price_bars(df: pd.DataFrame, factor: float = 2.5, window: int = 5) -> pd.DataFrame:
+    """
+    Remove single-bar data-error spikes from an OHLC history.
+
+    yfinance intermittently serves a corrupt bar for a day — a close that is
+    a fraction (or multiple) of the real price. Used as a return denominator
+    it produces physically-impossible RS/return values: ARIHANT showed a
+    +1911% 3-month return / +759% "RS vs Nifty" because one bar ~63 days
+    back came through at ~Rs40 when the stock never traded below ~Rs737;
+    BATLIBOI's comp_rs was +176% from a ~Rs16 bar vs its real ~Rs80.
+
+    A single outlier barely moves a *centered* rolling median (median of 5
+    values ignores one bad one), so any bar that deviates from its local
+    median by more than `factor`x — or less than 1/`factor` — is a data
+    error and is snapped back to that median. Calibrated against real data:
+    the corrupt bars were 5-25x off (ratio <0.2 or >5), while genuine
+    volatile movers we must NOT touch — DPABHUSHAN (+41% in a month),
+    CPPLUS (+63% in 3 months), CEMPRO (+152%) — all sit within ~1.1x of
+    their local median day to day. Indian 20% circuit limits make a real
+    single-day 2.5x move impossible, so there is comfortable separation.
+    Volume is deliberately NOT sanitized (10x volume spikes are real news).
+    """
+    if df is None or df.empty:
+        return df
+    out = df.copy()
+    for col in ('Open', 'High', 'Low', 'Close'):
+        if col not in out.columns:
+            continue
+        s = pd.to_numeric(out[col], errors='coerce')
+        med = s.rolling(window, center=True, min_periods=1).median()
+        with np.errstate(divide='ignore', invalid='ignore'):
+            ratio = s / med
+        bad = (med > 0) & ((ratio > factor) | (ratio < 1.0 / factor))
+        if bad.any():
+            out[col] = s.where(~bad, med)
+    return out
+
+
 def get_parquet_cache_path():
     today_str = datetime.now().strftime("%Y_%m_%d")
     os.makedirs("data/cache", exist_ok=True)
@@ -346,7 +384,13 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
                 
             if df.empty or len(df) < 20:
                 continue
-                
+
+            # Scrub corrupt single-bar price spikes BEFORE any metric reads
+            # df['Close'] — protects returns, comp_rs (RS vs Nifty), MAs,
+            # 52-week high/low and volatility in one place. Without this a
+            # single bad Yahoo bar produced absurd RS like ARIHANT +759%.
+            df = _sanitize_price_bars(df)
+
             # Get existing fundamentals (Sector, PE, Name, etc.)
             base_data = fund_lookup.get(ticker, {})
             # Ensure ticker and name exist
