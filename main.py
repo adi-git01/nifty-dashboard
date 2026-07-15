@@ -1718,8 +1718,57 @@ elif page == "🌊 Trend Scanner":
     for col in ['comp_rs', 'volatility', 'dna_signal']:
         if col not in filtered_df.columns:
             filtered_df[col] = None
-    
-    
+
+    # === ADJUSTABLE RS WEIGHTS (default = OptComp-V22: 10 / 50 / 40) ===
+    # comp_rs ("RS vs Nifty") is a weighted blend of RS5 (1W), RS21 (1M) and
+    # RS63 (3M) relative strength. Those components are stored per-stock in the
+    # cache, so the blend can be re-weighted live here without re-fetching.
+    # Defaults reproduce the engine's stored value exactly.
+    _DEFAULT_RS_W = (10.0, 50.0, 40.0)
+    if all(c in filtered_df.columns for c in ('rs_1w', 'rs_1m', 'rs_3m')):
+        with st.expander("⚖️ **Adjust RS Weights** — RS5 / RS21 / RS63 (default 10 / 50 / 40)", expanded=False):
+            st.caption("Re-weight the Composite RS vs Nifty blend. Weights are "
+                       "normalized, so they need not sum to 100. Defaults match "
+                       "the OptComp-V22 engine.")
+            _wc1, _wc2, _wc3, _wc4 = st.columns([1, 1, 1, 1])
+            with _wc1:
+                _w5 = st.number_input("RS5 (1W) %", min_value=0.0, max_value=100.0,
+                                      value=_DEFAULT_RS_W[0], step=5.0, key="rs_w5")
+            with _wc2:
+                _w21 = st.number_input("RS21 (1M) %", min_value=0.0, max_value=100.0,
+                                       value=_DEFAULT_RS_W[1], step=5.0, key="rs_w21")
+            with _wc3:
+                _w63 = st.number_input("RS63 (3M) %", min_value=0.0, max_value=100.0,
+                                       value=_DEFAULT_RS_W[2], step=5.0, key="rs_w63")
+            with _wc4:
+                st.write("")  # vertical spacer to align button with inputs
+                st.write("")
+                if st.button("↺ Reset to default", key="rs_w_reset", use_container_width=True):
+                    for _k in ('rs_w5', 'rs_w21', 'rs_w63'):
+                        st.session_state.pop(_k, None)
+                    st.rerun()
+
+            _wsum = _w5 + _w21 + _w63
+            if _wsum <= 0:
+                st.warning("Weights sum to 0 — falling back to defaults (10 / 50 / 40).")
+                _w5, _w21, _w63 = _DEFAULT_RS_W
+                _wsum = sum(_DEFAULT_RS_W)
+
+            _n5, _n21, _n63 = _w5 / _wsum, _w21 / _wsum, _w63 / _wsum
+            filtered_df = filtered_df.copy()
+            # NaN components (e.g. rows scrubbed for a corrupt bar) stay NaN.
+            filtered_df['comp_rs'] = (
+                filtered_df['rs_1w'] * _n5
+                + filtered_df['rs_1m'] * _n21
+                + filtered_df['rs_3m'] * _n63
+            ).round(2)
+
+            if (_w5, _w21, _w63) != _DEFAULT_RS_W:
+                st.caption(f"🔧 Custom weights active — RS5 **{_n5*100:.0f}%** · "
+                           f"RS21 **{_n21*100:.0f}%** · RS63 **{_n63*100:.0f}%**. "
+                           f"The RS vs Nifty column and sorting below reflect these.")
+
+
     # === DYNAMIC COLUMN FILTER (USER REQUEST) - MOVED HERE ===
     with st.expander("🌪️ **Add Custom Column Filter**", expanded=False):
         c_col1, c_col2, c_col3 = st.columns([2, 1, 2])
