@@ -37,8 +37,30 @@ jobs:
         pip install -r requirements.txt
         
     - name: "Step 1/5: Trading Engine (Cache + Sub-Industry Rotation)"
+      # ✅ FIX #4: This used to be the ONLY step without continue-on-error,
+      # despite being the one most exposed to Yahoo Finance flakiness (the
+      # full 777-stock universe fetch). A single failed attempt here killed
+      # the whole job — no commit, no alerts, nothing downstream ran — which
+      # is how entire trading days went missing from the history (e.g.
+      # 2026-07-09). yf_safe.py now retries transient failures inside each
+      # Python call, but a longer-spaced shell-level retry catches outages
+      # that outlast those short in-process backoffs, and continue-on-error
+      # (matching every other step) means Steps 2-6 still run and commit
+      # their own independently-fetched data even if this one ultimately
+      # can't recover.
+      continue-on-error: true
       run: |
-        python trading_engine.py --mode full
+        for attempt in 1 2; do
+          echo "Trading Engine attempt $attempt/2..."
+          python trading_engine.py --mode full && exit 0
+          echo "Attempt $attempt failed."
+          if [ "$attempt" -lt 2 ]; then
+            echo "Waiting 3 minutes before retry (outlasts in-process yfinance backoff)..."
+            sleep 180
+          fi
+        done
+        echo "Trading Engine failed after 2 attempts — continuing to later steps with continue-on-error."
+        exit 1
 
     - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
       continue-on-error: true  # Screener failure must not block portfolio engine or commit

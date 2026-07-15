@@ -46,6 +46,8 @@ from utils.nifty1000_list import TICKERS_1000 as TICKERS, SUB_INDUSTRY_MAP as SE
 from utils.regime_manager import (classify_regime, get_regime_params,
                                    is_circuit_breaker_active,
                                    calculate_volume_quality)
+from utils.yf_safe import safe_history, safe_download
+from utils.atomic_io import atomic_to_csv, atomic_json_dump
 
 # ============================================================
 # ALERT HELPERS — send Telegram + Email for trade events
@@ -175,23 +177,19 @@ class OptCompV21Engine:
         start_date = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
 
         # 1. Nifty
-        nifty = yf.Ticker("^NSEI").history(start=start_date)
+        nifty = safe_history("^NSEI", start=start_date)
         if nifty.empty:
-            print("  ERROR: Could not fetch Nifty data.")
+            print("  ERROR: Could not fetch Nifty data after retries.")
             return False
         nifty.index = nifty.index.tz_localize(None)
         self.data_cache['NIFTY'] = nifty
 
         # 2. Bulk download
         print(f"  Bulk downloading {len(self.tickers)} stocks...")
-        try:
-            bulk_data = yf.download(
-                self.tickers, start=start_date,
-                group_by='ticker', threads=False, progress=False, auto_adjust=True
-            )
-        except Exception as e:
-            print(f"  Bulk download failed: {e}")
-            bulk_data = None
+        bulk_data = safe_download(
+            self.tickers, start=start_date,
+            group_by='ticker', threads=False, auto_adjust=True, min_coverage=0.5,
+        )
 
         loaded = 0
         if bulk_data is not None and not bulk_data.empty:
@@ -778,14 +776,25 @@ class OptCompV21Engine:
             }
         }
 
-        with open(SNAPSHOT_FILE, 'w') as f:
-            json.dump(new_state, f, indent=4)
+        # Atomic write: this JSON is the entire live portfolio state
+        # (holdings, cash, rebalance counters). A process killed mid-write
+        # would leave a truncated file — and load_state()'s parse-failure
+        # fallback is get_initial_state(), which would silently wipe every
+        # real holding and restart the portfolio from scratch on the next
+        # run.
+        atomic_json_dump(new_state, SNAPSHOT_FILE, indent=4)
 
         # 7. APPEND LOGS
+        # Read-full + atomic rewrite instead of mode='a' append: a process
+        # killed mid-append can leave a truncated/malformed last line with
+        # no way to detect it later, same failure class as the equity-curve
+        # phantom -27% loss and the breadth/mood zero-row corruption.
         if trade_log:
             df_log = pd.DataFrame(trade_log)
-            hdr = not os.path.exists(TRADE_LOG_FILE)
-            df_log.to_csv(TRADE_LOG_FILE, mode='a', header=hdr, index=False)
+            if os.path.exists(TRADE_LOG_FILE):
+                existing_log = pd.read_csv(TRADE_LOG_FILE)
+                df_log = pd.concat([existing_log, df_log], ignore_index=True)
+            atomic_to_csv(df_log, TRADE_LOG_FILE, index=False)
 
         eq_record = {
             'Date': today, 'Equity': round(equity_val, 2),
@@ -797,9 +806,9 @@ class OptCompV21Engine:
             existing_eq = pd.read_csv(EQUITY_CURVE_FILE)
             existing_eq = existing_eq[existing_eq['Date'] != today]
             existing_eq = pd.concat([existing_eq, pd.DataFrame([eq_record])], ignore_index=True)
-            existing_eq.to_csv(EQUITY_CURVE_FILE, index=False)
+            atomic_to_csv(existing_eq, EQUITY_CURVE_FILE, index=False)
         else:
-            pd.DataFrame([eq_record]).to_csv(EQUITY_CURVE_FILE, index=False)
+            atomic_to_csv(pd.DataFrame([eq_record]), EQUITY_CURVE_FILE, index=False)
 
         # Print summary
         ret_pct = (equity_val - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100

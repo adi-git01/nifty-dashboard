@@ -24,6 +24,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.nifty1000_list import TICKERS_1000
 from utils.regime_manager import calculate_volume_quality as _calc_vq
+from utils.yf_safe import safe_history, safe_download
+from utils.atomic_io import atomic_json_dump, atomic_to_csv
 
 OUTPUT_CSV  = "data/turnaround_watchlist.csv"
 LOG_CSV     = "data/ias_signal_log.csv"
@@ -424,7 +426,7 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
                 log.at[i, "status"]       = "DROPPED"
                 log.at[i, "dropped_date"] = today_str
 
-    log.to_csv(LOG_CSV, index=False)
+    atomic_to_csv(log, LOG_CSV, index=False)
     n_active = (log["status"] == "ACTIVE").sum()
     n_grad   = (log["status"] == "GRADUATED").sum()
     n_drop   = (log["status"] == "DROPPED").sum()
@@ -444,9 +446,9 @@ def main():
     # 1. Load Nifty benchmark
     print("\n  [1/4] Loading Nifty benchmark...")
     start = (datetime.now() - timedelta(days=400)).strftime("%Y-%m-%d")
-    nifty_raw = yf.Ticker("^NSEI").history(start=start)
+    nifty_raw = safe_history("^NSEI", start=start)
     if nifty_raw.empty:
-        print("  ERROR: Cannot fetch Nifty. Aborting.")
+        print("  ERROR: Cannot fetch Nifty after retries. Aborting.")
         return
     if nifty_raw.index.tz:
         nifty_raw.index = nifty_raw.index.tz_localize(None)
@@ -458,15 +460,17 @@ def main():
     print(f"        {len(sub_map)} tickers mapped")
 
     # 3. Bulk download price + volume for Nifty 1000
+    # threads=False avoids the parallel-request storm that triggers Yahoo
+    # 401s on CI (same fix already applied in fast_data_engine.py /
+    # dna3_current_portfolio.py — this call site had drifted out of sync).
     tickers = [t for t in TICKERS_1000 if t != "DUMMYALCAR.NS"]
     print(f"\n  [3/4] Downloading {len(tickers)} tickers (2-4 min)...")
-    try:
-        bulk = yf.download(
-            tickers, start=start, group_by="ticker",
-            threads=True, progress=True, auto_adjust=True
-        )
-    except Exception as e:
-        print(f"  ERROR: {e}")
+    bulk = safe_download(
+        tickers, start=start, group_by="ticker",
+        threads=False, auto_adjust=True, min_coverage=0.5,
+    )
+    if bulk is None or bulk.empty:
+        print("  ERROR: Bulk download failed after retries. Aborting.")
         return
 
     # 4. Score each ticker
@@ -490,14 +494,14 @@ def main():
 
     if not results:
         print("  No turnaround candidates found today.")
-        pd.DataFrame().to_csv(OUTPUT_CSV, index=False)
+        atomic_to_csv(pd.DataFrame(), OUTPUT_CSV, index=False)
         return
 
     df = (pd.DataFrame(results)
           .sort_values("IAS", ascending=False)
           .reset_index(drop=True))
 
-    df.to_csv(OUTPUT_CSV, index=False)
+    atomic_to_csv(df, OUTPUT_CSV, index=False)
 
     # ── Signal log ────────────────────────────────────────────────────────────
     try:
@@ -511,8 +515,18 @@ def main():
     prev_state = {}
     if os.path.exists(STATE_FILE):
         import json
-        with open(STATE_FILE, 'r') as f:
-            prev_state = json.load(f)
+        try:
+            with open(STATE_FILE, 'r') as f:
+                prev_state = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            # This exact crash (JSONDecodeError: Expecting value) happened
+            # in production from a prior run's write getting interrupted
+            # mid-write, leaving a truncated/empty file. Non-atomic writes
+            # are now fixed (see the atomic_json_dump write below), but
+            # degrade gracefully instead of crashing the whole scan if a
+            # corrupt file is ever encountered again.
+            print(f"  [IAS] WARNING: {STATE_FILE} is corrupt ({e}); starting from empty state.")
+            prev_state = {}
     
     current_state = {}
     new_ready = []
@@ -551,9 +565,8 @@ def main():
                 # Dropped from a high tier to nothing
                 demotions.append((t, t.replace('.NS', ''), p_tier, 'DROPPED', 0))
 
-    # Save state
-    with open(STATE_FILE, 'w') as f:
-        json.dump(current_state, f, indent=4)
+    # Save state (atomic — see the read-side comment above for why)
+    atomic_json_dump(current_state, STATE_FILE, indent=4)
         
     # Dispatch Alerts
     if tc_alerts or new_ready or demotions:

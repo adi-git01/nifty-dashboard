@@ -31,6 +31,7 @@ from utils.telegram_notifier import send_telegram_message, is_telegram_configure
 
 from utils.volume_monitor import scan_volume_changes
 from utils.nifty500_list import TICKERS
+from utils.yf_safe import safe_download
 
 # Track last volume scan date to avoid repetition
 LAST_VOLUME_SCAN = None
@@ -50,22 +51,27 @@ def check_alerts():
         tickers = [p['ticker'] for p in positions]
         print(f"📋 Checking {len(tickers)} positions: {tickers}")
 
-        # 2. Fetch live prices
+        # 2. Fetch live prices — retry-with-backoff instead of a single
+        # unguarded attempt (a transient Yahoo blip here used to just
+        # silently skip every stop-loss/target check for the whole run).
         current_prices = {}
-        try:
-            # Use period='1d' to get latest data
-            df = yf.download(tickers, period='1d', progress=False)['Close']
-            if df.empty:
-                print("❌ No price data fetched for positions.")
-            else:
-                # Handle single ticker case (Series) vs multiple (DataFrame)
-                if isinstance(df, pd.Series):
-                    current_prices = {tickers[0]: df.iloc[-1]}
-                else:
-                    current_prices = df.iloc[-1].to_dict()
-                
-        except Exception as e:
-            print(f"❌ Error fetching prices for positions: {e}")
+        data = safe_download(tickers, period='1d', group_by='ticker', auto_adjust=True, threads=False, min_coverage=0.5)
+        if data is None or data.empty:
+            print("❌ No price data fetched for positions after retries.")
+        elif len(tickers) == 1:
+            # Single ticker: yf.download returns flat (non-MultiIndex) columns
+            close = data['Close'].dropna() if 'Close' in data.columns else pd.Series(dtype=float)
+            if not close.empty:
+                current_prices = {tickers[0]: close.iloc[-1]}
+        else:
+            for t in tickers:
+                try:
+                    if t in data.columns.get_level_values(0):
+                        close = data[t]['Close'].dropna()
+                        if not close.empty:
+                            current_prices[t] = close.iloc[-1]
+                except Exception:
+                    pass
 
         # 3. Check conditions
         if current_prices: # Only proceed if prices were fetched

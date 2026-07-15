@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import os
 from datetime import datetime
+from utils.atomic_io import atomic_to_csv
 
 class TradingDatabase:
     """
@@ -112,7 +113,7 @@ class TradingDatabase:
         for table_name, csv_path in tables.items():
             try:
                 df = pd.read_sql_query(f"SELECT * FROM {table_name}", self.conn)
-                df.to_csv(csv_path, index=False)
+                atomic_to_csv(df, csv_path, index=False)
             except Exception as e:
                 print(f"Error saving {table_name}: {e}")
 

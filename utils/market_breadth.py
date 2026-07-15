@@ -20,6 +20,7 @@ import numpy as np
 import os
 from datetime import datetime, timedelta
 import streamlit as st
+from utils.atomic_io import atomic_to_csv
 
 BREADTH_FILE = "data/market_breadth_history.csv"
 
@@ -200,7 +201,7 @@ def save_breadth_snapshot(metrics):
     history = history[history['date'] >= cutoff]
     history['date'] = history['date'].dt.strftime('%Y-%m-%d')
     
-    history.to_csv(BREADTH_FILE, index=False)
+    atomic_to_csv(history, BREADTH_FILE, index=False)
 
 
 def load_breadth_history(days=365):
