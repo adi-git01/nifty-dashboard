@@ -30,6 +30,7 @@ import os
 import uuid
 from datetime import datetime
 from typing import Optional, List, Dict
+from utils.atomic_io import atomic_json_dump
 
 POSITIONS_FILE = "positions.json"
 
@@ -44,9 +45,13 @@ def _load_positions() -> List[Dict]:
         return []
 
 def _save_positions(positions: List[Dict]):
-    """Save positions to file."""
-    with open(POSITIONS_FILE, 'w') as f:
-        json.dump(positions, f, indent=2, default=str)
+    """
+    Save positions to file. Atomic write: _load_positions() silently
+    returns [] on any parse failure, so a truncated write from an
+    interrupted process would wipe every active position/watchlist entry
+    on the next load instead of just failing loudly.
+    """
+    atomic_json_dump(positions, POSITIONS_FILE, indent=2, default=str)
 
 def get_all_positions(status: Optional[str] = None) -> List[Dict]:
     """Get all positions, optionally filtered by status."""

@@ -17,6 +17,7 @@ from utils.email_notifier import send_trend_change_alert
 from utils.regime_manager import classify_regime, get_regime_params
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot
 from utils.market_breadth import calculate_breadth_from_df, save_breadth_snapshot
+from utils.yf_safe import safe_history
 
 def _log(msg):
     """Timestamped print — makes CI log timelines readable."""
@@ -156,9 +157,8 @@ def check_portfolio_stops(df, db):
         return
 
     # V2.2: Compute current regime for adaptive trailing stop
-    import yfinance as yf
     try:
-        _nifty = yf.Ticker("^NSEI").history(period="2y")
+        _nifty = safe_history("^NSEI", period="2y")
         _n_close  = float(_nifty['Close'].iloc[-1])
         _n_ma200  = float(_nifty['Close'].rolling(200).mean().iloc[-1])
         _n_52w_hi = float(_nifty['High'].rolling(252).max().iloc[-1])
@@ -338,8 +338,7 @@ def send_daily_heartbeat(df, mode):
     
     # V2.2: Include regime state in heartbeat
     try:
-        import yfinance as yf
-        _nifty = yf.Ticker("^NSEI").history(period="2y")
+        _nifty = safe_history("^NSEI", period="2y")
         _regime = classify_regime(
             float(_nifty['Close'].iloc[-1]),
             float(_nifty['Close'].rolling(200).mean().iloc[-1]),

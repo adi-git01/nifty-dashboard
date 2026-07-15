@@ -8,7 +8,9 @@ from datetime import datetime
 from utils.volume_analysis import get_combined_volume_signal
 from utils.scoring import calculate_trend_metrics, calculate_scores
 from utils.data_engine import get_stock_info
+from utils.yf_safe import safe_history, safe_download
 import concurrent.futures
+import glob
 
 CACHE_FILE_CSV       = "data/nifty500_cache.csv"
 FUNDAMENTALS_CACHE   = "data/fundamentals_cache.csv"   # written by fetch_fundamentals.py (bi-weekly)
@@ -272,10 +274,13 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
 
     print(f"[FAST ENGINE] Fetching data for {len(tickers)} stocks...")
     
-    # 1. Bulk Fetch History (1 Year)
+    # 1. Bulk Fetch History (1 Year) — retry-with-backoff + coverage check
+    # (utils.yf_safe), since a single transient Yahoo blip here used to
+    # silently produce a partial-to-empty history_data with no retry, and
+    # everything downstream (parquet cache, portfolio engine, sector
+    # rotation, breadth/mood history) trusted it as if it were a full fetch.
     try:
-        # Fetch Nifty Data for RS Calculation
-        nifty = yf.Ticker("^NSEI").history(period="1y")
+        nifty = safe_history("^NSEI", period="1y")
         nifty_3m_ret = 0
         if not nifty.empty:
             nifty.index = nifty.index.tz_localize(None)
@@ -287,15 +292,17 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
         # ✅ FIX: threads=False prevents 20-thread storm that triggers Yahoo 401s on CI
         # Batch download is still fast (single HTTP session, vectorized)
         print(f"[ENGINE] Starting yf.download for {len(tickers)} tickers...", flush=True)
-        history_data = yf.download(
-            tickers, 
-            period="1y", 
-            interval="1d", 
-            group_by='ticker', 
+        history_data = safe_download(
+            tickers,
+            period="1y",
+            interval="1d",
+            group_by='ticker',
             threads=False,      # <-- KEY FIX: avoid parallel request storm
-            progress=False,
-            auto_adjust=True
+            auto_adjust=True,
+            min_coverage=0.5,   # below this, treat the whole attempt as failed and retry
         )
+        if history_data is None or history_data.empty:
+            raise RuntimeError("yf.download returned no usable data after retries")
         # 🕵️ BOOBY TRAP: log download result structure
         print(f"[ENGINE] yf.download complete. Shape={history_data.shape}, "
               f"MultiIndex={isinstance(history_data.columns, pd.MultiIndex)}, "
@@ -500,13 +507,40 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             
     # Convert to DataFrame
     final_df = pd.DataFrame(processed_rows)
+    coverage = len(processed_rows) / max(total_tickers, 1)
     # 🕵️ BOOBY TRAP: log how many tickers made it through
-    print(f"[ENGINE] Processing complete: {len(processed_rows)}/{total_tickers} tickers returned valid data.", flush=True)
+    print(f"[ENGINE] Processing complete: {len(processed_rows)}/{total_tickers} "
+          f"tickers returned valid data ({coverage*100:.0f}% coverage).", flush=True)
     if not final_df.empty:
         print(f"[ENGINE] Output shape={final_df.shape}, key_cols={[c for c in ['ticker','currentPrice','dna_signal','comp_rs'] if c in final_df.columns]}", flush=True)
     else:
         print("[ENGINE] ⚠️  final_df is EMPTY — yfinance returned no usable data.", flush=True)
-    
+
+    # Coverage gate: even with retries in safe_download(), Yahoo can have a
+    # genuinely bad day for the whole run. Writing a heavily degraded df as
+    # today's parquet is exactly what produced the Jul-8 breadth/mood
+    # zero-row corruption and the sector-rotation single-stock artifacts —
+    # every downstream reader trusted "today's file exists" as "today's
+    # file is good". Below this threshold, fall back to the most recent
+    # prior day's parquet (known-good, just stale) instead of persisting
+    # garbage, and skip the write entirely so tomorrow's file listing isn't
+    # polluted with an empty/degraded entry for today's date.
+    MIN_UNIVERSE_COVERAGE = 0.5
+    if coverage < MIN_UNIVERSE_COVERAGE:
+        print(f"[ENGINE] ⚠️  Coverage {coverage*100:.0f}% is below the "
+              f"{MIN_UNIVERSE_COVERAGE*100:.0f}% safety threshold — today's fetch is "
+              f"too degraded to trust. Falling back to the last good cached parquet "
+              f"instead of writing this as today's data.", flush=True)
+        prior_files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+        if prior_files:
+            try:
+                fallback_df = pd.read_parquet(prior_files[-1])
+                print(f"[ENGINE] Using fallback cache: {prior_files[-1]} ({len(fallback_df)} rows)", flush=True)
+                return fallback_df
+            except Exception as e:
+                print(f"[ENGINE] Fallback parquet unreadable ({e}); returning degraded result anyway.", flush=True)
+        return final_df if not final_df.empty else fundamental_df
+
     # Save to Parquet Cache for next time. Write to a temp file and rename
     # (atomic on POSIX) so a mid-write crash (OOM, CI timeout, disk full)
     # can never leave a truncated file at the real path for readers to trip
@@ -522,5 +556,5 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             os.remove(tmp_path)
         except Exception:
             pass
-        
+
     return final_df

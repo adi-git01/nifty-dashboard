@@ -1383,10 +1383,14 @@ elif page == "🌊 Trend Scanner":
                                 dna3_data['portfolio'] = updated_portfolio
                                 dna3_data['equity'] = total_equity
                                 dna3_data['date'] = datetime.now().strftime('%Y-%m-%d')
-                                
-                                with open(DNA3_SNAPSHOT, 'w') as f:
-                                    json.dump(dna3_data, f, indent=4)
-                                
+
+                                # Atomic write — this is the same live
+                                # portfolio state file the CI engine writes;
+                                # a truncated write here is just as capable
+                                # of wiping the portfolio on next load.
+                                from utils.atomic_io import atomic_json_dump
+                                atomic_json_dump(dna3_data, DNA3_SNAPSHOT, indent=4)
+
                                 st.toast("✅ Portfolio prices updated!", icon="🔄")
                             st.rerun()
                         except Exception as e:

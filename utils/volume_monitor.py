@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 from utils.score_history import calculate_historical_scores
+from utils.yf_safe import safe_download
 
 def scan_volume_changes(tickers, lookback_days=5):
     """
@@ -10,14 +11,16 @@ def scan_volume_changes(tickers, lookback_days=5):
     Returns list of alert objects.
     """
     print(f"Scanning {len(tickers)} stocks for Volume Alerts...")
-    
-    # Batch download (efficient)
+
+    # Batch download (efficient) with retry-with-backoff + coverage check.
     # We need enough history to calculate scores (approx 200 days for safety, though volume score uses less)
-    # Using '1y' to be safe for moving averages
-    try:
-        data = yf.download(tickers, period="1y", group_by='ticker', progress=False, auto_adjust=True, threads=True)
-    except Exception as e:
-        print(f"Error downloading data: {e}")
+    # Using '1y' to be safe for moving averages.
+    # threads=False avoids the parallel-request storm that triggers Yahoo
+    # 401s on CI (this call site had drifted out of sync with the fix
+    # already applied elsewhere in the codebase).
+    data = safe_download(tickers, period="1y", group_by='ticker', auto_adjust=True, threads=False, min_coverage=0.5)
+    if data is None or data.empty:
+        print("Error downloading data after retries.")
         return []
         
     alerts = []

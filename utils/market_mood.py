@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 import os
 from datetime import datetime, timedelta
+from utils.atomic_io import atomic_to_csv
 
 MOOD_FILE = "data/market_mood_history.csv"
 
@@ -102,7 +103,7 @@ def save_mood_snapshot(metrics):
     history = history[history['date'] >= cutoff]
     history['date'] = history['date'].dt.strftime('%Y-%m-%d')
     
-    history.to_csv(MOOD_FILE, index=False)
+    atomic_to_csv(history, MOOD_FILE, index=False)
 
 def load_mood_history(days=365):
     """
