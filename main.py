@@ -164,6 +164,19 @@ st.sidebar.markdown("### 🔔 Alerts")
 # ============================================================
 AUTO_REFRESH_MINUTES = 30  # Auto-refresh data after 30 minutes
 
+# The staleness check below only runs when the script reruns — which
+# Streamlit does on user interaction, but NOT on a timer by itself. A tab
+# left open and just watched (no clicks) never re-triggers it, so
+# "refreshes every 30 min" wasn't actually happening for a passive viewer;
+# nifty_data could sit hours stale, showing a prior session's close under a
+# "Today" label. This fragment's own client-side timer forces a full rerun
+# every AUTO_REFRESH_MINUTES regardless of interaction, so the check below
+# actually fires on schedule.
+@st.fragment(run_every=f"{AUTO_REFRESH_MINUTES}m")
+def _autorefresh_heartbeat():
+    st.rerun()
+_autorefresh_heartbeat()
+
 # Check if data needs refresh (stale data)
 _needs_refresh = 'market_data' not in st.session_state
 if not _needs_refresh and 'data_loaded_at' in st.session_state:
