@@ -1819,7 +1819,61 @@ elif page == "🌊 Trend Scanner":
         lambda s: f"{_SIGNAL_EMOJI.get(s, '')} {s}" if s else s
     )
 
-    display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
+    # === ENTRY FRESHNESS (near-MA vs extended, RS accelerating vs fading) ===
+    from utils.entry_timing import add_entry_freshness, add_position_sizing
+    filtered_df = add_entry_freshness(filtered_df)
+
+    # === ENTRY TIMING & POSITION SIZING PANEL ===
+    # Directly addresses the "this leader already ran up — what do I buy and
+    # how much?" hesitation. Ranks the current filtered names by freshness and
+    # sizes each by stop distance (wider stop -> smaller position).
+    with st.expander("🎯 **Entry Timing & Position Sizing** — beat the 'already run up' hesitation", expanded=False):
+        st.caption("Ranks your filtered names by **entry freshness** — 🔵 near MA50 with accelerating RS = a fresh "
+                   "pullback entry; 🟡 stretched far above MA50 = extended / chase risk. Each is sized so a stop-out "
+                   "costs a fixed % of capital, so a wider stop → smaller position. Own leaders without over-committing "
+                   "to a chase, and surface fresher replacements.")
+        _ps1, _ps2, _ps3, _ps4 = st.columns(4)
+        with _ps1:
+            _cap = st.number_input("Capital (₹)", min_value=10000.0, value=1_000_000.0, step=50000.0, key="et_cap")
+        with _ps2:
+            _riskpct = st.number_input("Risk / trade (%)", min_value=0.1, max_value=5.0, value=1.0, step=0.25, key="et_risk")
+        with _ps3:
+            _maxpos = st.number_input("Max positions", min_value=1, max_value=50, value=15, step=1, key="et_maxpos")
+        with _ps4:
+            _show = st.selectbox("Show", ["Freshest first", "Pullback Buy only", "Actionable + Pullback", "All momentum"],
+                                 index=0, key="et_show")
+
+        _et = add_position_sizing(filtered_df, capital=_cap, risk_pct=_riskpct, max_positions=int(_maxpos))
+        _et = _et[_et['entry_label'].isin(['🔵 Pullback Buy', '🟢 Actionable', '🟡 Extended', '🔴 Late/Fading'])]
+        if _show == "Pullback Buy only":
+            _et = _et[_et['entry_label'] == '🔵 Pullback Buy']
+        elif _show == "Actionable + Pullback":
+            _et = _et[_et['entry_label'].isin(['🔵 Pullback Buy', '🟢 Actionable'])]
+        _et = _et.sort_values('freshness', ascending=False).copy()
+        _et['screener_link'] = "https://www.screener.in/company/" + _et['ticker'].str.replace('.NS', '', regex=False) + "/"
+        _etc = ['screener_link', 'entry_label', 'freshness', 'price', 'dist_ma50', 'rs_accel',
+                'comp_rs', 'stop_pct', 'suggested_value', 'suggested_shares']
+        st.dataframe(
+            _et[_etc],
+            column_config={
+                "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+                "entry_label": st.column_config.TextColumn("Entry", help="🔵 Pullback Buy · 🟢 Actionable · 🟡 Extended (wait) · 🔴 Late/Fading"),
+                "freshness": st.column_config.ProgressColumn("Fresh", min_value=0, max_value=100, format="%d"),
+                "price": st.column_config.NumberColumn("Price", format="₹ %.2f"),
+                "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above 50-day MA. High = extended."),
+                "rs_accel": st.column_config.NumberColumn("RS Accel", format="%+.1f", help="Recent weekly RS minus its monthly pace. + = speeding up, − = fading."),
+                "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%"),
+                "stop_pct": st.column_config.NumberColumn("Sugg. Stop", format="%.1f%%", help="Initial stop distance: max of a volatility swing-stop and 'just below MA50'."),
+                "suggested_value": st.column_config.NumberColumn("Size ₹", format="₹ %.0f", help="Position value sized so a stop-out ≈ your risk/trade, capped at equal-weight."),
+                "suggested_shares": st.column_config.NumberColumn("Shares", format="%d"),
+            },
+            height=360, use_container_width=True, hide_index=True
+        )
+        st.caption(f"Risking **₹{_cap*_riskpct/100:,.0f}** per trade · equal-weight cap **₹{_cap/int(_maxpos):,.0f}**. "
+                   "🔵/🟢 = best fresh entries · 🟡 Extended = wait for a pullback · 🔴 = momentum fading.")
+
+    display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
+                    'entry_label', 'freshness', 'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
 
@@ -1840,6 +1894,9 @@ elif page == "🌊 Trend Scanner":
             "momentum": st.column_config.ProgressColumn("Momentum", min_value=0, max_value=10, format="%.1f"),
             "volume_signal_score": st.column_config.ProgressColumn("Volume", min_value=0, max_value=10, format="%.1f"),
             "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%", help="Composite Relative Strength vs Nifty (1W+1M+3M)"),
+            "entry_label": st.column_config.TextColumn("Entry", help="🔵 Pullback Buy (near MA50) · 🟢 Actionable · 🟡 Extended (chase risk, wait for pullback) · 🔴 Late/Fading · ⚪ Weak"),
+            "freshness": st.column_config.ProgressColumn("Fresh", min_value=0, max_value=100, format="%d", help="Entry freshness 0–100: higher = closer to MA50 with accelerating RS = better risk-adjusted entry. Sort by this to find fresh replacements."),
+            "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
             "volatility": st.column_config.NumberColumn("Volatility", format="%.0f%%", help="Annualized Price Volatility"),
             "dna_signal": st.column_config.TextColumn("DNA Signal", help="BUY = All DNA-3 filters pass"),
         },
