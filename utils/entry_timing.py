@@ -83,7 +83,9 @@ def add_entry_freshness(df: pd.DataFrame) -> pd.DataFrame:
     accel_score = _clip(50 + rs_accel.fillna(0) * 4.0, 0, 100)        # 50 = neutral
     fresh = (0.65 * ext_score + 0.35 * accel_score)
     fresh = fresh.where(uptrend, 0)
-    out['freshness'] = fresh.round(0)
+    # NaN (e.g. missing MA50) -> 0 so the Fresh progress column never renders
+    # a broken bar and these rows sort to the bottom.
+    out['freshness'] = fresh.fillna(0).round(0)
 
     # Ordinal label (precedence matters).
     def _label(row):
@@ -128,8 +130,12 @@ def add_position_sizing(df: pd.DataFrame, capital: float, risk_pct: float,
     dist_ma50 = pd.to_numeric(out['dist_ma50'], errors='coerce')
 
     daily_vol = vol_annual / np.sqrt(252.0)
-    atr_stop = 2.5 * daily_vol                       # volatility-based swing stop %
-    struct_stop = dist_ma50.clip(lower=0) + 4.0      # to just below MA50 + buffer
+    atr_stop = 2.5 * daily_vol                              # volatility-based swing stop %
+    # BUGFIX: fillna(0) BEFORE the maxima — a NaN dist_ma50 (missing MA50)
+    # otherwise propagates through np.maximum (which is NOT nan-aware) and
+    # nulls stop_pct entirely, silently sizing a valid stock to 0 shares.
+    struct_stop = dist_ma50.clip(lower=0).fillna(0.0) + 4.0  # to just below MA50 + buffer
+    atr_stop = atr_stop.fillna(0.0)
     stop_pct = _clip(np.maximum(np.maximum(atr_stop, struct_stop), 6.0), 6.0, 30.0)
     out['stop_pct'] = stop_pct.round(1)
 
