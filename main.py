@@ -1768,6 +1768,23 @@ elif page == "🌊 Trend Scanner":
                            f"RS21 **{_n21*100:.0f}%** · RS63 **{_n63*100:.0f}%**. "
                            f"The RS vs Nifty column and sorting below reflect these.")
 
+    # === DISPLAY-TIME RS SANITY GUARD (defense in depth) ===
+    # The engine sanitizes corrupt price bars at source and the cache is
+    # patched, but a stale browser session or a future missed bad bar could
+    # still surface a physically-impossible RS (e.g. ARIHANT +759%). A real
+    # 3-month relative strength tops out near +150pp (CEMPRO ~147), so
+    # |comp_rs| > 200 or |rs_3m| > 300 is always a bad-bar artifact — blank it
+    # rather than ever render garbage in the "RS vs Nifty" column.
+    if 'comp_rs' in filtered_df.columns:
+        _rs_bad = pd.to_numeric(filtered_df['comp_rs'], errors='coerce').abs() > 200
+        if 'rs_3m' in filtered_df.columns:
+            _rs_bad = _rs_bad | (pd.to_numeric(filtered_df['rs_3m'], errors='coerce').abs() > 300)
+        if _rs_bad.any():
+            filtered_df = filtered_df.copy()
+            filtered_df.loc[_rs_bad, ['comp_rs', 'rs_3m']] = np.nan
+            st.caption(f"⚠️ {int(_rs_bad.sum())} stock(s) hidden from RS ranking due to a "
+                       f"suspected bad price bar (blanked, not deleted).")
+
 
     # === DYNAMIC COLUMN FILTER (USER REQUEST) - MOVED HERE ===
     with st.expander("🌪️ **Add Custom Column Filter**", expanded=False):
@@ -1822,6 +1839,22 @@ elif page == "🌊 Trend Scanner":
     # === ENTRY FRESHNESS (near-MA vs extended, RS accelerating vs fading) ===
     from utils.entry_timing import add_entry_freshness, add_position_sizing
     filtered_df = add_entry_freshness(filtered_df)
+
+    # === ENTRY STATUS FILTER ===
+    _ENTRY_ORDER = ['🔵 Pullback Buy', '🟢 Actionable', '🟡 Extended', '🔴 Late/Fading', '⚪ Weak']
+    _present = [s for s in _ENTRY_ORDER if s in set(filtered_df['entry_label'])]
+    if _present:
+        _sel_entry = st.multiselect(
+            "🎯 Filter by Entry Status",
+            options=_present, default=_present,
+            help="🔵 Pullback Buy (near MA50, fresh) · 🟢 Actionable · 🟡 Extended (already run up — chase risk) · "
+                 "🔴 Late/Fading · ⚪ Weak. Deselect to hide, e.g. keep only 🔵 + 🟢 for fresh entries. "
+                 "Empty = show all.",
+        )
+        # Filter only when the user narrows the set (empty = show all, avoids a blank table).
+        if _sel_entry and len(_sel_entry) < len(_present):
+            filtered_df = filtered_df[filtered_df['entry_label'].isin(_sel_entry)]
+            st.caption(f"Showing **{len(filtered_df)}** stocks with entry status: {' · '.join(_sel_entry)}")
 
     # === ENTRY TIMING & POSITION SIZING PANEL ===
     # Directly addresses the "this leader already ran up — what do I buy and
