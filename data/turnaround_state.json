@@ -1,77 +1,127 @@
 {
-    "FINOPB.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 100.0
-    },
     "ECLERX.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 100.0
     },
-    "DYCL.NS": {
+    "FSL.NS": {
         "tier": "ALERT",
         "days_active": 1,
         "ias": 100.0
     },
-    "HARIOMPIPE.NS": {
+    "CRISIL.NS": {
         "tier": "ALERT",
         "days_active": 1,
-        "ias": 100.0
+        "ias": 93.8
+    },
+    "HEXT.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 88.1
     },
     "ABBOTINDIA.NS": {
         "tier": "ALERT",
-        "days_active": 1,
-        "ias": 93.0
-    },
-    "DBCORP.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 91.1
-    },
-    "ICICIPRULI.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 88.8
-    },
-    "HYUNDAI.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 70.9
-    },
-    "AMBUJACEM.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 70.8
-    },
-    "GMDCLTD.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 62.6
-    },
-    "BPCL.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 54.9
-    },
-    "DALBHARAT.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.9
-    },
-    "HINDPETRO.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.1
+        "days_active": 2,
+        "ias": 87.4
     },
     "AVANTIFEED.NS": {
-        "tier": "WATCH",
+        "tier": "ALERT",
+        "days_active": 2,
+        "ias": 85.0
+    },
+    "DIXON.NS": {
+        "tier": "READY",
         "days_active": 1,
-        "ias": 50.9
+        "ias": 65.0
+    },
+    "EMSLIMITED.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 65.0
+    },
+    "ANANTRAJ.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 62.3
+    },
+    "AFFLE.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "ASHAPURMIN.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "BECTORFOOD.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
     },
     "ASTRAL.NS": {
         "tier": "WATCH",
+        "days_active": 2,
+        "ias": 58.7
+    },
+    "AWL.NS": {
+        "tier": "WATCH",
         "days_active": 1,
-        "ias": 42.1
+        "ias": 55.5
+    },
+    "HARIOMPIPE.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 52.3
+    },
+    "HYUNDAI.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 51.3
+    },
+    "ICICIPRULI.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 49.0
+    },
+    "HCLTECH.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 47.3
+    },
+    "AMBUJACEM.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 46.8
+    },
+    "DALBHARAT.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 45.2
+    },
+    "COCHINSHIP.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 45.1
+    },
+    "GODFRYPHLP.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.4
+    },
+    "BANKBARODA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 41.2
+    },
+    "BSOFT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 40.3
+    },
+    "BLS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 38.9
     }
 }
