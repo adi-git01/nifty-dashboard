@@ -1,87 +1,77 @@
 {
-    "FSL.NS": {
+    "BECTORFOOD.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 99.3
+        "days_active": 3,
+        "ias": 100.0
     },
     "ACI.NS": {
         "tier": "ALERT",
-        "days_active": 1,
-        "ias": 87.3
-    },
-    "ABBOTINDIA.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 85.3
-    },
-    "AVANTIFEED.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 85.0
-    },
-    "HEXT.NS": {
-        "tier": "ALERT",
         "days_active": 2,
-        "ias": 81.2
+        "ias": 95.0
     },
-    "AFCONS.NS": {
+    "FSL.NS": {
+        "tier": "ALERT",
+        "days_active": 3,
+        "ias": 80.8
+    },
+    "GODFRYPHLP.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 68.3
+        "ias": 74.5
     },
-    "IDBI.NS": {
+    "AMBUJACEM.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 65.0
+        "days_active": 4,
+        "ias": 69.7
     },
-    "CAMPUS.NS": {
+    "ASTRAL.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 61.3
-    },
-    "63MOONS.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 60.0
+        "days_active": 4,
+        "ias": 69.5
     },
     "FINOPB.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 60.0
+        "days_active": 2,
+        "ias": 65.0
     },
-    "BCLIND.NS": {
+    "DIXON.NS": {
+        "tier": "READY",
+        "days_active": 3,
+        "ias": 62.8
+    },
+    "ECLERX.NS": {
         "tier": "READY",
         "days_active": 1,
         "ias": 60.0
     },
-    "DIXON.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 55.2
-    },
-    "AFFLE.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 54.3
-    },
-    "BECTORFOOD.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 52.3
-    },
-    "ASTRAL.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 51.5
-    },
     "HCLTECH.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 48.4
-    },
-    "AMBUJACEM.NS": {
-        "tier": "WATCH",
         "days_active": 3,
-        "ias": 48.0
+        "ias": 59.5
+    },
+    "FIVESTAR.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
+    },
+    "DALBHARAT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 46.7
+    },
+    "AFCONS.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 46.2
+    },
+    "ESCORTS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 41.9
+    },
+    "HAVELLS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 38.5
     }
 }
