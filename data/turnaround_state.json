@@ -1,77 +1,62 @@
 {
     "BECTORFOOD.NS": {
         "tier": "ALERT",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 100.0
     },
-    "ACI.NS": {
+    "DALBHARAT.NS": {
         "tier": "ALERT",
         "days_active": 2,
-        "ias": 95.0
+        "ias": 90.0
     },
-    "FSL.NS": {
+    "HCLTECH.NS": {
         "tier": "ALERT",
-        "days_active": 3,
-        "ias": 80.8
+        "days_active": 4,
+        "ias": 83.7
     },
-    "GODFRYPHLP.NS": {
+    "BAYERCROP.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 74.5
+        "ias": 79.3
     },
     "AMBUJACEM.NS": {
         "tier": "READY",
-        "days_active": 4,
-        "ias": 69.7
+        "days_active": 5,
+        "ias": 73.6
     },
-    "ASTRAL.NS": {
-        "tier": "READY",
-        "days_active": 4,
-        "ias": 69.5
-    },
-    "FINOPB.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
-    },
-    "DIXON.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 62.8
-    },
-    "ECLERX.NS": {
+    "CRISIL.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 63.7
     },
-    "HCLTECH.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 59.5
-    },
-    "FIVESTAR.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.0
-    },
-    "DALBHARAT.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 46.7
-    },
-    "AFCONS.NS": {
+    "GODFRYPHLP.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 46.2
-    },
-    "ESCORTS.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 41.9
+        "ias": 53.3
     },
     "HAVELLS.NS": {
         "tier": "WATCH",
+        "days_active": 2,
+        "ias": 52.1
+    },
+    "DLF.NS": {
+        "tier": "WATCH",
         "days_active": 1,
-        "ias": 38.5
+        "ias": 51.1
+    },
+    "AWL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 47.0
+    },
+    "ESCORTS.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 43.4
+    },
+    "HCC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 41.7
     }
 }
