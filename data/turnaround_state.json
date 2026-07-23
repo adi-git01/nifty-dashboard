@@ -1,42 +1,22 @@
 {
-    "ECLERX.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 100.0
-    },
     "HCLTECH.NS": {
         "tier": "ALERT",
-        "days_active": 5,
-        "ias": 87.7
+        "days_active": 6,
+        "ias": 82.6
     },
-    "AWL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 76.5
-    },
-    "HAVELLS.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 67.7
-    },
-    "FINOPB.NS": {
+    "BAJAJHLDNG.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 65.0
+        "ias": 78.2
     },
     "CRISIL.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 51.9
+        "days_active": 3,
+        "ias": 59.2
     },
-    "BAYERCROP.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 45.1
-    },
-    "AEROFLEX.NS": {
+    "ASIANTILES.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 41.3
+        "ias": 51.0
     }
 }
