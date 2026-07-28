@@ -1,19 +1,13 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-07-27",
-    "cash": 312169.3309181899,
+    "date": "2026-07-28",
+    "cash": 434957.663482643,
     "holdings": {
         "EMCURE.NS": {
             "entry_price": 1539.699951171875,
             "entry_date": "2026-03-24",
             "shares": 39,
             "peak_price": 1924.800048828125
-        },
-        "AVALON.NS": {
-            "entry_price": 1511.199951171875,
-            "entry_date": "2026-05-25",
-            "shares": 39,
-            "peak_price": 1801.9000244140625
         },
         "SYRMA.NS": {
             "entry_price": 1266.699951171875,
@@ -31,7 +25,7 @@
             "entry_price": 192.05999755859375,
             "entry_date": "2026-07-02",
             "shares": 253,
-            "peak_price": 221.4600067138672
+            "peak_price": 231.8300018310547
         },
         "ASTRAMICRO.NS": {
             "entry_price": 1795.699951171875,
@@ -43,13 +37,7 @@
             "entry_price": 269.07000732421875,
             "entry_date": "2026-07-21",
             "shares": 266,
-            "peak_price": 307.1700134277344
-        },
-        "BETA.NS": {
-            "entry_price": 2478.39990234375,
-            "entry_date": "2026-07-21",
-            "shares": 28,
-            "peak_price": 2478.39990234375
+            "peak_price": 321.3900146484375
         },
         "DPABHUSHAN.NS": {
             "entry_price": 1472.0,
@@ -70,139 +58,115 @@
             "peak_price": 698.1500244140625
         }
     },
-    "equity": 1071844.5472267836,
-    "cash_pct": 29.1,
-    "count": 11,
+    "equity": 1063574.2676086195,
+    "cash_pct": 40.9,
+    "count": 9,
     "portfolio": [
         {
             "Ticker": "DIACABS.NS",
             "Sector": "Industrial Manufacturing",
-            "Price": 307.1700134277344,
-            "RS_Score": 63.7,
+            "Price": 321.3900146484375,
+            "RS_Score": 70.6,
             "Entry": 269.07000732421875,
-            "PnL%": 14.159885927979559,
-            "Dist_MA50": 42.84758270853873,
-            "MA50": 215.03,
-            "Trail_Stop": 270.31,
+            "PnL%": 19.44475634594799,
+            "Dist_MA50": 47.65920932072039,
+            "MA50": 217.66,
+            "Trail_Stop": 282.82,
             "Danger": ""
         },
         {
             "Ticker": "CYIENTDLM.NS",
             "Sector": "Aerospace & Defense",
-            "Price": 665.0499877929688,
-            "RS_Score": 50.5,
+            "Price": 681.9500122070312,
+            "RS_Score": 54.4,
             "Entry": 623.0,
-            "PnL%": 6.749596756495786,
-            "Dist_MA50": 34.8739554583876,
-            "MA50": 493.09,
+            "PnL%": 9.462281253135032,
+            "Dist_MA50": 36.852838507358776,
+            "MA50": 498.31,
             "Trail_Stop": 614.37,
             "Danger": ""
         },
         {
             "Ticker": "CUPID.NS",
             "Sector": "Personal Products",
-            "Price": 221.4600067138672,
-            "RS_Score": 48.3,
+            "Price": 231.8300018310547,
+            "RS_Score": 50.2,
             "Entry": 192.05999755859375,
-            "PnL%": 15.30772130011304,
-            "Dist_MA50": 28.34660184384053,
-            "MA50": 172.55,
-            "Trail_Stop": 194.88,
+            "PnL%": 20.707073194837402,
+            "Dist_MA50": 32.551394438316336,
+            "MA50": 174.9,
+            "Trail_Stop": 204.01,
             "Danger": ""
         },
         {
             "Ticker": "FILATEX.NS",
             "Sector": "Textiles & Apparels",
-            "Price": 74.63999938964844,
-            "RS_Score": 47.5,
+            "Price": 72.88999938964844,
+            "RS_Score": 44.6,
             "Entry": 71.30000305175781,
-            "PnL%": 4.684426640860124,
-            "Dist_MA50": 34.90017937401547,
-            "MA50": 55.33,
+            "PnL%": 2.230008793599099,
+            "Dist_MA50": 30.299854904682565,
+            "MA50": 55.94,
             "Trail_Stop": 65.68,
             "Danger": ""
         },
         {
             "Ticker": "DPABHUSHAN.NS",
             "Sector": "Consumer Durables",
-            "Price": 1412.3499755859375,
-            "RS_Score": 34.8,
+            "Price": 1384.0,
+            "RS_Score": 33.7,
             "Entry": 1472.0,
-            "PnL%": -4.052311441172725,
-            "Dist_MA50": 36.654079408571185,
-            "MA50": 1033.52,
+            "PnL%": -5.978260869565218,
+            "Dist_MA50": 32.64201017632903,
+            "MA50": 1043.41,
             "Trail_Stop": 1295.36,
-            "Danger": ""
-        },
-        {
-            "Ticker": "BETA.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 2230.699951171875,
-            "RS_Score": 31.3,
-            "Entry": 2478.39990234375,
-            "PnL%": -9.994349617978617,
-            "Dist_MA50": 18.35371021176346,
-            "MA50": 1884.77,
-            "Trail_Stop": 2180.99,
-            "Danger": "\u26a0\ufe0f 2.3% to trail"
-        },
-        {
-            "Ticker": "ASTRAMICRO.NS",
-            "Sector": "Telecom - Equipment & Accessories",
-            "Price": 1801.800048828125,
-            "RS_Score": 28.1,
-            "Entry": 1795.699951171875,
-            "PnL%": 0.3397058429649715,
-            "Dist_MA50": 14.21464967750888,
-            "MA50": 1577.56,
-            "Trail_Stop": 1628.0,
             "Danger": ""
         },
         {
             "Ticker": "SHILPAMED.NS",
             "Sector": "Unknown",
-            "Price": 620.5999755859375,
-            "RS_Score": 26.1,
+            "Price": 605.2000122070312,
+            "RS_Score": 21.8,
             "Entry": 546.75,
-            "PnL%": 13.507082868941472,
-            "Dist_MA50": 9.907037344819985,
-            "MA50": 564.66,
+            "PnL%": 10.69044576260288,
+            "Dist_MA50": 6.678138482574619,
+            "MA50": 567.31,
             "Trail_Stop": 568.26,
             "Danger": ""
         },
         {
-            "Ticker": "AVALON.NS",
-            "Sector": "Industrial Manufacturing",
-            "Price": 1728.199951171875,
-            "RS_Score": 25.2,
-            "Entry": 1511.199951171875,
-            "PnL%": 14.359449908116076,
-            "Dist_MA50": 4.115329848965701,
-            "MA50": 1659.89,
-            "Trail_Stop": 1585.67,
-            "Danger": "\u26a0\ufe0f 4.1% to MA50"
+            "Ticker": "ASTRAMICRO.NS",
+            "Sector": "Telecom - Equipment & Accessories",
+            "Price": 1704.0999755859375,
+            "RS_Score": 19.8,
+            "Entry": 1795.699951171875,
+            "PnL%": -5.1010735688977045,
+            "Dist_MA50": 7.190661403284956,
+            "MA50": 1589.78,
+            "Trail_Stop": 1628.0,
+            "Danger": "\u26a0\ufe0f 4.7% to trail"
         },
         {
             "Ticker": "SYRMA.NS",
             "Sector": "Unknown",
-            "Price": 1316.199951171875,
-            "RS_Score": 9.9,
+            "Price": 1306.0,
+            "RS_Score": 11.8,
             "Entry": 1266.699951171875,
-            "PnL%": 3.907792050848787,
-            "Dist_MA50": 2.617033917700593,
-            "MA50": 1282.63,
+            "PnL%": 3.102553907242749,
+            "Dist_MA50": 1.3133491669279636,
+            "MA50": 1289.07,
             "Trail_Stop": 1277.67,
-            "Danger": "\u26a0\ufe0f 2.6% to MA50 | \u26a0\ufe0f 3.0% to trail"
+            "Danger": "\u26a0\ufe0f 1.3% to MA50 | \u26a0\ufe0f 2.2% to trail"
         },
         {
             "Ticker": "EMCURE.NS",
             "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 1924.800048828125,
-            "RS_Score": 6.5,
+            "Price": 1892.199951171875,
+            "RS_Score": 6.1,
             "Entry": 1539.699951171875,
-            "PnL%": 25.01137298622033,
-            "Dist_MA50": 7.799324390581193,
-            "MA50": 1785.54,
+            "PnL%": 22.894070999463896,
+            "Dist_MA50": 5.757942684236246,
+            "MA50": 1789.18,
             "Trail_Stop": 1693.82,
             "Danger": ""
         }
@@ -218,7 +182,8 @@
         "BLISSGVS.NS": "2026-07-22",
         "ORCHPHARMA.NS": "2026-07-23",
         "CEMPRO.NS": "2026-07-24",
-        "GANDHAR.NS": "2026-07-27"
+        "GANDHAR.NS": "2026-07-27",
+        "BETA.NS": "2026-07-28"
     },
     "last_dd_alert_date": "2026-07-03",
     "config": {
