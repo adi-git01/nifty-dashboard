@@ -157,13 +157,32 @@ def render_market_explorer():
                 m3.metric("Trend", cycle.get('trend', 'Flat').title())
 
             # Key Financials
+            # NB: dict.get(k, 0) returns None when the key EXISTS with a None
+            # value, and formatting None with :.2f raises TypeError — which is
+            # exactly how this page crashed on Debt/Equity. get_stock_info()
+            # deliberately stores None for unavailable/garbage fundamentals
+            # (Yahoo's "Infinity" sentinel etc.), so every one of these needs a
+            # None-safe format. "—" is shown rather than a fabricated 0, since
+            # a 0.00 Debt/Equity reads as "no debt" instead of "not reported".
+            def _fmt(key, suffix="", scale=1.0, dp=2):
+                v = info.get(key)
+                try:
+                    if v is None:
+                        return "—"
+                    f = float(v) * scale
+                    if f != f or f in (float("inf"), float("-inf")):  # NaN / Yahoo "Infinity"
+                        return "—"
+                    return f"{f:.{dp}f}{suffix}"
+                except (TypeError, ValueError):
+                    return "—"
+
             st.markdown("#### 🏗️ Key Fundamentals")
             f1, f2, f3, f4, f5 = st.columns(5)
-            f1.metric("P/E Ratio", f"{info.get('pe', 0):.1f}x")
-            f2.metric("ROE", f"{info.get('roe', 0)*100:.1f}%")
-            f3.metric("Earnings Growth", f"{info.get('earningsGrowth', 0)*100:.1f}%")
-            f4.metric("Debt/Equity", f"{info.get('debtToEquity', 0):.2f}")
-            f5.metric("PEG Ratio", f"{info.get('pegRatio', 0):.2f}")
+            f1.metric("P/E Ratio", _fmt('pe', 'x', dp=1))
+            f2.metric("ROE", _fmt('roe', '%', scale=100, dp=1))
+            f3.metric("Earnings Growth", _fmt('earningsGrowth', '%', scale=100, dp=1))
+            f4.metric("Debt/Equity", _fmt('debtToEquity'))
+            f5.metric("PEG Ratio", _fmt('pegRatio'))
             
             # ── 6-Month CompRS History ────────────────────────────────────────
             st.markdown("---")
