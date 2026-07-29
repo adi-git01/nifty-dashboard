@@ -1,0 +1,49 @@
+name: Exit Rule Backtest (multi-regime)
+
+# Manual only — this is a heavy one-off research run, not part of the daily
+# pipeline. Results are uploaded as an artifact rather than committed, so a
+# research run can never disturb the live data files.
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Backtest start date (YYYY-MM-DD). 2019-01-01 spans the COVID crash + 2022 bear."
+        required: true
+        default: "2019-01-01"
+      max_tickers:
+        description: "Universe cap for runtime (0 = all ~777). 400 is a good balance."
+        required: true
+        default: "400"
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run multi-regime exit-rule backtest
+        run: |
+          python exit_rule_backtest.py \
+            --start "${{ github.event.inputs.start }}" \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            2>&1 | tee backtest_output.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exit-rule-backtest
+          path: |
+            analysis/exit_rule_backtest_summary.csv
+            analysis/exit_rule_backtest_trades.csv
+            backtest_output.txt
+          retention-days: 30

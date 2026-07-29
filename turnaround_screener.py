@@ -265,11 +265,25 @@ def _cagr(signal_price: float, current_price: float, signal_date_str: str) -> fl
         return None
 
 
+def _bulk_close(bulk, ticker):
+    """
+    Close series for `ticker` out of the bulk download.
+
+    NB: the download uses group_by="ticker", so the MultiIndex is
+    (ticker, field) — bulk[ticker]["Close"] — NOT bulk["Close"][ticker].
+    Both helpers here had the levels swapped, so every lookup raised, got
+    swallowed by their `except: return None`, and silently fell back to
+    signal_price. That is why every persisted row had current_price ==
+    signal_price and return/max_gain/xirr all 0.
+    """
+    s = bulk[ticker]["Close"] if isinstance(bulk.columns, pd.MultiIndex) else bulk["Close"]
+    return s.dropna()
+
+
 def _price_n_days_after(ticker: str, signal_date_str: str, n: int, bulk) -> float | None:
     """Return the closing price exactly N trading days after signal_date from bulk data."""
     try:
-        close_series = (bulk["Close"][ticker] if isinstance(bulk.columns, pd.MultiIndex)
-                        else bulk["Close"]).dropna()
+        close_series = _bulk_close(bulk, ticker)
         sig_dt = pd.Timestamp(signal_date_str[:10])
         after  = close_series[close_series.index.normalize() > sig_dt]
         return float(after.iloc[n - 1]) if len(after) >= n else None
@@ -302,8 +316,7 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
     # ── Current price lookup from bulk download ──────────────────────────────
     def _cur_price(ticker: str) -> float | None:
         try:
-            s = (bulk["Close"][ticker] if isinstance(bulk.columns, pd.MultiIndex)
-                 else bulk["Close"]).dropna()
+            s = _bulk_close(bulk, ticker)
             return float(s.iloc[-1]) if len(s) else None
         except Exception:
             return None
@@ -369,11 +382,32 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
         log.at[i, "current_price"]       = round(cur, 1)
         log.at[i, "return_since_signal"] = ret_now
 
-        # Max gain (never decreases)
+        # Max gain — the true peak close between signal date and today,
+        # recomputed from the full price series rather than accumulated one
+        # engine-run at a time. Incremental sampling silently loses the peak
+        # whenever a run is skipped (weekend/holiday/failed CI), and it could
+        # never recover the all-zero rows left behind by the swapped-
+        # MultiIndex bug above. Recomputing is self-healing and exact to the
+        # daily close. Falls back to the incremental value if history is
+        # unavailable, so a bad fetch can never *lower* a recorded peak.
         prev_max = float(entry["max_gain"]) if pd.notna(entry.get("max_gain")) else 0.0
-        if ret_now > prev_max:
-            log.at[i, "max_gain"]      = ret_now
-            log.at[i, "max_gain_date"] = today_str
+        peak_ret, peak_dt = None, None
+        try:
+            cs = _bulk_close(bulk, ticker)
+            idx = cs.index.normalize()
+            if getattr(idx, "tz", None) is not None:
+                idx = idx.tz_localize(None)   # else comparing tz-aware vs naive raises
+            after = cs[idx >= pd.Timestamp(sig_date)]
+            if len(after):
+                peak_ret = round((float(after.max()) / sig_price - 1) * 100, 1)
+                peak_dt = after.idxmax().strftime("%Y-%m-%d")
+        except Exception:
+            pass
+        if peak_ret is None:
+            peak_ret, peak_dt = ret_now, today_str
+        if peak_ret >= prev_max:
+            log.at[i, "max_gain"]      = peak_ret
+            log.at[i, "max_gain_date"] = peak_dt
 
         # Freeze period returns when the N-th trading day arrives
         for n, col_p, col_r in [(5, "signal_price_at_5d", "return_5d"),

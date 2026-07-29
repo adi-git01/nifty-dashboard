@@ -152,40 +152,183 @@ def get_cyclicity(sector_str):
         if kw in s: return "⚡ Short (-8%)"
     return "⚖️ Mid (-12%)"
 
+# Dashboard sector -> the yfinance industry names used in
+# industry_drift_analysis.csv. The PEAD table is keyed by RAW yfinance
+# industries ("Capital Markets", "Thermal Coal"), but this function is
+# called with the dashboard's consolidated sector ("Capital Goods",
+# "Pharma & Healthcare"). The old code bridged that gap by matching the
+# first 4 characters of the first word, which silently produced nonsense:
+# "Capital Goods" -> "Capital Markets" (capi), "Commercial Services &
+# Supplies" -> "Communication Equipment" (comm), "Business Equipment &
+# Supplies" -> "Specialty Business Services" (busi), "Apparel
+# Manufacturing" -> "Apparel Retail". It then took .iloc[0] of an
+# arbitrarily-ordered match set, so near-identical sectors ("Consumer
+# Durables" vs "Consumer Goods") landed on opposite labels. Every PEAD
+# label downstream was therefore close to noise.
+#
+# Keys cover all three vocabularies present in the logs (raw yfinance,
+# Playbook-58, and the broad consolidated names), since the sector column
+# changed meaning over time as the mapping was corrected.
+_PEAD_SECTOR_MAP = {
+    # --- Financials ---
+    "banking": ["Banks - Regional"],
+    "banks": ["Banks - Regional"],
+    "financial services": ["Asset Management", "Credit Services", "Financial Conglomerates", "Mortgage Finance"],
+    "finance": ["Credit Services", "Financial Conglomerates", "Mortgage Finance"],
+    "capital markets": ["Capital Markets", "Financial Data & Stock Exchanges", "Asset Management"],
+    "financial technology (fintech)": ["Financial Data & Stock Exchanges", "Credit Services"],
+    "insurance": ["Insurance - Life", "Insurance - Diversified", "Insurance Brokers", "Insurance - Reinsurance"],
+    # --- Technology / Telecom ---
+    "it & technology": ["Software - Application", "Software - Infrastructure", "Information Technology Services"],
+    "it - software": ["Software - Application", "Software - Infrastructure"],
+    "it - services": ["Information Technology Services", "Specialty Business Services"],
+    "it - hardware": ["Computer Hardware", "Electronic Components"],
+    "telecom": ["Telecom Services", "Communication Equipment"],
+    "telecom - services": ["Telecom Services"],
+    "telecom - equipment & accessories": ["Communication Equipment"],
+    # --- Healthcare ---
+    "pharma & healthcare": ["Drug Manufacturers - Specialty & Generic", "Drug Manufacturers - General", "Biotechnology"],
+    "pharmaceuticals & biotechnology": ["Drug Manufacturers - Specialty & Generic", "Drug Manufacturers - General", "Biotechnology"],
+    "healthcare services": ["Medical Care Facilities", "Diagnostics & Research", "Health Information Services"],
+    "healthcare equipment & supplies": ["Medical Instruments & Supplies"],
+    # --- Consumer ---
+    "consumer goods": ["Packaged Foods", "Household & Personal Products", "Confectioners"],
+    "diversified fmcg": ["Packaged Foods", "Household & Personal Products"],
+    "food products": ["Packaged Foods", "Confectioners"],
+    "agricultural food & other products": ["Packaged Foods", "Agricultural Inputs"],
+    "personal products": ["Household & Personal Products"],
+    "household products": ["Household & Personal Products"],
+    "beverages": ["Beverages - Wineries & Distilleries"],
+    "cigarettes & tobacco products": ["Tobacco"],
+    "consumer durables": ["Consumer Electronics", "Furnishings, Fixtures & Appliances", "Luxury Goods"],
+    "retail": ["Internet Retail", "Apparel Retail", "Restaurants"],
+    "retailing": ["Internet Retail", "Apparel Retail"],
+    "textiles": ["Textile Manufacturing", "Apparel Manufacturing", "Footwear & Accessories"],
+    "textiles & apparels": ["Textile Manufacturing", "Apparel Manufacturing", "Footwear & Accessories"],
+    "hospitality": ["Lodging", "Restaurants", "Travel Services"],
+    "leisure services": ["Lodging", "Restaurants", "Travel Services"],
+    "other consumer services": ["Internet Content & Information", "Travel Services"],
+    "media": ["Broadcasting", "Advertising Agencies", "Entertainment"],
+    "entertainment": ["Entertainment", "Broadcasting"],
+    "printing & publication": ["Advertising Agencies", "Broadcasting"],
+    # --- Autos ---
+    "auto": ["Auto Manufacturers", "Auto Parts"],
+    "automobiles": ["Auto Manufacturers"],
+    "auto components": ["Auto Parts"],
+    "agricultural, commercial & construction vehicles": ["Farm & Heavy Construction Machinery"],
+    # --- Industrials / Capital Goods ---
+    "capital goods": ["Specialty Industrial Machinery", "Electrical Equipment & Parts", "Metal Fabrication", "Tools & Accessories"],
+    "industrial manufacturing": ["Specialty Industrial Machinery", "Metal Fabrication"],
+    "industrial products": ["Specialty Industrial Machinery", "Tools & Accessories", "Metal Fabrication"],
+    "electrical equipment": ["Electrical Equipment & Parts"],
+    "engineering services": ["Engineering & Construction"],
+    "commercial services & supplies": ["Specialty Business Services", "Consulting Services"],
+    "business equipment & supplies": ["Specialty Business Services"],
+    "aerospace & defense": ["Aerospace & Defense"],
+    # --- Infra / Realty / Materials ---
+    "infrastructure": ["Engineering & Construction", "Infrastructure Operations"],
+    "construction": ["Engineering & Construction", "Infrastructure Operations"],
+    "transport infrastructure": ["Airports & Air Services", "Infrastructure Operations"],
+    "transport services": ["Integrated Freight & Logistics", "Marine Shipping", "Railroads"],
+    "real estate": ["Real Estate Services", "Real Estate - Development", "Real Estate - Diversified"],
+    "realty": ["Real Estate - Development", "Real Estate Services", "Real Estate - Diversified"],
+    "cement & materials": ["Building Materials", "Building Products & Equipment"],
+    "cement & cement products": ["Building Materials"],
+    "other construction materials": ["Building Materials", "Building Products & Equipment"],
+    "paper, forest & jute products": ["Lumber & Wood Production"],
+    # --- Chemicals / Energy / Metals / Utilities ---
+    "chemicals": ["Specialty Chemicals", "Chemicals"],
+    "chemicals & petrochemicals": ["Specialty Chemicals", "Chemicals"],
+    "fertilizers & agrochemicals": ["Agricultural Inputs"],
+    "oil & gas": ["Oil & Gas Integrated", "Oil & Gas Refining & Marketing"],
+    "oil": ["Oil & Gas Integrated"],
+    "petroleum products": ["Oil & Gas Refining & Marketing"],
+    "gas": ["Utilities - Regulated Gas"],
+    "consumable fuels": ["Thermal Coal"],
+    "metals & mining": ["Steel", "Aluminum", "Copper", "Other Industrial Metals & Mining"],
+    "ferrous metals": ["Steel"],
+    "non - ferrous metals": ["Aluminum", "Copper"],
+    "diversified metals": ["Other Industrial Metals & Mining"],
+    "minerals & mining": ["Other Industrial Metals & Mining"],
+    "metals & minerals trading": ["Other Industrial Metals & Mining"],
+    "power & utilities": ["Utilities - Regulated Electric", "Utilities - Renewable", "Utilities - Independent Power Producers"],
+    "power": ["Utilities - Regulated Electric", "Utilities - Renewable", "Utilities - Independent Power Producers"],
+    "other utilities": ["Utilities - Regulated Electric"],
+    # --- Misc ---
+    "diversified": ["Conglomerates", "Financial Conglomerates"],
+    # Raw yfinance labels that appear in older log rows but have no exact row
+    # in the PEAD table; mapped to their closest analogue.
+    "farm products": ["Agricultural Inputs", "Packaged Foods"],
+    "publishing": ["Advertising Agencies", "Broadcasting"],
+    "resorts & casinos": ["Lodging", "Restaurants"],
+    # "Packaging & Containers" is deliberately left unmapped — there is no
+    # honest analogue in the table, and Unknown is better than a guess.
+}
+
 _pead_df = None
+
+
+def _pead_label(classification: str) -> str:
+    b = str(classification).split('(')[0].strip().upper()
+    if "FRONT" in b:
+        return "🔴 Fade (Front-Run)"
+    if "DRIFT" in b:
+        return "🟢 Buy (Drifter)"
+    return "🟡 Neutral (Priced-In)"
+
+
 def get_pead_edge(sector_str):
+    """
+    Post-Earnings-Announcement-Drift behaviour for a sector.
+
+    Resolution order: exact industry name -> curated sector map -> Unknown.
+    When a sector maps to several industries the classification is decided by
+    Shock_Events-weighted vote (the old code took an arbitrary .iloc[0]).
+
+    NOTE: the shipped table contains only CONCURRENT / BALANCED / DRIFTERS —
+    there is no FRONT-run class — so "🔴 Fade" is currently unreachable. The
+    branch is kept for forward-compatibility if the analysis is regenerated
+    with that class, rather than implying a Fade signal exists today.
+    """
     global _pead_df
     if _pead_df is None:
         path = "analysis_2026/earnings_shocks/industry_drift_analysis.csv"
-        if os.path.exists(path):
-            _pead_df = pd.read_csv(path)
-        else:
+        if not os.path.exists(path):
             return "Unknown"
-            
-    if _pead_df is None or _pead_df.empty: return "Unknown"
-    
-    s = str(sector_str).lower()
-    matches = _pead_df[_pead_df['Industry'].str.lower().str.contains(s.split()[0][:4], case=False, na=False)] 
-    
-    if "bank" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Bank", case=False, na=False)]
-    elif "auto" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Auto", case=False, na=False)]
-    elif "pharma" in s or "biotech" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Drug|Biotech", case=False, na=False)]
-    elif "it -" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Software|Information Tech", case=False, na=False)]
-    elif "fmcg" in s or "consumer durables" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Household|Packaged Food", case=False, na=False)]
-    elif "chemical" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Chemical", case=False, na=False)]
-    elif "telecom" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Telecom", case=False, na=False)]
-    elif "construction" in s or "engineering" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Infrastructure|Engineering", case=False, na=False)]
-    elif "metal" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Steel|Aluminum|Metal", case=False, na=False)]
-    elif "healthcare" in s: matches = _pead_df[_pead_df['Industry'].str.contains("Medical|Diagnostics", case=False, na=False)]
-    
-    if not matches.empty:
-        c = matches.iloc[0]['Classification']
-        behavior = c.split('(')[0].strip()
-        if "FRONT" in behavior: return "🔴 Fade (Front-Run)"
-        elif "DRIFT" in behavior: return "🟢 Buy (Drifter)"
-        else: return "🟡 Neutral (Priced-In)"
-        
-    return "Unknown"
+        try:
+            _pead_df = pd.read_csv(path)
+        except Exception:
+            return "Unknown"
+
+    if _pead_df is None or _pead_df.empty:
+        return "Unknown"
+
+    s = str(sector_str).strip().lower()
+    if not s or s in ("unknown", "nan", "none"):
+        return "Unknown"
+
+    ind_lower = _pead_df['Industry'].astype(str).str.strip().str.lower()
+
+    # 1. Exact industry match (log rows written when 'sector' held raw
+    #    yfinance industry names).
+    exact = _pead_df[ind_lower == s]
+    if not exact.empty:
+        return _pead_label(exact.iloc[0]['Classification'])
+
+    # 2. Curated sector -> industries mapping.
+    targets = _PEAD_SECTOR_MAP.get(s)
+    if not targets:
+        return "Unknown"
+    sel = _pead_df[ind_lower.isin([t.strip().lower() for t in targets])]
+    if sel.empty:
+        return "Unknown"
+
+    # 3. Shock_Events-weighted vote across the matched industries.
+    w = pd.to_numeric(sel.get('Shock_Events'), errors='coerce').fillna(1.0).clip(lower=1.0)
+    tally = {}
+    for cls, weight in zip(sel['Classification'], w):
+        tally[_pead_label(cls)] = tally.get(_pead_label(cls), 0.0) + float(weight)
+    return max(tally.items(), key=lambda kv: kv[1])[0]
 
 
 # ======================================================================
