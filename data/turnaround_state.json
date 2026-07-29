@@ -1,87 +1,132 @@
 {
-    "CRISIL.NS": {
+    "ASHAPURMIN.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "HEXT.NS": {
         "tier": "ALERT",
         "days_active": 2,
         "ias": 100.0
     },
-    "ASIANTILES.NS": {
+    "DEVYANI.NS": {
         "tier": "ALERT",
-        "days_active": 4,
+        "days_active": 1,
         "ias": 90.0
     },
-    "HYUNDAI.NS": {
+    "ASIANTILES.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 84.5
-    },
-    "HCLTECH.NS": {
-        "tier": "ALERT",
-        "days_active": 9,
-        "ias": 82.9
+        "days_active": 5,
+        "ias": 90.0
     },
     "BSOFT.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 80.7
+        "days_active": 3,
+        "ias": 85.0
     },
     "BAJAJHLDNG.NS": {
-        "tier": "ALERT",
-        "days_active": 4,
-        "ias": 80.3
+        "tier": "READY",
+        "days_active": 5,
+        "ias": 78.0
     },
-    "HEXT.NS": {
+    "FIVESTAR.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 76.8
+    },
+    "CROMPTON.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 79.4
+        "ias": 70.0
     },
     "ICICIPRULI.NS": {
         "tier": "READY",
-        "days_active": 3,
-        "ias": 79.3
+        "days_active": 4,
+        "ias": 69.6
     },
-    "BDL.NS": {
+    "GMDCLTD.NS": {
         "tier": "READY",
-        "days_active": 2,
-        "ias": 69.3
+        "days_active": 1,
+        "ias": 63.8
+    },
+    "COROMANDEL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 61.6
+    },
+    "DIXON.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.3
+    },
+    "FSL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "EXPLEOSOL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
     },
     "AFFLE.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 60.0
     },
     "AGARIND.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 60.0
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 56.3
     },
-    "IDBI.NS": {
+    "ESCORTS.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 54.5
+        "ias": 55.7
     },
-    "FIVESTAR.NS": {
+    "CEATLTD.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 52.8
+        "ias": 51.4
     },
-    "DBL.NS": {
+    "HYUNDAI.NS": {
         "tier": "WATCH",
         "days_active": 3,
-        "ias": 50.9
+        "ias": 50.6
     },
-    "HAVELLS.NS": {
+    "CYIENT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.5
+    },
+    "ACC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 49.3
+    },
+    "BECTORFOOD.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 46.2
+    },
+    "BDL.NS": {
         "tier": "WATCH",
         "days_active": 3,
-        "ias": 50.2
+        "ias": 44.1
+    },
+    "COCHINSHIP.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.4
+    },
+    "HDFCLIFE.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.1
     },
     "ASHOKLEY.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 50.1
-    },
-    "CAPILLARY.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 45.1
+        "ias": 35.6
     }
 }
