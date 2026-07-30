@@ -72,13 +72,29 @@ OUT_DIR = "analysis"
 #               (applied only to regimes listed in trail_regimes, None = all)
 # trail_flat  : if set, overrides the regime trail entirely (kills adaptivity)
 # ma50_confirm: consecutive closes below MA50 required to exit (1 = current)
+#
+# rs_decel : exit when composite RS falls more than this many POINTS below its
+#            own trailing 30-day peak (None = rule disabled). Motivated by the
+#            live trade log: every exit occurred long AFTER RS had rolled over
+#            (median RS drop from 30d peak at exit = -27.9pts; winners -37.8),
+#            i.e. the price stop is a lagging confirmation of a deterioration
+#            RS flagged much earlier.
 VARIANTS = {
-    "baseline":            dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=None, ma50_confirm=1),
-    "B1_caution_trail15":  dict(trail_delta=0.03, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=1),
-    "B1b_trail_flat15":    dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=0.15, ma50_confirm=1),
-    "B2_ma50_confirm2":    dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=None, ma50_confirm=2),
-    "B3_combined":         dict(trail_delta=0.03, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=2),
-    "B3b_flat15_confirm2": dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=0.15, ma50_confirm=2),
+    "baseline":            dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=None, ma50_confirm=1, rs_decel=None),
+    "B1_caution_trail15":  dict(trail_delta=0.03, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=1, rs_decel=None),
+    "B1b_trail_flat15":    dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=0.15, ma50_confirm=1, rs_decel=None),
+    "B2_ma50_confirm2":    dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=None, ma50_confirm=2, rs_decel=None),
+    "B3_combined":         dict(trail_delta=0.03, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=2, rs_decel=None),
+    "B3b_flat15_confirm2": dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=0.15, ma50_confirm=2, rs_decel=None),
+    # --- new: wider stops, sized from the measured drawdown distribution ---
+    # Winners that ran >40% to peak gave back a median -15.6% (p25 -17.9%)
+    # from their running peak DURING the ascent, so a -12% trail ejects ~73%
+    # of them before they top out. -18% is the level that survives ~90%.
+    "B4_caution_trail18":  dict(trail_delta=0.06, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=1, rs_decel=None),
+    "B4b_trail_flat18":    dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=0.18, ma50_confirm=1, rs_decel=None),
+    # --- new: RS-deceleration exit ---
+    "B5_rs_decel30":       dict(trail_delta=0.0,  trail_regimes=None,        trail_flat=None, ma50_confirm=1, rs_decel=30.0),
+    "B6_trail18_decel30":  dict(trail_delta=0.06, trail_regimes=["CAUTION"], trail_flat=None, ma50_confirm=1, rs_decel=30.0),
 }
 
 
@@ -132,11 +148,34 @@ def fetch(tickers, start, end):
 
 
 # ── Simulation ───────────────────────────────────────────────────────────────
-def simulate(name, cfg, close_df, vol_df, nifty, dates):
+def build_rs_panel(close_df, nifty, dates):
+    """
+    Daily composite RS vs Nifty for every ticker (10% RS5 + 50% RS21 + 40% RS63),
+    vectorised. Computed once and shared by all variants: entries need it for
+    ranking/thresholds, and the RS-deceleration exit needs it per held name on
+    every bar. Row i uses only prices up to row i, so it carries no look-ahead.
+    """
+    c = close_df.reindex(dates)
+    n = nifty["Close"].reindex(dates).ffill()
+    rs = pd.DataFrame(0.0, index=dates, columns=c.columns)
+    valid = pd.DataFrame(True, index=dates, columns=c.columns)
+    for period, w in RS_WEIGHTS:
+        stock_r = (c / c.shift(period) - 1) * 100
+        nifty_r = (n / n.shift(period) - 1) * 100
+        rs = rs.add((stock_r).sub(nifty_r, axis=0) * w, fill_value=0.0)
+        valid &= c.shift(period).notna()
+    return rs.where(valid)
+
+
+def simulate(name, cfg, close_df, vol_df, nifty, dates, rs_panel=None):
     """
     One independent portfolio simulation. Decisions at date d use only data
     up to and including d (no look-ahead).
     """
+    if rs_panel is None:
+        rs_panel = build_rs_panel(close_df, nifty, dates)
+    # trailing 30-bar peak of RS, for the deceleration exit
+    rs_peak30 = rs_panel.rolling(30, min_periods=5).max()
     cash = float(INITIAL_CAPITAL)
     holdings = {}          # ticker -> dict(entry_price, shares, peak, entry_date, below_ma50)
     cooldown = {}          # ticker -> exit date (post trailing-stop)
@@ -182,6 +221,12 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates):
                 reason = f"Trend Break (MA50 x{cfg['ma50_confirm']})"
             elif p < h["peak"] * keep:
                 reason = f"Trailing Stop ({(1-keep)*100:.0f}% [{regime}])"
+            elif cfg.get("rs_decel"):
+                # RS rolled over well before price did — exit on the leading signal
+                rs_now = rs_panel.at[d, t] if t in rs_panel.columns else np.nan
+                rs_pk = rs_peak30.at[d, t] if t in rs_peak30.columns else np.nan
+                if pd.notna(rs_now) and pd.notna(rs_pk) and (rs_pk - rs_now) >= cfg["rs_decel"]:
+                    reason = f"RS Decel (-{cfg['rs_decel']:.0f}pt from 30d peak)"
 
             if reason:
                 proceeds = h["shares"] * p * SELL_COST
@@ -192,7 +237,13 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates):
                                    pnl=proceeds - cost_basis,
                                    pnl_pct=(p / h["entry_price"] - 1) * 100,
                                    reason=reason, regime=regime))
-                if "Trailing" in reason:
+                # Cooldown after a *momentum-failure* exit (trailing stop or RS
+                # deceleration). Without it an RS-decel exit is re-bought at the
+                # very next rebalance while RS is still depressed, producing
+                # exit/re-entry churn — observed in testing as a same-week
+                # round trip. A trend-break exit keeps the live engine's
+                # behaviour (no cooldown).
+                if "Trailing" in reason or "RS Decel" in reason:
                     cooldown[t] = d
                 del holdings[t]
 
@@ -210,20 +261,9 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates):
 
             free = MAX_POSITIONS - len(holdings)
             if free > 0 and breadth >= BREADTH_NARROW_THRESHOLD:
-                # composite RS vs Nifty, computed as-of d
-                n_now = float(nifty["Close"].asof(d))
-                rs_total = pd.Series(0.0, index=close_df.columns)
-                ok = pd.Series(True, index=close_df.columns)
-                for period, w in RS_WEIGHTS:
-                    if i < period:
-                        ok[:] = False
-                        break
-                    past = close_df.iloc[i - period]
-                    n_past = float(nifty["Close"].asof(dates[i - period]))
-                    stock_r = (px / past - 1) * 100
-                    nifty_r = (n_now / n_past - 1) * 100
-                    rs_total += (stock_r - nifty_r) * w
-                    ok &= past.notna()
+                # composite RS vs Nifty as-of d, from the shared panel
+                rs_total = rs_panel.loc[d]
+                ok = rs_total.notna()
 
                 liq_cr = (px * vol_df.loc[d]) / 1e7          # ₹ Cr turnover
                 elig = (ok & px.notna() & ma50.notna() & (px > ma50)
@@ -295,10 +335,13 @@ def main():
           f"{len(VARIANTS)} variants\n")
 
     os.makedirs(OUT_DIR, exist_ok=True)
+    print("[sim] building shared RS panel ...", flush=True)
+    rs_panel = build_rs_panel(close_df, nifty, dates)
+
     rows, all_trades, curves = [], [], {}
     for name, cfg in VARIANTS.items():
         print(f"  running {name} ...", flush=True)
-        curve, trades = simulate(name, cfg, close_df, vol_df, nifty, dates)
+        curve, trades = simulate(name, cfg, close_df, vol_df, nifty, dates, rs_panel)
         curves[name] = curve
         rows.append(stats(curve, trades, name))
         if len(trades):
