@@ -41,9 +41,17 @@ import pandas as pd
 
 from utils.atomic_io import atomic_json_dump
 
-# Root-level and gitignored, matching alerts.json — this is per-user local
-# state, not something the EOD engine should be committing back to the repo.
-RS_ALERTS_FILE = "rs_alerts.json"
+# Tracked in git, unlike alerts.json. The EOD workflow evaluates these alerts
+# headlessly and pushes to Telegram, so both the definitions and the last-seen
+# values have to travel with the repo — that is what makes an alert fire when
+# the dashboard is closed. It also means CI and a local dashboard can each
+# advance the state; whichever observes a crossing first reports it, and the
+# other goes quiet on the next pull because last_value has already moved.
+RS_ALERTS_FILE = "data/rs_alerts.json"
+
+# Alerts created before the move lived at the repo root. Read them once so an
+# upgrade does not silently drop someone's alerts.
+LEGACY_RS_ALERTS_FILE = "rs_alerts.json"
 
 # Metric key -> (label, sane absolute ceiling). The ceilings mirror the
 # display-time guard in main.py: a real 3-month relative strength tops out
@@ -65,12 +73,12 @@ DIRECTIONS = {
 # --------------------------------------------------------------------------
 # store
 # --------------------------------------------------------------------------
-def load_rs_alerts() -> List[Dict[str, Any]]:
-    if not os.path.exists(RS_ALERTS_FILE):
+def _read(path: str) -> List[Dict[str, Any]]:
+    if not os.path.exists(path):
         return []
     try:
         import json
-        with open(RS_ALERTS_FILE, "r") as f:
+        with open(path, "r") as f:
             data = json.load(f)
         return data if isinstance(data, list) else []
     except Exception:
@@ -78,7 +86,15 @@ def load_rs_alerts() -> List[Dict[str, Any]]:
         return []
 
 
+def load_rs_alerts() -> List[Dict[str, Any]]:
+    alerts = _read(RS_ALERTS_FILE)
+    if alerts:
+        return alerts
+    return _read(LEGACY_RS_ALERTS_FILE)
+
+
 def save_rs_alerts(alerts: List[Dict[str, Any]]) -> None:
+    os.makedirs(os.path.dirname(RS_ALERTS_FILE) or ".", exist_ok=True)
     atomic_json_dump(alerts, RS_ALERTS_FILE, indent=2)
 
 
