@@ -23,6 +23,7 @@ nifty500_cache.csv
 config.json
 tracker_data.json
 alerts.json
+rs_alerts.json
 
 # OS files
 .DS_Store
