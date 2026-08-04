@@ -1,97 +1,112 @@
 {
-    "CONCORDBIO.NS": {
+    "GODFRYPHLP.NS": {
         "tier": "ALERT",
         "days_active": 1,
-        "ias": 100.0
+        "ias": 95.0
     },
     "BSOFT.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 90.0
     },
-    "ICRA.NS": {
-        "tier": "ALERT",
+    "CAPILLARY.NS": {
+        "tier": "READY",
         "days_active": 1,
-        "ias": 81.9
+        "ias": 77.1
     },
-    "ABFRL.NS": {
+    "DEVYANI.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 73.2
+    },
+    "CLEAN.NS": {
         "tier": "READY",
         "days_active": 2,
-        "ias": 73.8
+        "ias": 69.2
     },
-    "BLACKBUCK.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 65.2
-    },
-    "CYIENT.NS": {
+    "ESCORTS.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.7
+        "ias": 66.5
+    },
+    "HINDCOPPER.NS": {
+        "tier": "READY",
+        "days_active": 3,
+        "ias": 65.6
     },
     "AFFLE.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
+        "ias": 65.0
+    },
+    "BLACKBUCK.NS": {
+        "tier": "READY",
+        "days_active": 4,
+        "ias": 64.0
+    },
+    "HCC.NS": {
+        "tier": "READY",
+        "days_active": 3,
+        "ias": 63.8
+    },
+    "AGARIND.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 60.0
+    },
+    "ECLERX.NS": {
+        "tier": "READY",
+        "days_active": 2,
         "ias": 60.0
     },
     "EXPLEOSOL.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 60.0
     },
-    "AGARIND.NS": {
-        "tier": "READY",
+    "BASF.NS": {
+        "tier": "WATCH",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 57.6
+    },
+    "ABFRL.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 57.4
     },
     "HYUNDAI.NS": {
-        "tier": "READY",
-        "days_active": 6,
-        "ias": 60.0
-    },
-    "HCC.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 58.6
-    },
-    "ICICIPRULI.NS": {
         "tier": "WATCH",
         "days_active": 7,
-        "ias": 54.2
+        "ias": 57.4
     },
     "HBLENGINE.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 52.5
+        "days_active": 3,
+        "ias": 54.9
     },
-    "FORCEMOT.NS": {
+    "CYIENT.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 52.4
+        "ias": 53.1
+    },
+    "AMBUJACEM.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 47.7
     },
     "ACC.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 49.2
-    },
-    "CLEAN.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 45.7
-    },
-    "ECLERX.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 45.7
-    },
-    "COCHINSHIP.NS": {
-        "tier": "WATCH",
-        "days_active": 4,
-        "ias": 41.1
-    },
-    "HINDCOPPER.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 36.9
+        "ias": 47.4
+    },
+    "FORCEMOT.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 44.2
+    },
+    "HINDZINC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.1
     }
 }
