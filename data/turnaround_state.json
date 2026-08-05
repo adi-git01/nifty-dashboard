@@ -1,112 +1,87 @@
 {
-    "GODFRYPHLP.NS": {
+    "BATAINDIA.NS": {
         "tier": "ALERT",
         "days_active": 1,
-        "ias": 95.0
+        "ias": 100.0
     },
-    "BSOFT.NS": {
+    "GODFRYPHLP.NS": {
         "tier": "ALERT",
         "days_active": 2,
         "ias": 90.0
     },
-    "CAPILLARY.NS": {
-        "tier": "READY",
+    "BLS.NS": {
+        "tier": "ALERT",
         "days_active": 1,
-        "ias": 77.1
-    },
-    "DEVYANI.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 73.2
-    },
-    "CLEAN.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 69.2
-    },
-    "ESCORTS.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 66.5
+        "ias": 90.0
     },
     "HINDCOPPER.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 65.6
+        "tier": "ALERT",
+        "days_active": 4,
+        "ias": 90.0
     },
-    "AFFLE.NS": {
+    "HAPPSTMNDS.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 81.1
+    },
+    "CHOLAHLDNG.NS": {
         "tier": "READY",
-        "days_active": 2,
+        "days_active": 1,
+        "ias": 79.2
+    },
+    "EPACKPEB.NS": {
+        "tier": "READY",
+        "days_active": 1,
         "ias": 65.0
     },
-    "BLACKBUCK.NS": {
+    "DIXON.NS": {
         "tier": "READY",
-        "days_active": 4,
-        "ias": 64.0
-    },
-    "HCC.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 63.8
-    },
-    "AGARIND.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
-    "ECLERX.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
-    "EXPLEOSOL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
-    "BASF.NS": {
-        "tier": "WATCH",
         "days_active": 1,
-        "ias": 57.6
+        "ias": 63.0
     },
-    "ABFRL.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 57.4
+    "BESTAGRO.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
     },
     "HYUNDAI.NS": {
-        "tier": "WATCH",
-        "days_active": 7,
-        "ias": 57.4
+        "tier": "READY",
+        "days_active": 8,
+        "ias": 60.0
     },
-    "HBLENGINE.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 54.9
-    },
-    "CYIENT.NS": {
+    "CAPILLARY.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 53.1
+        "ias": 57.0
+    },
+    "BLACKBUCK.NS": {
+        "tier": "WATCH",
+        "days_active": 5,
+        "ias": 55.0
+    },
+    "DBL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 54.0
+    },
+    "CELLO.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 54.0
     },
     "AMBUJACEM.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 47.7
-    },
-    "ACC.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 47.4
+        "ias": 52.7
+    },
+    "CLEAN.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 50.0
     },
     "FORCEMOT.NS": {
         "tier": "WATCH",
-        "days_active": 3,
-        "ias": 44.2
-    },
-    "HINDZINC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 36.1
+        "days_active": 4,
+        "ias": 43.5
     }
 }
