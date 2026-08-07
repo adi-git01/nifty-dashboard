@@ -31,8 +31,55 @@ try:
     from utils.sector_mapping import consolidate_sector
 except ImportError:
     consolidate_sector = lambda x: x
+from utils.atomic_io import atomic_to_csv
 
 OUTPUT_PATH = "data/fundamentals_cache.csv"
+
+# Refuse to publish a cache that covers less of the universe than this.
+MIN_COVERAGE = 0.60
+
+
+def _fmt(value, label, pct=False):
+    """Progress-line formatter that cannot raise. Logging must never be able
+    to kill the fetch — that is the failure this whole module just suffered."""
+    v = _num(value)
+    if v is None:
+        return f"{label}=N/A"
+    return f"{label}={v * 100:.1f}%" if pct else f"{label}={v:.1f}"
+
+
+def _num(value):
+    """
+    Coerce a yfinance field to a real float, or None.
+
+    Yahoo returns the *strings* 'Infinity' / '-Infinity' for undefined ratios
+    (typically PE on a zero-EPS company). Those are truthy, so `if pe:` passes
+    and every downstream arithmetic or format op then explodes on a str. That
+    is exactly what broke this script: a progress-line f-string, `f"PE=
+    {data['pe']:.1f}"`, raised ValueError at ticker 287 and killed an 8-minute
+    run — discarding 286 good fetches and never writing the file. Three
+    consecutive scheduled refreshes died this way.
+
+    Same sentinel class already handled in data_engine.py; centralise it here
+    so no field can carry a string into the cache.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        s = value.strip()
+        if s.lower() in ("infinity", "-infinity", "inf", "-inf", "nan", "none", ""):
+            return None
+        try:
+            value = float(s)
+        except ValueError:
+            return None
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")):
+        return None
+    return f
 
 
 def fetch_one(ticker: str) -> dict | None:
@@ -52,30 +99,32 @@ def fetch_one(ticker: str) -> dict | None:
         broad    = consolidate_sector(granular)
 
         # ── PE ──────────────────────────────────────────────────────────────
-        pe = info.get("trailingPE") or info.get("pe") or info.get("priceToEarnings")
+        # Every value below goes through _num() before it is used in arithmetic
+        # or stored — Yahoo's 'Infinity' string sentinel must never get past here.
+        pe = _num(info.get("trailingPE")) or _num(info.get("pe")) or _num(info.get("priceToEarnings"))
         if pe is None:
-            price = info.get("currentPrice") or info.get("previousClose") or 0
-            eps   = info.get("trailingEps") or info.get("forwardEps")
+            price = _num(info.get("currentPrice")) or _num(info.get("previousClose")) or 0
+            eps   = _num(info.get("trailingEps")) or _num(info.get("forwardEps"))
             if price and eps and eps != 0:
                 pe = price / eps
 
-        forward_pe = info.get("forwardPE")
+        forward_pe = _num(info.get("forwardPE"))
         if forward_pe is None:
-            price   = info.get("currentPrice") or info.get("previousClose") or 0
-            fwd_eps = info.get("forwardEps")
+            price   = _num(info.get("currentPrice")) or _num(info.get("previousClose")) or 0
+            fwd_eps = _num(info.get("forwardEps"))
             if price and fwd_eps and fwd_eps != 0:
                 forward_pe = price / fwd_eps
 
         # ── PEG ─────────────────────────────────────────────────────────────
-        peg = info.get("pegRatio") or info.get("trailingPegRatio")
+        peg = _num(info.get("pegRatio")) or _num(info.get("trailingPegRatio"))
         if peg is None and pe:
-            g = info.get("earningsGrowth") or info.get("revenueGrowth")
+            g = _num(info.get("earningsGrowth")) or _num(info.get("revenueGrowth"))
             if g and g != 0:
                 peg = pe / (g * 100)
 
         # ── ROE / ROA ────────────────────────────────────────────────────────
-        roe = info.get("returnOnEquity") or info.get("roe")
-        roa = info.get("returnOnAssets") or info.get("roa")
+        roe = _num(info.get("returnOnEquity")) or _num(info.get("roe"))
+        roa = _num(info.get("returnOnAssets")) or _num(info.get("roa"))
 
         if roe is None:
             try:
@@ -154,24 +203,24 @@ def fetch_one(ticker: str) -> dict | None:
             "name":                      info.get("longName", ticker),
             "sector":                    broad,
             "sector_granular":           granular,
-            "pe":                        pe,
-            "forwardPE":                 forward_pe,
-            "pegRatio":                  peg,
-            "pb":                        info.get("priceToBook"),
-            "roe":                       roe,
-            "roa":                       roa,
-            "profitMargins":             profit_margins,
-            "grossMargins":              info.get("grossMargins"),
-            "operatingMargins":          info.get("operatingMargins"),
-            "ebitdaMargins":             info.get("ebitdaMargins"),
-            "revenueGrowth":             info.get("revenueGrowth"),
-            "earningsGrowth":            info.get("earningsGrowth"),
-            "earningsQuarterlyGrowth":   info.get("earningsQuarterlyGrowth"),
-            "debtToEquity":              info.get("debtToEquity"),
-            "marketCap":                 info.get("marketCap"),
-            "beta":                      info.get("beta"),
-            "earningsQuality":           earnings_quality,
-            "earningsTrend":             earnings_trend,
+            "pe":                        _num(pe),
+            "forwardPE":                 _num(forward_pe),
+            "pegRatio":                  _num(peg),
+            "pb":                        _num(info.get("priceToBook")),
+            "roe":                       _num(roe),
+            "roa":                       _num(roa),
+            "profitMargins":             _num(profit_margins),
+            "grossMargins":              _num(info.get("grossMargins")),
+            "operatingMargins":          _num(info.get("operatingMargins")),
+            "ebitdaMargins":             _num(info.get("ebitdaMargins")),
+            "revenueGrowth":             _num(info.get("revenueGrowth")),
+            "earningsGrowth":            _num(info.get("earningsGrowth")),
+            "earningsQuarterlyGrowth":   _num(info.get("earningsQuarterlyGrowth")),
+            "debtToEquity":              _num(info.get("debtToEquity")),
+            "marketCap":                 _num(info.get("marketCap")),
+            "beta":                      _num(info.get("beta")),
+            "earningsQuality":           _num(earnings_quality),
+            "earningsTrend":             _num(earnings_trend),
             "fund_last_updated":         datetime.now().strftime("%Y-%m-%d"),
         }
 
@@ -189,29 +238,71 @@ def main():
     print(f"[FUND] Fetching fundamentals for {total} stocks (sequential, 0.6s delay)...")
     print(f"[FUND] Estimated time: ~{total * 0.6 / 60:.0f} minutes")
 
+    failed = []
     for i, ticker in enumerate(tickers, 1):
-        data = fetch_one(ticker)
+        # Nothing inside this loop may abort the run. An 8-minute sequential
+        # fetch is far too expensive to throw away over one malformed field.
+        try:
+            data = fetch_one(ticker)
+        except Exception as e:
+            data = None
+            print(f"  FAILED {ticker}: {e}")
+
         if data:
             results.append(data)
-            pe_str = f"PE={data['pe']:.1f}" if data['pe'] else "PE=N/A"
-            roe_str = f"ROE={data['roe']*100:.1f}%" if data['roe'] else "ROE=N/A"
-            print(f"  [{i:4d}/{total}] {ticker:<20} {pe_str}  {roe_str}")
+            print(f"  [{i:4d}/{total}] {ticker:<20} "
+                  f"{_fmt(data.get('pe'), 'PE')}  {_fmt(data.get('roe'), 'ROE', pct=True)}")
         else:
+            failed.append(ticker)
             print(f"  [{i:4d}/{total}] {ticker:<20} SKIPPED")
 
         time.sleep(0.6)  # conservative: avoids Yahoo Finance rate-limit on shared CI IPs
 
     if not results:
-        print("[FUND] ERROR: No data fetched. Aborting.")
-        return
+        print("[FUND] ERROR: No data fetched. Aborting — previous cache left intact.")
+        raise SystemExit(1)
 
     df = pd.DataFrame(results)
-    df.to_csv(OUTPUT_PATH, index=False)
-    print(f"\n[FUND] Saved {len(df)}/{total} stocks → {OUTPUT_PATH}")
-    print(f"[FUND] Columns: {list(df.columns)}")
+
+    # Top-up, never shrink. A ticker that failed this run keeps its previous
+    # (stale but real) row rather than losing its fundamentals entirely — the
+    # scanner degrades to old data instead of to nothing.
+    carried = 0
+    if os.path.exists(OUTPUT_PATH):
+        try:
+            old = pd.read_csv(OUTPUT_PATH)
+            keep = old[~old["ticker"].isin(df["ticker"])]
+            if len(keep):
+                df = pd.concat([df, keep], ignore_index=True)
+                carried = len(keep)
+        except Exception as e:
+            print(f"[FUND] Could not merge previous cache ({e}) — writing fresh rows only")
+
+    # Defence in depth: coerce every numeric column at the boundary, so nothing
+    # non-numeric can reach the cache regardless of which path produced it —
+    # including rows carried over from an older, pre-fix cache file.
+    _text = {"ticker", "name", "sector", "sector_granular", "fund_last_updated"}
+    for col in df.columns:
+        if col not in _text:
+            df[col] = (pd.to_numeric(df[col], errors="coerce")
+                         .replace([np.inf, -np.inf], np.nan))
+
+    coverage = len(results) / max(total, 1)
+    print(f"\n[FUND] Fetched {len(results)}/{total} ({coverage:.1%}); "
+          f"{len(failed)} failed, {carried} row(s) carried over from the previous cache")
+    if coverage < MIN_COVERAGE:
+        print(f"[FUND] ERROR: coverage {coverage:.1%} below the {MIN_COVERAGE:.0%} floor — "
+              f"refusing to publish. Previous cache left intact.")
+        raise SystemExit(1)
+
+    atomic_to_csv(df, OUTPUT_PATH, index=False)
+    print(f"[FUND] Saved {len(df)} rows → {OUTPUT_PATH}")
     print(f"[FUND] PE coverage:  {df['pe'].notna().sum()}/{len(df)}")
     print(f"[FUND] ROE coverage: {df['roe'].notna().sum()}/{len(df)}")
     print(f"[FUND] NPM coverage: {df['profitMargins'].notna().sum()}/{len(df)}")
+    if failed:
+        print(f"[FUND] Failed tickers ({len(failed)}): {failed[:25]}"
+              + (" ..." if len(failed) > 25 else ""))
 
 
 if __name__ == "__main__":
