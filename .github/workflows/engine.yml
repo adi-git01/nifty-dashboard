@@ -86,9 +86,18 @@ jobs:
         python alert_daemon.py --force-volume
       continue-on-error: true  # Don't let alert failures block the commit
 
-    - name: "Step 6/6: Daily Signal Logger (Earnings Shock + Turnaround Catalyst)"
+    - name: "Step 6/7: Daily Signal Logger (Earnings Shock + Turnaround Catalyst)"
       run: |
         python run_daily_signals.py
+      continue-on-error: true
+
+    - name: "Step 7/7: Composite-RS Crossing Alerts (Telegram)"
+      # Reads the master snapshot Step 1 just wrote — no Yahoo call, so this
+      # cannot fail on a rate limit. If Step 1 failed, the snapshot is stale and
+      # every alert's last_value already matches it, so nothing fires: a stale
+      # run is silent rather than wrong.
+      run: |
+        python rs_alert_daemon.py
       continue-on-error: true
 
     - name: Commit State Changes (All Data Files)

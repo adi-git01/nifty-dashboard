@@ -23,6 +23,10 @@ nifty500_cache.csv
 config.json
 tracker_data.json
 alerts.json
+# Legacy root-level RS alert store only. data/rs_alerts.json IS tracked — the
+# EOD workflow evaluates those alerts and commits their state back, so an
+# unanchored pattern here would silently stop that ever being committed.
+/rs_alerts.json
 
 # OS files
 .DS_Store

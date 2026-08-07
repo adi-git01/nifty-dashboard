@@ -38,6 +38,11 @@ from utils.positions import (
 from utils.email_notifier import is_email_configured, configure_email, send_weekly_summary, send_trend_change_alert, test_email_connection, get_email_address
 from utils.return_tracker import export_weekly_summary
 from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+from utils.rs_alerts import (
+    RS_METRICS, DIRECTIONS, add_rs_alert, remove_rs_alert, rearm_rs_alert,
+    check_rs_alerts, get_rs_alerts_with_status, read_metric, normalize_ticker,
+    describe_arm_state,
+)
 from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood
 from utils.market_breadth import render_breadth_widget
@@ -330,11 +335,42 @@ if triggered_positions and 'pos_alerts_notified' not in st.session_state:
     
     st.session_state['pos_alerts_notified'] = True
 
+# === COMPOSITE-RS CROSSING ALERTS ===
+# Evaluated once per data load. check_rs_alerts() advances each alert's
+# last-seen value, so it is the write that de-duplicates: a fired alert cannot
+# fire again until the metric genuinely crosses back and over. Results are
+# parked in session state so the Watchlist tab can render them further down
+# without re-running the check (which would consume the crossing).
+if 'rs_alerts_fired' not in st.session_state:
+    try:
+        st.session_state['rs_alerts_fired'] = check_rs_alerts(df)
+    except Exception as _e:
+        st.session_state['rs_alerts_fired'] = []
+        if DASH_DEBUG:
+            st.sidebar.caption(f"RS alert check failed: {_e}")
+
+_rs_fired = st.session_state.get('rs_alerts_fired', [])
+if _rs_fired and 'rs_alerts_notified' not in st.session_state:
+    st.toast(f"🔔 {len(_rs_fired)} RS alert(s): "
+             + " | ".join(a['alert_message'] for a in _rs_fired[:3]), icon="📈")
+    try:
+        if is_telegram_configured():
+            send_telegram_message("RS ALERT\n" + "\n".join(
+                a['alert_message'] for a in _rs_fired))
+    except Exception:
+        pass
+    st.session_state['rs_alerts_notified'] = True
+
 # Render persistent alert panel in sidebar (regardless of notification state)
 if triggered_positions:
     st.sidebar.markdown(sidebar_alert_panel(triggered_positions), unsafe_allow_html=True)
-else:
+elif not _rs_fired:
     st.sidebar.caption("✅ No alerts")
+
+if _rs_fired:
+    st.sidebar.markdown("#### 📈 RS Crossings")
+    for _a in _rs_fired:
+        st.sidebar.warning(_a['alert_message'])
 
 # Debug: Show data verification (only if DASH_DEBUG=1)
 if DASH_DEBUG:
@@ -2351,7 +2387,113 @@ elif page == "📊 Return Tracker":
                         notes=new_notes
                     )
                     st.toast(f"Alert created for {ticker}!", icon="✅")
-    
+
+        # ============================================================
+        # COMPOSITE-RS CROSSING ALERTS
+        # ============================================================
+        st.markdown("---")
+        st.markdown("### 📈 RS Alerts")
+        st.caption("Fire when a stock's Composite RS **crosses** a level, up or "
+                   "down. Crossing — not level — so an alert set above a stock "
+                   "that is already there waits for a real move instead of "
+                   "firing on every refresh.")
+
+        if _rs_fired:
+            st.error(f"⚡ {len(_rs_fired)} RS crossing(s) on this refresh")
+            for _a in _rs_fired:
+                st.warning(_a['alert_message'])
+
+        rs_col1, rs_col2 = st.columns([2, 1])
+
+        with rs_col2:
+            st.markdown("#### ➕ New RS Alert")
+            with st.form("new_rs_alert_form", clear_on_submit=True):
+                rs_ticker = st.text_input("Ticker", placeholder="AEGISLOG",
+                                          key="rs_alert_ticker")
+                rs_metric = st.selectbox(
+                    "Metric", options=list(RS_METRICS.keys()),
+                    format_func=lambda k: RS_METRICS[k][0], index=0,
+                    key="rs_alert_metric")
+                rs_direction = st.selectbox(
+                    "Trigger when it", options=list(DIRECTIONS.keys()),
+                    format_func=lambda k: DIRECTIONS[k], index=0,
+                    key="rs_alert_dir")
+                rs_threshold = st.number_input(
+                    "RS level", value=17.0, step=1.0, format="%.1f",
+                    help="CompRS is in percentage points vs Nifty. The engine's "
+                         "entry floor is 17 in BULL/CAUTION and 22 in BEAR/CRISIS.",
+                    key="rs_alert_thr")
+                rs_repeat = st.checkbox(
+                    "Re-fire on every future crossing", value=True,
+                    help="Off = one-shot; it goes quiet after firing until you re-arm it.",
+                    key="rs_alert_repeat")
+                rs_notes = st.text_area("Notes", placeholder="Why this level...",
+                                        height=70, key="rs_alert_notes")
+
+                rs_submitted = st.form_submit_button(
+                    "🔔 Create RS Alert", use_container_width=True, type="primary")
+
+                if rs_submitted and rs_ticker:
+                    _t = normalize_ticker(rs_ticker)
+                    if df[df['ticker'] == _t].empty:
+                        st.error(f"{_t} is not in the loaded universe — "
+                                 f"check the symbol.")
+                    else:
+                        add_rs_alert(_t, rs_threshold, direction=rs_direction,
+                                     metric=rs_metric, notes=rs_notes,
+                                     repeat=rs_repeat, df=df)
+                        _now = read_metric(df, _t, rs_metric)
+                        _state = describe_arm_state(_now, rs_threshold, rs_direction)
+                        st.success(f"Alert set on {_t.replace('.NS','')} — {_state}")
+                        st.toast(f"RS alert created for {_t.replace('.NS','')}", icon="🔔")
+
+        with rs_col1:
+            st.markdown("#### Active RS Alerts")
+            _rs_all = get_rs_alerts_with_status(df)
+            if not _rs_all:
+                st.info("No RS alerts yet. Create one →")
+            else:
+                for _a in _rs_all:
+                    _name = _a['ticker'].replace('.NS', '').replace('.BO', '')
+                    _label = RS_METRICS.get(_a['metric'], (_a['metric'], None))[0]
+                    _cur = _a.get('current_value')
+                    _dist = _a.get('distance')
+
+                    _c_info, _c_act = st.columns([6, 1])
+                    with _c_info:
+                        _line = (f"**{_name}** · {_label} "
+                                 f"{DIRECTIONS[_a['direction']].lower()} "
+                                 f"**{_a['threshold']:+.1f}**")
+                        if _cur is None:
+                            _line += " · now :grey[no clean reading]"
+                        else:
+                            _col = "green" if (_dist or 0) >= 0 else "red"
+                            _line += (f" · now :{_col}[{_cur:+.1f}] "
+                                      f"({_dist:+.1f} away)")
+                        if not _a.get('repeat', True):
+                            _line += " · :grey[one-shot]"
+                        st.write(_line)
+
+                        _sub = _a.get('state', '')
+                        if _a.get('trigger_count', 0):
+                            _when = (_a.get('last_triggered') or '')[:16].replace('T', ' ')
+                            _sub = (f"fired {_a['trigger_count']}× · last "
+                                    f"{_a.get('last_trigger_direction','')} on {_when}")
+                        st.caption(_sub + (f" · 📝 {_a['notes'][:60]}"
+                                           if _a.get('notes') else ""))
+                    with _c_act:
+                        if st.button("🗑️", key=f"del_rs_{_a['id']}",
+                                     help="Delete this RS alert"):
+                            remove_rs_alert(_a['id'])
+                            st.rerun()
+                        if (not _a.get('repeat', True)) and _a.get('trigger_count', 0):
+                            if st.button("↺", key=f"rearm_rs_{_a['id']}",
+                                         help="Re-arm this one-shot alert"):
+                                rearm_rs_alert(_a['id'])
+                                st.rerun()
+                    st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>",
+                                unsafe_allow_html=True)
+
     # ========================================
     # TAB 3: ADD NEW POSITION
     # ========================================
