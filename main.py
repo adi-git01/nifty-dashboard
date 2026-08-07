@@ -43,6 +43,7 @@ from utils.rs_alerts import (
     check_rs_alerts, get_rs_alerts_with_status, read_metric, normalize_ticker,
     describe_arm_state,
 )
+from utils import repo_store
 from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood
 from utils.market_breadth import render_breadth_widget
@@ -2397,6 +2398,20 @@ elif page == "📊 Return Tracker":
                    "down. Crossing — not level — so an alert set above a stock "
                    "that is already there waits for a real move instead of "
                    "firing on every refresh.")
+
+        # Never let the UI imply alerts are safe when they only exist on this
+        # device — that is exactly how they went missing on a device change.
+        if repo_store.is_configured():
+            st.caption(f"☁️ Synced to **{repo_store.get_repo()}** "
+                       f"(`{repo_store.get_branch()}`) — alerts follow you across "
+                       f"devices and fire from the EOD workflow.")
+        else:
+            st.warning(
+                "⚠️ **Alerts are stored on this device only.** They will not "
+                "appear on another machine and the EOD workflow cannot fire "
+                "them. To sync, add a GitHub token with `contents: write` as "
+                "`GITHUB_TOKEN` (env) or under `[github] token` in Streamlit "
+                "secrets.", icon="⚠️")
 
         if _rs_fired:
             st.error(f"⚡ {len(_rs_fired)} RS crossing(s) on this refresh")

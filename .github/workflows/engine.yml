@@ -96,6 +96,11 @@ jobs:
       # cannot fail on a rate limit. If Step 1 failed, the snapshot is stale and
       # every alert's last_value already matches it, so nothing fires: a stale
       # run is silent rather than wrong.
+      env:
+        # Write the checked-out file only; the commit step below publishes it.
+        # Without this the daemon would also push via the Contents API and race
+        # with its own commit.
+        REPO_STORE_DISABLED: "1"
       run: |
         python rs_alert_daemon.py
       continue-on-error: true
