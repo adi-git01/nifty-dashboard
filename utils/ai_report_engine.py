@@ -140,17 +140,25 @@ Your task is to write a highly professional, tabular, and terse "Deep Dive Resea
 """
 
 def configure_llm(api_key: str):
-    """Configure the Gemini API key."""
-    genai.configure(api_key=api_key)
+    """Legacy shim — the Gemini path is no longer the primary transport."""
+    if api_key:
+        try:
+            genai.configure(api_key=api_key)
+        except Exception:
+            pass
 
-def generate_ai_report_markdown(api_key: str, data_payload: dict) -> str:
-    """Passes the data payload + master prompt to Gemini to get the markdown report."""
-    configure_llm(api_key)
-    
-    # We use gemini-1.5-pro for complex reasoning and large context
-    model = genai.GenerativeModel('gemini-1.5-pro')
-    
-    payload_str = json.dumps(data_payload, indent=2)
+
+def generate_ai_report_markdown(api_key: str = "", data_payload: dict | None = None) -> str:
+    """
+    Master prompt + payload -> markdown report.
+
+    Routes through utils.llm_client (OpenAI-compatible) when an LLM endpoint is
+    configured, and only falls back to Gemini if a key was typed into the
+    sidebar. The old behaviour hard-bound gemini-1.5-pro to a per-session
+    password box: fine for one ad-hoc report, unusable for a batch across ~1000
+    names, and reduced to "feature unavailable" whenever the box was empty.
+    """
+    payload_str = json.dumps(data_payload or {}, indent=2)
     
     prompt = f"""
 {MASTER_PROMPT_V2_1}
@@ -160,11 +168,23 @@ DATA PAYLOAD:
 {payload_str}
     """
     
-    response = model.generate_content(prompt)
-    if response and response.text:
-        return response.text
-    else:
+    from utils import llm_client
+
+    if llm_client.is_configured("judgment"):
+        return llm_client.complete(prompt, role="judgment", temperature=0.2)
+
+    if api_key:
+        configure_llm(api_key)
+        model = genai.GenerativeModel('gemini-1.5-pro')
+        response = model.generate_content(prompt)
+        if response and response.text:
+            return response.text
         raise Exception("Failed to generate content from AI model.")
+
+    raise RuntimeError(
+        "No LLM configured. Set [llm] in Streamlit secrets (or LLM_BASE_URL / "
+        "LLM_MODEL_JUDGMENT in the environment), or enter a Gemini key in the "
+        "sidebar for the legacy path. " + llm_client.status("judgment"))
 
 
 class PDFReport(FPDF):
