@@ -40,6 +40,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from utils.atomic_io import atomic_json_dump
+from utils import repo_store
 
 # Tracked in git, unlike alerts.json. The EOD workflow evaluates these alerts
 # headlessly and pushes to Telegram, so both the definitions and the last-seen
@@ -86,16 +87,50 @@ def _read(path: str) -> List[Dict[str, Any]]:
         return []
 
 
+def _write_local(alerts: List[Dict[str, Any]]) -> None:
+    os.makedirs(os.path.dirname(RS_ALERTS_FILE) or ".", exist_ok=True)
+    atomic_json_dump(alerts, RS_ALERTS_FILE, indent=2)
+
+
+def storage_status() -> str:
+    """Where alerts are being stored right now — surfaced in the UI."""
+    return repo_store.status()
+
+
 def load_rs_alerts() -> List[Dict[str, Any]]:
+    """
+    The repo is the source of truth when a GitHub token is configured, so an
+    alert created on one device is visible on every other one. The local file
+    is a cache and the offline fallback.
+
+    Without a token this is local-only — the old behaviour, and the reason
+    alerts used to vanish on a device change.
+    """
+    if repo_store.is_configured():
+        data, _ = repo_store.get_json(RS_ALERTS_FILE)
+        if isinstance(data, list):
+            try:
+                _write_local(data)      # keep the offline copy warm
+            except Exception:
+                pass
+            return data
+
     alerts = _read(RS_ALERTS_FILE)
     if alerts:
         return alerts
     return _read(LEGACY_RS_ALERTS_FILE)
 
 
-def save_rs_alerts(alerts: List[Dict[str, Any]]) -> None:
-    os.makedirs(os.path.dirname(RS_ALERTS_FILE) or ".", exist_ok=True)
-    atomic_json_dump(alerts, RS_ALERTS_FILE, indent=2)
+def save_rs_alerts(alerts: List[Dict[str, Any]], reason: str = "update") -> bool:
+    """
+    Write locally always; push to the repo when configured. Returns True when
+    the state is durable beyond this device.
+    """
+    _write_local(alerts)
+    if not repo_store.is_configured():
+        return False
+    return repo_store.put_json(
+        RS_ALERTS_FILE, alerts, f"🔔 RS alerts: {reason}")
 
 
 def normalize_ticker(ticker: str) -> str:
@@ -174,12 +209,15 @@ def add_rs_alert(ticker: str, threshold: float, direction: str = "above",
         "last_trigger_direction": None,
     }
     alerts.append(alert)
-    save_rs_alerts(alerts)
+    save_rs_alerts(alerts, f"add {ticker} {metric} {direction} {threshold:g}")
     return alert
 
 
 def remove_rs_alert(alert_id: str) -> None:
-    save_rs_alerts([a for a in load_rs_alerts() if a.get("id") != alert_id])
+    alerts = load_rs_alerts()
+    gone = next((a for a in alerts if a.get("id") == alert_id), None)
+    label = (gone or {}).get("ticker", alert_id)
+    save_rs_alerts([a for a in alerts if a.get("id") != alert_id], f"remove {label}")
 
 
 def rearm_rs_alert(alert_id: str) -> None:
@@ -190,7 +228,7 @@ def rearm_rs_alert(alert_id: str) -> None:
             a["trigger_count"] = 0
             a["last_triggered"] = None
             a["last_trigger_direction"] = None
-    save_rs_alerts(alerts)
+    save_rs_alerts(alerts, "re-arm")
 
 
 # --------------------------------------------------------------------------
@@ -259,7 +297,7 @@ def check_rs_alerts(df, persist: bool = True) -> List[Dict[str, Any]]:
         dirty = True
 
     if dirty and persist:
-        save_rs_alerts(alerts)
+        save_rs_alerts(alerts, f"{len(triggered)} crossing(s)" if triggered else "state")
     return triggered
 
 
