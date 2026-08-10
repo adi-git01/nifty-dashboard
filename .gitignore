@@ -21,6 +21,11 @@ nifty500_cache.csv
 
 # Sensitive data - DON'T COMMIT THESE
 config.json
+# Streamlit secrets hold the GitHub PAT and mail/telegram credentials. This repo
+# is public: an unignored secrets.toml is a live credential leak, not a warning.
+.streamlit/secrets.toml
+.env
+*.pem
 tracker_data.json
 alerts.json
 # Legacy root-level RS alert store only. data/rs_alerts.json IS tracked — the
