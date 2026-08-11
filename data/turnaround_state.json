@@ -1,127 +1,82 @@
 {
-    "BECTORFOOD.NS": {
+    "DEVYANI.NS": {
         "tier": "ALERT",
-        "days_active": 2,
+        "days_active": 4,
         "ias": 100.0
     },
-    "DEVYANI.NS": {
+    "SAPPHIRE.NS": {
         "tier": "ALERT",
         "days_active": 3,
         "ias": 100.0
     },
     "MANYAVAR.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
-    },
-    "KNRCON.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
-    },
-    "GMMPFAUDLR.NS": {
-        "tier": "ALERT",
         "days_active": 3,
         "ias": 100.0
     },
-    "SAPPHIRE.NS": {
+    "JUBLFOOD.NS": {
         "tier": "ALERT",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 100.0
     },
     "COHANCE.NS": {
         "tier": "ALERT",
-        "days_active": 3,
-        "ias": 90.0
-    },
-    "COCHINSHIP.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 90.0
+        "days_active": 4,
+        "ias": 95.0
     },
     "BLS.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 90.0
     },
-    "PARADEEP.NS": {
+    "GVT&D.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 78.3
-    },
-    "EPACKPEB.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 75.2
-    },
-    "THANGAMAYL.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 71.8
-    },
-    "RAMCOCEM.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 70.1
-    },
-    "HYUNDAI.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 68.7
-    },
-    "SUDARSCHEM.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
+        "ias": 68.3
     },
     "BRIGADE.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
-    "ELLEN.NS": {
+    "GARUDA.NS": {
         "tier": "READY",
         "days_active": 1,
         "ias": 60.0
     },
-    "TATAINVEST.NS": {
+    "GMMPFAUDLR.NS": {
         "tier": "READY",
-        "days_active": 2,
+        "days_active": 4,
         "ias": 60.0
     },
-    "JUBLFOOD.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 56.3
-    },
-    "MANINFRA.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 51.0
-    },
-    "TECHNOE.NS": {
+    "LTTS.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 51.0
+        "ias": 57.7
     },
-    "EMAMILTD.NS": {
+    "RAMCOCEM.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 50.9
+        "ias": 53.0
     },
-    "BALUFORGE.NS": {
+    "CELLO.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 50.5
+        "days_active": 1,
+        "ias": 51.4
     },
     "TMPV.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 48.0
+        "days_active": 2,
+        "ias": 44.5
     },
-    "TATAELXSI.NS": {
+    "PARADEEP.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 39.2
+        "ias": 42.2
+    },
+    "INFY.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 38.1
     }
 }
