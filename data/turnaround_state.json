@@ -1,82 +1,77 @@
 {
-    "DEVYANI.NS": {
-        "tier": "ALERT",
-        "days_active": 4,
-        "ias": 100.0
-    },
-    "SAPPHIRE.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "MANYAVAR.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "JUBLFOOD.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "COHANCE.NS": {
-        "tier": "ALERT",
-        "days_active": 4,
-        "ias": 95.0
-    },
     "BLS.NS": {
         "tier": "ALERT",
-        "days_active": 2,
+        "days_active": 3,
+        "ias": 100.0
+    },
+    "DEVYANI.NS": {
+        "tier": "ALERT",
+        "days_active": 5,
+        "ias": 100.0
+    },
+    "COCHINSHIP.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
         "ias": 90.0
     },
-    "GVT&D.NS": {
+    "FORCEMOT.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 68.3
+        "ias": 78.6
     },
-    "BRIGADE.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
-    },
-    "GARUDA.NS": {
+    "HINDCOPPER.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 68.5
     },
     "GMMPFAUDLR.NS": {
         "tier": "READY",
+        "days_active": 5,
+        "ias": 60.0
+    },
+    "SAPPHIRE.NS": {
+        "tier": "READY",
         "days_active": 4,
         "ias": 60.0
     },
-    "LTTS.NS": {
+    "BANKBARODA.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 57.7
+        "ias": 58.1
     },
-    "RAMCOCEM.NS": {
+    "GVT&D.NS": {
         "tier": "WATCH",
         "days_active": 2,
+        "ias": 55.6
+    },
+    "ELLEN.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
+    },
+    "KAYNES.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 53.8
+    },
+    "BAJAJELEC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
         "ias": 53.0
     },
-    "CELLO.NS": {
+    "BALUFORGE.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 51.4
+        "ias": 51.6
     },
-    "TMPV.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 44.5
-    },
-    "PARADEEP.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 42.2
-    },
-    "INFY.NS": {
+    "GODAVARIB.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 38.1
+        "ias": 46.8
+    },
+    "THERMAX.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 41.4
     }
 }
