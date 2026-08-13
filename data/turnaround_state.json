@@ -1,77 +1,92 @@
 {
+    "CLEAN.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 100.0
+    },
     "BLS.NS": {
         "tier": "ALERT",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 100.0
     },
-    "DEVYANI.NS": {
+    "JUBLFOOD.NS": {
         "tier": "ALERT",
-        "days_active": 5,
-        "ias": 100.0
+        "days_active": 1,
+        "ias": 92.0
     },
-    "COCHINSHIP.NS": {
+    "BBOX.NS": {
         "tier": "ALERT",
         "days_active": 1,
         "ias": 90.0
     },
-    "FORCEMOT.NS": {
+    "TEGA.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 78.6
-    },
-    "HINDCOPPER.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 68.5
+        "ias": 74.8
     },
     "GMMPFAUDLR.NS": {
         "tier": "READY",
-        "days_active": 5,
-        "ias": 60.0
+        "days_active": 6,
+        "ias": 74.3
     },
-    "SAPPHIRE.NS": {
+    "COCHINSHIP.NS": {
         "tier": "READY",
-        "days_active": 4,
-        "ias": 60.0
-    },
-    "BANKBARODA.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 58.1
-    },
-    "GVT&D.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 55.6
+        "ias": 67.1
     },
     "ELLEN.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.0
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 60.0
     },
     "KAYNES.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 53.8
+        "days_active": 2,
+        "ias": 56.8
     },
-    "BAJAJELEC.NS": {
+    "MANYAVAR.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 53.0
+        "ias": 55.6
     },
-    "BALUFORGE.NS": {
+    "THANGAMAYL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 51.6
+        "ias": 53.3
     },
-    "GODAVARIB.NS": {
+    "AFCONS.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 46.8
+        "ias": 50.7
     },
-    "THERMAX.NS": {
+    "GPIL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 41.4
+        "ias": 50.0
+    },
+    "CYIENT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 48.7
+    },
+    "NATCOPHARM.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 48.4
+    },
+    "BLUEJET.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.6
+    },
+    "ZEEL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.2
+    },
+    "GREAVESCOT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 43.7
     }
 }
