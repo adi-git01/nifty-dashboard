@@ -1,628 +1,641 @@
 signal_date,ticker,name,sector,signal_price,current_price,pattern,jump_pct,vol_score,dist_52w,ts_pre,ts_now,ts_gain,rs21_vel,return_since_signal,days_held,status
-2026-06-03,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,577.05,A+B,8.6,9.0,-24.5,31,75,44,2.3,5.96,72,CLOSED
-2026-06-03,OLAELEC.NS,OLAELEC.NS,Auto,43.7,38.73,A+B,9.8,10.0,-38.6,31,64,33,14.1,-11.37,72,CLOSED
-2026-06-03,RHIM.NS,RHI Magnesita India Limited,Capital Goods,377.5,379.85,A-BigDay,9.5,8.0,-29.4,0,13,13,5.2,0.62,72,CLOSED
-2026-06-03,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,1961.7,2797.8,A-BigDay,9.3,8.0,-40.4,25,28,3,-4.2,42.62,72,CLOSED
-2026-06-03,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,164.6,176.05,A-BigDay,9.2,7.0,-31.7,30,33,3,0.8,6.96,72,CLOSED
-2026-06-03,TEJASNET.NS,Tejas Networks Limited,Telecom,569.2,538.5,A-BigDay,5.9,7.0,-23.8,76,78,2,-7.1,-5.39,72,CLOSED
-2026-06-04,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,104.4,102.28,A+B,10.5,9.0,-29.7,30,74,44,3.1,-2.03,71,CLOSED
-2026-06-04,GANESHHOU.NS,Ganesh Housing Limited,Real Estate,758.2,835.6,A+B,5.4,8.0,-29.4,32,74,42,-3.6,10.21,71,CLOSED
-2026-06-04,ANANTRAJ.NS,Anant Raj Limited,Real Estate,589.3,629.95,A+B,7.5,7.0,-20.8,43,76,33,-2.2,6.9,71,CLOSED
-2026-06-04,IIFL.NS,IIFL Finance Limited,Financial Services,530.3,631.15,A+B,6.3,7.0,-20.9,41,74,33,2.5,19.02,71,CLOSED
-2026-06-04,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,30.3,35.26,B-TSJump,3.5,7.0,-52.9,28,59,31,-3.6,16.37,71,CLOSED
-2026-06-04,RHIM.NS,RHI Magnesita India Limited,Capital Goods,401.1,379.85,A+B,6.3,8.0,-25.0,13,42,29,0.8,-5.3,71,CLOSED
-2026-06-04,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,31.5,26.49,B-TSJump,8.1,6.0,-52.6,0,24,24,-4.1,-15.9,71,CLOSED
-2026-06-04,RELINFRA.NS,Reliance Infrastructure Limited,Power & Utilities,77.9,73.61,B-TSJump,5.0,8.0,-81.6,0,22,22,2.0,-5.51,71,CLOSED
-2026-06-04,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,454.3,561.1,A-BigDay,9.7,8.0,-36.3,29,32,3,4.3,23.51,71,CLOSED
-2026-06-04,RTNINDIA.NS,RattanIndia Enterprises Limited,Financial Services,38.8,30.05,A-BigDay,10.0,7.0,-44.3,28,30,2,-3.1,-22.55,71,CLOSED
-2026-06-04,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,475.6,584.5,A-BigDay,6.4,8.0,-53.6,26,27,1,0.1,22.9,71,CLOSED
-2026-06-05,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1529.1,1468.2,B-TSJump,2.6,8.0,-28.4,2,38,36,-0.5,-3.98,70,CLOSED
-2026-06-05,RITES.NS,RITES Limited,Infrastructure,210.5,221.06,A+B,5.1,8.0,-31.3,1,29,28,1.7,5.02,70,CLOSED
-2026-06-05,NETWORK18.NS,Network18 Media & Investments Limited,Media,33.4,29.01,A+B,11.4,9.0,-48.8,0,25,25,8.2,-13.14,70,CLOSED
-2026-06-05,QUESS.NS,Quess Corp Limited,Capital Goods,235.7,337.8,A-BigDay,9.6,9.0,-24.7,61,75,14,5.1,43.32,70,CLOSED
-2026-06-05,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,192.2,194.37,A-BigDay,5.0,8.0,-21.3,75,77,2,3.9,1.13,70,CLOSED
-2026-06-05,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,112.3,102.28,A-BigDay,7.5,9.0,-24.4,74,76,2,5.0,-8.92,70,CLOSED
-2026-06-08,SYNGENE.NS,Syngene International Limited,Pharma & Healthcare,449.5,401.45,B-TSJump,3.5,6.0,-38.3,0,26,26,-3.7,-10.69,67,CLOSED
-2026-06-08,THOMASCOOK.NS,Thomas Cook (India) Limited,Hospitality,104.8,105.88,A+B,11.7,9.0,-44.2,0,26,26,14.7,1.03,67,CLOSED
-2026-06-08,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2069.8,2797.8,A-BigDay,5.7,8.0,-37.1,28,29,1,2.8,35.17,67,CLOSED
-2026-06-09,CUB.NS,City Union Bank Limited,Banking,256.4,208.64,B-TSJump,3.8,10.0,-20.9,34,90,56,5.1,-18.63,66,CLOSED
-2026-06-09,GARFIBRES.NS,Garware Technical Fibres Limited,Capital Goods,688.3,755.5,B-TSJump,4.9,10.0,-28.1,27,69,42,2.8,9.76,66,CLOSED
-2026-06-09,VMART.NS,V-Mart Retail Limited,Retail,691.0,807.5,A+B,5.8,8.0,-26.9,33,75,42,6.4,16.86,66,CLOSED
-2026-06-09,INDIGO.NS,InterGlobe Aviation Limited,Infrastructure,4537.6,5310.0,B-TSJump,4.1,9.0,-27.2,1,39,38,6.7,17.02,66,CLOSED
-2026-06-09,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1527.2,1468.2,B-TSJump,3.0,9.0,-28.4,2,38,36,4.3,-3.86,66,CLOSED
-2026-06-09,BANCOINDIA.NS,Banco Products (India) Limited,Auto,681.5,618.1,A+B,8.5,7.0,-20.7,41,75,34,11.2,-9.3,66,CLOSED
-2026-06-09,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,160.3,170.54,A+B,5.8,8.0,-24.4,31,64,33,8.8,6.39,66,CLOSED
-2026-06-09,IIFL.NS,IIFL Finance Limited,Financial Services,508.0,631.15,B-TSJump,3.3,9.0,-24.2,40,72,32,2.4,24.24,66,CLOSED
-2026-06-09,AJAXENGG.NS,AJAXENGG.NS,Capital Goods,581.9,582.2,B-TSJump,3.3,9.0,-20.3,45,76,31,5.6,0.05,66,CLOSED
-2026-06-09,MOTILALOFS.NS,Motilal Oswal Financial Services Limited,Financial Services,864.3,903.7,A+B,5.3,8.0,-20.6,44,75,31,4.6,4.56,66,CLOSED
-2026-06-09,OLECTRA.NS,Olectra Greentech Limited,Auto,1300.0,1316.9,B-TSJump,4.8,6.0,-24.2,44,75,31,4.9,1.3,66,CLOSED
-2026-06-09,UCOBANK.NS,UCO Bank,Banking,26.0,26.0,B-TSJump,4.0,7.0,-23.6,13,41,28,3.8,0.0,66,CLOSED
-2026-06-09,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,376.1,416.35,B-TSJump,2.7,7.0,-33.0,1,28,27,1.8,10.7,66,CLOSED
-2026-06-09,ETHOSLTD.NS,Ethos Limited,Consumer Durables,2416.7,2747.4,B-TSJump,2.8,7.0,-25.6,15,42,27,-0.4,13.68,66,CLOSED
-2026-06-09,IDBI.NS,IDBI Bank Limited,Banking,75.4,82.45,B-TSJump,4.9,7.0,-36.3,1,28,27,5.0,9.35,66,CLOSED
-2026-06-09,PATELENG.NS,Patel Engineering Limited,Capital Goods,27.7,28.45,B-TSJump,5.3,6.0,-40.3,1,28,27,7.3,2.71,66,CLOSED
-2026-06-09,GATEWAY.NS,Gateway Distriparks Limited,Infrastructure,58.0,54.86,B-TSJump,2.6,6.0,-20.4,16,42,26,3.1,-5.41,66,CLOSED
-2026-06-09,SUDARSCHEM.NS,Sudarshan Chemical Industries Limited,Chemicals,893.2,1118.1,B-TSJump,3.5,6.0,-44.3,0,26,26,6.1,25.18,66,CLOSED
-2026-06-09,RAYMONDLSL.NS,Raymond Lifestyle Limited,Textiles,780.6,741.2,B-TSJump,5.3,6.0,-44.7,0,24,24,1.1,-5.05,66,CLOSED
-2026-06-09,ACI.NS,Archean Chemical Industries Limited,Metals & Mining,544.3,503.3,A-BigDay,5.8,9.0,-24.8,10,13,3,1.6,-7.53,66,CLOSED
-2026-06-09,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,347.1,396.25,A-BigDay,8.8,9.0,-34.0,29,32,3,11.7,14.16,66,CLOSED
-2026-06-09,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2187.6,2797.8,A-BigDay,5.7,9.0,-33.5,29,31,2,4.8,27.89,66,CLOSED
-2026-06-09,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1272.2,1451.3,A-BigDay,6.3,7.0,-40.5,26,28,2,6.0,14.08,66,CLOSED
-2026-06-09,THOMASCOOK.NS,Thomas Cook (India) Limited,Hospitality,112.8,105.88,A-BigDay,7.7,9.0,-39.9,26,28,2,7.5,-6.13,66,CLOSED
-2026-06-09,OLAELEC.NS,OLAELEC.NS,Auto,47.3,38.73,A-BigDay,6.5,9.0,-33.6,64,65,1,6.7,-18.12,66,CLOSED
-2026-06-10,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2451.4,2797.8,A+B,12.1,9.0,-25.5,31,75,44,11.1,14.13,65,CLOSED
-2026-06-10,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.7,1451.3,B-TSJump,4.6,7.0,-37.7,28,59,31,7.7,9.06,65,CLOSED
-2026-06-10,AFCONS.NS,AFCONS.NS,Infrastructure,330.0,268.8,B-TSJump,4.6,7.0,-31.1,2,30,28,-1.6,-18.55,65,CLOSED
-2026-06-11,TATACHEM.NS,Tata Chemicals Limited,Chemicals,741.2,670.65,B-TSJump,2.9,6.0,-26.7,16,42,26,1.9,-9.52,64,CLOSED
-2026-06-11,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,111.4,102.28,A-BigDay,8.3,9.0,-25.0,64,76,12,0.9,-8.19,64,CLOSED
-2026-06-11,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,498.5,584.5,A-BigDay,6.1,9.0,-51.4,27,28,1,5.5,17.25,64,CLOSED
-2026-06-12,JAMNAAUTO.NS,Jamna Auto Industries Limited,Auto,121.8,123.12,A+B,6.2,7.0,-20.2,34,91,57,8.3,1.08,63,CLOSED
-2026-06-12,AIIL.NS,Authum Investment & Infrastructure Limited,Financial Services,530.2,564.9,A+B,15.3,9.0,-22.4,2,44,42,7.8,6.54,63,CLOSED
-2026-06-12,KIRLOSBROS.NS,Kirloskar Brothers Limited,Capital Goods,1729.4,1905.5,B-TSJump,3.9,7.0,-29.9,29,71,42,1.6,10.18,63,CLOSED
-2026-06-12,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1109.3,1176.5,A+B,7.7,8.0,-26.6,2,41,39,8.2,6.06,63,CLOSED
-2026-06-12,MGL.NS,Mahanagar Gas Limited,Oil & Gas,1094.9,1138.7,B-TSJump,3.2,8.0,-29.3,3,40,37,-1.6,4.0,63,CLOSED
-2026-06-12,IIFL.NS,IIFL Finance Limited,Financial Services,518.9,631.15,A+B,5.7,9.0,-22.6,40,73,33,4.8,21.63,63,CLOSED
-2026-06-12,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,577.05,A+B,5.4,9.0,-24.5,43,75,32,12.4,5.96,63,CLOSED
-2026-06-12,GRSE.NS,Garden Reach Shipbuilders & Engineers Limited,Aerospace & Defense,2648.7,2618.6,B-TSJump,4.4,8.0,-24.6,32,64,32,8.8,-1.14,63,CLOSED
-2026-06-12,HCC.NS,Hindustan Construction Company Limited,Capital Goods,23.4,19.82,A+B,7.8,8.0,-35.9,31,63,32,9.8,-15.3,63,CLOSED
-2026-06-12,INOXGREEN.NS,Inox Green Energy Services Limited,Power & Utilities,189.9,187.07,B-TSJump,5.6,6.0,-31.9,30,62,32,6.3,-1.49,63,CLOSED
-2026-06-12,SURYAROSNI.NS,Surya Roshni Limited,Capital Goods,263.0,222.98,B-TSJump,5.2,6.0,-25.3,42,74,32,6.1,-15.22,63,CLOSED
-2026-06-12,VAIBHAVGBL.NS,Vaibhav Global Limited,Retail,230.5,228.3,B-TSJump,3.1,7.0,-20.4,43,75,32,3.8,-0.95,63,CLOSED
-2026-06-12,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,185.0,194.37,B-TSJump,5.0,8.0,-24.3,44,75,31,4.9,5.06,63,CLOSED
-2026-06-12,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,29.9,35.26,A+B,8.2,7.0,-53.5,27,58,31,11.1,17.93,63,CLOSED
-2026-06-12,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,161.0,170.54,B-TSJump,3.4,8.0,-24.1,33,64,31,6.1,5.93,63,CLOSED
-2026-06-12,OLECTRA.NS,Olectra Greentech Limited,Auto,1296.0,1316.9,B-TSJump,3.5,7.0,-24.4,44,75,31,6.0,1.61,63,CLOSED
-2026-06-12,INDIASHLTR.NS,India Shelter Finance Corporation Limited,Financial Services,793.4,670.7,A+B,9.0,8.0,-21.6,12,42,30,7.7,-15.47,63,CLOSED
-2026-06-12,BPCL.NS,Bharat Petroleum Corporation Limited,Oil & Gas,302.4,319.45,A+B,5.6,8.0,-22.8,10,39,29,9.0,5.64,63,CLOSED
-2026-06-12,HINDPETRO.NS,Hindustan Petroleum Corporation Limited,Oil & Gas,388.9,373.5,A+B,6.3,9.0,-23.5,13,42,29,11.5,-3.96,63,CLOSED
-2026-06-12,KRBL.NS,KRBL Limited,Consumer Goods,366.8,386.4,A+B,6.2,10.0,-25.2,15,43,28,14.0,5.34,63,CLOSED
-2026-06-12,TTML.NS,Tata Teleservices (Maharashtra) Limited,Telecom,46.4,38.59,A+B,10.2,9.0,-41.7,2,30,28,8.9,-16.83,63,CLOSED
-2026-06-12,AAVAS.NS,Aavas Financiers Limited,Financial Services,1405.7,1397.4,A+B,5.8,8.0,-34.7,3,30,27,6.1,-0.59,63,CLOSED
-2026-06-12,HEMIPROP.NS,Hemisphere Properties India Limited,Real Estate,140.4,132.34,B-TSJump,3.4,6.0,-26.4,15,42,27,4.6,-5.74,63,CLOSED
-2026-06-12,IDBI.NS,IDBI Bank Limited,Banking,75.4,82.45,B-TSJump,4.3,7.0,-36.3,1,28,27,4.6,9.35,63,CLOSED
-2026-06-12,PCBL.NS,PCBL Chemical Limited,Chemicals,290.2,309.8,B-TSJump,4.5,10.0,-32.5,3,30,27,6.6,6.75,63,CLOSED
-2026-06-12,SWSOLAR.NS,Sterling and Wilson Renewable Energy Limited,Power & Utilities,208.2,202.01,A+B,7.8,7.0,-40.3,2,29,27,8.4,-2.97,63,CLOSED
-2026-06-12,UCOBANK.NS,UCO Bank,Banking,26.0,26.0,B-TSJump,3.5,8.0,-22.7,14,41,27,3.1,0.0,63,CLOSED
-2026-06-12,AFCONS.NS,AFCONS.NS,Infrastructure,326.0,268.8,B-TSJump,2.9,7.0,-32.0,3,29,26,1.1,-17.55,63,CLOSED
-2026-06-12,DCAL.NS,Dishman Carbogen Amcis Limited,Pharma & Healthcare,184.6,190.66,B-TSJump,4.6,8.0,-42.6,3,29,26,-6.1,3.28,63,CLOSED
-2026-06-12,DHANUKA.NS,Dhanuka Agritech Limited,Chemicals,1081.2,1009.7,B-TSJump,2.9,9.0,-45.3,0,26,26,-0.8,-6.61,63,CLOSED
-2026-06-12,FINPIPE.NS,Finolex Industries Limited,Capital Goods,173.0,159.24,B-TSJump,2.6,6.0,-26.1,13,39,26,3.7,-7.95,63,CLOSED
-2026-06-12,LODHA.NS,Lodha Developers Limited,Real Estate,899.3,1243.9,B-TSJump,3.6,8.0,-40.2,3,29,26,5.6,38.32,63,CLOSED
-2026-06-12,OSWALPUMPS.NS,OSWALPUMPS.NS,Capital Goods,398.2,300.5,B-TSJump,6.9,6.0,-55.2,0,26,26,7.4,-24.54,63,CLOSED
-2026-06-12,PARADEEP.NS,Paradeep Phosphates Limited,Chemicals,126.2,147.85,B-TSJump,3.9,7.0,-45.9,0,26,26,7.6,17.16,63,CLOSED
-2026-06-12,PATELENG.NS,Patel Engineering Limited,Capital Goods,27.3,28.45,B-TSJump,4.2,9.0,-40.2,1,27,26,7.0,4.21,63,CLOSED
-2026-06-12,SUMICHEM.NS,Sumitomo Chemical India Limited,Chemicals,461.9,564.95,B-TSJump,3.0,9.0,-30.6,4,30,26,1.3,22.31,63,CLOSED
-2026-06-12,TANLA.NS,Tanla Platforms Limited,IT & Technology,513.7,582.05,B-TSJump,2.6,7.0,-31.5,6,32,26,6.6,13.31,63,CLOSED
-2026-06-12,TARIL.NS,TARIL.NS,Capital Goods,315.1,298.05,B-TSJump,4.9,7.0,-45.5,2,28,26,7.4,-5.41,63,CLOSED
-2026-06-12,VIPIND.NS,V.I.P. Industries Limited,Consumer Durables,315.0,299.8,A+B,5.7,9.0,-36.0,0,26,26,1.5,-4.83,63,CLOSED
-2026-06-12,WEBELSOLAR.NS,Websol Energy System Limited,Power & Utilities,103.6,85.1,B-TSJump,3.7,6.0,-34.1,54,80,26,6.9,-17.86,63,CLOSED
-2026-06-12,IXIGO.NS,IXIGO.NS,Consumer Durables,178.2,174.03,A+B,12.2,9.0,-47.5,0,25,25,10.1,-2.34,63,CLOSED
-2026-06-12,RAYMONDLSL.NS,Raymond Lifestyle Limited,Textiles,794.8,741.2,B-TSJump,3.3,7.0,-43.7,0,25,25,5.4,-6.74,63,CLOSED
-2026-06-12,SHAKTIPUMP.NS,Shakti Pumps (India) Limited,Capital Goods,537.2,500.3,A+B,5.9,7.0,-48.7,0,25,25,9.1,-6.87,63,CLOSED
-2026-06-12,AEGISVOPAK.NS,AEGISVOPAK.NS,Oil & Gas,217.9,269.1,A-BigDay,9.4,8.0,-27.9,29,43,14,8.3,23.5,63,CLOSED
-2026-06-12,SHARDACROP.NS,Sharda Cropchem Limited,Chemicals,923.3,786.4,A-BigDay,5.4,8.0,-28.8,17,30,13,20.7,-14.83,63,CLOSED
-2026-06-12,STARCEMENT.NS,Star Cement Limited,Cement & Materials,218.6,200.06,A-BigDay,5.2,7.0,-28.9,0,11,11,4.9,-8.48,63,CLOSED
-2026-06-12,TBOTEK.NS,TBOTEK.NS,IT & Technology,1352.8,1633.3,A-BigDay,7.7,9.0,-23.4,40,44,4,7.1,20.73,63,CLOSED
-2026-06-12,CEATLTD.NS,CEAT Limited,Auto,3334.3,3688.8,A-BigDay,5.9,9.0,-24.9,9,12,3,4.6,10.63,63,CLOSED
-2026-06-12,APTUS.NS,Aptus Value Housing Finance India Limited,Financial Services,271.7,250.5,A-BigDay,5.1,9.0,-24.1,43,45,2,5.0,-7.8,63,CLOSED
-2026-06-12,JKTYRE.NS,JK Tyre & Industries Limited,Auto,378.2,384.1,A-BigDay,7.3,7.0,-38.2,0,2,2,6.6,1.56,63,CLOSED
-2026-06-12,REFEX.NS,Refex Industries Limited,Chemicals,311.0,297.25,A-BigDay,5.0,9.0,-38.3,60,62,2,-4.8,-4.42,63,CLOSED
-2026-06-12,LATENTVIEW.NS,Latent View Analytics Limited,IT & Technology,301.2,285.2,A-BigDay,5.3,7.0,-41.8,0,1,1,0.7,-5.31,63,CLOSED
-2026-06-12,NETWORK18.NS,Network18 Media & Investments Limited,Media,31.5,29.01,A-BigDay,6.0,8.0,-51.7,0,0,0,5.6,-7.9,63,CLOSED
-2026-06-12,PGEL.NS,PG Electroplast Limited,Consumer Durables,483.3,601.0,A-BigDay,5.3,9.0,-42.2,0,0,0,5.6,24.35,63,CLOSED
-2026-06-15,SUMICHEM.NS,Sumitomo Chemical India Limited,Chemicals,474.5,564.95,B-TSJump,2.7,8.0,-28.6,30,72,42,4.6,19.06,60,CLOSED
-2026-06-15,GOKEX.NS,Gokaldas Exports Limited,Textiles,721.8,783.65,A+B,7.0,7.0,-26.0,5,43,38,9.6,8.57,60,CLOSED
-2026-06-15,RAILTEL.NS,RailTel Corporation of India Limited,Telecom,318.8,282.15,B-TSJump,3.2,6.0,-27.4,4,42,38,7.1,-11.5,60,CLOSED
-2026-06-15,CDSL.NS,Central Depository Services (India) Limited,Financial Services,1265.7,1344.4,B-TSJump,3.1,8.0,-29.7,0,37,37,5.3,6.22,60,CLOSED
-2026-06-15,AEGISVOPAK.NS,AEGISVOPAK.NS,Oil & Gas,231.7,269.1,A+B,6.4,9.0,-23.3,43,75,32,9.5,16.14,60,CLOSED
-2026-06-15,BALKRISIND.NS,Balkrishna Industries Limited,Auto,2192.5,2363.6,A+B,8.9,7.0,-21.4,7,39,32,12.6,7.8,60,CLOSED
-2026-06-15,GUJGASLTD.NS,Gujarat Energy Limited,Oil & Gas,399.7,284.4,B-TSJump,3.0,7.0,-20.4,43,75,32,3.3,-28.85,60,CLOSED
-2026-06-15,ASKAUTOLTD.NS,ASKAUTOLTD.NS,Auto,452.0,644.7,B-TSJump,5.3,6.0,-21.9,13,42,29,5.0,42.63,60,CLOSED
-2026-06-15,VENTIVE.NS,VENTIVE.NS,Hospitality,653.5,582.95,A+B,5.5,9.0,-22.0,13,42,29,11.4,-10.8,60,CLOSED
-2026-06-15,APOLLOTYRE.NS,Apollo Tyres Limited,Auto,414.4,444.1,B-TSJump,4.6,10.0,-22.8,11,39,28,12.7,7.17,60,CLOSED
-2026-06-15,ASHOKA.NS,Ashoka Buildcon Limited,Infrastructure,132.5,112.39,B-TSJump,7.7,6.0,-39.4,1,29,28,11.7,-15.18,60,CLOSED
-2026-06-15,CEATLTD.NS,CEAT Limited,Auto,3455.3,3688.8,B-TSJump,3.6,9.0,-22.1,12,40,28,9.4,6.76,60,CLOSED
-2026-06-15,GULFOILLUB.NS,Gulf Oil Lubricants India Limited,Oil & Gas,979.6,1159.3,B-TSJump,4.3,8.0,-23.4,11,39,28,8.8,18.34,60,CLOSED
-2026-06-15,ARVINDFASN.NS,Arvind Fashions Limited,Retail,461.6,447.85,B-TSJump,2.5,9.0,-20.3,17,44,27,2.9,-2.98,60,CLOSED
-2026-06-15,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,466.8,550.2,B-TSJump,6.3,6.0,-41.1,2,29,27,10.0,17.87,60,CLOSED
-2026-06-15,IOC.NS,Indian Oil Corporation Limited,Oil & Gas,144.5,139.4,B-TSJump,2.5,8.0,-22.6,12,39,27,10.0,-3.53,60,CLOSED
-2026-06-15,AFFLE.NS,Affle 3i Limited,IT & Technology,1486.4,1668.8,B-TSJump,2.8,7.0,-32.0,2,28,26,6.2,12.27,60,CLOSED
-2026-06-15,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,981.3,904.9,B-TSJump,3.2,7.0,-35.6,3,29,26,4.7,-7.79,60,CLOSED
-2026-06-15,ITCHOTELS.NS,ITCHOTELS.NS,Hospitality,159.0,164.93,B-TSJump,3.2,6.0,-38.8,0,26,26,5.4,3.73,60,CLOSED
-2026-06-15,WESTLIFE.NS,Westlife Foodworld Limited,Hospitality,473.4,582.9,B-TSJump,6.2,6.0,-42.1,0,26,26,7.0,23.13,60,CLOSED
-2026-06-15,AURIONPRO.NS,Aurionpro Solutions Limited,IT & Technology,852.5,734.0,A+B,9.7,10.0,-48.6,0,25,25,14.4,-13.9,60,CLOSED
-2026-06-15,CLEAN.NS,Clean Science and Technology Limited,Chemicals,791.6,821.5,B-TSJump,2.9,8.0,-47.7,0,25,25,12.7,3.78,60,CLOSED
-2026-06-15,DBREALTY.NS,Valor Estate Limited,Real Estate,115.0,111.91,B-TSJump,2.8,8.0,-54.5,1,26,25,13.3,-2.69,60,CLOSED
-2026-06-15,SAFARI.NS,Safari Industries (India) Limited,Consumer Durables,1636.0,1498.5,A-BigDay,6.6,9.0,-34.8,25,28,3,9.7,-8.4,60,CLOSED
-2026-06-15,KALYANKJIL.NS,Kalyan Jewellers India Limited,Consumer Durables,383.0,608.25,A-BigDay,11.1,9.0,-37.8,0,1,1,16.1,58.81,60,CLOSED
-2026-06-15,TRENT.NS,Trent Limited,Retail,2901.1,2978.0,A-BigDay,5.3,8.0,-53.6,25,26,1,8.8,2.65,60,CLOSED
-2026-06-16,AGI.NS,AGI Greenpac Limited,Consumer Durables,702.0,703.8,A+B,6.3,9.0,-29.9,31,74,43,8.2,0.26,59,CLOSED
-2026-06-16,SONATSOFTW.NS,Sonata Software Limited,IT & Technology,311.2,325.9,A+B,19.6,9.0,-29.8,2,44,42,20.3,4.72,59,CLOSED
-2026-06-16,MGL.NS,Mahanagar Gas Limited,Oil & Gas,1185.6,1138.7,B-TSJump,4.1,9.0,-23.5,42,74,32,7.9,-3.96,59,CLOSED
-2026-06-16,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2383.8,2797.8,B-TSJump,2.5,9.0,-27.6,44,75,31,4.7,17.37,59,CLOSED
-2026-06-16,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,837.5,837.35,B-TSJump,3.6,6.0,-25.5,16,43,27,5.0,-0.02,59,CLOSED
-2026-06-16,PGEL.NS,PG Electroplast Limited,Consumer Durables,527.5,601.0,A+B,7.0,9.0,-36.9,0,27,27,12.7,13.93,59,CLOSED
-2026-06-16,AWL.NS,AWL Agri Business Limited,Consumer Goods,197.3,192.16,B-TSJump,3.2,6.0,-31.0,1,27,26,2.6,-2.61,59,CLOSED
-2026-06-16,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,720.2,591.55,A+B,5.3,9.0,-40.4,0,26,26,10.2,-17.86,59,CLOSED
-2026-06-16,MASTEK.NS,Mastek Limited,IT & Technology,1663.8,1832.2,B-TSJump,2.9,7.0,-40.3,1,27,26,-3.5,10.12,59,CLOSED
-2026-06-16,NETWORK18.NS,Network18 Media & Investments Limited,Media,33.8,29.01,B-TSJump,3.7,8.0,-48.3,0,26,26,4.6,-14.17,59,CLOSED
-2026-06-16,NFL.NS,National Fertilizers Limited,Chemicals,77.7,71.81,B-TSJump,2.6,7.0,-24.4,15,41,26,2.3,-7.58,59,CLOSED
-2026-06-16,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,181.7,234.72,B-TSJump,4.7,6.0,-50.6,0,26,26,2.3,29.18,59,CLOSED
-2026-06-16,CCAVENUE.NS,AvenuesAI Limited,Financial Services,14.3,15.43,B-TSJump,3.8,6.0,-37.7,0,25,25,3.2,7.9,59,CLOSED
-2026-06-16,HCC.NS,Hindustan Construction Company Limited,Capital Goods,25.5,19.82,A-BigDay,6.8,9.0,-23.6,75,78,3,10.9,-22.27,59,CLOSED
-2026-06-16,PARADEEP.NS,Paradeep Phosphates Limited,Chemicals,134.2,147.85,A-BigDay,5.2,8.0,-42.5,27,28,1,3.0,10.17,59,CLOSED
-2026-06-16,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1315.7,1402.9,A-BigDay,6.1,7.0,-48.1,0,0,0,8.2,6.63,59,CLOSED
-2026-06-17,ANUP.NS,The Anup Engineering Limited,Capital Goods,2132.4,1852.8,A+B,8.5,9.0,-27.4,6,75,69,8.7,-13.11,58,CLOSED
-2026-06-17,EMIL.NS,Electronics Mart India Limited,Consumer Durables,118.5,189.44,A+B,6.1,8.0,-29.7,5,73,68,8.6,59.86,58,CLOSED
-2026-06-17,IRFC.NS,Indian Railway Finance Corporation Limited,Financial Services,100.4,87.57,B-TSJump,2.9,6.0,-28.5,1,38,37,4.7,-12.78,58,CLOSED
-2026-06-17,CHALET.NS,CHALET.NS,Hospitality,781.0,825.1,B-TSJump,3.3,7.0,-27.7,1,37,36,3.1,5.65,58,CLOSED
-2026-06-17,ACE.NS,Action Construction Equipment Limited,Auto,962.1,1085.6,B-TSJump,3.4,8.0,-22.0,42,74,32,2.9,12.84,58,CLOSED
-2026-06-17,AAVAS.NS,Aavas Financiers Limited,Financial Services,1452.4,1397.4,B-TSJump,4.2,8.0,-32.5,30,61,31,4.1,-3.79,58,CLOSED
-2026-06-17,MAZDOCK.NS,Mazagon Dock Shipbuilders Limited,Infrastructure,2552.4,2580.0,B-TSJump,3.4,7.0,-23.8,15,42,27,5.0,1.08,58,CLOSED
-2026-06-17,KFINTECH.NS,KFin Technologies Limited,Financial Services,898.5,940.0,B-TSJump,4.3,8.0,-34.9,0,26,26,3.8,4.62,58,CLOSED
-2026-06-17,NUVOCO.NS,Nuvoco Vistas Corporation Limited,Cement & Materials,320.2,331.55,B-TSJump,3.2,7.0,-32.9,1,27,26,4.2,3.54,58,CLOSED
-2026-06-17,PNCINFRA.NS,PNC Infratech Limited,Infrastructure,213.1,217.92,B-TSJump,2.9,6.0,-35.6,4,30,26,5.4,2.26,58,CLOSED
-2026-06-17,IDBI.NS,IDBI Bank Limited,Banking,90.4,82.45,A-BigDay,17.1,9.0,-23.7,29,45,16,13.5,-8.79,58,CLOSED
-2026-06-17,PATELENG.NS,Patel Engineering Limited,Capital Goods,30.7,28.45,A-BigDay,6.9,9.0,-28.3,30,43,13,8.5,-7.33,58,CLOSED
-2026-06-17,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2614.9,2797.8,A-BigDay,9.7,9.0,-20.5,75,78,3,11.0,6.99,58,CLOSED
-2026-06-17,OLECTRA.NS,Olectra Greentech Limited,Auto,1354.9,1316.9,A-BigDay,6.7,7.0,-21.0,75,77,2,6.8,-2.8,58,CLOSED
-2026-06-17,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,451.1,561.1,A-BigDay,5.1,9.0,-36.7,30,32,2,5.6,24.38,58,CLOSED
-2026-06-17,TRENT.NS,Trent Limited,Retail,3102.8,2978.0,A-BigDay,7.1,9.0,-50.4,26,27,1,7.0,-4.02,58,CLOSED
-2026-06-18,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,518.8,550.2,A+B,6.9,9.0,-34.5,30,62,32,11.3,6.05,57,CLOSED
-2026-06-18,PGEL.NS,PG Electroplast Limited,Consumer Durables,564.2,601.0,B-TSJump,3.4,9.0,-32.5,29,60,31,6.3,6.52,57,CLOSED
-2026-06-18,BOSCH-HCIL.NS,Bosch Home Comfort India Limited,Consumer Durables,1407.0,1654.2,A+B,10.0,9.0,-22.4,15,45,30,10.7,17.57,57,CLOSED
-2026-06-18,BATAINDIA.NS,Bata India Limited,Textiles,789.9,755.7,A+B,16.4,9.0,-38.4,0,29,29,18.3,-4.33,57,CLOSED
-2026-06-18,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,45.9,47.66,A+B,5.5,7.0,-36.0,1,28,27,9.8,3.83,57,CLOSED
-2026-06-18,TATAINVEST.NS,Tata Investment Corporation Limited,Financial Services,694.2,667.3,B-TSJump,2.7,8.0,-41.1,2,28,26,3.9,-3.87,57,CLOSED
-2026-06-18,CCAVENUE.NS,AvenuesAI Limited,Financial Services,15.0,15.43,A-BigDay,5.1,7.0,-28.3,26,38,12,6.6,2.87,57,CLOSED
-2026-06-18,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,1049.7,904.9,A-BigDay,6.6,8.0,-31.1,29,32,3,6.1,-13.79,57,CLOSED
-2026-06-18,KNRCON.NS,KNR Constructions Limited,Infrastructure,139.1,132.43,A-BigDay,5.7,7.0,-43.1,26,27,1,2.8,-4.8,57,CLOSED
-2026-06-19,BAJAJHFL.NS,BAJAJHFL.NS,Financial Services,88.4,84.33,B-TSJump,2.9,8.0,-28.7,3,40,37,4.8,-4.6,56,CLOSED
-2026-06-19,TARIL.NS,TARIL.NS,Capital Goods,357.5,298.05,A+B,10.1,9.0,-38.2,29,62,33,10.8,-16.63,56,CLOSED
-2026-06-19,PATELENG.NS,Patel Engineering Limited,Capital Goods,31.0,28.45,B-TSJump,3.4,9.0,-27.5,42,74,32,4.9,-8.23,56,CLOSED
-2026-06-19,POONAWALLA.NS,Poonawalla Fincorp Limited,Financial Services,426.7,497.9,A+B,5.5,8.0,-25.2,12,40,28,8.0,16.69,56,CLOSED
-2026-06-19,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,574.0,571.15,B-TSJump,4.3,9.0,-23.3,17,44,27,13.5,-0.5,56,CLOSED
-2026-06-19,INDIASHLTR.NS,India Shelter Finance Corporation Limited,Financial Services,784.3,670.7,B-TSJump,3.4,8.0,-21.4,15,42,27,5.1,-14.48,56,CLOSED
-2026-06-19,SBFC.NS,SBFC Finance Limited,Financial Services,95.4,94.05,B-TSJump,3.8,9.0,-22.4,14,41,27,5.5,-1.42,56,CLOSED
-2026-06-19,DBREALTY.NS,Valor Estate Limited,Real Estate,118.1,111.91,B-TSJump,4.0,8.0,-53.2,1,27,26,4.1,-5.24,56,CLOSED
-2026-06-19,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2332.0,2688.8,B-TSJump,2.9,7.0,-31.7,0,26,26,7.0,15.3,56,CLOSED
-2026-06-19,KEC.NS,KEC International Limited,Infrastructure,541.5,439.9,B-TSJump,3.0,8.0,-42.5,0,25,25,2.5,-18.76,56,CLOSED
-2026-06-19,REFEX.NS,Refex Industries Limited,Chemicals,336.9,297.25,A-BigDay,5.7,9.0,-29.1,64,75,11,8.0,-11.77,56,CLOSED
-2026-06-19,ITCHOTELS.NS,ITCHOTELS.NS,Hospitality,170.9,164.93,A-BigDay,6.1,9.0,-34.2,27,29,2,7.5,-3.49,56,CLOSED
-2026-06-19,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,34.9,26.49,A-BigDay,5.1,9.0,-44.4,25,27,2,5.4,-24.1,56,CLOSED
-2026-06-19,SWSOLAR.NS,Sterling and Wilson Renewable Energy Limited,Power & Utilities,235.5,202.01,A-BigDay,6.0,8.0,-30.9,62,64,2,7.5,-14.22,56,CLOSED
-2026-06-19,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,32.4,35.26,A-BigDay,6.7,7.0,-49.5,59,60,1,10.2,8.83,56,CLOSED
-2026-06-22,SUBROS.NS,Subros Limited,Consumer Durables,856.0,758.25,A+B,14.5,9.0,-29.5,2,72,70,13.1,-11.42,53,CLOSED
-2026-06-22,IONEXCHANG.NS,IONEXCHANG.NS,Capital Goods,390.9,372.95,B-TSJump,5.5,6.0,-32.5,17,74,57,2.0,-4.59,53,CLOSED
-2026-06-22,POLYMED.NS,Poly Medicure Limited,Pharma & Healthcare,1671.4,1786.2,A+B,6.9,7.0,-27.7,31,73,42,8.7,6.87,53,CLOSED
-2026-06-22,KSCL.NS,Kaveri Seed Company Limited,Chemicals,944.2,779.95,A+B,11.1,9.0,-25.6,3,43,40,11.0,-17.4,53,CLOSED
-2026-06-22,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,959.1,872.7,A+B,7.1,7.0,-31.9,1,29,28,8.3,-9.01,53,CLOSED
-2026-06-22,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,48.0,47.66,A+B,7.8,8.0,-33.1,2,30,28,6.2,-0.71,53,CLOSED
-2026-06-22,LEMONTREE.NS,Lemon Tree Hotels Limited,Hospitality,118.8,108.92,B-TSJump,5.1,6.0,-34.3,0,28,28,2.3,-8.32,53,CLOSED
-2026-06-22,DBL.NS,Dilip Buildcon Limited,Capital Goods,454.9,412.35,B-TSJump,3.5,7.0,-22.2,14,41,27,4.4,-9.35,53,CLOSED
-2026-06-22,ETHOSLTD.NS,Ethos Limited,Consumer Durables,2452.0,2747.4,B-TSJump,3.0,6.0,-24.5,16,43,27,1.4,12.05,53,CLOSED
-2026-06-22,CLEAN.NS,Clean Science and Technology Limited,Chemicals,821.1,821.5,B-TSJump,5.0,9.0,-45.7,0,26,26,8.8,0.05,53,CLOSED
-2026-06-22,EIEL.NS,EIEL.NS,Infrastructure,224.9,196.73,A-BigDay,9.2,8.0,-26.6,63,75,12,-1.2,-12.53,53,CLOSED
-2026-06-22,IDBI.NS,IDBI Bank Limited,Banking,87.7,82.45,A-BigDay,5.6,9.0,-26.0,42,44,2,7.7,-5.99,53,CLOSED
-2026-06-22,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,162.9,176.05,A-BigDay,6.9,9.0,-32.4,31,33,2,11.1,8.07,53,CLOSED
-2026-06-23,BASF.NS,BASF India Limited,Chemicals,3745.8,4077.9,B-TSJump,4.8,9.0,-28.5,2,39,37,6.8,8.87,52,CLOSED
-2026-06-23,PPLPHARMA.NS,Piramal Pharma Limited,Pharma & Healthcare,168.9,206.64,A+B,6.5,8.0,-23.5,14,43,29,6.1,22.34,52,CLOSED
-2026-06-23,AARTIPHARM.NS,Aarti Pharmalabs Limited,Pharma & Healthcare,710.6,851.2,B-TSJump,4.8,6.0,-26.5,13,40,27,9.1,19.79,52,CLOSED
-2026-06-23,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,457.8,440.65,A+B,13.0,9.0,-59.2,0,27,27,10.3,-3.75,52,CLOSED
-2026-06-24,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1163.5,1176.5,B-TSJump,3.5,7.0,-23.1,42,74,32,0.4,1.12,51,CLOSED
-2026-06-24,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,49.9,47.66,A+B,5.5,8.0,-30.4,30,62,32,4.9,-4.49,51,CLOSED
-2026-06-24,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,310.9,390.1,A+B,6.7,8.0,-24.6,14,42,28,7.9,25.47,51,CLOSED
-2026-06-24,TECHM.NS,Tech Mahindra Limited,IT & Technology,1461.6,1632.8,B-TSJump,3.2,6.0,-21.2,12,39,27,2.2,11.71,51,CLOSED
-2026-06-24,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,543.5,591.55,B-TSJump,3.8,7.0,-38.2,1,27,26,6.0,8.84,51,CLOSED
-2026-06-25,WAAREERTL.NS,Waaree Renewable Technologies Limited,Power & Utilities,1020.7,891.55,B-TSJump,3.7,7.0,-24.8,31,88,57,4.2,-12.65,50,CLOSED
-2026-06-25,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,413.5,396.25,A+B,12.1,9.0,-21.4,44,78,34,14.5,-4.17,50,CLOSED
-2026-06-25,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,328.5,390.1,A+B,5.7,9.0,-20.3,42,75,33,5.7,18.75,50,CLOSED
-2026-06-25,MSUMI.NS,Motherson Sumi Wiring India Limited,Auto,41.3,40.35,A+B,9.1,9.0,-23.0,9,40,31,7.5,-2.3,50,CLOSED
-2026-06-25,MARUTI.NS,Maruti Suzuki India Limited,Auto,13745.0,13834.0,B-TSJump,3.8,8.0,-20.9,12,40,28,2.5,0.65,50,CLOSED
-2026-06-25,ASHOKLEY.NS,Ashok Leyland Limited,Auto,160.7,171.64,B-TSJump,3.7,8.0,-24.1,18,45,27,1.7,6.81,50,CLOSED
-2026-06-25,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1346.7,1402.9,B-TSJump,3.2,8.0,-45.2,0,26,26,4.6,4.17,50,CLOSED
-2026-06-26,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,328.5,390.1,A-BigDay,5.7,9.0,-20.3,75,75,0,0.6,18.75,49,CLOSED
-2026-06-26,MSUMI.NS,Motherson Sumi Wiring India Limited,Auto,41.3,40.35,A-BigDay,9.1,9.0,-23.0,40,40,0,0.6,-2.3,49,CLOSED
-2026-06-26,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,413.5,396.25,A-BigDay,12.1,9.0,-21.4,78,78,0,0.6,-4.17,49,CLOSED
-2026-06-29,TSFINV.NS,TSF Investments Limited,Financial Services,444.0,415.45,A+B,11.9,9.0,-35.8,1,30,29,11.0,-6.43,46,CLOSED
-2026-06-30,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2450.3,2688.8,B-TSJump,4.1,8.0,-27.3,27,69,42,6.2,9.73,45,CLOSED
-2026-06-30,APLLTD.NS,Alembic Pharmaceuticals Limited,Pharma & Healthcare,822.8,831.25,B-TSJump,4.6,9.0,-24.9,40,73,33,10.1,1.03,45,CLOSED
-2026-06-30,BANCOINDIA.NS,Banco Products (India) Limited,Auto,670.3,618.1,B-TSJump,2.6,8.0,-22.0,43,75,32,-1.8,-7.79,45,CLOSED
-2026-06-30,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,505.1,550.2,B-TSJump,3.7,9.0,-36.2,30,62,32,6.1,8.93,45,CLOSED
-2026-06-30,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,48.7,47.66,B-TSJump,4.4,8.0,-31.2,29,61,32,4.2,-2.14,45,CLOSED
-2026-06-30,APTUS.NS,Aptus Value Housing Finance India Limited,Financial Services,278.9,250.5,B-TSJump,4.4,9.0,-22.1,44,75,31,5.7,-10.18,45,CLOSED
-2026-06-30,TARIL.NS,TARIL.NS,Capital Goods,351.4,298.05,A+B,5.6,9.0,-39.3,30,61,31,9.3,-15.18,45,CLOSED
-2026-06-30,COROMANDEL.NS,Coromandel International Limited,Chemicals,2005.0,2095.3,B-TSJump,4.8,7.0,-26.0,12,39,27,7.8,4.5,45,CLOSED
-2026-06-30,COCHINSHIP.NS,Cochin Shipyard Limited,Infrastructure,1507.9,1496.5,A-BigDay,5.6,9.0,-27.5,4,16,12,9.2,-0.76,45,CLOSED
-2026-06-30,OLAELEC.NS,OLAELEC.NS,Auto,43.8,38.73,A-BigDay,8.4,8.0,-38.6,77,79,2,7.1,-11.58,45,CLOSED
-2026-07-01,ETERNAL.NS,Eternal Limited,Retail,279.7,318.5,A+B,5.7,8.0,-24.1,41,73,32,7.9,13.87,44,CLOSED
-2026-07-01,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,485.4,561.1,B-TSJump,4.5,6.0,-31.9,33,64,31,3.9,15.6,44,CLOSED
-2026-07-01,PGEL.NS,PG Electroplast Limited,Consumer Durables,550.8,601.0,B-TSJump,3.3,9.0,-34.1,28,59,31,4.8,9.11,44,CLOSED
-2026-07-01,DABUR.NS,Dabur India Limited,Consumer Goods,444.8,405.25,A+B,5.3,8.0,-22.5,9,38,29,8.4,-8.89,44,CLOSED
-2026-07-01,SUNTECK.NS,Sunteck Realty Limited,Real Estate,326.7,299.05,A+B,5.1,8.0,-30.9,1,29,28,10.1,-8.46,44,CLOSED
-2026-07-01,AARTIPHARM.NS,Aarti Pharmalabs Limited,Pharma & Healthcare,701.7,851.2,B-TSJump,3.2,7.0,-27.4,13,40,27,4.4,21.31,44,CLOSED
-2026-07-01,BEML.NS,BEML Limited,Auto,1825.7,1874.4,B-TSJump,3.7,6.0,-22.6,18,45,27,2.9,2.67,44,CLOSED
-2026-07-01,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,548.4,571.15,B-TSJump,3.3,9.0,-26.7,15,42,27,3.8,4.15,44,CLOSED
-2026-07-01,JMFINANCIL.NS,JM Financial Limited,Diversified,129.0,126.43,A+B,5.4,7.0,-33.8,0,27,27,12.8,-1.99,44,CLOSED
-2026-07-01,TEXRAIL.NS,Texmaco Rail & Engineering Limited,Infrastructure,112.0,104.85,B-TSJump,4.0,6.0,-37.4,4,31,27,7.1,-6.38,44,CLOSED
-2026-07-01,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1396.0,1402.9,A+B,5.5,9.0,-43.2,1,27,26,6.8,0.49,44,CLOSED
-2026-07-01,JUSTDIAL.NS,Just Dial Limited,IT & Technology,548.7,681.0,B-TSJump,4.5,8.0,-42.7,0,25,25,4.9,24.11,44,CLOSED
-2026-07-01,ROUTE.NS,Route Mobile Limited,IT & Technology,532.0,505.25,B-TSJump,2.5,6.0,-47.8,1,26,25,-0.8,-5.03,44,CLOSED
-2026-07-01,EMIL.NS,Electronics Mart India Limited,Consumer Durables,127.8,189.44,A-BigDay,5.0,9.0,-24.1,74,90,16,7.1,48.23,44,CLOSED
-2026-07-01,RHIM.NS,RHI Magnesita India Limited,Capital Goods,387.7,379.85,A-BigDay,5.4,9.0,-27.5,2,15,13,13.6,-2.02,44,CLOSED
-2026-07-01,JUBLINGREA.NS,Jubilant Ingrevia Limited,Chemicals,640.8,736.95,A-BigDay,5.4,7.0,-24.3,27,31,4,7.8,15.0,44,CLOSED
-2026-07-01,IXIGO.NS,IXIGO.NS,Consumer Durables,214.0,174.03,A-BigDay,8.8,9.0,-36.9,28,31,3,18.6,-18.68,44,CLOSED
-2026-07-01,HEXT.NS,Hexaware Technologies Limited,IT & Technology,551.7,569.85,A-BigDay,7.1,8.0,-37.0,28,30,2,0.4,3.29,44,CLOSED
-2026-07-01,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1201.6,1176.5,A-BigDay,5.5,9.0,-20.5,73,75,2,6.7,-2.09,44,CLOSED
-2026-07-01,RPOWER.NS,Reliance Power Limited,Power & Utilities,27.2,22.98,A-BigDay,9.4,7.0,-61.7,0,0,0,8.9,-15.51,44,CLOSED
-2026-07-02,FORCEMOT.NS,Force Motors Limited,Auto,19367.0,18361.0,A+B,5.7,7.0,-26.8,6,43,37,4.1,-5.19,43,CLOSED
-2026-07-02,EUREKAFORB.NS,Eureka Forbes Limited,Consumer Durables,480.9,442.75,B-TSJump,3.3,7.0,-28.0,3,39,36,6.9,-7.93,43,CLOSED
-2026-07-02,BALKRISIND.NS,Balkrishna Industries Limited,Auto,2230.2,2363.6,B-TSJump,2.8,8.0,-20.0,13,40,27,3.9,5.98,43,CLOSED
-2026-07-02,ABFRL.NS,Aditya Birla Fashion and Retail Limited,Retail,61.9,55.98,A-BigDay,5.5,8.0,-34.8,0,2,2,9.3,-9.56,43,CLOSED
-2026-07-02,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,543.9,550.2,A-BigDay,5.1,9.0,-31.3,62,64,2,11.9,1.16,43,CLOSED
-2026-07-02,ADVANCE.NS,ADVANCE.NS,Agricultural Inputs,114.8,118.79,A-BigDay,7.5,8.0,-25.4,64,64,0,0.0,3.48,43,CLOSED
-2026-07-02,ALLTIME.NS,ALLTIME.NS,Household & Personal Products,255.3,215.54,A-BigDay,6.7,8.0,-23.8,74,74,0,0.0,-15.57,43,CLOSED
-2026-07-02,ANDHRSUGAR.NS,ANDHRSUGAR.NS,Chemicals,83.8,101.88,A-BigDay,5.8,7.0,-21.8,63,63,0,0.0,21.58,43,CLOSED
-2026-07-02,CHEMPLASTS.NS,CHEMPLASTS.NS,Chemicals,212.7,184.1,A-BigDay,5.3,9.0,-55.5,0,0,0,0.0,-13.45,43,CLOSED
-2026-07-02,CONTROLPR.NS,CONTROLPR.NS,Business Equipment & Supplies,711.6,584.65,A-BigDay,12.5,9.0,-22.0,75,75,0,0.0,-17.84,43,CLOSED
-2026-07-02,DELTACORP.NS,DELTACORP.NS,Resorts & Casinos,67.9,60.54,A-BigDay,6.4,8.0,-31.3,22,22,0,0.0,-10.84,43,CLOSED
-2026-07-02,DIAMINESQ.NS,DIAMINESQ.NS,Chemicals,268.5,242.06,A-BigDay,8.7,8.0,-40.2,58,58,0,0.0,-9.85,43,CLOSED
-2026-07-02,EPACKPEB.NS,EPACKPEB.NS,Engineering & Construction,258.2,229.7,A-BigDay,5.0,9.0,-24.9,67,67,0,0.0,-11.04,43,CLOSED
-2026-07-02,EXCELSOFT.NS,EXCELSOFT.NS,Software - Application,81.8,73.96,A-BigDay,8.9,8.0,-42.6,22,22,0,0.0,-9.58,43,CLOSED
-2026-07-02,GOODYEAR.NS,GOODYEAR.NS,Auto Parts,799.8,800.4,A-BigDay,5.8,7.0,-37.2,45,45,0,0.0,0.08,43,CLOSED
-2026-07-03,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto Parts,55.3,58.33,A+B,20.0,9.0,-38.9,2,62,60,29.7,5.48,42,CLOSED
-2026-07-03,BVCL.NS,BVCL.NS,Building Materials,46.0,40.98,A+B,11.3,8.0,-34.3,3,62,59,13.5,-10.91,42,CLOSED
-2026-07-03,GANECOS.NS,Ganesha Ecosphere Limited,Textiles,1027.8,1060.6,A+B,11.8,9.0,-34.8,19,78,59,14.9,3.19,42,CLOSED
-2026-07-03,AMBUJACEM.NS,Ambuja Cements Limited,Cement & Materials,443.4,417.5,B-TSJump,3.4,8.0,-28.7,0,37,37,8.7,-5.84,42,CLOSED
-2026-07-03,HITECH.NS,HITECH.NS,Steel,89.4,78.22,B-TSJump,4.0,7.0,-29.9,4,41,37,3.0,-12.51,42,CLOSED
-2026-07-03,ANANTRAJ.NS,Anant Raj Limited,Real Estate,554.7,629.95,B-TSJump,3.2,7.0,-25.4,42,74,32,2.1,13.57,42,CLOSED
-2026-07-03,GROBTEA.NS,GROBTEA.NS,Farm Products,955.2,958.05,A+B,5.8,7.0,-22.7,12,41,29,8.4,0.3,42,CLOSED
-2026-07-03,BEDMUTHA.NS,BEDMUTHA.NS,Steel,111.6,112.1,B-TSJump,2.8,8.0,-32.4,1,28,27,7.7,0.45,42,CLOSED
-2026-07-03,ACC.NS,ACC Limited,Cement & Materials,1393.8,1321.4,B-TSJump,3.2,8.0,-30.9,0,26,26,9.2,-5.19,42,CLOSED
-2026-07-03,ARIHANTCAP.NS,ARIHANTCAP.NS,Capital Markets,71.0,74.14,B-TSJump,3.1,8.0,-40.8,1,27,26,4.7,4.42,42,CLOSED
-2026-07-03,DOLLAR.NS,DOLLAR.NS,Apparel Manufacturing,276.8,273.5,B-TSJump,2.9,9.0,-35.1,3,29,26,9.1,-1.19,42,CLOSED
-2026-07-03,DIGITIDE.NS,DIGITIDE.NS,Specialty Business Services,102.2,100.09,A+B,15.4,9.0,-63.5,0,25,25,16.9,-2.06,42,CLOSED
-2026-07-03,ECLERX.NS,eClerx Services Limited,Capital Goods,1488.8,1897.0,A+B,7.0,8.0,-40.4,0,25,25,14.2,27.42,42,CLOSED
-2026-07-03,AVG.NS,AVG.NS,Integrated Freight & Logistics,224.2,205.0,A-BigDay,7.3,9.0,-26.4,65,77,12,13.0,-8.56,42,CLOSED
-2026-07-03,COSMOFIRST.NS,COSMOFIRST.NS,Packaging & Containers,853.1,938.35,A-BigDay,6.1,9.0,-29.5,77,89,12,10.8,9.99,42,CLOSED
-2026-07-03,DENTA.NS,DENTA.NS,Engineering & Construction,352.9,295.75,A-BigDay,6.4,9.0,-26.4,63,75,12,12.0,-16.19,42,CLOSED
-2026-07-03,DCW.NS,DCW.NS,Chemicals,50.4,44.05,A-BigDay,5.4,8.0,-40.1,27,29,2,7.0,-12.6,42,CLOSED
-2026-07-03,FOODSIN.NS,FOODSIN.NS,Packaged Foods,63.1,57.21,A-BigDay,9.2,8.0,-46.5,26,28,2,14.5,-9.33,42,CLOSED
-2026-07-03,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1139.0,1360.0,A-BigDay,5.6,7.0,-34.8,0,0,0,10.2,19.4,42,CLOSED
-2026-07-06,63MOONS.NS,63MOONS.NS,IT - Software,700.7,786.25,A+B,6.5,8.0,-37.9,4,61,57,7.8,12.21,39,CLOSED
-2026-07-06,AARTECH.NS,AARTECH.NS,Electrical Equipment,57.5,50.23,A+B,20.0,9.0,-24.4,31,76,45,30.8,-12.64,39,CLOSED
-2026-07-06,DIXON.NS,Dixon Technologies (India) Limited,Consumer Durables,13304.0,14130.0,A+B,6.8,9.0,-28.0,30,73,43,12.1,6.21,39,CLOSED
-2026-07-06,DIGITIDE.NS,DIGITIDE.NS,Commercial Services & Supplies,120.6,100.09,A+B,17.9,9.0,-56.9,25,58,33,28.1,-17.01,39,CLOSED
-2026-07-06,ABBOTINDIA.NS,Abbott India Limited,Pharma & Healthcare,26860.0,27060.0,B-TSJump,3.7,6.0,-23.9,8,36,28,7.6,0.74,39,CLOSED
-2026-07-06,ADVENTHTL.NS,ADVENTHTL.NS,Leisure Services,151.2,141.58,A+B,7.6,7.0,-56.2,18,45,27,16.8,-6.36,39,CLOSED
-2026-07-06,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,537.3,591.55,B-TSJump,4.6,8.0,-37.1,0,27,27,9.6,10.1,39,CLOSED
-2026-07-06,DEVIT.NS,DEVIT.NS,IT - Services,29.0,26.09,A+B,5.8,9.0,-42.8,1,28,27,15.8,-10.03,39,CLOSED
-2026-07-06,ARIHANTSUP.NS,ARIHANTSUP.NS,Realty,270.9,247.55,B-TSJump,4.7,9.0,-41.7,3,29,26,14.7,-8.62,39,CLOSED
-2026-07-06,CLEAN.NS,Clean Science and Technology Limited,Chemicals,792.7,821.5,B-TSJump,2.5,7.0,-46.5,0,26,26,8.8,3.63,39,CLOSED
-2026-07-06,FINKURVE.NS,FINKURVE.NS,Finance,69.0,72.74,B-TSJump,4.9,9.0,-48.9,22,48,26,7.7,5.42,39,CLOSED
-2026-07-06,DCMSRIND.NS,DCMSRIND.NS,Food Products,41.0,42.24,B-TSJump,6.2,6.0,-77.2,0,22,22,3.9,3.02,39,CLOSED
-2026-07-06,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto Components,61.0,58.33,A-BigDay,10.4,8.0,-32.5,62,65,3,19.0,-4.38,39,CLOSED
-2026-07-06,CORALFINAC.NS,CORALFINAC.NS,Realty,35.0,33.06,A-BigDay,5.5,7.0,-32.7,30,32,2,10.1,-5.54,39,CLOSED
-2026-07-07,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,404.4,327.7,B-TSJump,4.4,8.0,-38.9,31,62,31,12.3,-18.97,38,CLOSED
-2026-07-07,HAVELLS.NS,Havells India Limited,Consumer Durables,1225.0,1298.0,B-TSJump,3.7,7.0,-23.8,9,37,28,8.1,5.96,38,CLOSED
-2026-07-07,AMJLAND.NS,AMJLAND.NS,Real Estate,39.4,39.36,B-TSJump,4.1,6.0,-39.3,2,28,26,10.0,-0.1,38,CLOSED
-2026-07-07,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1168.2,1360.0,B-TSJump,3.0,8.0,-33.1,0,26,26,8.0,16.42,38,CLOSED
-2026-07-08,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,404.4,327.7,B-TSJump,4.4,8.0,-38.9,31,62,31,12.3,-18.97,37,CLOSED
-2026-07-08,HAVELLS.NS,Havells India Limited,Consumer Durables,1225.0,1298.0,B-TSJump,3.7,7.0,-23.8,9,37,28,8.1,5.96,37,CLOSED
-2026-07-08,AMJLAND.NS,AMJLAND.NS,Real Estate,39.4,39.36,B-TSJump,4.1,6.0,-39.3,2,28,26,10.0,-0.1,37,CLOSED
-2026-07-08,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1168.2,1360.0,B-TSJump,3.0,8.0,-33.1,0,26,26,8.0,16.42,37,CLOSED
-2026-07-10,ANANTRAJ.NS,Anant Raj Limited,Real Estate,585.8,629.95,B-TSJump,2.9,8.0,-21.2,42,76,34,13.8,7.54,35,CLOSED
-2026-07-10,BIRLAMONEY.NS,BIRLAMONEY.NS,Financial Services,149.9,131.88,B-TSJump,4.8,9.0,-24.1,44,76,32,10.2,-12.02,35,CLOSED
-2026-07-10,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,574.6,591.55,A+B,7.6,8.0,-32.7,0,30,30,10.3,2.95,35,CLOSED
-2026-07-10,FSL.NS,Firstsource Solutions Limited,Capital Goods,259.7,267.1,A+B,6.9,7.0,-30.4,3,31,28,12.6,2.85,35,CLOSED
-2026-07-10,ELLEN.NS,ELLEN.NS,Chemicals,294.2,332.6,A+B,10.0,8.0,-53.9,1,28,27,12.3,13.05,35,CLOSED
-2026-07-10,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,386.3,420.2,A+B,5.7,8.0,-39.9,0,26,26,15.8,8.78,35,CLOSED
-2026-07-10,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,451.9,440.65,B-TSJump,2.7,9.0,-59.7,2,27,25,6.0,-2.49,35,CLOSED
-2026-07-10,EMSLIMITED.NS,EMSLIMITED.NS,Infrastructure,458.1,362.7,A-BigDay,9.3,9.0,-29.9,62,75,13,29.6,-20.83,35,CLOSED
-2026-07-10,CEWATER.NS,CEWATER.NS,Power & Utilities,352.6,264.65,A-BigDay,10.4,9.0,-46.2,26,29,3,13.7,-24.94,35,CLOSED
-2026-07-10,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,624.0,584.5,A-BigDay,8.6,9.0,-39.2,61,63,2,-2.3,-6.33,35,CLOSED
-2026-07-10,HEG.NS,HEG Limited,Capital Goods,545.0,701.0,A-BigDay,6.0,8.0,-21.0,30,32,2,7.1,28.62,35,CLOSED
-2026-07-10,DENTA.NS,DENTA.NS,Infrastructure,353.0,295.75,A-BigDay,7.1,9.0,-26.4,75,75,0,7.7,-16.22,35,CLOSED
-2026-07-10,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,368.6,341.95,A-BigDay,5.7,7.0,-33.4,0,0,0,11.7,-7.23,35,CLOSED
-2026-07-13,BFUTILITIE.NS,BFUTILITIE.NS,Infrastructure,672.5,564.0,A+B,16.2,9.0,-25.2,7,77,70,13.8,-16.13,32,CLOSED
-2026-07-13,ASHAPURMIN.NS,ASHAPURMIN.NS,Metals & Mining,703.5,603.45,B-TSJump,8.8,6.0,-23.9,23,90,67,8.2,-14.22,32,CLOSED
-2026-07-13,DEN.NS,DEN.NS,Media,30.1,27.51,B-TSJump,3.1,8.0,-29.3,30,72,42,-4.0,-8.6,32,CLOSED
-2026-07-13,BCLIND.NS,BCLIND.NS,Consumer Goods,37.2,35.63,A+B,8.5,9.0,-24.1,52,90,38,11.4,-4.22,32,CLOSED
-2026-07-13,63MOONS.NS,63MOONS.NS,IT & Technology,734.2,786.25,A+B,8.2,7.0,-34.9,30,63,33,9.8,7.09,32,CLOSED
-2026-07-13,ARKADE.NS,ARKADE.NS,Real Estate,140.9,133.34,A+B,6.3,9.0,-33.7,30,63,33,7.7,-5.37,32,CLOSED
-2026-07-13,FMGOETZE.NS,FMGOETZE.NS,Auto,471.2,457.25,B-TSJump,3.9,8.0,-23.0,42,74,32,8.4,-2.96,32,CLOSED
-2026-07-13,BEARDSELL.NS,BEARDSELL.NS,Cement & Materials,29.5,24.72,B-TSJump,4.9,6.0,-23.6,44,75,31,0.4,-16.2,32,CLOSED
-2026-07-13,ADSL.NS,ADSL.NS,IT & Technology,125.7,112.82,B-TSJump,4.7,7.0,-40.0,4,30,26,3.9,-10.25,32,CLOSED
-2026-07-13,EPACK.NS,EPACK.NS,Consumer Durables,241.8,215.47,B-TSJump,3.6,6.0,-41.7,1,27,26,4.4,-10.89,32,CLOSED
-2026-07-13,HITECH.NS,HITECH.NS,Metals & Mining,89.1,78.22,B-TSJump,2.5,6.0,-30.1,4,30,26,1.7,-12.21,32,CLOSED
-2026-07-13,BLKASHYAP.NS,BLKASHYAP.NS,Infrastructure,59.5,51.62,A-BigDay,7.6,8.0,-25.7,77,90,13,6.2,-13.24,32,CLOSED
-2026-07-13,BOROLTD.NS,BOROLTD.NS,Consumer Durables,257.0,238.55,A-BigDay,10.8,9.0,-35.4,23,28,5,11.3,-7.18,32,CLOSED
-2026-07-13,FINOPB.NS,FINOPB.NS,Banking,161.3,150.24,A-BigDay,19.2,10.0,-52.4,24,27,3,18.5,-6.86,32,CLOSED
-2026-07-13,ASAHISONG.NS,ASAHISONG.NS,Chemicals,284.0,361.9,A-BigDay,5.3,8.0,-37.1,75,77,2,5.8,27.43,32,CLOSED
-2026-07-13,BIRLAMONEY.NS,BIRLAMONEY.NS,Financial Services,157.8,131.88,A-BigDay,5.3,10.0,-20.1,76,78,2,-0.6,-16.43,32,CLOSED
-2026-07-13,CCCL.NS,CCCL.NS,Infrastructure,17.4,16.0,A-BigDay,7.2,8.0,-39.7,27,29,2,8.2,-8.05,32,CLOSED
-2026-07-13,EPIGRAL.NS,Epigral Limited,Chemicals,1068.5,1098.4,A-BigDay,9.3,7.0,-49.2,0,2,2,5.5,2.8,32,CLOSED
-2026-07-13,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,407.5,420.2,A-BigDay,5.5,9.0,-36.6,26,28,2,8.2,3.12,32,CLOSED
-2026-07-13,DAMCAPITAL.NS,DAMCAPITAL.NS,Financial Services,162.0,145.32,A-BigDay,5.6,8.0,-43.4,27,28,1,0.2,-10.3,32,CLOSED
-2026-07-13,GENESYS.NS,GENESYS.NS,IT & Technology,343.8,181.15,A-BigDay,5.4,8.0,-48.8,29,30,1,14.9,-47.31,32,CLOSED
-2026-07-14,HGS.NS,HGS.NS,Capital Goods,453.6,408.65,A+B,8.7,9.0,-27.9,28,72,44,12.6,-9.91,31,CLOSED
-2026-07-14,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,405.7,416.35,B-TSJump,2.5,7.0,-27.7,40,71,31,7.3,2.63,31,CLOSED
-2026-07-14,ALPA.NS,ALPA.NS,Pharma & Healthcare,71.7,64.27,B-TSJump,4.0,6.0,-32.3,7,33,26,7.2,-10.36,31,CLOSED
-2026-07-14,BASF.NS,BASF India Limited,Chemicals,3613.6,4077.9,B-TSJump,2.6,9.0,-31.0,1,27,26,3.9,12.85,31,CLOSED
-2026-07-14,FINOPB.NS,FINOPB.NS,Banking,176.4,150.24,A-BigDay,9.3,9.0,-48.0,27,29,2,15.4,-14.83,31,CLOSED
-2026-07-15,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,46.9,50.38,B-TSJump,8.0,6.0,-21.6,15,74,59,8.9,7.42,30,CLOSED
-2026-07-15,DPABHUSHAN.NS,DPABHUSHAN.NS,Consumer Durables,1307.2,1429.3,A+B,11.5,9.0,-24.4,31,75,44,18.4,9.34,30,CLOSED
-2026-07-15,ALLTIME.NS,ALLTIME.NS,Consumer Goods,240.2,215.54,B-TSJump,2.8,6.0,-28.3,5,41,36,7.6,-10.27,30,CLOSED
-2026-07-15,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,869.5,837.35,B-TSJump,3.0,10.0,-22.7,43,75,32,1.0,-3.7,30,CLOSED
-2026-07-15,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,418.6,327.7,A+B,6.4,7.0,-36.8,31,63,32,8.5,-21.72,30,CLOSED
-2026-07-15,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,1018.9,904.9,B-TSJump,5.4,6.0,-33.1,3,30,27,6.7,-11.19,30,CLOSED
-2026-07-15,DEVIT.NS,DEVIT.NS,IT & Technology,28.8,26.09,B-TSJump,3.2,7.0,-43.3,1,27,26,4.8,-9.41,30,CLOSED
-2026-07-15,BCONCEPTS.NS,BCONCEPTS.NS,Consumer Durables,208.9,159.02,B-TSJump,5.5,6.0,-53.5,0,25,25,10.6,-23.88,30,CLOSED
-2026-07-15,ELIN.NS,ELIN.NS,Capital Goods,114.7,101.55,A+B,13.2,9.0,-51.0,0,25,25,16.0,-11.46,30,CLOSED
-2026-07-15,EIMCOELECO.NS,EIMCOELECO.NS,Auto,1887.7,2005.5,A-BigDay,6.9,7.0,-25.9,60,73,13,7.8,6.24,30,CLOSED
-2026-07-15,DAMCAPITAL.NS,DAMCAPITAL.NS,Financial Services,169.4,145.32,A-BigDay,7.9,9.0,-40.8,27,30,3,12.6,-14.21,30,CLOSED
-2026-07-15,AVANTIFEED.NS,Avanti Feeds Limited,Consumer Goods,989.2,861.4,A-BigDay,5.7,7.0,-37.9,20,22,2,12.4,-12.92,30,CLOSED
-2026-07-16,BORANA.NS,BORANA.NS,Textiles,325.5,338.2,A+B,7.4,10.0,-22.5,34,91,57,8.7,3.9,29,CLOSED
-2026-07-16,DMCC.NS,DMCC.NS,Chemicals,269.6,294.15,B-TSJump,4.0,7.0,-22.4,34,90,56,9.7,9.11,29,CLOSED
-2026-07-16,BAJAJHCARE.NS,BAJAJHCARE.NS,Pharma & Healthcare,372.9,329.25,B-TSJump,2.6,9.0,-31.4,30,62,32,-0.7,-11.71,29,CLOSED
-2026-07-16,GLOBUSSPR.NS,GLOBUSSPR.NS,Consumer Goods,988.5,871.05,B-TSJump,3.3,9.0,-24.0,40,72,32,2.0,-11.88,29,CLOSED
-2026-07-16,AVANTIFEED.NS,Avanti Feeds Limited,Consumer Goods,1035.7,861.4,B-TSJump,4.7,8.0,-35.0,22,53,31,8.7,-16.83,29,CLOSED
-2026-07-16,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,192.2,240.37,A+B,13.8,9.0,-38.5,0,26,26,12.7,25.06,29,CLOSED
-2026-07-16,DIXON.NS,Dixon Technologies (India) Limited,Consumer Durables,14507.0,14130.0,A-BigDay,6.3,8.0,-21.5,74,76,2,4.9,-2.6,29,CLOSED
-2026-07-16,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,62.2,58.33,A-BigDay,7.8,8.0,-31.3,78,80,2,13.3,-6.22,29,CLOSED
-2026-07-17,ECLERX.NS,eClerx Services Limited,Capital Goods,1979.8,1897.0,A+B,12.5,9.0,-20.7,42,76,34,19.1,-4.18,28,CLOSED
-2026-07-17,FINOPB.NS,FINOPB.NS,Banking,174.2,150.24,A-BigDay,10.1,9.0,-48.6,27,29,2,-1.2,-13.75,28,CLOSED
-2026-07-17,AFCONS.NS,AFCONS.NS,Infrastructure,299.8,268.8,A-BigDay,5.0,9.0,-37.5,0,0,0,6.5,-10.34,28,CLOSED
-2026-07-20,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,17.2,17.13,A+B,19.9,9.0,-39.9,0,61,61,17.2,-0.41,25,CLOSED
-2026-07-20,ATLASCYCLE.NS,ATLASCYCLE.NS,Hospitality,100.4,96.41,B-TSJump,3.8,6.0,-25.6,16,73,57,4.0,-3.97,25,CLOSED
-2026-07-20,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,42.8,42.4,A+B,6.6,7.0,-31.9,1,30,29,8.9,-0.93,25,CLOSED
-2026-07-20,BIL.NS,BIL.NS,Consumer Durables,745.5,837.4,B-TSJump,2.9,7.0,-24.3,15,42,27,0.2,12.33,25,CLOSED
-2026-07-20,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,922.7,872.7,B-TSJump,3.5,7.0,-31.2,1,28,27,-2.8,-5.42,25,CLOSED
-2026-07-20,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,210.1,240.37,A-BigDay,11.4,9.0,-32.7,25,30,5,12.3,14.41,25,CLOSED
-2026-07-21,HECPROJECT.NS,HECPROJECT.NS,Infrastructure,138.7,130.05,A+B,20.0,9.0,-20.0,19,92,73,9.9,-6.24,24,CLOSED
-2026-07-21,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,44.7,42.4,B-TSJump,4.3,7.0,-29.0,30,72,42,5.3,-5.15,24,CLOSED
-2026-07-21,BASF.NS,BASF India Limited,Chemicals,3833.7,4077.9,B-TSJump,4.0,7.0,-26.0,39,71,32,-2.6,6.37,24,CLOSED
-2026-07-21,EIHAHOTELS.NS,EIHAHOTELS.NS,Hospitality,324.6,299.25,B-TSJump,2.7,6.0,-25.4,14,41,27,4.4,-7.81,24,CLOSED
-2026-07-21,EPIGRAL.NS,Epigral Limited,Chemicals,1164.2,1098.4,A+B,7.5,9.0,-44.7,2,29,27,8.7,-5.65,24,CLOSED
-2026-07-21,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,938.2,1013.65,B-TSJump,4.3,6.0,-34.1,0,27,27,6.1,8.04,24,CLOSED
-2026-07-21,ARIS.NS,ARIS.NS,Infrastructure,118.9,134.09,B-TSJump,3.6,6.0,-33.3,6,32,26,5.9,12.78,24,CLOSED
-2026-07-21,DYNPRO.NS,DYNPRO.NS,Chemicals,236.3,231.85,B-TSJump,2.9,7.0,-43.2,1,27,26,4.9,-1.88,24,CLOSED
-2026-07-21,COMPUSOFT.NS,COMPUSOFT.NS,Hospitality,13.6,13.09,B-TSJump,4.2,6.0,-40.3,0,25,25,4.3,-3.75,24,CLOSED
-2026-07-21,AARON.NS,AARON.NS,Capital Goods,119.9,135.46,B-TSJump,3.4,7.0,-53.5,0,23,23,4.0,12.98,24,CLOSED
-2026-07-21,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,18.7,17.13,A-BigDay,8.7,9.0,-34.7,61,63,2,11.7,-8.4,24,CLOSED
-2026-07-22,CRISIL.NS,CRISIL Limited,Financial Services,4495.2,4475.9,B-TSJump,4.5,8.0,-22.6,39,72,33,8.9,-0.43,23,CLOSED
-2026-07-22,ARENTERP.NS,ARENTERP.NS,Metals & Mining,41.2,38.99,A+B,20.0,9.0,-32.2,0,31,31,21.4,-5.36,23,CLOSED
-2026-07-22,AMDIND.NS,AMDIND.NS,Capital Goods,46.8,54.8,A+B,5.2,7.0,-31.2,5,32,27,6.2,17.09,23,CLOSED
-2026-07-22,ASIANHOTNR.NS,ASIANHOTNR.NS,Hospitality,308.6,301.65,B-TSJump,4.8,7.0,-23.3,15,42,27,7.5,-2.25,23,CLOSED
-2026-07-22,GENUSPAPER.NS,GENUSPAPER.NS,Cement & Materials,12.4,11.09,A+B,7.6,8.0,-40.1,3,30,27,9.7,-10.56,23,CLOSED
-2026-07-22,CTE.NS,CTE.NS,IT & Technology,32.4,38.83,B-TSJump,3.5,6.0,-46.0,4,30,26,3.4,19.85,23,CLOSED
-2026-07-22,EMAMILTD.NS,Emami Limited,Consumer Goods,413.9,403.3,B-TSJump,3.2,7.0,-33.5,0,25,25,4.6,-2.56,23,CLOSED
-2026-07-22,EFCIL.NS,EFCIL.NS,Real Estate,192.1,179.92,B-TSJump,2.8,8.0,-46.2,0,24,24,7.2,-6.34,23,CLOSED
-2026-07-22,ASAHISONG.NS,ASAHISONG.NS,Chemicals,299.4,361.9,A-BigDay,11.4,9.0,-33.7,75,79,4,12.7,20.88,23,CLOSED
-2026-07-22,CRAMC.NS,CRAMC.NS,Financial Services,266.8,256.2,A-BigDay,5.8,7.0,-23.4,59,63,4,8.7,-3.97,23,CLOSED
-2026-07-23,AMDIND.NS,AMDIND.NS,Capital Goods,48.9,54.8,B-TSJump,4.4,8.0,-28.2,32,74,42,5.0,12.07,22,CLOSED
-2026-07-23,DOLPHIN.NS,DOLPHIN.NS,Oil & Gas,397.0,508.1,B-TSJump,4.8,6.0,-20.9,15,43,28,7.5,27.98,22,CLOSED
-2026-07-23,ARCHIDPLY.NS,ARCHIDPLY.NS,Cement & Materials,82.5,93.3,B-TSJump,4.5,6.0,-31.5,5,32,27,5.3,13.09,22,CLOSED
-2026-07-23,CHEMPLASTS.NS,CHEMPLASTS.NS,Chemicals,209.9,184.1,A+B,6.8,9.0,-56.1,0,22,22,7.9,-12.29,22,CLOSED
-2026-07-23,ASAHISONG.NS,ASAHISONG.NS,Chemicals,318.9,361.9,A-BigDay,6.5,9.0,-29.4,79,90,11,7.3,13.48,22,CLOSED
-2026-07-23,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,51.9,50.55,A-BigDay,19.5,9.0,-34.4,0,3,3,15.3,-2.6,22,CLOSED
-2026-07-23,ARIHANTCAP.NS,ARIHANTCAP.NS,Financial Services,81.4,74.14,A-BigDay,5.6,8.0,-32.1,30,32,2,6.9,-8.92,22,CLOSED
-2026-07-24,BANARBEADS.NS,BANARBEADS.NS,Consumer Durables,121.9,112.51,A+B,6.9,8.0,-26.0,28,72,44,8.7,-7.7,21,ACTIVE
-2026-07-24,ASIANHOTNR.NS,ASIANHOTNR.NS,Hospitality,306.6,301.65,A+B,5.4,7.0,-23.8,14,42,28,5.1,-1.61,21,ACTIVE
-2026-07-24,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,827.7,837.35,B-TSJump,3.4,7.0,-23.2,16,43,27,6.0,1.17,21,ACTIVE
-2026-07-24,AARON.NS,AARON.NS,Capital Goods,135.2,135.46,A+B,20.0,9.0,-47.6,0,26,26,19.9,0.19,21,ACTIVE
-2026-07-24,CORALFINAC.NS,CORALFINAC.NS,Real Estate,32.5,33.06,B-TSJump,3.7,7.0,-36.7,3,29,26,4.9,1.72,21,ACTIVE
-2026-07-24,BLUEDART.NS,Blue Dart Express Limited,Infrastructure,4911.5,5141.0,B-TSJump,3.1,7.0,-30.2,0,24,24,3.4,4.67,21,ACTIVE
-2026-07-24,DBL.NS,Dilip Buildcon Limited,Capital Goods,420.2,412.35,A-BigDay,8.6,9.0,-28.2,0,11,11,6.7,-1.87,21,ACTIVE
-2026-07-24,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,364.4,341.95,A-BigDay,5.5,7.0,-34.2,0,0,0,7.5,-6.16,21,ACTIVE
-2026-07-27,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,44.6,42.4,A+B,8.8,7.0,-29.0,3,72,69,4.7,-4.93,18,ACTIVE
-2026-07-27,BLBLIMITED.NS,BLBLIMITED.NS,Financial Services,16.1,15.96,B-TSJump,2.6,7.0,-28.3,21,87,66,-1.2,-0.87,18,ACTIVE
-2026-07-27,BMWVENTLTD.NS,BMWVENTLTD.NS,Metals & Mining,59.3,57.29,B-TSJump,5.0,7.0,-22.0,15,73,58,2.4,-3.39,18,ACTIVE
-2026-07-27,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,18.0,17.13,A+B,7.1,9.0,-35.1,30,63,33,9.8,-4.83,18,ACTIVE
-2026-07-27,ACI.NS,Archean Chemical Industries Limited,Metals & Mining,576.8,503.3,B-TSJump,3.9,8.0,-20.4,40,72,32,3.4,-12.74,18,ACTIVE
-2026-07-27,CHALET.NS,CHALET.NS,Hospitality,846.5,825.1,B-TSJump,3.9,9.0,-21.7,40,72,32,3.6,-2.53,18,ACTIVE
-2026-07-27,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,982.2,1013.65,A+B,5.4,8.0,-31.0,27,59,32,4.8,3.2,18,ACTIVE
-2026-07-27,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,535.3,538.05,A+B,12.4,9.0,-33.0,17,47,30,10.2,0.51,18,ACTIVE
-2026-07-27,COFORGE.NS,Coforge Limited,IT & Technology,1528.4,1812.0,B-TSJump,2.9,6.0,-23.0,45,75,30,2.0,18.56,18,ACTIVE
-2026-07-27,DBL.NS,Dilip Buildcon Limited,Capital Goods,443.6,412.35,A+B,5.6,9.0,-24.2,11,40,29,3.2,-7.04,18,ACTIVE
-2026-07-27,ALICON.NS,ALICON.NS,Capital Goods,678.5,719.6,A+B,6.6,7.0,-33.4,0,27,27,7.6,6.06,18,ACTIVE
-2026-07-27,AFFLE.NS,Affle 3i Limited,IT & Technology,1492.8,1668.8,B-TSJump,3.3,9.0,-31.7,2,28,26,5.9,11.79,18,ACTIVE
-2026-07-27,CPEDU.NS,CPEDU.NS,Hospitality,197.3,204.84,B-TSJump,5.8,6.0,-41.2,3,29,26,6.6,3.82,18,ACTIVE
-2026-07-27,DEVYANI.NS,Devyani International Limited,Hospitality,116.1,143.76,B-TSJump,3.3,9.0,-39.2,2,28,26,4.0,23.82,18,ACTIVE
-2026-07-27,DYNPRO.NS,DYNPRO.NS,Chemicals,238.2,231.85,B-TSJump,3.0,7.0,-42.7,1,27,26,3.2,-2.67,18,ACTIVE
-2026-07-27,GENUSPAPER.NS,GENUSPAPER.NS,Cement & Materials,12.6,11.09,A+B,5.6,7.0,-39.2,4,30,26,5.5,-11.98,18,ACTIVE
-2026-07-27,GODFRYPHLP.NS,Godfrey Phillips India Limited,Consumer Goods,2210.5,2149.0,B-TSJump,3.8,8.0,-43.7,0,26,26,5.0,-2.78,18,ACTIVE
-2026-07-27,BCONCEPTS.NS,BCONCEPTS.NS,Consumer Durables,192.2,159.02,B-TSJump,3.0,6.0,-57.2,0,23,23,-5.9,-17.26,18,ACTIVE
-2026-07-27,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,43.0,50.38,A-BigDay,6.4,7.0,-28.1,1,14,13,4.6,17.16,18,ACTIVE
-2026-07-27,AGI.NS,AGI Greenpac Limited,Consumer Durables,707.2,703.8,A-BigDay,5.1,8.0,-28.2,62,74,12,4.5,-0.48,18,ACTIVE
-2026-07-27,HGM.NS,HGM.NS,IT & Technology,52.4,46.06,A-BigDay,12.1,7.0,-36.4,0,2,2,10.2,-12.1,18,ACTIVE
-2026-07-27,ADVENTHTL.NS,ADVENTHTL.NS,Hospitality,149.5,141.58,A-BigDay,5.0,7.0,-56.7,43,44,1,5.9,-5.3,18,ACTIVE
-2026-07-28,AFFLE.NS,Affle 3i Limited,IT & Technology,1631.8,1668.8,A+B,9.3,9.0,-25.4,28,73,45,11.9,2.27,17,ACTIVE
-2026-07-28,HEXT.NS,Hexaware Technologies Limited,IT & Technology,593.2,569.85,A+B,5.4,8.0,-26.6,33,75,42,1.3,-3.94,17,ACTIVE
-2026-07-28,ARIS.NS,ARIS.NS,Infrastructure,128.2,134.09,B-TSJump,2.8,7.0,-28.1,34,75,41,11.6,4.59,17,ACTIVE
-2026-07-28,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,57.6,50.55,A+B,7.9,8.0,-27.1,4,43,39,8.1,-12.24,17,ACTIVE
-2026-07-28,DBSTOCKBRO.NS,DBSTOCKBRO.NS,Financial Services,34.9,32.63,B-TSJump,3.5,8.0,-28.0,53,89,36,-5.1,-6.5,17,ACTIVE
-2026-07-28,BIL.NS,BIL.NS,Consumer Durables,778.8,837.4,B-TSJump,4.4,9.0,-20.5,42,75,33,8.3,7.52,17,ACTIVE
-2026-07-28,ECLERX.NS,eClerx Services Limited,Capital Goods,1897.7,1897.0,B-TSJump,4.7,9.0,-24.0,43,75,32,14.1,-0.04,17,ACTIVE
-2026-07-28,DELTAMAGNT.NS,DELTAMAGNT.NS,Textiles,61.2,58.5,B-TSJump,8.9,6.0,-35.5,2,30,28,8.3,-4.41,17,ACTIVE
-2026-07-28,AGARIND.NS,AGARIND.NS,Chemicals,517.8,484.75,A+B,7.1,7.0,-48.5,1,28,27,8.2,-6.38,17,ACTIVE
-2026-07-28,EUREKAFORB.NS,Eureka Forbes Limited,Consumer Durables,456.9,442.75,B-TSJump,3.9,8.0,-31.6,0,27,27,3.6,-3.1,17,ACTIVE
-2026-07-28,GLOBALVECT.NS,GLOBALVECT.NS,Infrastructure,167.0,150.53,B-TSJump,4.6,6.0,-32.7,3,30,27,6.7,-9.86,17,ACTIVE
-2026-07-28,ALPHAGEO.NS,ALPHAGEO.NS,Oil & Gas,207.9,301.36,B-TSJump,2.8,6.0,-27.6,15,41,26,2.5,44.95,17,ACTIVE
-2026-07-28,DEVIT.NS,DEVIT.NS,IT & Technology,27.8,26.09,A-BigDay,6.5,7.0,-45.3,0,1,1,-2.0,-6.15,17,ACTIVE
-2026-07-29,EXPLEOSOL.NS,EXPLEOSOL.NS,IT & Technology,925.4,815.95,B-TSJump,14.3,6.0,-25.7,4,75,71,15.9,-11.83,16,ACTIVE
-2026-07-29,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,46.5,50.38,A+B,8.7,7.0,-22.2,14,74,60,11.4,8.34,16,ACTIVE
-2026-07-29,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.4,1451.3,A+B,5.9,7.0,-28.4,30,87,57,3.6,9.09,16,ACTIVE
-2026-07-29,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,216.3,240.37,B-TSJump,2.9,9.0,-29.9,30,71,41,4.0,11.13,16,ACTIVE
-2026-07-29,FSL.NS,Firstsource Solutions Limited,Capital Goods,293.6,267.1,A+B,11.6,9.0,-21.4,41,76,35,15.7,-9.03,16,ACTIVE
-2026-07-29,CROMPTON.NS,Crompton Greaves Consumer Electricals Limited,Consumer Durables,264.2,248.3,A+B,6.8,7.0,-20.8,29,63,34,7.4,-6.02,16,ACTIVE
-2026-07-29,DYNPRO.NS,DYNPRO.NS,Chemicals,251.4,231.85,A+B,5.5,7.0,-39.5,27,59,32,0.9,-7.78,16,ACTIVE
-2026-07-29,ALMONDZ.NS,ALMONDZ.NS,Financial Services,15.1,14.3,A+B,20.0,9.0,-34.5,0,31,31,16.7,-5.3,16,ACTIVE
-2026-07-29,ERIS.NS,Eris Lifesciences Limited,Pharma & Healthcare,1426.5,1358.5,B-TSJump,2.6,9.0,-23.9,14,41,27,-0.6,-4.77,16,ACTIVE
-2026-07-29,BESTAGRO.NS,BESTAGRO.NS,Chemicals,16.7,20.35,A+B,9.7,8.0,-52.6,0,26,26,2.8,21.86,16,ACTIVE
-2026-07-29,BSOFT.NS,Birlasoft Limited,IT & Technology,311.1,312.05,B-TSJump,3.8,7.0,-33.4,1,27,26,12.5,0.31,16,ACTIVE
-2026-07-29,DCAL.NS,Dishman Carbogen Amcis Limited,Pharma & Healthcare,188.0,190.66,B-TSJump,3.3,7.0,-41.6,4,30,26,-1.5,1.41,16,ACTIVE
-2026-07-29,AVONMORE.NS,AVONMORE.NS,Financial Services,11.0,12.35,A+B,20.0,7.0,-54.1,0,24,24,18.1,12.27,16,ACTIVE
-2026-07-29,CPEDU.NS,CPEDU.NS,Hospitality,212.5,204.84,A-BigDay,9.4,9.0,-36.7,29,32,3,13.8,-3.6,16,ACTIVE
-2026-07-29,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,60.7,50.55,A-BigDay,5.4,7.0,-23.2,43,45,2,10.5,-16.72,16,ACTIVE
-2026-07-29,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,58.0,58.33,A-BigDay,5.3,9.0,-35.9,77,79,2,8.4,0.57,16,ACTIVE
-2026-07-30,CTE.NS,CTE.NS,IT & Technology,34.0,38.83,A+B,10.0,8.0,-43.3,3,31,28,9.1,14.21,15,ACTIVE
-2026-07-30,DOLLAR.NS,DOLLAR.NS,Textiles,267.5,273.5,B-TSJump,4.3,6.0,-31.6,2,29,27,5.2,2.24,15,ACTIVE
-2026-07-30,HPIL.NS,HPIL.NS,Chemicals,129.9,125.05,B-TSJump,3.0,8.0,-26.2,14,40,26,5.5,-3.73,15,ACTIVE
-2026-07-30,FISCHER.NS,FISCHER.NS,Pharma & Healthcare,39.0,38.64,A+B,9.1,7.0,-68.7,0,23,23,16.3,-0.92,15,ACTIVE
-2026-07-30,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,61.6,58.33,A-BigDay,6.1,7.0,-31.9,79,80,1,5.2,-5.31,15,ACTIVE
-2026-07-30,GOCOLORS.NS,GOCOLORS.NS,Retail,343.0,327.5,A-BigDay,6.2,7.0,-59.5,0,1,1,14.8,-4.52,15,ACTIVE
-2026-07-31,FOSECOIND.NS,FOSECOIND.NS,Chemicals,5133.5,5655.0,B-TSJump,3.3,6.0,-24.6,29,86,57,6.4,10.16,14,ACTIVE
-2026-07-31,HYUNDAI.NS,HYUNDAI.NS,Auto,2180.7,2199.0,A+B,8.1,9.0,-24.5,29,73,44,5.5,0.84,14,ACTIVE
-2026-07-31,ALPHAGEO.NS,ALPHAGEO.NS,Oil & Gas,220.1,301.36,A+B,6.0,8.0,-23.3,41,74,33,8.3,36.92,14,ACTIVE
-2026-07-31,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,15.6,14.72,A+B,6.7,7.0,-31.6,28,60,32,3.2,-5.64,14,ACTIVE
-2026-07-31,ASHOKLEY.NS,Ashok Leyland Limited,Auto,166.2,171.64,B-TSJump,5.1,6.0,-21.5,44,76,32,5.0,3.27,14,ACTIVE
-2026-07-31,BOSCH-HCIL.NS,Bosch Home Comfort India Limited,Consumer Durables,1391.3,1654.2,A+B,6.2,8.0,-22.1,17,45,28,8.0,18.9,14,ACTIVE
-2026-07-31,CENTEXT.NS,CENTEXT.NS,Metals & Mining,19.9,21.29,A+B,7.9,7.0,-42.8,0,27,27,6.6,6.98,14,ACTIVE
-2026-07-31,COMPUSOFT.NS,COMPUSOFT.NS,Hospitality,13.4,13.09,B-TSJump,2.9,6.0,-38.2,0,25,25,4.6,-2.31,14,ACTIVE
-2026-07-31,BESTAGRO.NS,BESTAGRO.NS,Chemicals,19.1,20.35,A-BigDay,15.2,9.0,-45.8,26,29,3,16.2,6.54,14,ACTIVE
-2026-07-31,EMSLIMITED.NS,EMSLIMITED.NS,Infrastructure,411.5,362.7,A-BigDay,7.3,8.0,-33.1,61,63,2,4.2,-11.86,14,ACTIVE
-2026-07-31,GMMPFAUDLR.NS,GMM Pfaudler Limited,Capital Goods,864.4,1048.25,A-BigDay,6.2,9.0,-38.9,24,26,2,7.7,21.27,14,ACTIVE
-2026-07-31,GANESHCP.NS,GANESHCP.NS,Consumer Goods,178.3,160.54,A-BigDay,8.7,8.0,-42.0,0,1,1,8.7,-9.96,14,ACTIVE
-2026-08-03,HEMIPROP.NS,Hemisphere Properties India Limited,Real Estate,140.0,132.34,B-TSJump,4.2,8.0,-26.6,29,86,57,4.4,-5.47,11,ACTIVE
-2026-08-03,ADL.NS,ADL.NS,Consumer Durables,79.0,69.54,A+B,10.7,7.0,-28.1,31,75,44,13.5,-11.97,11,ACTIVE
-2026-08-03,GOPAL.NS,GOPAL.NS,Consumer Goods,278.9,272.15,B-TSJump,3.1,6.0,-29.7,0,37,37,4.3,-2.42,11,ACTIVE
-2026-08-03,HARIOMPIPE.NS,HARIOMPIPE.NS,Metals & Mining,402.7,351.9,B-TSJump,3.1,7.0,-29.5,53,89,36,5.1,-12.61,11,ACTIVE
-2026-08-03,BLUEDART.NS,Blue Dart Express Limited,Infrastructure,5427.0,5141.0,A+B,5.2,7.0,-22.9,37,70,33,4.7,-5.27,11,ACTIVE
-2026-08-03,CTE.NS,CTE.NS,IT & Technology,37.7,38.83,A+B,7.8,9.0,-37.2,31,64,33,13.0,3.0,11,ACTIVE
-2026-08-03,ADVENZYMES.NS,Advanced Enzyme Technologies Limited,Pharma & Healthcare,323.8,304.3,B-TSJump,2.7,6.0,-22.4,32,64,32,0.7,-6.02,11,ACTIVE
-2026-08-03,ECLERX.NS,eClerx Services Limited,Capital Goods,1922.2,1897.0,B-TSJump,4.2,9.0,-23.0,44,75,31,-3.5,-1.31,11,ACTIVE
-2026-08-03,ICRA.NS,ICRA.NS,Financial Services,5131.5,5265.6,B-TSJump,4.6,6.0,-25.0,8,37,29,6.2,2.61,11,ACTIVE
-2026-08-03,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1537.2,1468.2,B-TSJump,2.7,8.0,-27.3,12,39,27,3.7,-4.49,11,ACTIVE
-2026-08-03,DBL.NS,Dilip Buildcon Limited,Capital Goods,444.4,412.35,B-TSJump,3.5,9.0,-24.0,13,40,27,6.1,-7.21,11,ACTIVE
-2026-08-03,DHUNINV.NS,DHUNINV.NS,Financial Services,886.9,1063.5,B-TSJump,4.8,8.0,-43.6,1,28,27,4.3,19.91,11,ACTIVE
-2026-08-03,EPIGRAL.NS,Epigral Limited,Chemicals,1120.7,1098.4,B-TSJump,2.9,8.0,-42.3,2,29,27,8.8,-1.99,11,ACTIVE
-2026-08-03,EXCELSOFT.NS,EXCELSOFT.NS,IT & Technology,83.0,73.96,A+B,7.2,7.0,-41.8,20,47,27,8.5,-10.89,11,ACTIVE
-2026-08-03,AGARIND.NS,AGARIND.NS,Chemicals,515.0,484.75,B-TSJump,3.0,6.0,-48.8,2,28,26,6.5,-5.87,11,ACTIVE
-2026-08-03,AJMERA.NS,AJMERA.NS,Real Estate,130.4,118.23,B-TSJump,3.2,6.0,-41.1,2,28,26,5.7,-9.33,11,ACTIVE
-2026-08-03,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,907.0,872.7,B-TSJump,2.6,6.0,-32.4,1,27,26,6.1,-3.78,11,ACTIVE
-2026-08-03,ELLEN.NS,ELLEN.NS,Chemicals,273.0,332.6,B-TSJump,3.6,8.0,-54.5,2,27,25,5.4,21.83,11,ACTIVE
-2026-08-03,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,17.1,14.72,A-BigDay,10.0,8.0,-24.5,60,75,15,12.1,-13.92,11,ACTIVE
-2026-08-03,BSOFT.NS,Birlasoft Limited,IT & Technology,321.5,312.05,A-BigDay,6.3,8.0,-31.2,26,29,3,8.2,-2.94,11,ACTIVE
-2026-08-03,DCMSRIND.NS,DCMSRIND.NS,Consumer Goods,41.6,42.24,A-BigDay,5.9,7.0,-76.9,22,23,1,-4.4,1.54,11,ACTIVE
-2026-08-03,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,364.0,341.95,A-BigDay,5.7,7.0,-34.3,0,0,0,8.2,-6.06,11,ACTIVE
-2026-08-04,HINDZINC.NS,Hindustan Zinc Limited,Metals & Mining,562.9,561.9,B-TSJump,2.9,7.0,-21.8,19,75,56,6.1,-0.18,10,ACTIVE
-2026-08-04,CENTEXT.NS,CENTEXT.NS,Metals & Mining,23.7,21.29,A+B,19.1,9.0,-31.9,27,63,36,24.7,-10.17,10,ACTIVE
-2026-08-04,BESTAGRO.NS,BESTAGRO.NS,Chemicals,22.7,20.35,A+B,18.5,9.0,-35.8,29,64,35,27.2,-10.35,10,ACTIVE
-2026-08-04,DBL.NS,Dilip Buildcon Limited,Capital Goods,467.2,412.35,A+B,5.2,9.0,-20.1,40,73,33,10.3,-11.74,10,ACTIVE
-2026-08-04,EMUDHRA.NS,eMudhra Limited,IT & Technology,514.0,518.8,A+B,7.6,7.0,-35.2,28,61,33,9.4,0.93,10,ACTIVE
-2026-08-04,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,535.0,538.05,A+B,8.0,9.0,-33.0,18,47,29,9.3,0.57,10,ACTIVE
-2026-08-04,ICDSLTD.NS,ICDSLTD.NS,Real Estate,43.6,40.05,A+B,8.0,8.0,-30.0,0,29,29,12.7,-8.14,10,ACTIVE
-2026-08-04,GENESYS.NS,GENESYS.NS,IT & Technology,316.6,181.15,A+B,16.6,7.0,-51.1,2,28,26,8.8,-42.78,10,ACTIVE
-2026-08-04,DREAMFOLKS.NS,DREAMFOLKS.NS,Infrastructure,70.4,66.71,B-TSJump,5.6,6.0,-56.0,0,25,25,3.3,-5.24,10,ACTIVE
-2026-08-04,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,366.5,341.95,A+B,6.4,7.0,-33.8,0,25,25,3.0,-6.7,10,ACTIVE
-2026-08-04,DECCANCE.NS,DECCANCE.NS,Cement & Materials,583.3,545.35,A+B,5.5,8.0,-49.9,0,23,23,7.6,-6.51,10,ACTIVE
-2026-08-04,CTE.NS,CTE.NS,IT & Technology,39.8,38.83,A-BigDay,14.0,8.0,-33.6,64,65,1,9.7,-2.44,10,ACTIVE
-2026-08-04,EIDPARRY.NS,E.I.D.- Parry (India) Limited,Consumer Goods,803.1,775.2,A-BigDay,5.7,8.0,-35.5,25,26,1,1.7,-3.47,10,ACTIVE
-2026-08-04,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,1050.6,1013.65,A-BigDay,6.5,9.0,-22.1,73,74,1,5.7,-3.52,10,ACTIVE
-2026-08-04,AGARIND.NS,AGARIND.NS,Chemicals,526.0,484.75,A-BigDay,5.2,7.0,-47.7,28,28,0,4.6,-7.84,10,ACTIVE
-2026-08-05,BMWVENTLTD.NS,BMWVENTLTD.NS,Metals & Mining,60.0,57.29,B-TSJump,4.9,6.0,-21.2,15,73,58,5.6,-4.52,9,ACTIVE
-2026-08-05,DIAMINESQ.NS,DIAMINESQ.NS,Chemicals,262.8,242.06,A+B,9.6,7.0,-37.2,0,58,58,12.7,-7.89,9,ACTIVE
-2026-08-05,GARUDA.NS,GARUDA.NS,Infrastructure,178.4,183.04,B-TSJump,2.9,7.0,-28.5,6,43,37,8.7,2.6,9,ACTIVE
-2026-08-05,HINDCOPPER.NS,Hindustan Copper Limited,Metals & Mining,533.8,529.05,A-BigDay,8.4,8.0,-29.7,55,92,37,10.8,-0.89,9,ACTIVE
-2026-08-05,DEVYANI.NS,Devyani International Limited,Hospitality,125.1,143.76,B-TSJump,4.5,10.0,-34.5,29,61,32,6.8,14.92,9,ACTIVE
-2026-08-05,DVL.NS,DVL.NS,Financial Services,264.0,266.99,A+B,6.3,7.0,-30.6,30,62,32,8.3,1.13,9,ACTIVE
-2026-08-05,HPIL.NS,HPIL.NS,Chemicals,129.6,125.05,B-TSJump,3.6,9.0,-21.0,15,42,27,6.7,-3.51,9,ACTIVE
-2026-08-05,AROGRANITE.NS,AROGRANITE.NS,Cement & Materials,26.1,25.37,B-TSJump,4.3,7.0,-42.8,3,29,26,4.4,-2.8,9,ACTIVE
-2026-08-05,BLS.NS,BLS International Services Limited,Hospitality,255.6,278.12,B-TSJump,3.1,8.0,-37.8,0,26,26,6.9,8.81,9,ACTIVE
-2026-08-05,CELLO.NS,Cello World Limited,Consumer Durables,399.0,377.6,A+B,15.7,9.0,-40.5,0,26,26,18.3,-5.36,9,ACTIVE
-2026-08-05,BHARATRAS.NS,BHARATRAS.NS,Chemicals,1385.3,1302.6,B-TSJump,3.0,7.0,-53.8,0,24,24,6.3,-5.97,9,ACTIVE
-2026-08-05,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,576.3,538.05,A-BigDay,7.7,9.0,-27.9,47,61,14,9.9,-6.64,9,ACTIVE
-2026-08-05,ALMONDZ.NS,ALMONDZ.NS,Financial Services,14.6,14.3,A-BigDay,6.4,9.0,-33.9,29,31,2,7.1,-2.05,9,ACTIVE
-2026-08-05,DGCONTENT.NS,DGCONTENT.NS,Hospitality,26.0,24.57,A-BigDay,8.9,8.0,-38.2,0,2,2,14.7,-5.5,9,ACTIVE
-2026-08-05,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,62.7,58.33,A-BigDay,7.2,8.0,-30.7,79,80,1,0.5,-6.97,9,ACTIVE
-2026-08-06,GMMPFAUDLR.NS,GMM Pfaudler Limited,Capital Goods,1005.2,1048.25,A+B,17.3,10.0,-25.1,26,74,48,20.7,4.28,8,ACTIVE
-2026-08-06,ICDSLTD.NS,ICDSLTD.NS,Real Estate,47.4,40.05,A+B,8.9,8.0,-23.9,29,73,44,6.3,-15.51,8,ACTIVE
-2026-08-06,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,55.9,50.55,B-TSJump,4.7,7.0,-29.3,4,41,37,5.9,-9.57,8,ACTIVE
-2026-08-06,GRSE.NS,Garden Reach Shipbuilders & Engineers Limited,Aerospace & Defense,2616.8,2618.6,B-TSJump,4.4,6.0,-21.6,32,65,33,7.5,0.07,8,ACTIVE
-2026-08-06,GFLLIMITED.NS,GFLLIMITED.NS,Financial Services,51.5,50.79,B-TSJump,3.4,8.0,-36.4,29,60,31,6.3,-1.38,8,ACTIVE
-2026-08-06,ALPA.NS,ALPA.NS,Pharma & Healthcare,70.4,64.27,B-TSJump,4.6,7.0,-30.3,7,34,27,6.3,-8.71,8,ACTIVE
-2026-08-06,ARCHIDPLY.NS,ARCHIDPLY.NS,Cement & Materials,83.8,93.3,B-TSJump,4.2,7.0,-25.9,17,44,27,5.1,11.34,8,ACTIVE
-2026-08-06,ATL.NS,ATL.NS,Infrastructure,24.8,23.7,A+B,6.9,7.0,-38.8,2,29,27,10.5,-4.44,8,ACTIVE
-2026-08-06,BAJEL.NS,BAJEL.NS,Power & Utilities,193.7,188.35,A-BigDay,5.4,9.0,-24.1,63,90,27,5.5,-2.76,8,ACTIVE
-2026-08-06,BLKASHYAP.NS,BLKASHYAP.NS,Infrastructure,56.4,51.62,A-BigDay,5.2,9.0,-25.2,62,89,27,9.3,-8.48,8,ACTIVE
-2026-08-06,CAMPUS.NS,Campus Activewear Limited,Textiles,232.5,218.4,B-TSJump,2.6,6.0,-21.1,10,37,27,4.2,-6.06,8,ACTIVE
-2026-08-06,COCHINSHIP.NS,Cochin Shipyard Limited,Infrastructure,1484.8,1496.5,B-TSJump,4.2,8.0,-24.7,15,42,27,7.9,0.79,8,ACTIVE
-2026-08-06,ARIHANTSUP.NS,ARIHANTSUP.NS,Real Estate,269.3,247.55,B-TSJump,3.5,8.0,-42.1,3,29,26,7.0,-8.08,8,ACTIVE
-2026-08-06,HERITGFOOD.NS,Heritage Foods Limited,Consumer Goods,357.1,358.0,A-BigDay,5.7,8.0,-33.4,26,29,3,7.8,0.25,8,ACTIVE
-2026-08-07,BEML.NS,BEML Limited,Diversified,1787.8,1874.4,B-TSJump,3.6,7.0,-21.2,18,75,57,1.6,4.84,7,ACTIVE
-2026-08-07,BIRLANU.NS,BIRLANU.NS,Cement & Materials,1641.5,1555.2,A+B,6.7,9.0,-20.5,27,75,48,26.0,-5.26,7,ACTIVE
-2026-08-07,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,224.4,240.37,A+B,6.6,9.0,-27.3,30,73,43,9.1,7.12,7,ACTIVE
-2026-08-07,ARCHIDPLY.NS,Archidply Industries Limited,Cement & Materials,89.5,93.3,A+B,9.1,9.0,-20.8,44,76,32,7.6,4.25,7,ACTIVE
-2026-08-07,HMAAGRO.NS,HMA Agro Industries Limited,Consumer Goods,22.2,24.24,B-TSJump,6.3,6.0,-35.1,0,25,25,10.5,9.19,7,ACTIVE
-2026-08-07,DEVYANI.NS,Devyani International Limited,Hospitality,134.7,143.76,A-BigDay,8.8,9.0,-29.5,61,74,13,11.9,6.73,7,ACTIVE
-2026-08-07,DOLATALGO.NS,Dolat Algotech Limited,Financial Services,71.0,69.4,A-BigDay,5.4,7.0,-25.8,8,11,3,5.5,-2.25,7,ACTIVE
-2026-08-07,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,224.2,234.72,A-BigDay,12.3,9.0,-35.5,63,63,0,0.0,4.69,7,ACTIVE
-2026-08-07,TECHNOE.NS,Techno Electric & Engineering Company Limited,Infrastructure,1066.2,968.4,A-BigDay,7.5,8.0,-31.9,29,29,0,0.0,-9.17,7,ACTIVE
-2026-08-10,ESTER.NS,Ester Industries Limited,Chemicals,99.2,101.02,A+B,13.6,9.0,-25.1,4,75,71,15.2,1.83,4,ACTIVE
-2026-08-10,AAATECH.NS,AAA Technologies Limited,IT & Technology,99.5,92.18,A+B,8.2,9.0,-26.9,4,72,68,10.9,-7.36,4,ACTIVE
-2026-08-10,ADL.NS,Archidply Decor Limited,Consumer Durables,73.8,69.54,B-TSJump,4.2,6.0,-32.9,6,62,56,9.0,-5.77,4,ACTIVE
-2026-08-10,GMDCLTD.NS,Gujarat Mineral Development Corporation Limited,Oil & Gas,603.2,580.8,B-TSJump,3.5,8.0,-21.9,35,91,56,5.4,-3.71,4,ACTIVE
-2026-08-10,DHARMAJ.NS,Dharmaj Crop Guard Limited,Chemicals,281.0,270.15,A+B,5.8,7.0,-27.3,50,88,38,9.8,-3.86,4,ACTIVE
-2026-08-10,HISARMETAL.NS,Hisar Metal Industries Limited,Metals & Mining,161.6,151.22,B-TSJump,6.3,6.0,-20.6,40,74,34,6.3,-6.42,4,ACTIVE
-2026-08-10,ATLANTAA.NS,Atlantaa Limited,Infrastructure,45.2,40.02,A+B,12.6,9.0,-38.4,28,61,33,13.3,-11.46,4,ACTIVE
-2026-08-10,GARUDA.NS,GARUDA.NS,Infrastructure,194.5,183.04,A+B,7.8,9.0,-22.0,43,76,33,5.0,-5.89,4,ACTIVE
-2026-08-10,AIROLAM.NS,Airo Lam Limited,Consumer Durables,92.8,87.29,B-TSJump,3.9,9.0,-25.8,38,70,32,8.3,-5.94,4,ACTIVE
-2026-08-10,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,607.7,591.55,B-TSJump,4.4,9.0,-24.0,42,74,32,0.2,-2.66,4,ACTIVE
-2026-08-10,CENTRUM.NS,Centrum Capital Limited,Financial Services,26.2,25.77,B-TSJump,4.5,7.0,-34.4,29,60,31,2.9,-1.64,4,ACTIVE
-2026-08-10,BAJAJHIND.NS,Bajaj Hindusthan Sugar Limited,Consumer Goods,18.1,17.3,B-TSJump,3.0,7.0,-23.5,15,42,27,2.9,-4.42,4,ACTIVE
-2026-08-10,BALAJITELE.NS,Balaji Telefilms Limited,Media,90.4,92.38,B-TSJump,5.5,6.0,-36.0,2,29,27,7.0,2.19,4,ACTIVE
-2026-08-10,JAIBALAJI.NS,Jai Balaji Industries Limited,Metals & Mining,68.5,70.6,B-TSJump,4.5,6.0,-37.5,1,28,27,6.6,3.07,4,ACTIVE
-2026-08-10,DVL.NS,Dhunseri Ventures Limited,Financial Services,283.1,266.99,A-BigDay,5.6,7.0,-25.6,73,75,2,7.4,-5.69,4,ACTIVE
-2026-08-11,HPAL.NS,HP Adhesives Limited,Chemicals,38.9,35.15,A+B,16.1,9.0,-26.5,3,75,72,18.1,-9.64,3,ACTIVE
-2026-08-11,AARTECH.NS,Aartech Solonics Limited,Capital Goods,48.5,50.23,B-TSJump,5.0,9.0,-26.9,7,74,67,7.6,3.57,3,ACTIVE
-2026-08-11,GODAVARIB.NS,GODAVARIB.NS,Chemicals,273.6,247.25,A+B,14.0,9.0,-22.5,0,42,42,16.8,-9.63,3,ACTIVE
-2026-08-11,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,464.0,440.65,B-TSJump,3.8,7.0,-55.3,28,58,30,5.8,-5.03,3,ACTIVE
-2026-08-11,ARENTERP.NS,Rajdarshan Industries Limited,Metals & Mining,39.5,38.99,A+B,7.4,8.0,-35.1,2,30,28,8.5,-1.29,3,ACTIVE
-2026-08-11,AROGRANITE.NS,Aro Granite Industries Limited,Cement & Materials,25.5,25.37,B-TSJump,2.9,6.0,-44.1,2,28,26,2.8,-0.51,3,ACTIVE
-2026-08-11,DEVX.NS,Dev Accelerator Limited,Real Estate,35.8,32.85,A+B,5.2,7.0,-44.2,0,26,26,7.1,-8.24,3,ACTIVE
-2026-08-11,GLOBALVECT.NS,Global Vectra Helicorp Limited,Infrastructure,162.8,150.53,B-TSJump,2.5,6.0,-34.4,3,29,26,5.3,-7.54,3,ACTIVE
-2026-08-11,ABINFRA.NS,ABINFRA.NS,Infrastructure,10.8,10.81,B-TSJump,6.2,6.0,-54.1,0,25,25,8.1,0.09,3,ACTIVE
-2026-08-11,CELLO.NS,Cello World Limited,Consumer Durables,378.6,377.6,A+B,5.1,9.0,-43.6,0,24,24,7.3,-0.26,3,ACTIVE
-2026-08-11,AMDIND.NS,AMD Industries Limited,Capital Goods,51.9,54.8,A-BigDay,9.9,9.0,-23.7,62,75,13,12.6,5.59,3,ACTIVE
-2026-08-11,DEVYANI.NS,Devyani International Limited,Hospitality,142.8,143.76,A-BigDay,6.9,9.0,-25.2,63,75,12,11.0,0.67,3,ACTIVE
-2026-08-11,AMJLAND.NS,AMJ Land Holdings Limited,Real Estate,40.7,39.36,A-BigDay,6.7,9.0,-33.2,28,31,3,8.3,-3.29,3,ACTIVE
-2026-08-11,AFFLE.NS,Affle 3i Limited,Media,1677.3,1668.8,A-BigDay,5.2,9.0,-23.3,72,74,2,4.4,-0.51,3,ACTIVE
-2026-08-11,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,236.0,234.72,A-BigDay,7.0,9.0,-32.2,62,64,2,10.5,-0.54,3,ACTIVE
-2026-08-11,ALLCARGO.NS,Allcargo Logistics Limited,Infrastructure,10.2,10.0,A-BigDay,5.1,9.0,-72.0,23,24,1,5.1,-1.96,3,ACTIVE
-2026-08-11,ESTER.NS,Ester Industries Limited,Chemicals,104.5,101.02,A-BigDay,5.3,9.0,-21.1,75,76,1,10.0,-3.33,3,ACTIVE
-2026-08-12,ALICON.NS,Alicon Castalloy Limited,Capital Goods,773.0,719.6,A+B,6.1,9.0,-24.1,41,74,33,7.1,-6.91,2,ACTIVE
-2026-08-12,FORCEMOT.NS,Force Motors Limited,Auto,19269.0,18361.0,A-BigDay,5.1,7.0,-27.1,29,42,13,3.6,-4.71,2,ACTIVE
-2026-08-12,ELLEN.NS,ELLEN.NS,Chemicals,323.8,332.6,A-BigDay,10.0,8.0,-42.2,60,62,2,11.0,2.72,2,ACTIVE
-2026-08-12,CHEMPLASTS.NS,Chemplast Sanmar Limited,Chemicals,182.4,184.1,A-BigDay,6.2,7.0,-60.4,0,0,0,8.8,0.93,2,ACTIVE
-2026-08-13,NATCOPHARM.NS,NATCO Pharma Limited,Pharma & Healthcare,951.7,903.15,B-TSJump,4.0,6.0,-22.4,14,72,58,5.9,-5.1,1,ACTIVE
-2026-08-13,EKC.NS,Everest Kanto Cylinder Limited,Capital Goods,116.4,110.41,B-TSJump,3.8,7.0,-25.7,15,72,57,4.7,-5.15,1,ACTIVE
-2026-08-13,DODLA.NS,Dodla Dairy Limited,Consumer Goods,1109.8,1109.4,A+B,6.3,8.0,-25.7,0,39,39,9.7,-0.04,1,ACTIVE
-2026-08-13,CLEAN.NS,Clean Science and Technology Limited,Chemicals,836.3,821.5,B-TSJump,3.9,9.0,-33.1,28,60,32,4.3,-1.77,1,ACTIVE
-2026-08-13,DHUNINV.NS,Dhunseri Investments Limited,Financial Services,1042.6,1063.5,B-TSJump,7.6,6.0,-33.5,31,63,32,9.8,2.0,1,ACTIVE
-2026-08-13,GFLLIMITED.NS,GFL Limited,Financial Services,51.3,50.79,A+B,7.1,9.0,-36.7,28,60,32,8.5,-0.99,1,ACTIVE
-2026-08-13,CENTEXT.NS,Century Extrusions Limited,Metals & Mining,21.7,21.29,B-TSJump,2.9,9.0,-37.5,29,60,31,4.7,-1.89,1,ACTIVE
-2026-08-13,ECLERX.NS,eClerx Services Limited,IT & Technology,1869.4,1897.0,B-TSJump,3.3,9.0,-25.1,43,74,31,5.0,1.48,1,ACTIVE
-2026-08-13,ESTER.NS,Ester Industries Limited,Chemicals,101.7,101.02,A+B,5.6,9.0,-23.2,44,75,31,7.6,-0.67,1,ACTIVE
-2026-08-13,ARENTERP.NS,Rajdarshan Industries Limited,Metals & Mining,39.2,38.99,A+B,5.3,8.0,-35.4,3,30,27,1.0,-0.54,1,ACTIVE
-2026-08-13,CYIENT.NS,Cyient Limited,Diversified,879.7,867.05,B-TSJump,4.7,7.0,-30.6,1,28,27,5.4,-1.44,1,ACTIVE
-2026-08-13,CUBEXTUB.NS,Cubex Tubings Limited,Metals & Mining,82.6,82.6,B-TSJump,4.4,6.0,-42.5,0,25,25,6.7,-0.0,1,ACTIVE
-2026-08-13,SKFINDIA.NS,SKF India Limited,Auto,1606.3,1573.3,A+B,5.2,7.0,-67.6,0,22,22,11.4,-2.05,1,ACTIVE
-2026-08-13,ARKADE.NS,ARKADE.NS,Real Estate,136.9,133.34,A-BigDay,5.6,8.0,-29.7,61,74,13,6.8,-2.6,1,ACTIVE
-2026-08-13,BBOX.NS,Black Box Limited,IT & Technology,832.5,795.85,A-BigDay,7.8,7.0,-24.5,55,67,12,8.7,-4.4,1,ACTIVE
-2026-08-13,GPIL.NS,Godawari Power & Ispat Limited,Metals & Mining,243.3,235.43,A-BigDay,6.3,9.0,-24.0,14,17,3,9.5,-3.23,1,ACTIVE
-2026-08-13,AVONMORE.NS,Avonmore Capital & Management Services Limited,Financial Services,12.0,12.35,A-BigDay,5.4,8.0,-49.9,25,26,1,9.7,2.92,1,ACTIVE
-2026-08-14,BALUFORGE.NS,Balu Forge Industries Limited,Capital Goods,493.8,493.75,A+B,10.6,9.0,-29.1,4,43,39,11.8,-0.01,0,ACTIVE
-2026-08-14,HMAAGRO.NS,HMA Agro Industries Limited,Consumer Goods,24.2,24.24,A+B,10.6,8.0,-29.2,0,39,39,11.2,0.17,0,ACTIVE
-2026-08-14,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,420.2,420.2,A+B,6.4,8.0,-32.8,27,60,33,8.3,0.0,0,ACTIVE
-2026-08-14,GODREJAGRO.NS,Godrej Agrovet Limited,Consumer Goods,580.5,580.5,B-TSJump,3.3,8.0,-24.3,38,70,32,5.6,0.0,0,ACTIVE
-2026-08-14,GROBTEA.NS,The Grob Tea Company Limited,Consumer Goods,958.0,958.05,B-TSJump,3.3,8.0,-22.3,39,71,32,0.6,0.01,0,ACTIVE
-2026-08-14,JUBLFOOD.NS,JUBLFOOD.NS,Hospitality,504.1,504.1,B-TSJump,2.6,9.0,-24.6,40,72,32,6.7,0.0,0,ACTIVE
-2026-08-14,JAIBALAJI.NS,Jai Balaji Industries Limited,Metals & Mining,70.6,70.6,B-TSJump,2.5,8.0,-35.6,29,60,31,5.6,-0.0,0,ACTIVE
-2026-08-14,FINKURVE.NS,Finkurve Financial Services Limited,Financial Services,72.7,72.74,A+B,15.8,8.0,-46.1,1,29,28,16.9,0.06,0,ACTIVE
-2026-08-14,GPPL.NS,Gujarat Pipavav Port Limited,Infrastructure,158.7,158.68,B-TSJump,4.6,7.0,-20.7,11,39,28,9.0,-0.01,0,ACTIVE
-2026-08-14,CCCL.NS,Consolidated Construction Consortium Limited,Infrastructure,16.0,16.0,B-TSJump,6.0,6.0,-44.6,0,27,27,11.0,0.0,0,ACTIVE
-2026-08-14,DONEAR.NS,Donear Industries Limited,Textiles,87.3,87.28,B-TSJump,2.6,9.0,-25.1,11,38,27,5.8,-0.02,0,ACTIVE
-2026-08-14,FOODSIN.NS,Foods and Inns Limited,Consumer Goods,57.2,57.21,B-TSJump,6.1,6.0,-41.9,1,28,27,7.3,0.02,0,ACTIVE
-2026-08-14,ENERGYDEV.NS,Energy Development Company Limited,Power & Utilities,16.9,16.85,B-TSJump,2.6,6.0,-43.2,1,27,26,4.0,-0.3,0,ACTIVE
-2026-08-14,SUDARSCHEM.NS,Sudarshan Chemical Industries Limited,Chemicals,1118.1,1118.1,A-BigDay,6.2,9.0,-29.9,77,89,12,7.0,-0.0,0,ACTIVE
+2026-06-03,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,569.9,A+B,8.6,9.0,-24.5,31,75,44,2.3,4.65,75,CLOSED
+2026-06-03,OLAELEC.NS,OLAELEC.NS,Auto,43.7,39.22,A+B,9.8,10.0,-38.6,31,64,33,14.1,-10.25,75,CLOSED
+2026-06-03,RHIM.NS,RHI Magnesita India Limited,Capital Goods,377.5,374.25,A-BigDay,9.5,8.0,-29.4,0,13,13,5.2,-0.86,75,CLOSED
+2026-06-03,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,1961.7,2796.9,A-BigDay,9.3,8.0,-40.4,25,28,3,-4.2,42.58,75,CLOSED
+2026-06-03,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,164.6,179.66,A-BigDay,9.2,7.0,-31.7,30,33,3,0.8,9.15,75,CLOSED
+2026-06-03,TEJASNET.NS,Tejas Networks Limited,Telecom,569.2,522.85,A-BigDay,5.9,7.0,-23.8,76,78,2,-7.1,-8.14,75,CLOSED
+2026-06-04,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,104.4,104.87,A+B,10.5,9.0,-29.7,30,74,44,3.1,0.45,74,CLOSED
+2026-06-04,GANESHHOU.NS,Ganesh Housing Limited,Real Estate,758.2,838.0,A+B,5.4,8.0,-29.4,32,74,42,-3.6,10.52,74,CLOSED
+2026-06-04,ANANTRAJ.NS,Anant Raj Limited,Real Estate,589.3,627.55,A+B,7.5,7.0,-20.8,43,76,33,-2.2,6.49,74,CLOSED
+2026-06-04,IIFL.NS,IIFL Finance Limited,Financial Services,530.3,630.05,A+B,6.3,7.0,-20.9,41,74,33,2.5,18.81,74,CLOSED
+2026-06-04,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,30.3,35.63,B-TSJump,3.5,7.0,-52.9,28,59,31,-3.6,17.59,74,CLOSED
+2026-06-04,RHIM.NS,RHI Magnesita India Limited,Capital Goods,401.1,374.25,A+B,6.3,8.0,-25.0,13,42,29,0.8,-6.69,74,CLOSED
+2026-06-04,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,31.5,27.73,B-TSJump,8.1,6.0,-52.6,0,24,24,-4.1,-11.97,74,CLOSED
+2026-06-04,RELINFRA.NS,Reliance Infrastructure Limited,Power & Utilities,77.9,73.61,B-TSJump,5.0,8.0,-81.6,0,22,22,2.0,-5.51,74,CLOSED
+2026-06-04,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,454.3,554.35,A-BigDay,9.7,8.0,-36.3,29,32,3,4.3,22.02,74,CLOSED
+2026-06-04,RTNINDIA.NS,RattanIndia Enterprises Limited,Financial Services,38.8,30.48,A-BigDay,10.0,7.0,-44.3,28,30,2,-3.1,-21.44,74,CLOSED
+2026-06-04,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,475.6,593.2,A-BigDay,6.4,8.0,-53.6,26,27,1,0.1,24.73,74,CLOSED
+2026-06-05,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1529.1,1463.6,B-TSJump,2.6,8.0,-28.4,2,38,36,-0.5,-4.28,73,CLOSED
+2026-06-05,RITES.NS,RITES Limited,Infrastructure,210.5,221.72,A+B,5.1,8.0,-31.3,1,29,28,1.7,5.33,73,CLOSED
+2026-06-05,NETWORK18.NS,Network18 Media & Investments Limited,Media,33.4,28.95,A+B,11.4,9.0,-48.8,0,25,25,8.2,-13.32,73,CLOSED
+2026-06-05,QUESS.NS,Quess Corp Limited,Capital Goods,235.7,343.9,A-BigDay,9.6,9.0,-24.7,61,75,14,5.1,45.91,73,CLOSED
+2026-06-05,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,192.2,195.01,A-BigDay,5.0,8.0,-21.3,75,77,2,3.9,1.46,73,CLOSED
+2026-06-05,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,112.3,104.87,A-BigDay,7.5,9.0,-24.4,74,76,2,5.0,-6.62,73,CLOSED
+2026-06-08,SYNGENE.NS,Syngene International Limited,Pharma & Healthcare,449.5,403.0,B-TSJump,3.5,6.0,-38.3,0,26,26,-3.7,-10.34,70,CLOSED
+2026-06-08,THOMASCOOK.NS,Thomas Cook (India) Limited,Hospitality,104.8,103.68,A+B,11.7,9.0,-44.2,0,26,26,14.7,-1.07,70,CLOSED
+2026-06-08,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2069.8,2796.9,A-BigDay,5.7,8.0,-37.1,28,29,1,2.8,35.13,70,CLOSED
+2026-06-09,CUB.NS,City Union Bank Limited,Banking,256.4,215.2,B-TSJump,3.8,10.0,-20.9,34,90,56,5.1,-16.07,69,CLOSED
+2026-06-09,GARFIBRES.NS,Garware Technical Fibres Limited,Capital Goods,688.3,748.45,B-TSJump,4.9,10.0,-28.1,27,69,42,2.8,8.74,69,CLOSED
+2026-06-09,VMART.NS,V-Mart Retail Limited,Retail,691.0,792.3,A+B,5.8,8.0,-26.9,33,75,42,6.4,14.66,69,CLOSED
+2026-06-09,INDIGO.NS,InterGlobe Aviation Limited,Infrastructure,4537.6,5275.5,B-TSJump,4.1,9.0,-27.2,1,39,38,6.7,16.26,69,CLOSED
+2026-06-09,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1527.2,1463.6,B-TSJump,3.0,9.0,-28.4,2,38,36,4.3,-4.16,69,CLOSED
+2026-06-09,BANCOINDIA.NS,Banco Products (India) Limited,Auto,681.5,611.15,A+B,8.5,7.0,-20.7,41,75,34,11.2,-10.32,69,CLOSED
+2026-06-09,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,160.3,177.15,A+B,5.8,8.0,-24.4,31,64,33,8.8,10.51,69,CLOSED
+2026-06-09,IIFL.NS,IIFL Finance Limited,Financial Services,508.0,630.05,B-TSJump,3.3,9.0,-24.2,40,72,32,2.4,24.03,69,CLOSED
+2026-06-09,AJAXENGG.NS,AJAXENGG.NS,Capital Goods,581.9,567.25,B-TSJump,3.3,9.0,-20.3,45,76,31,5.6,-2.52,69,CLOSED
+2026-06-09,MOTILALOFS.NS,Motilal Oswal Financial Services Limited,Financial Services,864.3,955.0,A+B,5.3,8.0,-20.6,44,75,31,4.6,10.49,69,CLOSED
+2026-06-09,OLECTRA.NS,Olectra Greentech Limited,Auto,1300.0,1320.1,B-TSJump,4.8,6.0,-24.2,44,75,31,4.9,1.55,69,CLOSED
+2026-06-09,UCOBANK.NS,UCO Bank,Banking,26.0,26.11,B-TSJump,4.0,7.0,-23.6,13,41,28,3.8,0.42,69,CLOSED
+2026-06-09,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,376.1,410.75,B-TSJump,2.7,7.0,-33.0,1,28,27,1.8,9.21,69,CLOSED
+2026-06-09,ETHOSLTD.NS,Ethos Limited,Consumer Durables,2416.7,2788.6,B-TSJump,2.8,7.0,-25.6,15,42,27,-0.4,15.39,69,CLOSED
+2026-06-09,IDBI.NS,IDBI Bank Limited,Banking,75.4,82.18,B-TSJump,4.9,7.0,-36.3,1,28,27,5.0,8.99,69,CLOSED
+2026-06-09,PATELENG.NS,Patel Engineering Limited,Capital Goods,27.7,28.48,B-TSJump,5.3,6.0,-40.3,1,28,27,7.3,2.82,69,CLOSED
+2026-06-09,GATEWAY.NS,Gateway Distriparks Limited,Infrastructure,58.0,55.15,B-TSJump,2.6,6.0,-20.4,16,42,26,3.1,-4.91,69,CLOSED
+2026-06-09,SUDARSCHEM.NS,Sudarshan Chemical Industries Limited,Chemicals,893.2,1092.9,B-TSJump,3.5,6.0,-44.3,0,26,26,6.1,22.36,69,CLOSED
+2026-06-09,RAYMONDLSL.NS,Raymond Lifestyle Limited,Textiles,780.6,762.1,B-TSJump,5.3,6.0,-44.7,0,24,24,1.1,-2.37,69,CLOSED
+2026-06-09,ACI.NS,Archean Chemical Industries Limited,Metals & Mining,544.3,515.35,A-BigDay,5.8,9.0,-24.8,10,13,3,1.6,-5.32,69,CLOSED
+2026-06-09,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,347.1,391.2,A-BigDay,8.8,9.0,-34.0,29,32,3,11.7,12.71,69,CLOSED
+2026-06-09,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2187.6,2796.9,A-BigDay,5.7,9.0,-33.5,29,31,2,4.8,27.85,69,CLOSED
+2026-06-09,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1272.2,1515.0,A-BigDay,6.3,7.0,-40.5,26,28,2,6.0,19.09,69,CLOSED
+2026-06-09,THOMASCOOK.NS,Thomas Cook (India) Limited,Hospitality,112.8,103.68,A-BigDay,7.7,9.0,-39.9,26,28,2,7.5,-8.09,69,CLOSED
+2026-06-09,OLAELEC.NS,OLAELEC.NS,Auto,47.3,39.22,A-BigDay,6.5,9.0,-33.6,64,65,1,6.7,-17.08,69,CLOSED
+2026-06-10,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2451.4,2796.9,A+B,12.1,9.0,-25.5,31,75,44,11.1,14.09,68,CLOSED
+2026-06-10,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.7,1515.0,B-TSJump,4.6,7.0,-37.7,28,59,31,7.7,13.85,68,CLOSED
+2026-06-10,AFCONS.NS,AFCONS.NS,Infrastructure,330.0,271.7,B-TSJump,4.6,7.0,-31.1,2,30,28,-1.6,-17.67,68,CLOSED
+2026-06-11,TATACHEM.NS,Tata Chemicals Limited,Chemicals,741.2,662.9,B-TSJump,2.9,6.0,-26.7,16,42,26,1.9,-10.56,67,CLOSED
+2026-06-11,ZEEL.NS,Zee Entertainment Enterprises Limited,Media,111.4,104.87,A-BigDay,8.3,9.0,-25.0,64,76,12,0.9,-5.86,67,CLOSED
+2026-06-11,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,498.5,593.2,A-BigDay,6.1,9.0,-51.4,27,28,1,5.5,19.0,67,CLOSED
+2026-06-12,JAMNAAUTO.NS,Jamna Auto Industries Limited,Auto,121.8,123.33,A+B,6.2,7.0,-20.2,34,91,57,8.3,1.26,66,CLOSED
+2026-06-12,AIIL.NS,Authum Investment & Infrastructure Limited,Financial Services,530.2,551.5,A+B,15.3,9.0,-22.4,2,44,42,7.8,4.02,66,CLOSED
+2026-06-12,KIRLOSBROS.NS,Kirloskar Brothers Limited,Capital Goods,1729.4,1942.9,B-TSJump,3.9,7.0,-29.9,29,71,42,1.6,12.35,66,CLOSED
+2026-06-12,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1109.3,1179.9,A+B,7.7,8.0,-26.6,2,41,39,8.2,6.36,66,CLOSED
+2026-06-12,MGL.NS,Mahanagar Gas Limited,Oil & Gas,1094.9,1129.1,B-TSJump,3.2,8.0,-29.3,3,40,37,-1.6,3.12,66,CLOSED
+2026-06-12,IIFL.NS,IIFL Finance Limited,Financial Services,518.9,630.05,A+B,5.7,9.0,-22.6,40,73,33,4.8,21.42,66,CLOSED
+2026-06-12,BORORENEW.NS,Borosil Renewables Limited,Capital Goods,544.6,569.9,A+B,5.4,9.0,-24.5,43,75,32,12.4,4.65,66,CLOSED
+2026-06-12,GRSE.NS,Garden Reach Shipbuilders & Engineers Limited,Aerospace & Defense,2648.7,2600.1,B-TSJump,4.4,8.0,-24.6,32,64,32,8.8,-1.83,66,CLOSED
+2026-06-12,HCC.NS,Hindustan Construction Company Limited,Capital Goods,23.4,20.33,A+B,7.8,8.0,-35.9,31,63,32,9.8,-13.12,66,CLOSED
+2026-06-12,INOXGREEN.NS,Inox Green Energy Services Limited,Power & Utilities,189.9,181.54,B-TSJump,5.6,6.0,-31.9,30,62,32,6.3,-4.4,66,CLOSED
+2026-06-12,SURYAROSNI.NS,Surya Roshni Limited,Capital Goods,263.0,221.27,B-TSJump,5.2,6.0,-25.3,42,74,32,6.1,-15.87,66,CLOSED
+2026-06-12,VAIBHAVGBL.NS,Vaibhav Global Limited,Retail,230.5,226.45,B-TSJump,3.1,7.0,-20.4,43,75,32,3.8,-1.76,66,CLOSED
+2026-06-12,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,185.0,195.01,B-TSJump,5.0,8.0,-24.3,44,75,31,4.9,5.41,66,CLOSED
+2026-06-12,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,29.9,35.63,A+B,8.2,7.0,-53.5,27,58,31,11.1,19.16,66,CLOSED
+2026-06-12,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,161.0,177.15,B-TSJump,3.4,8.0,-24.1,33,64,31,6.1,10.03,66,CLOSED
+2026-06-12,OLECTRA.NS,Olectra Greentech Limited,Auto,1296.0,1320.1,B-TSJump,3.5,7.0,-24.4,44,75,31,6.0,1.86,66,CLOSED
+2026-06-12,INDIASHLTR.NS,India Shelter Finance Corporation Limited,Financial Services,793.4,674.75,A+B,9.0,8.0,-21.6,12,42,30,7.7,-14.95,66,CLOSED
+2026-06-12,BPCL.NS,Bharat Petroleum Corporation Limited,Oil & Gas,302.4,316.65,A+B,5.6,8.0,-22.8,10,39,29,9.0,4.71,66,CLOSED
+2026-06-12,HINDPETRO.NS,Hindustan Petroleum Corporation Limited,Oil & Gas,388.9,371.0,A+B,6.3,9.0,-23.5,13,42,29,11.5,-4.6,66,CLOSED
+2026-06-12,KRBL.NS,KRBL Limited,Consumer Goods,366.8,395.7,A+B,6.2,10.0,-25.2,15,43,28,14.0,7.88,66,CLOSED
+2026-06-12,TTML.NS,Tata Teleservices (Maharashtra) Limited,Telecom,46.4,38.15,A+B,10.2,9.0,-41.7,2,30,28,8.9,-17.78,66,CLOSED
+2026-06-12,AAVAS.NS,Aavas Financiers Limited,Financial Services,1405.7,1389.8,A+B,5.8,8.0,-34.7,3,30,27,6.1,-1.13,66,CLOSED
+2026-06-12,HEMIPROP.NS,Hemisphere Properties India Limited,Real Estate,140.4,134.27,B-TSJump,3.4,6.0,-26.4,15,42,27,4.6,-4.37,66,CLOSED
+2026-06-12,IDBI.NS,IDBI Bank Limited,Banking,75.4,82.18,B-TSJump,4.3,7.0,-36.3,1,28,27,4.6,8.99,66,CLOSED
+2026-06-12,PCBL.NS,PCBL Chemical Limited,Chemicals,290.2,315.45,B-TSJump,4.5,10.0,-32.5,3,30,27,6.6,8.7,66,CLOSED
+2026-06-12,SWSOLAR.NS,Sterling and Wilson Renewable Energy Limited,Power & Utilities,208.2,203.62,A+B,7.8,7.0,-40.3,2,29,27,8.4,-2.2,66,CLOSED
+2026-06-12,UCOBANK.NS,UCO Bank,Banking,26.0,26.11,B-TSJump,3.5,8.0,-22.7,14,41,27,3.1,0.42,66,CLOSED
+2026-06-12,AFCONS.NS,AFCONS.NS,Infrastructure,326.0,271.7,B-TSJump,2.9,7.0,-32.0,3,29,26,1.1,-16.66,66,CLOSED
+2026-06-12,DCAL.NS,Dishman Carbogen Amcis Limited,Pharma & Healthcare,184.6,175.83,B-TSJump,4.6,8.0,-42.6,3,29,26,-6.1,-4.75,66,CLOSED
+2026-06-12,DHANUKA.NS,Dhanuka Agritech Limited,Chemicals,1081.2,997.0,B-TSJump,2.9,9.0,-45.3,0,26,26,-0.8,-7.79,66,CLOSED
+2026-06-12,FINPIPE.NS,Finolex Industries Limited,Capital Goods,173.0,159.36,B-TSJump,2.6,6.0,-26.1,13,39,26,3.7,-7.88,66,CLOSED
+2026-06-12,LODHA.NS,Lodha Developers Limited,Real Estate,899.3,1254.0,B-TSJump,3.6,8.0,-40.2,3,29,26,5.6,39.44,66,CLOSED
+2026-06-12,OSWALPUMPS.NS,OSWALPUMPS.NS,Capital Goods,398.2,304.0,B-TSJump,6.9,6.0,-55.2,0,26,26,7.4,-23.66,66,CLOSED
+2026-06-12,PARADEEP.NS,Paradeep Phosphates Limited,Chemicals,126.2,146.66,B-TSJump,3.9,7.0,-45.9,0,26,26,7.6,16.21,66,CLOSED
+2026-06-12,PATELENG.NS,Patel Engineering Limited,Capital Goods,27.3,28.48,B-TSJump,4.2,9.0,-40.2,1,27,26,7.0,4.32,66,CLOSED
+2026-06-12,SUMICHEM.NS,Sumitomo Chemical India Limited,Chemicals,461.9,559.8,B-TSJump,3.0,9.0,-30.6,4,30,26,1.3,21.2,66,CLOSED
+2026-06-12,TANLA.NS,Tanla Platforms Limited,IT & Technology,513.7,573.5,B-TSJump,2.6,7.0,-31.5,6,32,26,6.6,11.64,66,CLOSED
+2026-06-12,TARIL.NS,TARIL.NS,Capital Goods,315.1,296.3,B-TSJump,4.9,7.0,-45.5,2,28,26,7.4,-5.97,66,CLOSED
+2026-06-12,VIPIND.NS,V.I.P. Industries Limited,Consumer Durables,315.0,300.5,A+B,5.7,9.0,-36.0,0,26,26,1.5,-4.6,66,CLOSED
+2026-06-12,WEBELSOLAR.NS,Websol Energy System Limited,Power & Utilities,103.6,82.8,B-TSJump,3.7,6.0,-34.1,54,80,26,6.9,-20.08,66,CLOSED
+2026-06-12,IXIGO.NS,IXIGO.NS,Consumer Durables,178.2,172.51,A+B,12.2,9.0,-47.5,0,25,25,10.1,-3.19,66,CLOSED
+2026-06-12,RAYMONDLSL.NS,Raymond Lifestyle Limited,Textiles,794.8,762.1,B-TSJump,3.3,7.0,-43.7,0,25,25,5.4,-4.11,66,CLOSED
+2026-06-12,SHAKTIPUMP.NS,Shakti Pumps (India) Limited,Capital Goods,537.2,503.2,A+B,5.9,7.0,-48.7,0,25,25,9.1,-6.33,66,CLOSED
+2026-06-12,AEGISVOPAK.NS,AEGISVOPAK.NS,Oil & Gas,217.9,269.5,A-BigDay,9.4,8.0,-27.9,29,43,14,8.3,23.68,66,CLOSED
+2026-06-12,SHARDACROP.NS,Sharda Cropchem Limited,Chemicals,923.3,787.1,A-BigDay,5.4,8.0,-28.8,17,30,13,20.7,-14.75,66,CLOSED
+2026-06-12,STARCEMENT.NS,Star Cement Limited,Cement & Materials,218.6,199.06,A-BigDay,5.2,7.0,-28.9,0,11,11,4.9,-8.94,66,CLOSED
+2026-06-12,TBOTEK.NS,TBOTEK.NS,IT & Technology,1352.8,1700.0,A-BigDay,7.7,9.0,-23.4,40,44,4,7.1,25.67,66,CLOSED
+2026-06-12,CEATLTD.NS,CEAT Limited,Auto,3334.3,3608.5,A-BigDay,5.9,9.0,-24.9,9,12,3,4.6,8.22,66,CLOSED
+2026-06-12,APTUS.NS,Aptus Value Housing Finance India Limited,Financial Services,271.7,255.2,A-BigDay,5.1,9.0,-24.1,43,45,2,5.0,-6.07,66,CLOSED
+2026-06-12,JKTYRE.NS,JK Tyre & Industries Limited,Auto,378.2,382.0,A-BigDay,7.3,7.0,-38.2,0,2,2,6.6,1.0,66,CLOSED
+2026-06-12,REFEX.NS,Refex Industries Limited,Chemicals,311.0,302.75,A-BigDay,5.0,9.0,-38.3,60,62,2,-4.8,-2.65,66,CLOSED
+2026-06-12,LATENTVIEW.NS,Latent View Analytics Limited,IT & Technology,301.2,285.5,A-BigDay,5.3,7.0,-41.8,0,1,1,0.7,-5.21,66,CLOSED
+2026-06-12,NETWORK18.NS,Network18 Media & Investments Limited,Media,31.5,28.95,A-BigDay,6.0,8.0,-51.7,0,0,0,5.6,-8.1,66,CLOSED
+2026-06-12,PGEL.NS,PG Electroplast Limited,Consumer Durables,483.3,614.0,A-BigDay,5.3,9.0,-42.2,0,0,0,5.6,27.04,66,CLOSED
+2026-06-15,SUMICHEM.NS,Sumitomo Chemical India Limited,Chemicals,474.5,559.8,B-TSJump,2.7,8.0,-28.6,30,72,42,4.6,17.98,63,CLOSED
+2026-06-15,GOKEX.NS,Gokaldas Exports Limited,Textiles,721.8,804.1,A+B,7.0,7.0,-26.0,5,43,38,9.6,11.4,63,CLOSED
+2026-06-15,RAILTEL.NS,RailTel Corporation of India Limited,Telecom,318.8,279.95,B-TSJump,3.2,6.0,-27.4,4,42,38,7.1,-12.19,63,CLOSED
+2026-06-15,CDSL.NS,Central Depository Services (India) Limited,Financial Services,1265.7,1356.8,B-TSJump,3.1,8.0,-29.7,0,37,37,5.3,7.2,63,CLOSED
+2026-06-15,AEGISVOPAK.NS,AEGISVOPAK.NS,Oil & Gas,231.7,269.5,A+B,6.4,9.0,-23.3,43,75,32,9.5,16.31,63,CLOSED
+2026-06-15,BALKRISIND.NS,Balkrishna Industries Limited,Auto,2192.5,2407.2,A+B,8.9,7.0,-21.4,7,39,32,12.6,9.79,63,CLOSED
+2026-06-15,GUJGASLTD.NS,Gujarat Energy Limited,Oil & Gas,399.7,282.95,B-TSJump,3.0,7.0,-20.4,43,75,32,3.3,-29.21,63,CLOSED
+2026-06-15,ASKAUTOLTD.NS,ASKAUTOLTD.NS,Auto,452.0,649.2,B-TSJump,5.3,6.0,-21.9,13,42,29,5.0,43.63,63,CLOSED
+2026-06-15,VENTIVE.NS,VENTIVE.NS,Hospitality,653.5,592.2,A+B,5.5,9.0,-22.0,13,42,29,11.4,-9.38,63,CLOSED
+2026-06-15,APOLLOTYRE.NS,Apollo Tyres Limited,Auto,414.4,436.7,B-TSJump,4.6,10.0,-22.8,11,39,28,12.7,5.38,63,CLOSED
+2026-06-15,ASHOKA.NS,Ashoka Buildcon Limited,Infrastructure,132.5,113.27,B-TSJump,7.7,6.0,-39.4,1,29,28,11.7,-14.51,63,CLOSED
+2026-06-15,CEATLTD.NS,CEAT Limited,Auto,3455.3,3608.5,B-TSJump,3.6,9.0,-22.1,12,40,28,9.4,4.43,63,CLOSED
+2026-06-15,GULFOILLUB.NS,Gulf Oil Lubricants India Limited,Oil & Gas,979.6,1174.6,B-TSJump,4.3,8.0,-23.4,11,39,28,8.8,19.91,63,CLOSED
+2026-06-15,ARVINDFASN.NS,Arvind Fashions Limited,Retail,461.6,444.15,B-TSJump,2.5,9.0,-20.3,17,44,27,2.9,-3.78,63,CLOSED
+2026-06-15,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,466.8,537.75,B-TSJump,6.3,6.0,-41.1,2,29,27,10.0,15.2,63,CLOSED
+2026-06-15,IOC.NS,Indian Oil Corporation Limited,Oil & Gas,144.5,138.61,B-TSJump,2.5,8.0,-22.6,12,39,27,10.0,-4.08,63,CLOSED
+2026-06-15,AFFLE.NS,Affle 3i Limited,IT & Technology,1486.4,1703.9,B-TSJump,2.8,7.0,-32.0,2,28,26,6.2,14.63,63,CLOSED
+2026-06-15,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,981.3,901.8,B-TSJump,3.2,7.0,-35.6,3,29,26,4.7,-8.1,63,CLOSED
+2026-06-15,ITCHOTELS.NS,ITCHOTELS.NS,Hospitality,159.0,166.36,B-TSJump,3.2,6.0,-38.8,0,26,26,5.4,4.63,63,CLOSED
+2026-06-15,WESTLIFE.NS,Westlife Foodworld Limited,Hospitality,473.4,579.6,B-TSJump,6.2,6.0,-42.1,0,26,26,7.0,22.43,63,CLOSED
+2026-06-15,AURIONPRO.NS,Aurionpro Solutions Limited,IT & Technology,852.5,722.75,A+B,9.7,10.0,-48.6,0,25,25,14.4,-15.22,63,CLOSED
+2026-06-15,CLEAN.NS,Clean Science and Technology Limited,Chemicals,791.6,840.0,B-TSJump,2.9,8.0,-47.7,0,25,25,12.7,6.11,63,CLOSED
+2026-06-15,DBREALTY.NS,Valor Estate Limited,Real Estate,115.0,108.51,B-TSJump,2.8,8.0,-54.5,1,26,25,13.3,-5.64,63,CLOSED
+2026-06-15,SAFARI.NS,Safari Industries (India) Limited,Consumer Durables,1636.0,1497.3,A-BigDay,6.6,9.0,-34.8,25,28,3,9.7,-8.48,63,CLOSED
+2026-06-15,KALYANKJIL.NS,Kalyan Jewellers India Limited,Consumer Durables,383.0,610.0,A-BigDay,11.1,9.0,-37.8,0,1,1,16.1,59.27,63,CLOSED
+2026-06-15,TRENT.NS,Trent Limited,Retail,2901.1,2946.0,A-BigDay,5.3,8.0,-53.6,25,26,1,8.8,1.55,63,CLOSED
+2026-06-16,AGI.NS,AGI Greenpac Limited,Consumer Durables,702.0,716.5,A+B,6.3,9.0,-29.9,31,74,43,8.2,2.07,62,CLOSED
+2026-06-16,SONATSOFTW.NS,Sonata Software Limited,IT & Technology,311.2,320.4,A+B,19.6,9.0,-29.8,2,44,42,20.3,2.96,62,CLOSED
+2026-06-16,MGL.NS,Mahanagar Gas Limited,Oil & Gas,1185.6,1129.1,B-TSJump,4.1,9.0,-23.5,42,74,32,7.9,-4.77,62,CLOSED
+2026-06-16,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2383.8,2796.9,B-TSJump,2.5,9.0,-27.6,44,75,31,4.7,17.33,62,CLOSED
+2026-06-16,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,837.5,793.85,B-TSJump,3.6,6.0,-25.5,16,43,27,5.0,-5.21,62,CLOSED
+2026-06-16,PGEL.NS,PG Electroplast Limited,Consumer Durables,527.5,614.0,A+B,7.0,9.0,-36.9,0,27,27,12.7,16.4,62,CLOSED
+2026-06-16,AWL.NS,AWL Agri Business Limited,Consumer Goods,197.3,193.34,B-TSJump,3.2,6.0,-31.0,1,27,26,2.6,-2.01,62,CLOSED
+2026-06-16,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,720.2,593.7,A+B,5.3,9.0,-40.4,0,26,26,10.2,-17.56,62,CLOSED
+2026-06-16,MASTEK.NS,Mastek Limited,IT & Technology,1663.8,1811.8,B-TSJump,2.9,7.0,-40.3,1,27,26,-3.5,8.9,62,CLOSED
+2026-06-16,NETWORK18.NS,Network18 Media & Investments Limited,Media,33.8,28.95,B-TSJump,3.7,8.0,-48.3,0,26,26,4.6,-14.35,62,CLOSED
+2026-06-16,NFL.NS,National Fertilizers Limited,Chemicals,77.7,71.54,B-TSJump,2.6,7.0,-24.4,15,41,26,2.3,-7.93,62,CLOSED
+2026-06-16,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,181.7,234.68,B-TSJump,4.7,6.0,-50.6,0,26,26,2.3,29.16,62,CLOSED
+2026-06-16,CCAVENUE.NS,AvenuesAI Limited,Financial Services,14.3,15.21,B-TSJump,3.8,6.0,-37.7,0,25,25,3.2,6.36,62,CLOSED
+2026-06-16,HCC.NS,Hindustan Construction Company Limited,Capital Goods,25.5,20.33,A-BigDay,6.8,9.0,-23.6,75,78,3,10.9,-20.27,62,CLOSED
+2026-06-16,PARADEEP.NS,Paradeep Phosphates Limited,Chemicals,134.2,146.66,A-BigDay,5.2,8.0,-42.5,27,28,1,3.0,9.28,62,CLOSED
+2026-06-16,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1315.7,1402.1,A-BigDay,6.1,7.0,-48.1,0,0,0,8.2,6.57,62,CLOSED
+2026-06-17,ANUP.NS,The Anup Engineering Limited,Capital Goods,2132.4,1834.5,A+B,8.5,9.0,-27.4,6,75,69,8.7,-13.97,61,CLOSED
+2026-06-17,EMIL.NS,Electronics Mart India Limited,Consumer Durables,118.5,192.42,A+B,6.1,8.0,-29.7,5,73,68,8.6,62.38,61,CLOSED
+2026-06-17,IRFC.NS,Indian Railway Finance Corporation Limited,Financial Services,100.4,87.05,B-TSJump,2.9,6.0,-28.5,1,38,37,4.7,-13.3,61,CLOSED
+2026-06-17,CHALET.NS,CHALET.NS,Hospitality,781.0,844.7,B-TSJump,3.3,7.0,-27.7,1,37,36,3.1,8.16,61,CLOSED
+2026-06-17,ACE.NS,Action Construction Equipment Limited,Auto,962.1,1113.7,B-TSJump,3.4,8.0,-22.0,42,74,32,2.9,15.76,61,CLOSED
+2026-06-17,AAVAS.NS,Aavas Financiers Limited,Financial Services,1452.4,1389.8,B-TSJump,4.2,8.0,-32.5,30,61,31,4.1,-4.31,61,CLOSED
+2026-06-17,MAZDOCK.NS,Mazagon Dock Shipbuilders Limited,Infrastructure,2552.4,2569.7,B-TSJump,3.4,7.0,-23.8,15,42,27,5.0,0.68,61,CLOSED
+2026-06-17,KFINTECH.NS,KFin Technologies Limited,Financial Services,898.5,973.0,B-TSJump,4.3,8.0,-34.9,0,26,26,3.8,8.29,61,CLOSED
+2026-06-17,NUVOCO.NS,Nuvoco Vistas Corporation Limited,Cement & Materials,320.2,331.1,B-TSJump,3.2,7.0,-32.9,1,27,26,4.2,3.4,61,CLOSED
+2026-06-17,PNCINFRA.NS,PNC Infratech Limited,Infrastructure,213.1,215.17,B-TSJump,2.9,6.0,-35.6,4,30,26,5.4,0.97,61,CLOSED
+2026-06-17,IDBI.NS,IDBI Bank Limited,Banking,90.4,82.18,A-BigDay,17.1,9.0,-23.7,29,45,16,13.5,-9.09,61,CLOSED
+2026-06-17,PATELENG.NS,Patel Engineering Limited,Capital Goods,30.7,28.48,A-BigDay,6.9,9.0,-28.3,30,43,13,8.5,-7.23,61,CLOSED
+2026-06-17,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2614.9,2796.9,A-BigDay,9.7,9.0,-20.5,75,78,3,11.0,6.96,61,CLOSED
+2026-06-17,OLECTRA.NS,Olectra Greentech Limited,Auto,1354.9,1320.1,A-BigDay,6.7,7.0,-21.0,75,77,2,6.8,-2.57,61,CLOSED
+2026-06-17,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,451.1,554.35,A-BigDay,5.1,9.0,-36.7,30,32,2,5.6,22.89,61,CLOSED
+2026-06-17,TRENT.NS,Trent Limited,Retail,3102.8,2946.0,A-BigDay,7.1,9.0,-50.4,26,27,1,7.0,-5.05,61,CLOSED
+2026-06-18,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,518.8,537.75,A+B,6.9,9.0,-34.5,30,62,32,11.3,3.65,60,CLOSED
+2026-06-18,PGEL.NS,PG Electroplast Limited,Consumer Durables,564.2,614.0,B-TSJump,3.4,9.0,-32.5,29,60,31,6.3,8.83,60,CLOSED
+2026-06-18,BOSCH-HCIL.NS,Bosch Home Comfort India Limited,Consumer Durables,1407.0,1700.4,A+B,10.0,9.0,-22.4,15,45,30,10.7,20.85,60,CLOSED
+2026-06-18,BATAINDIA.NS,Bata India Limited,Textiles,789.9,758.1,A+B,16.4,9.0,-38.4,0,29,29,18.3,-4.03,60,CLOSED
+2026-06-18,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,45.9,47.06,A+B,5.5,7.0,-36.0,1,28,27,9.8,2.53,60,CLOSED
+2026-06-18,TATAINVEST.NS,Tata Investment Corporation Limited,Financial Services,694.2,654.55,B-TSJump,2.7,8.0,-41.1,2,28,26,3.9,-5.71,60,CLOSED
+2026-06-18,CCAVENUE.NS,AvenuesAI Limited,Financial Services,15.0,15.21,A-BigDay,5.1,7.0,-28.3,26,38,12,6.6,1.4,60,CLOSED
+2026-06-18,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,1049.7,901.8,A-BigDay,6.6,8.0,-31.1,29,32,3,6.1,-14.09,60,CLOSED
+2026-06-18,KNRCON.NS,KNR Constructions Limited,Infrastructure,139.1,134.6,A-BigDay,5.7,7.0,-43.1,26,27,1,2.8,-3.24,60,CLOSED
+2026-06-19,BAJAJHFL.NS,BAJAJHFL.NS,Financial Services,88.4,84.0,B-TSJump,2.9,8.0,-28.7,3,40,37,4.8,-4.98,59,CLOSED
+2026-06-19,TARIL.NS,TARIL.NS,Capital Goods,357.5,296.3,A+B,10.1,9.0,-38.2,29,62,33,10.8,-17.12,59,CLOSED
+2026-06-19,PATELENG.NS,Patel Engineering Limited,Capital Goods,31.0,28.48,B-TSJump,3.4,9.0,-27.5,42,74,32,4.9,-8.13,59,CLOSED
+2026-06-19,POONAWALLA.NS,Poonawalla Fincorp Limited,Financial Services,426.7,497.45,A+B,5.5,8.0,-25.2,12,40,28,8.0,16.58,59,CLOSED
+2026-06-19,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,574.0,569.5,B-TSJump,4.3,9.0,-23.3,17,44,27,13.5,-0.78,59,CLOSED
+2026-06-19,INDIASHLTR.NS,India Shelter Finance Corporation Limited,Financial Services,784.3,674.75,B-TSJump,3.4,8.0,-21.4,15,42,27,5.1,-13.97,59,CLOSED
+2026-06-19,SBFC.NS,SBFC Finance Limited,Financial Services,95.4,93.95,B-TSJump,3.8,9.0,-22.4,14,41,27,5.5,-1.52,59,CLOSED
+2026-06-19,DBREALTY.NS,Valor Estate Limited,Real Estate,118.1,108.51,B-TSJump,4.0,8.0,-53.2,1,27,26,4.1,-8.12,59,CLOSED
+2026-06-19,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2332.0,2702.9,B-TSJump,2.9,7.0,-31.7,0,26,26,7.0,15.9,59,CLOSED
+2026-06-19,KEC.NS,KEC International Limited,Infrastructure,541.5,436.35,B-TSJump,3.0,8.0,-42.5,0,25,25,2.5,-19.42,59,CLOSED
+2026-06-19,REFEX.NS,Refex Industries Limited,Chemicals,336.9,302.75,A-BigDay,5.7,9.0,-29.1,64,75,11,8.0,-10.14,59,CLOSED
+2026-06-19,ITCHOTELS.NS,ITCHOTELS.NS,Hospitality,170.9,166.36,A-BigDay,6.1,9.0,-34.2,27,29,2,7.5,-2.66,59,CLOSED
+2026-06-19,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,34.9,27.73,A-BigDay,5.1,9.0,-44.4,25,27,2,5.4,-20.54,59,CLOSED
+2026-06-19,SWSOLAR.NS,Sterling and Wilson Renewable Energy Limited,Power & Utilities,235.5,203.62,A-BigDay,6.0,8.0,-30.9,62,64,2,7.5,-13.54,59,CLOSED
+2026-06-19,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,32.4,35.63,A-BigDay,6.7,7.0,-49.5,59,60,1,10.2,9.97,59,CLOSED
+2026-06-22,SUBROS.NS,Subros Limited,Consumer Durables,856.0,762.2,A+B,14.5,9.0,-29.5,2,72,70,13.1,-10.96,56,CLOSED
+2026-06-22,IONEXCHANG.NS,IONEXCHANG.NS,Capital Goods,390.9,374.45,B-TSJump,5.5,6.0,-32.5,17,74,57,2.0,-4.21,56,CLOSED
+2026-06-22,POLYMED.NS,Poly Medicure Limited,Pharma & Healthcare,1671.4,1733.6,A+B,6.9,7.0,-27.7,31,73,42,8.7,3.72,56,CLOSED
+2026-06-22,KSCL.NS,Kaveri Seed Company Limited,Chemicals,944.2,772.3,A+B,11.1,9.0,-25.6,3,43,40,11.0,-18.21,56,CLOSED
+2026-06-22,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,959.1,871.6,A+B,7.1,7.0,-31.9,1,29,28,8.3,-9.12,56,CLOSED
+2026-06-22,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,48.0,47.06,A+B,7.8,8.0,-33.1,2,30,28,6.2,-1.96,56,CLOSED
+2026-06-22,LEMONTREE.NS,Lemon Tree Hotels Limited,Hospitality,118.8,109.55,B-TSJump,5.1,6.0,-34.3,0,28,28,2.3,-7.79,56,CLOSED
+2026-06-22,DBL.NS,Dilip Buildcon Limited,Capital Goods,454.9,419.6,B-TSJump,3.5,7.0,-22.2,14,41,27,4.4,-7.76,56,CLOSED
+2026-06-22,ETHOSLTD.NS,Ethos Limited,Consumer Durables,2452.0,2788.6,B-TSJump,3.0,6.0,-24.5,16,43,27,1.4,13.73,56,CLOSED
+2026-06-22,CLEAN.NS,Clean Science and Technology Limited,Chemicals,821.1,840.0,B-TSJump,5.0,9.0,-45.7,0,26,26,8.8,2.3,56,CLOSED
+2026-06-22,EIEL.NS,EIEL.NS,Infrastructure,224.9,200.16,A-BigDay,9.2,8.0,-26.6,63,75,12,-1.2,-11.0,56,CLOSED
+2026-06-22,IDBI.NS,IDBI Bank Limited,Banking,87.7,82.18,A-BigDay,5.6,9.0,-26.0,42,44,2,7.7,-6.29,56,CLOSED
+2026-06-22,LXCHEM.NS,Laxmi Organic Industries Limited,Chemicals,162.9,179.66,A-BigDay,6.9,9.0,-32.4,31,33,2,11.1,10.29,56,CLOSED
+2026-06-23,BASF.NS,BASF India Limited,Chemicals,3745.8,4041.2,B-TSJump,4.8,9.0,-28.5,2,39,37,6.8,7.89,55,CLOSED
+2026-06-23,PPLPHARMA.NS,Piramal Pharma Limited,Pharma & Healthcare,168.9,204.73,A+B,6.5,8.0,-23.5,14,43,29,6.1,21.21,55,CLOSED
+2026-06-23,AARTIPHARM.NS,Aarti Pharmalabs Limited,Pharma & Healthcare,710.6,861.95,B-TSJump,4.8,6.0,-26.5,13,40,27,9.1,21.3,55,CLOSED
+2026-06-23,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,457.8,444.75,A+B,13.0,9.0,-59.2,0,27,27,10.3,-2.85,55,CLOSED
+2026-06-24,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1163.5,1179.9,B-TSJump,3.5,7.0,-23.1,42,74,32,0.4,1.41,54,CLOSED
+2026-06-24,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,49.9,47.06,A+B,5.5,8.0,-30.4,30,62,32,4.9,-5.69,54,CLOSED
+2026-06-24,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,310.9,388.9,A+B,6.7,8.0,-24.6,14,42,28,7.9,25.09,54,CLOSED
+2026-06-24,TECHM.NS,Tech Mahindra Limited,IT & Technology,1461.6,1610.0,B-TSJump,3.2,6.0,-21.2,12,39,27,2.2,10.15,54,CLOSED
+2026-06-24,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,543.5,593.7,B-TSJump,3.8,7.0,-38.2,1,27,26,6.0,9.24,54,CLOSED
+2026-06-25,WAAREERTL.NS,Waaree Renewable Technologies Limited,Power & Utilities,1020.7,896.95,B-TSJump,3.7,7.0,-24.8,31,88,57,4.2,-12.12,53,CLOSED
+2026-06-25,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,413.5,391.2,A+B,12.1,9.0,-21.4,44,78,34,14.5,-5.39,53,CLOSED
+2026-06-25,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,328.5,388.9,A+B,5.7,9.0,-20.3,42,75,33,5.7,18.39,53,CLOSED
+2026-06-25,MSUMI.NS,Motherson Sumi Wiring India Limited,Auto,41.3,40.33,A+B,9.1,9.0,-23.0,9,40,31,7.5,-2.35,53,CLOSED
+2026-06-25,MARUTI.NS,Maruti Suzuki India Limited,Auto,13745.0,13760.0,B-TSJump,3.8,8.0,-20.9,12,40,28,2.5,0.11,53,CLOSED
+2026-06-25,ASHOKLEY.NS,Ashok Leyland Limited,Auto,160.7,177.1,B-TSJump,3.7,8.0,-24.1,18,45,27,1.7,10.21,53,CLOSED
+2026-06-25,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1346.7,1402.1,B-TSJump,3.2,8.0,-45.2,0,26,26,4.6,4.11,53,CLOSED
+2026-06-26,M&MFIN.NS,Mahindra & Mahindra Financial Services Limited,Financial Services,328.5,388.9,A-BigDay,5.7,9.0,-20.3,75,75,0,0.6,18.39,52,CLOSED
+2026-06-26,MSUMI.NS,Motherson Sumi Wiring India Limited,Auto,41.3,40.33,A-BigDay,9.1,9.0,-23.0,40,40,0,0.6,-2.35,52,CLOSED
+2026-06-26,RELAXO.NS,Relaxo Footwears Limited,Consumer Durables,413.5,391.2,A-BigDay,12.1,9.0,-21.4,78,78,0,0.6,-5.39,52,CLOSED
+2026-06-29,TSFINV.NS,TSF Investments Limited,Financial Services,444.0,420.4,A+B,11.9,9.0,-35.8,1,30,29,11.0,-5.32,49,CLOSED
+2026-06-30,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2450.3,2702.9,B-TSJump,4.1,8.0,-27.3,27,69,42,6.2,10.31,48,CLOSED
+2026-06-30,APLLTD.NS,Alembic Pharmaceuticals Limited,Pharma & Healthcare,822.8,822.45,B-TSJump,4.6,9.0,-24.9,40,73,33,10.1,-0.04,48,CLOSED
+2026-06-30,BANCOINDIA.NS,Banco Products (India) Limited,Auto,670.3,611.15,B-TSJump,2.6,8.0,-22.0,43,75,32,-1.8,-8.82,48,CLOSED
+2026-06-30,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,505.1,537.75,B-TSJump,3.7,9.0,-36.2,30,62,32,6.1,6.46,48,CLOSED
+2026-06-30,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,48.7,47.06,B-TSJump,4.4,8.0,-31.2,29,61,32,4.2,-3.37,48,CLOSED
+2026-06-30,APTUS.NS,Aptus Value Housing Finance India Limited,Financial Services,278.9,255.2,B-TSJump,4.4,9.0,-22.1,44,75,31,5.7,-8.5,48,CLOSED
+2026-06-30,TARIL.NS,TARIL.NS,Capital Goods,351.4,296.3,A+B,5.6,9.0,-39.3,30,61,31,9.3,-15.68,48,CLOSED
+2026-06-30,COROMANDEL.NS,Coromandel International Limited,Chemicals,2005.0,2097.9,B-TSJump,4.8,7.0,-26.0,12,39,27,7.8,4.63,48,CLOSED
+2026-06-30,COCHINSHIP.NS,Cochin Shipyard Limited,Infrastructure,1507.9,1457.8,A-BigDay,5.6,9.0,-27.5,4,16,12,9.2,-3.32,48,CLOSED
+2026-06-30,OLAELEC.NS,OLAELEC.NS,Auto,43.8,39.22,A-BigDay,8.4,8.0,-38.6,77,79,2,7.1,-10.46,48,CLOSED
+2026-07-01,ETERNAL.NS,Eternal Limited,Retail,279.7,318.0,A+B,5.7,8.0,-24.1,41,73,32,7.9,13.69,47,CLOSED
+2026-07-01,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,485.4,554.35,B-TSJump,4.5,6.0,-31.9,33,64,31,3.9,14.2,47,CLOSED
+2026-07-01,PGEL.NS,PG Electroplast Limited,Consumer Durables,550.8,614.0,B-TSJump,3.3,9.0,-34.1,28,59,31,4.8,11.47,47,CLOSED
+2026-07-01,DABUR.NS,Dabur India Limited,Consumer Goods,444.8,406.8,A+B,5.3,8.0,-22.5,9,38,29,8.4,-8.54,47,CLOSED
+2026-07-01,SUNTECK.NS,Sunteck Realty Limited,Real Estate,326.7,299.55,A+B,5.1,8.0,-30.9,1,29,28,10.1,-8.31,47,CLOSED
+2026-07-01,AARTIPHARM.NS,Aarti Pharmalabs Limited,Pharma & Healthcare,701.7,861.95,B-TSJump,3.2,7.0,-27.4,13,40,27,4.4,22.84,47,CLOSED
+2026-07-01,BEML.NS,BEML Limited,Auto,1825.7,1908.5,B-TSJump,3.7,6.0,-22.6,18,45,27,2.9,4.54,47,CLOSED
+2026-07-01,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,548.4,569.5,B-TSJump,3.3,9.0,-26.7,15,42,27,3.8,3.85,47,CLOSED
+2026-07-01,JMFINANCIL.NS,JM Financial Limited,Diversified,129.0,127.91,A+B,5.4,7.0,-33.8,0,27,27,12.8,-0.84,47,CLOSED
+2026-07-01,TEXRAIL.NS,Texmaco Rail & Engineering Limited,Infrastructure,112.0,106.89,B-TSJump,4.0,6.0,-37.4,4,31,27,7.1,-4.56,47,CLOSED
+2026-07-01,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1396.0,1402.1,A+B,5.5,9.0,-43.2,1,27,26,6.8,0.44,47,CLOSED
+2026-07-01,JUSTDIAL.NS,Just Dial Limited,IT & Technology,548.7,680.3,B-TSJump,4.5,8.0,-42.7,0,25,25,4.9,23.98,47,CLOSED
+2026-07-01,ROUTE.NS,Route Mobile Limited,IT & Technology,532.0,508.6,B-TSJump,2.5,6.0,-47.8,1,26,25,-0.8,-4.4,47,CLOSED
+2026-07-01,EMIL.NS,Electronics Mart India Limited,Consumer Durables,127.8,192.42,A-BigDay,5.0,9.0,-24.1,74,90,16,7.1,50.56,47,CLOSED
+2026-07-01,RHIM.NS,RHI Magnesita India Limited,Capital Goods,387.7,374.25,A-BigDay,5.4,9.0,-27.5,2,15,13,13.6,-3.47,47,CLOSED
+2026-07-01,JUBLINGREA.NS,Jubilant Ingrevia Limited,Chemicals,640.8,732.8,A-BigDay,5.4,7.0,-24.3,27,31,4,7.8,14.36,47,CLOSED
+2026-07-01,IXIGO.NS,IXIGO.NS,Consumer Durables,214.0,172.51,A-BigDay,8.8,9.0,-36.9,28,31,3,18.6,-19.39,47,CLOSED
+2026-07-01,HEXT.NS,Hexaware Technologies Limited,IT & Technology,551.7,561.0,A-BigDay,7.1,8.0,-37.0,28,30,2,0.4,1.69,47,CLOSED
+2026-07-01,HOMEFIRST.NS,Home First Finance Company India Limited,Financial Services,1201.6,1179.9,A-BigDay,5.5,9.0,-20.5,73,75,2,6.7,-1.81,47,CLOSED
+2026-07-01,RPOWER.NS,Reliance Power Limited,Power & Utilities,27.2,22.72,A-BigDay,9.4,7.0,-61.7,0,0,0,8.9,-16.47,47,CLOSED
+2026-07-02,FORCEMOT.NS,Force Motors Limited,Auto,19367.0,18605.0,A+B,5.7,7.0,-26.8,6,43,37,4.1,-3.93,46,CLOSED
+2026-07-02,EUREKAFORB.NS,Eureka Forbes Limited,Consumer Durables,480.9,432.0,B-TSJump,3.3,7.0,-28.0,3,39,36,6.9,-10.17,46,CLOSED
+2026-07-02,BALKRISIND.NS,Balkrishna Industries Limited,Auto,2230.2,2407.2,B-TSJump,2.8,8.0,-20.0,13,40,27,3.9,7.94,46,CLOSED
+2026-07-02,ABFRL.NS,Aditya Birla Fashion and Retail Limited,Retail,61.9,55.29,A-BigDay,5.5,8.0,-34.8,0,2,2,9.3,-10.68,46,CLOSED
+2026-07-02,FIVESTAR.NS,Five-Star Business Finance Limited,Financial Services,543.9,537.75,A-BigDay,5.1,9.0,-31.3,62,64,2,11.9,-1.13,46,CLOSED
+2026-07-02,ADVANCE.NS,ADVANCE.NS,Agricultural Inputs,114.8,117.06,A-BigDay,7.5,8.0,-25.4,64,64,0,0.0,1.97,46,CLOSED
+2026-07-02,ALLTIME.NS,ALLTIME.NS,Household & Personal Products,255.3,213.14,A-BigDay,6.7,8.0,-23.8,74,74,0,0.0,-16.51,46,CLOSED
+2026-07-02,ANDHRSUGAR.NS,ANDHRSUGAR.NS,Chemicals,83.8,101.98,A-BigDay,5.8,7.0,-21.8,63,63,0,0.0,21.69,46,CLOSED
+2026-07-02,CHEMPLASTS.NS,CHEMPLASTS.NS,Chemicals,212.7,181.73,A-BigDay,5.3,9.0,-55.5,0,0,0,0.0,-14.56,46,CLOSED
+2026-07-02,CONTROLPR.NS,CONTROLPR.NS,Business Equipment & Supplies,711.6,569.7,A-BigDay,12.5,9.0,-22.0,75,75,0,0.0,-19.94,46,CLOSED
+2026-07-02,DELTACORP.NS,DELTACORP.NS,Resorts & Casinos,67.9,60.18,A-BigDay,6.4,8.0,-31.3,22,22,0,0.0,-11.37,46,CLOSED
+2026-07-02,DIAMINESQ.NS,DIAMINESQ.NS,Chemicals,268.5,235.85,A-BigDay,8.7,8.0,-40.2,58,58,0,0.0,-12.16,46,CLOSED
+2026-07-02,EPACKPEB.NS,EPACKPEB.NS,Engineering & Construction,258.2,221.55,A-BigDay,5.0,9.0,-24.9,67,67,0,0.0,-14.19,46,CLOSED
+2026-07-02,EXCELSOFT.NS,EXCELSOFT.NS,Software - Application,81.8,73.07,A-BigDay,8.9,8.0,-42.6,22,22,0,0.0,-10.67,46,CLOSED
+2026-07-02,GOODYEAR.NS,GOODYEAR.NS,Auto Parts,799.8,800.4,A-BigDay,5.8,7.0,-37.2,45,45,0,0.0,0.08,46,CLOSED
+2026-07-03,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto Parts,55.3,59.11,A+B,20.0,9.0,-38.9,2,62,60,29.7,6.89,45,CLOSED
+2026-07-03,BVCL.NS,BVCL.NS,Building Materials,46.0,40.53,A+B,11.3,8.0,-34.3,3,62,59,13.5,-11.89,45,CLOSED
+2026-07-03,GANECOS.NS,Ganesha Ecosphere Limited,Textiles,1027.8,1101.2,A+B,11.8,9.0,-34.8,19,78,59,14.9,7.14,45,CLOSED
+2026-07-03,AMBUJACEM.NS,Ambuja Cements Limited,Cement & Materials,443.4,415.25,B-TSJump,3.4,8.0,-28.7,0,37,37,8.7,-6.35,45,CLOSED
+2026-07-03,HITECH.NS,HITECH.NS,Steel,89.4,78.43,B-TSJump,4.0,7.0,-29.9,4,41,37,3.0,-12.27,45,CLOSED
+2026-07-03,ANANTRAJ.NS,Anant Raj Limited,Real Estate,554.7,627.55,B-TSJump,3.2,7.0,-25.4,42,74,32,2.1,13.13,45,CLOSED
+2026-07-03,GROBTEA.NS,GROBTEA.NS,Farm Products,955.2,953.8,A+B,5.8,7.0,-22.7,12,41,29,8.4,-0.15,45,CLOSED
+2026-07-03,BEDMUTHA.NS,BEDMUTHA.NS,Steel,111.6,112.1,B-TSJump,2.8,8.0,-32.4,1,28,27,7.7,0.45,45,CLOSED
+2026-07-03,ACC.NS,ACC Limited,Cement & Materials,1393.8,1316.6,B-TSJump,3.2,8.0,-30.9,0,26,26,9.2,-5.54,45,CLOSED
+2026-07-03,ARIHANTCAP.NS,ARIHANTCAP.NS,Capital Markets,71.0,73.47,B-TSJump,3.1,8.0,-40.8,1,27,26,4.7,3.48,45,CLOSED
+2026-07-03,DOLLAR.NS,DOLLAR.NS,Apparel Manufacturing,276.8,268.35,B-TSJump,2.9,9.0,-35.1,3,29,26,9.1,-3.05,45,CLOSED
+2026-07-03,DIGITIDE.NS,DIGITIDE.NS,Specialty Business Services,102.2,96.49,A+B,15.4,9.0,-63.5,0,25,25,16.9,-5.59,45,CLOSED
+2026-07-03,ECLERX.NS,eClerx Services Limited,Capital Goods,1488.8,1848.9,A+B,7.0,8.0,-40.4,0,25,25,14.2,24.19,45,CLOSED
+2026-07-03,AVG.NS,AVG.NS,Integrated Freight & Logistics,224.2,199.02,A-BigDay,7.3,9.0,-26.4,65,77,12,13.0,-11.23,45,CLOSED
+2026-07-03,COSMOFIRST.NS,COSMOFIRST.NS,Packaging & Containers,853.1,964.85,A-BigDay,6.1,9.0,-29.5,77,89,12,10.8,13.1,45,CLOSED
+2026-07-03,DENTA.NS,DENTA.NS,Engineering & Construction,352.9,287.05,A-BigDay,6.4,9.0,-26.4,63,75,12,12.0,-18.66,45,CLOSED
+2026-07-03,DCW.NS,DCW.NS,Chemicals,50.4,44.26,A-BigDay,5.4,8.0,-40.1,27,29,2,7.0,-12.18,45,CLOSED
+2026-07-03,FOODSIN.NS,FOODSIN.NS,Packaged Foods,63.1,53.75,A-BigDay,9.2,8.0,-46.5,26,28,2,14.5,-14.82,45,CLOSED
+2026-07-03,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1139.0,1325.0,A-BigDay,5.6,7.0,-34.8,0,0,0,10.2,16.33,45,CLOSED
+2026-07-06,63MOONS.NS,63MOONS.NS,IT - Software,700.7,780.25,A+B,6.5,8.0,-37.9,4,61,57,7.8,11.35,42,CLOSED
+2026-07-06,AARTECH.NS,AARTECH.NS,Electrical Equipment,57.5,50.82,A+B,20.0,9.0,-24.4,31,76,45,30.8,-11.62,42,CLOSED
+2026-07-06,DIXON.NS,Dixon Technologies (India) Limited,Consumer Durables,13304.0,14025.0,A+B,6.8,9.0,-28.0,30,73,43,12.1,5.42,42,CLOSED
+2026-07-06,DIGITIDE.NS,DIGITIDE.NS,Commercial Services & Supplies,120.6,96.49,A+B,17.9,9.0,-56.9,25,58,33,28.1,-19.99,42,CLOSED
+2026-07-06,ABBOTINDIA.NS,Abbott India Limited,Pharma & Healthcare,26860.0,26905.0,B-TSJump,3.7,6.0,-23.9,8,36,28,7.6,0.17,42,CLOSED
+2026-07-06,ADVENTHTL.NS,ADVENTHTL.NS,Leisure Services,151.2,134.9,A+B,7.6,7.0,-56.2,18,45,27,16.8,-10.78,42,CLOSED
+2026-07-06,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,537.3,593.7,B-TSJump,4.6,8.0,-37.1,0,27,27,9.6,10.5,42,CLOSED
+2026-07-06,DEVIT.NS,DEVIT.NS,IT - Services,29.0,26.02,A+B,5.8,9.0,-42.8,1,28,27,15.8,-10.28,42,CLOSED
+2026-07-06,ARIHANTSUP.NS,ARIHANTSUP.NS,Realty,270.9,257.6,B-TSJump,4.7,9.0,-41.7,3,29,26,14.7,-4.91,42,CLOSED
+2026-07-06,CLEAN.NS,Clean Science and Technology Limited,Chemicals,792.7,840.0,B-TSJump,2.5,7.0,-46.5,0,26,26,8.8,5.97,42,CLOSED
+2026-07-06,FINKURVE.NS,FINKURVE.NS,Finance,69.0,72.93,B-TSJump,4.9,9.0,-48.9,22,48,26,7.7,5.7,42,CLOSED
+2026-07-06,DCMSRIND.NS,DCMSRIND.NS,Food Products,41.0,45.73,B-TSJump,6.2,6.0,-77.2,0,22,22,3.9,11.54,42,CLOSED
+2026-07-06,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto Components,61.0,59.11,A-BigDay,10.4,8.0,-32.5,62,65,3,19.0,-3.1,42,CLOSED
+2026-07-06,CORALFINAC.NS,CORALFINAC.NS,Realty,35.0,34.28,A-BigDay,5.5,7.0,-32.7,30,32,2,10.1,-2.06,42,CLOSED
+2026-07-07,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,404.4,314.6,B-TSJump,4.4,8.0,-38.9,31,62,31,12.3,-22.21,41,CLOSED
+2026-07-07,HAVELLS.NS,Havells India Limited,Consumer Durables,1225.0,1299.0,B-TSJump,3.7,7.0,-23.8,9,37,28,8.1,6.04,41,CLOSED
+2026-07-07,AMJLAND.NS,AMJLAND.NS,Real Estate,39.4,38.62,B-TSJump,4.1,6.0,-39.3,2,28,26,10.0,-1.98,41,CLOSED
+2026-07-07,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1168.2,1325.0,B-TSJump,3.0,8.0,-33.1,0,26,26,8.0,13.42,41,CLOSED
+2026-07-08,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,404.4,314.6,B-TSJump,4.4,8.0,-38.9,31,62,31,12.3,-22.21,40,CLOSED
+2026-07-08,HAVELLS.NS,Havells India Limited,Consumer Durables,1225.0,1299.0,B-TSJump,3.7,7.0,-23.8,9,37,28,8.1,6.04,40,CLOSED
+2026-07-08,AMJLAND.NS,AMJLAND.NS,Real Estate,39.4,38.62,B-TSJump,4.1,6.0,-39.3,2,28,26,10.0,-1.98,40,CLOSED
+2026-07-08,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1168.2,1325.0,B-TSJump,3.0,8.0,-33.1,0,26,26,8.0,13.42,40,CLOSED
+2026-07-10,ANANTRAJ.NS,Anant Raj Limited,Real Estate,585.8,627.55,B-TSJump,2.9,8.0,-21.2,42,76,34,13.8,7.13,38,CLOSED
+2026-07-10,BIRLAMONEY.NS,BIRLAMONEY.NS,Financial Services,149.9,129.87,B-TSJump,4.8,9.0,-24.1,44,76,32,10.2,-13.36,38,CLOSED
+2026-07-10,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,574.6,593.7,A+B,7.6,8.0,-32.7,0,30,30,10.3,3.32,38,CLOSED
+2026-07-10,FSL.NS,Firstsource Solutions Limited,Capital Goods,259.7,267.75,A+B,6.9,7.0,-30.4,3,31,28,12.6,3.1,38,CLOSED
+2026-07-10,ELLEN.NS,ELLEN.NS,Chemicals,294.2,328.3,A+B,10.0,8.0,-53.9,1,28,27,12.3,11.59,38,CLOSED
+2026-07-10,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,386.3,426.8,A+B,5.7,8.0,-39.9,0,26,26,15.8,10.48,38,CLOSED
+2026-07-10,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,451.9,444.75,B-TSJump,2.7,9.0,-59.7,2,27,25,6.0,-1.58,38,CLOSED
+2026-07-10,EMSLIMITED.NS,EMSLIMITED.NS,Infrastructure,458.1,369.1,A-BigDay,9.3,9.0,-29.9,62,75,13,29.6,-19.43,38,CLOSED
+2026-07-10,CEWATER.NS,CEWATER.NS,Power & Utilities,352.6,275.0,A-BigDay,10.4,9.0,-46.2,26,29,3,13.7,-22.01,38,CLOSED
+2026-07-10,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,624.0,593.2,A-BigDay,8.6,9.0,-39.2,61,63,2,-2.3,-4.94,38,CLOSED
+2026-07-10,HEG.NS,HEG Limited,Capital Goods,545.0,698.3,A-BigDay,6.0,8.0,-21.0,30,32,2,7.1,28.13,38,CLOSED
+2026-07-10,DENTA.NS,DENTA.NS,Infrastructure,353.0,287.05,A-BigDay,7.1,9.0,-26.4,75,75,0,7.7,-18.68,38,CLOSED
+2026-07-10,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,368.6,349.15,A-BigDay,5.7,7.0,-33.4,0,0,0,11.7,-5.28,38,CLOSED
+2026-07-13,BFUTILITIE.NS,BFUTILITIE.NS,Infrastructure,672.5,564.0,A+B,16.2,9.0,-25.2,7,77,70,13.8,-16.13,35,CLOSED
+2026-07-13,ASHAPURMIN.NS,ASHAPURMIN.NS,Metals & Mining,703.5,612.2,B-TSJump,8.8,6.0,-23.9,23,90,67,8.2,-12.98,35,CLOSED
+2026-07-13,DEN.NS,DEN.NS,Media,30.1,27.78,B-TSJump,3.1,8.0,-29.3,30,72,42,-4.0,-7.71,35,CLOSED
+2026-07-13,BCLIND.NS,BCLIND.NS,Consumer Goods,37.2,36.36,A+B,8.5,9.0,-24.1,52,90,38,11.4,-2.26,35,CLOSED
+2026-07-13,63MOONS.NS,63MOONS.NS,IT & Technology,734.2,780.25,A+B,8.2,7.0,-34.9,30,63,33,9.8,6.27,35,CLOSED
+2026-07-13,ARKADE.NS,ARKADE.NS,Real Estate,140.9,129.99,A+B,6.3,9.0,-33.7,30,63,33,7.7,-7.74,35,CLOSED
+2026-07-13,FMGOETZE.NS,FMGOETZE.NS,Auto,471.2,453.95,B-TSJump,3.9,8.0,-23.0,42,74,32,8.4,-3.66,35,CLOSED
+2026-07-13,BEARDSELL.NS,BEARDSELL.NS,Cement & Materials,29.5,24.87,B-TSJump,4.9,6.0,-23.6,44,75,31,0.4,-15.69,35,CLOSED
+2026-07-13,ADSL.NS,ADSL.NS,IT & Technology,125.7,111.06,B-TSJump,4.7,7.0,-40.0,4,30,26,3.9,-11.65,35,CLOSED
+2026-07-13,EPACK.NS,EPACK.NS,Consumer Durables,241.8,210.7,B-TSJump,3.6,6.0,-41.7,1,27,26,4.4,-12.86,35,CLOSED
+2026-07-13,HITECH.NS,HITECH.NS,Metals & Mining,89.1,78.43,B-TSJump,2.5,6.0,-30.1,4,30,26,1.7,-11.98,35,CLOSED
+2026-07-13,BLKASHYAP.NS,BLKASHYAP.NS,Infrastructure,59.5,53.73,A-BigDay,7.6,8.0,-25.7,77,90,13,6.2,-9.7,35,CLOSED
+2026-07-13,BOROLTD.NS,BOROLTD.NS,Consumer Durables,257.0,244.81,A-BigDay,10.8,9.0,-35.4,23,28,5,11.3,-4.74,35,CLOSED
+2026-07-13,FINOPB.NS,FINOPB.NS,Banking,161.3,146.95,A-BigDay,19.2,10.0,-52.4,24,27,3,18.5,-8.9,35,CLOSED
+2026-07-13,ASAHISONG.NS,ASAHISONG.NS,Chemicals,284.0,357.0,A-BigDay,5.3,8.0,-37.1,75,77,2,5.8,25.7,35,CLOSED
+2026-07-13,BIRLAMONEY.NS,BIRLAMONEY.NS,Financial Services,157.8,129.87,A-BigDay,5.3,10.0,-20.1,76,78,2,-0.6,-17.7,35,CLOSED
+2026-07-13,CCCL.NS,CCCL.NS,Infrastructure,17.4,15.59,A-BigDay,7.2,8.0,-39.7,27,29,2,8.2,-10.4,35,CLOSED
+2026-07-13,EPIGRAL.NS,Epigral Limited,Chemicals,1068.5,1097.1,A-BigDay,9.3,7.0,-49.2,0,2,2,5.5,2.68,35,CLOSED
+2026-07-13,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,407.5,426.8,A-BigDay,5.5,9.0,-36.6,26,28,2,8.2,4.74,35,CLOSED
+2026-07-13,DAMCAPITAL.NS,DAMCAPITAL.NS,Financial Services,162.0,146.39,A-BigDay,5.6,8.0,-43.4,27,28,1,0.2,-9.64,35,CLOSED
+2026-07-13,GENESYS.NS,GENESYS.NS,IT & Technology,343.8,170.85,A-BigDay,5.4,8.0,-48.8,29,30,1,14.9,-50.31,35,CLOSED
+2026-07-14,HGS.NS,HGS.NS,Capital Goods,453.6,413.05,A+B,8.7,9.0,-27.9,28,72,44,12.6,-8.94,34,CLOSED
+2026-07-14,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,405.7,410.75,B-TSJump,2.5,7.0,-27.7,40,71,31,7.3,1.24,34,CLOSED
+2026-07-14,ALPA.NS,ALPA.NS,Pharma & Healthcare,71.7,63.72,B-TSJump,4.0,6.0,-32.3,7,33,26,7.2,-11.13,34,CLOSED
+2026-07-14,BASF.NS,BASF India Limited,Chemicals,3613.6,4041.2,B-TSJump,2.6,9.0,-31.0,1,27,26,3.9,11.83,34,CLOSED
+2026-07-14,FINOPB.NS,FINOPB.NS,Banking,176.4,146.95,A-BigDay,9.3,9.0,-48.0,27,29,2,15.4,-16.7,34,CLOSED
+2026-07-15,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,46.9,50.52,B-TSJump,8.0,6.0,-21.6,15,74,59,8.9,7.72,33,CLOSED
+2026-07-15,DPABHUSHAN.NS,DPABHUSHAN.NS,Consumer Durables,1307.2,1403.8,A+B,11.5,9.0,-24.4,31,75,44,18.4,7.39,33,CLOSED
+2026-07-15,ALLTIME.NS,ALLTIME.NS,Consumer Goods,240.2,213.14,B-TSJump,2.8,6.0,-28.3,5,41,36,7.6,-11.27,33,CLOSED
+2026-07-15,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,869.5,793.85,B-TSJump,3.0,10.0,-22.7,43,75,32,1.0,-8.7,33,CLOSED
+2026-07-15,HLEGLAS.NS,HLEGLAS.NS,Capital Goods,418.6,314.6,A+B,6.4,7.0,-36.8,31,63,32,8.5,-24.84,33,CLOSED
+2026-07-15,BIRLACORPN.NS,Birla Corporation Limited,Cement & Materials,1018.9,901.8,B-TSJump,5.4,6.0,-33.1,3,30,27,6.7,-11.49,33,CLOSED
+2026-07-15,DEVIT.NS,DEVIT.NS,IT & Technology,28.8,26.02,B-TSJump,3.2,7.0,-43.3,1,27,26,4.8,-9.65,33,CLOSED
+2026-07-15,BCONCEPTS.NS,BCONCEPTS.NS,Consumer Durables,208.9,157.11,B-TSJump,5.5,6.0,-53.5,0,25,25,10.6,-24.79,33,CLOSED
+2026-07-15,ELIN.NS,ELIN.NS,Capital Goods,114.7,102.28,A+B,13.2,9.0,-51.0,0,25,25,16.0,-10.83,33,CLOSED
+2026-07-15,EIMCOELECO.NS,EIMCOELECO.NS,Auto,1887.7,2189.1,A-BigDay,6.9,7.0,-25.9,60,73,13,7.8,15.97,33,CLOSED
+2026-07-15,DAMCAPITAL.NS,DAMCAPITAL.NS,Financial Services,169.4,146.39,A-BigDay,7.9,9.0,-40.8,27,30,3,12.6,-13.58,33,CLOSED
+2026-07-15,AVANTIFEED.NS,Avanti Feeds Limited,Consumer Goods,989.2,875.6,A-BigDay,5.7,7.0,-37.9,20,22,2,12.4,-11.48,33,CLOSED
+2026-07-16,BORANA.NS,BORANA.NS,Textiles,325.5,338.2,A+B,7.4,10.0,-22.5,34,91,57,8.7,3.9,32,CLOSED
+2026-07-16,DMCC.NS,DMCC.NS,Chemicals,269.6,293.65,B-TSJump,4.0,7.0,-22.4,34,90,56,9.7,8.92,32,CLOSED
+2026-07-16,BAJAJHCARE.NS,BAJAJHCARE.NS,Pharma & Healthcare,372.9,323.05,B-TSJump,2.6,9.0,-31.4,30,62,32,-0.7,-13.37,32,CLOSED
+2026-07-16,GLOBUSSPR.NS,GLOBUSSPR.NS,Consumer Goods,988.5,881.75,B-TSJump,3.3,9.0,-24.0,40,72,32,2.0,-10.8,32,CLOSED
+2026-07-16,AVANTIFEED.NS,Avanti Feeds Limited,Consumer Goods,1035.7,875.6,B-TSJump,4.7,8.0,-35.0,22,53,31,8.7,-15.46,32,CLOSED
+2026-07-16,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,192.2,255.3,A+B,13.8,9.0,-38.5,0,26,26,12.7,32.83,32,CLOSED
+2026-07-16,DIXON.NS,Dixon Technologies (India) Limited,Consumer Durables,14507.0,14025.0,A-BigDay,6.3,8.0,-21.5,74,76,2,4.9,-3.32,32,CLOSED
+2026-07-16,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,62.2,59.11,A-BigDay,7.8,8.0,-31.3,78,80,2,13.3,-4.97,32,CLOSED
+2026-07-17,ECLERX.NS,eClerx Services Limited,Capital Goods,1979.8,1848.9,A+B,12.5,9.0,-20.7,42,76,34,19.1,-6.61,31,CLOSED
+2026-07-17,FINOPB.NS,FINOPB.NS,Banking,174.2,146.95,A-BigDay,10.1,9.0,-48.6,27,29,2,-1.2,-15.64,31,CLOSED
+2026-07-17,AFCONS.NS,AFCONS.NS,Infrastructure,299.8,271.7,A-BigDay,5.0,9.0,-37.5,0,0,0,6.5,-9.37,31,CLOSED
+2026-07-20,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,17.2,17.51,A+B,19.9,9.0,-39.9,0,61,61,17.2,1.8,28,CLOSED
+2026-07-20,ATLASCYCLE.NS,ATLASCYCLE.NS,Hospitality,100.4,97.61,B-TSJump,3.8,6.0,-25.6,16,73,57,4.0,-2.78,28,CLOSED
+2026-07-20,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,42.8,42.4,A+B,6.6,7.0,-31.9,1,30,29,8.9,-0.93,28,CLOSED
+2026-07-20,BIL.NS,BIL.NS,Consumer Durables,745.5,854.9,B-TSJump,2.9,7.0,-24.3,15,42,27,0.2,14.67,28,CLOSED
+2026-07-20,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,922.7,871.6,B-TSJump,3.5,7.0,-31.2,1,28,27,-2.8,-5.54,28,CLOSED
+2026-07-20,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,210.1,255.3,A-BigDay,11.4,9.0,-32.7,25,30,5,12.3,21.51,28,CLOSED
+2026-07-21,HECPROJECT.NS,HECPROJECT.NS,Infrastructure,138.7,119.89,A+B,20.0,9.0,-20.0,19,92,73,9.9,-13.56,27,CLOSED
+2026-07-21,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,44.7,42.4,B-TSJump,4.3,7.0,-29.0,30,72,42,5.3,-5.15,27,CLOSED
+2026-07-21,BASF.NS,BASF India Limited,Chemicals,3833.7,4041.2,B-TSJump,4.0,7.0,-26.0,39,71,32,-2.6,5.41,27,CLOSED
+2026-07-21,EIHAHOTELS.NS,EIHAHOTELS.NS,Hospitality,324.6,292.2,B-TSJump,2.7,6.0,-25.4,14,41,27,4.4,-9.98,27,CLOSED
+2026-07-21,EPIGRAL.NS,Epigral Limited,Chemicals,1164.2,1097.1,A+B,7.5,9.0,-44.7,2,29,27,8.7,-5.76,27,CLOSED
+2026-07-21,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,938.2,990.55,B-TSJump,4.3,6.0,-34.1,0,27,27,6.1,5.58,27,CLOSED
+2026-07-21,ARIS.NS,ARIS.NS,Infrastructure,118.9,136.25,B-TSJump,3.6,6.0,-33.3,6,32,26,5.9,14.59,27,CLOSED
+2026-07-21,DYNPRO.NS,DYNPRO.NS,Chemicals,236.3,232.05,B-TSJump,2.9,7.0,-43.2,1,27,26,4.9,-1.8,27,CLOSED
+2026-07-21,COMPUSOFT.NS,COMPUSOFT.NS,Hospitality,13.6,13.29,B-TSJump,4.2,6.0,-40.3,0,25,25,4.3,-2.28,27,CLOSED
+2026-07-21,AARON.NS,AARON.NS,Capital Goods,119.9,138.85,B-TSJump,3.4,7.0,-53.5,0,23,23,4.0,15.8,27,CLOSED
+2026-07-21,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,18.7,17.51,A-BigDay,8.7,9.0,-34.7,61,63,2,11.7,-6.36,27,CLOSED
+2026-07-22,CRISIL.NS,CRISIL Limited,Financial Services,4495.2,4488.3,B-TSJump,4.5,8.0,-22.6,39,72,33,8.9,-0.15,26,CLOSED
+2026-07-22,ARENTERP.NS,ARENTERP.NS,Metals & Mining,41.2,38.36,A+B,20.0,9.0,-32.2,0,31,31,21.4,-6.89,26,CLOSED
+2026-07-22,AMDIND.NS,AMDIND.NS,Capital Goods,46.8,51.41,A+B,5.2,7.0,-31.2,5,32,27,6.2,9.85,26,CLOSED
+2026-07-22,ASIANHOTNR.NS,ASIANHOTNR.NS,Hospitality,308.6,300.0,B-TSJump,4.8,7.0,-23.3,15,42,27,7.5,-2.79,26,CLOSED
+2026-07-22,GENUSPAPER.NS,GENUSPAPER.NS,Cement & Materials,12.4,11.3,A+B,7.6,8.0,-40.1,3,30,27,9.7,-8.87,26,CLOSED
+2026-07-22,CTE.NS,CTE.NS,IT & Technology,32.4,40.77,B-TSJump,3.5,6.0,-46.0,4,30,26,3.4,25.83,26,CLOSED
+2026-07-22,EMAMILTD.NS,Emami Limited,Consumer Goods,413.9,404.5,B-TSJump,3.2,7.0,-33.5,0,25,25,4.6,-2.27,26,CLOSED
+2026-07-22,EFCIL.NS,EFCIL.NS,Real Estate,192.1,174.1,B-TSJump,2.8,8.0,-46.2,0,24,24,7.2,-9.37,26,CLOSED
+2026-07-22,ASAHISONG.NS,ASAHISONG.NS,Chemicals,299.4,357.0,A-BigDay,11.4,9.0,-33.7,75,79,4,12.7,19.24,26,CLOSED
+2026-07-22,CRAMC.NS,CRAMC.NS,Financial Services,266.8,253.95,A-BigDay,5.8,7.0,-23.4,59,63,4,8.7,-4.82,26,CLOSED
+2026-07-23,AMDIND.NS,AMDIND.NS,Capital Goods,48.9,51.41,B-TSJump,4.4,8.0,-28.2,32,74,42,5.0,5.13,25,CLOSED
+2026-07-23,DOLPHIN.NS,DOLPHIN.NS,Oil & Gas,397.0,576.85,B-TSJump,4.8,6.0,-20.9,15,43,28,7.5,45.3,25,CLOSED
+2026-07-23,ARCHIDPLY.NS,ARCHIDPLY.NS,Cement & Materials,82.5,95.91,B-TSJump,4.5,6.0,-31.5,5,32,27,5.3,16.25,25,CLOSED
+2026-07-23,CHEMPLASTS.NS,CHEMPLASTS.NS,Chemicals,209.9,181.73,A+B,6.8,9.0,-56.1,0,22,22,7.9,-13.42,25,CLOSED
+2026-07-23,ASAHISONG.NS,ASAHISONG.NS,Chemicals,318.9,357.0,A-BigDay,6.5,9.0,-29.4,79,90,11,7.3,11.95,25,CLOSED
+2026-07-23,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,51.9,47.97,A-BigDay,19.5,9.0,-34.4,0,3,3,15.3,-7.57,25,CLOSED
+2026-07-23,ARIHANTCAP.NS,ARIHANTCAP.NS,Financial Services,81.4,73.47,A-BigDay,5.6,8.0,-32.1,30,32,2,6.9,-9.74,25,CLOSED
+2026-07-24,BANARBEADS.NS,BANARBEADS.NS,Consumer Durables,121.9,111.74,A+B,6.9,8.0,-26.0,28,72,44,8.7,-8.33,24,CLOSED
+2026-07-24,ASIANHOTNR.NS,ASIANHOTNR.NS,Hospitality,306.6,300.0,A+B,5.4,7.0,-23.8,14,42,28,5.1,-2.15,24,CLOSED
+2026-07-24,AHLUCONT.NS,Ahluwalia Contracts (India) Limited,Infrastructure,827.7,793.85,B-TSJump,3.4,7.0,-23.2,16,43,27,6.0,-4.09,24,CLOSED
+2026-07-24,AARON.NS,AARON.NS,Capital Goods,135.2,138.85,A+B,20.0,9.0,-47.6,0,26,26,19.9,2.7,24,CLOSED
+2026-07-24,CORALFINAC.NS,CORALFINAC.NS,Real Estate,32.5,34.28,B-TSJump,3.7,7.0,-36.7,3,29,26,4.9,5.48,24,CLOSED
+2026-07-24,BLUEDART.NS,Blue Dart Express Limited,Infrastructure,4911.5,5125.0,B-TSJump,3.1,7.0,-30.2,0,24,24,3.4,4.35,24,CLOSED
+2026-07-24,DBL.NS,Dilip Buildcon Limited,Capital Goods,420.2,419.6,A-BigDay,8.6,9.0,-28.2,0,11,11,6.7,-0.14,24,CLOSED
+2026-07-24,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,364.4,349.15,A-BigDay,5.5,7.0,-34.2,0,0,0,7.5,-4.18,24,CLOSED
+2026-07-27,ABMINTLLTD.NS,ABMINTLLTD.NS,Chemicals,44.6,42.4,A+B,8.8,7.0,-29.0,3,72,69,4.7,-4.93,21,ACTIVE
+2026-07-27,BLBLIMITED.NS,BLBLIMITED.NS,Financial Services,16.1,16.03,B-TSJump,2.6,7.0,-28.3,21,87,66,-1.2,-0.43,21,ACTIVE
+2026-07-27,BMWVENTLTD.NS,BMWVENTLTD.NS,Metals & Mining,59.3,57.62,B-TSJump,5.0,7.0,-22.0,15,73,58,2.4,-2.83,21,ACTIVE
+2026-07-27,ASHIMASYN.NS,ASHIMASYN.NS,Real Estate,18.0,17.51,A+B,7.1,9.0,-35.1,30,63,33,9.8,-2.72,21,ACTIVE
+2026-07-27,ACI.NS,Archean Chemical Industries Limited,Metals & Mining,576.8,515.35,B-TSJump,3.9,8.0,-20.4,40,72,32,3.4,-10.65,21,ACTIVE
+2026-07-27,CHALET.NS,CHALET.NS,Hospitality,846.5,844.7,B-TSJump,3.9,9.0,-21.7,40,72,32,3.6,-0.21,21,ACTIVE
+2026-07-27,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,982.2,990.55,A+B,5.4,8.0,-31.0,27,59,32,4.8,0.85,21,ACTIVE
+2026-07-27,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,535.3,525.55,A+B,12.4,9.0,-33.0,17,47,30,10.2,-1.82,21,ACTIVE
+2026-07-27,COFORGE.NS,Coforge Limited,IT & Technology,1528.4,1806.0,B-TSJump,2.9,6.0,-23.0,45,75,30,2.0,18.16,21,ACTIVE
+2026-07-27,DBL.NS,Dilip Buildcon Limited,Capital Goods,443.6,419.6,A+B,5.6,9.0,-24.2,11,40,29,3.2,-5.41,21,ACTIVE
+2026-07-27,ALICON.NS,ALICON.NS,Capital Goods,678.5,726.1,A+B,6.6,7.0,-33.4,0,27,27,7.6,7.02,21,ACTIVE
+2026-07-27,AFFLE.NS,Affle 3i Limited,IT & Technology,1492.8,1703.9,B-TSJump,3.3,9.0,-31.7,2,28,26,5.9,14.14,21,ACTIVE
+2026-07-27,CPEDU.NS,CPEDU.NS,Hospitality,197.3,208.11,B-TSJump,5.8,6.0,-41.2,3,29,26,6.6,5.48,21,ACTIVE
+2026-07-27,DEVYANI.NS,Devyani International Limited,Hospitality,116.1,143.65,B-TSJump,3.3,9.0,-39.2,2,28,26,4.0,23.73,21,ACTIVE
+2026-07-27,DYNPRO.NS,DYNPRO.NS,Chemicals,238.2,232.05,B-TSJump,3.0,7.0,-42.7,1,27,26,3.2,-2.58,21,ACTIVE
+2026-07-27,GENUSPAPER.NS,GENUSPAPER.NS,Cement & Materials,12.6,11.3,A+B,5.6,7.0,-39.2,4,30,26,5.5,-10.32,21,ACTIVE
+2026-07-27,GODFRYPHLP.NS,Godfrey Phillips India Limited,Consumer Goods,2210.5,2131.0,B-TSJump,3.8,8.0,-43.7,0,26,26,5.0,-3.6,21,ACTIVE
+2026-07-27,BCONCEPTS.NS,BCONCEPTS.NS,Consumer Durables,192.2,157.11,B-TSJump,3.0,6.0,-57.2,0,23,23,-5.9,-18.26,21,ACTIVE
+2026-07-27,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,43.0,50.52,A-BigDay,6.4,7.0,-28.1,1,14,13,4.6,17.49,21,ACTIVE
+2026-07-27,AGI.NS,AGI Greenpac Limited,Consumer Durables,707.2,716.5,A-BigDay,5.1,8.0,-28.2,62,74,12,4.5,1.32,21,ACTIVE
+2026-07-27,HGM.NS,HGM.NS,IT & Technology,52.4,45.06,A-BigDay,12.1,7.0,-36.4,0,2,2,10.2,-14.01,21,ACTIVE
+2026-07-27,ADVENTHTL.NS,ADVENTHTL.NS,Hospitality,149.5,134.9,A-BigDay,5.0,7.0,-56.7,43,44,1,5.9,-9.77,21,ACTIVE
+2026-07-28,AFFLE.NS,Affle 3i Limited,IT & Technology,1631.8,1703.9,A+B,9.3,9.0,-25.4,28,73,45,11.9,4.42,20,ACTIVE
+2026-07-28,HEXT.NS,Hexaware Technologies Limited,IT & Technology,593.2,561.0,A+B,5.4,8.0,-26.6,33,75,42,1.3,-5.43,20,ACTIVE
+2026-07-28,ARIS.NS,ARIS.NS,Infrastructure,128.2,136.25,B-TSJump,2.8,7.0,-28.1,34,75,41,11.6,6.28,20,ACTIVE
+2026-07-28,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,57.6,47.97,A+B,7.9,8.0,-27.1,4,43,39,8.1,-16.72,20,ACTIVE
+2026-07-28,DBSTOCKBRO.NS,DBSTOCKBRO.NS,Financial Services,34.9,32.51,B-TSJump,3.5,8.0,-28.0,53,89,36,-5.1,-6.85,20,ACTIVE
+2026-07-28,BIL.NS,BIL.NS,Consumer Durables,778.8,854.9,B-TSJump,4.4,9.0,-20.5,42,75,33,8.3,9.77,20,ACTIVE
+2026-07-28,ECLERX.NS,eClerx Services Limited,Capital Goods,1897.7,1848.9,B-TSJump,4.7,9.0,-24.0,43,75,32,14.1,-2.57,20,ACTIVE
+2026-07-28,DELTAMAGNT.NS,DELTAMAGNT.NS,Textiles,61.2,59.08,B-TSJump,8.9,6.0,-35.5,2,30,28,8.3,-3.46,20,ACTIVE
+2026-07-28,AGARIND.NS,AGARIND.NS,Chemicals,517.8,499.6,A+B,7.1,7.0,-48.5,1,28,27,8.2,-3.51,20,ACTIVE
+2026-07-28,EUREKAFORB.NS,Eureka Forbes Limited,Consumer Durables,456.9,432.0,B-TSJump,3.9,8.0,-31.6,0,27,27,3.6,-5.45,20,ACTIVE
+2026-07-28,GLOBALVECT.NS,GLOBALVECT.NS,Infrastructure,167.0,149.0,B-TSJump,4.6,6.0,-32.7,3,30,27,6.7,-10.78,20,ACTIVE
+2026-07-28,ALPHAGEO.NS,ALPHAGEO.NS,Oil & Gas,207.9,338.36,B-TSJump,2.8,6.0,-27.6,15,41,26,2.5,62.75,20,ACTIVE
+2026-07-28,DEVIT.NS,DEVIT.NS,IT & Technology,27.8,26.02,A-BigDay,6.5,7.0,-45.3,0,1,1,-2.0,-6.4,20,ACTIVE
+2026-07-29,EXPLEOSOL.NS,EXPLEOSOL.NS,IT & Technology,925.4,923.05,B-TSJump,14.3,6.0,-25.7,4,75,71,15.9,-0.25,19,ACTIVE
+2026-07-29,DIGJAMLMTD.NS,DIGJAMLMTD.NS,Textiles,46.5,50.52,A+B,8.7,7.0,-22.2,14,74,60,11.4,8.65,19,ACTIVE
+2026-07-29,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.4,1515.0,A+B,5.9,7.0,-28.4,30,87,57,3.6,13.88,19,ACTIVE
+2026-07-29,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,216.3,255.3,B-TSJump,2.9,9.0,-29.9,30,71,41,4.0,18.03,19,ACTIVE
+2026-07-29,FSL.NS,Firstsource Solutions Limited,Capital Goods,293.6,267.75,A+B,11.6,9.0,-21.4,41,76,35,15.7,-8.8,19,ACTIVE
+2026-07-29,CROMPTON.NS,Crompton Greaves Consumer Electricals Limited,Consumer Durables,264.2,246.5,A+B,6.8,7.0,-20.8,29,63,34,7.4,-6.7,19,ACTIVE
+2026-07-29,DYNPRO.NS,DYNPRO.NS,Chemicals,251.4,232.05,A+B,5.5,7.0,-39.5,27,59,32,0.9,-7.7,19,ACTIVE
+2026-07-29,ALMONDZ.NS,ALMONDZ.NS,Financial Services,15.1,14.2,A+B,20.0,9.0,-34.5,0,31,31,16.7,-5.96,19,ACTIVE
+2026-07-29,ERIS.NS,Eris Lifesciences Limited,Pharma & Healthcare,1426.5,1348.9,B-TSJump,2.6,9.0,-23.9,14,41,27,-0.6,-5.44,19,ACTIVE
+2026-07-29,BESTAGRO.NS,BESTAGRO.NS,Chemicals,16.7,20.35,A+B,9.7,8.0,-52.6,0,26,26,2.8,21.86,19,ACTIVE
+2026-07-29,BSOFT.NS,Birlasoft Limited,IT & Technology,311.1,310.8,B-TSJump,3.8,7.0,-33.4,1,27,26,12.5,-0.1,19,ACTIVE
+2026-07-29,DCAL.NS,Dishman Carbogen Amcis Limited,Pharma & Healthcare,188.0,175.83,B-TSJump,3.3,7.0,-41.6,4,30,26,-1.5,-6.47,19,ACTIVE
+2026-07-29,AVONMORE.NS,AVONMORE.NS,Financial Services,11.0,13.01,A+B,20.0,7.0,-54.1,0,24,24,18.1,18.27,19,ACTIVE
+2026-07-29,CPEDU.NS,CPEDU.NS,Hospitality,212.5,208.11,A-BigDay,9.4,9.0,-36.7,29,32,3,13.8,-2.07,19,ACTIVE
+2026-07-29,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,60.7,47.97,A-BigDay,5.4,7.0,-23.2,43,45,2,10.5,-20.97,19,ACTIVE
+2026-07-29,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,58.0,59.11,A-BigDay,5.3,9.0,-35.9,77,79,2,8.4,1.91,19,ACTIVE
+2026-07-30,CTE.NS,CTE.NS,IT & Technology,34.0,40.77,A+B,10.0,8.0,-43.3,3,31,28,9.1,19.91,18,ACTIVE
+2026-07-30,DOLLAR.NS,DOLLAR.NS,Textiles,267.5,268.35,B-TSJump,4.3,6.0,-31.6,2,29,27,5.2,0.32,18,ACTIVE
+2026-07-30,HPIL.NS,HPIL.NS,Chemicals,129.9,127.35,B-TSJump,3.0,8.0,-26.2,14,40,26,5.5,-1.96,18,ACTIVE
+2026-07-30,FISCHER.NS,FISCHER.NS,Pharma & Healthcare,39.0,37.27,A+B,9.1,7.0,-68.7,0,23,23,16.3,-4.44,18,ACTIVE
+2026-07-30,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,61.6,59.11,A-BigDay,6.1,7.0,-31.9,79,80,1,5.2,-4.04,18,ACTIVE
+2026-07-30,GOCOLORS.NS,GOCOLORS.NS,Retail,343.0,344.05,A-BigDay,6.2,7.0,-59.5,0,1,1,14.8,0.31,18,ACTIVE
+2026-07-31,FOSECOIND.NS,FOSECOIND.NS,Chemicals,5133.5,5641.0,B-TSJump,3.3,6.0,-24.6,29,86,57,6.4,9.89,17,ACTIVE
+2026-07-31,HYUNDAI.NS,HYUNDAI.NS,Auto,2180.7,2190.0,A+B,8.1,9.0,-24.5,29,73,44,5.5,0.43,17,ACTIVE
+2026-07-31,ALPHAGEO.NS,ALPHAGEO.NS,Oil & Gas,220.1,338.36,A+B,6.0,8.0,-23.3,41,74,33,8.3,53.73,17,ACTIVE
+2026-07-31,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,15.6,14.49,A+B,6.7,7.0,-31.6,28,60,32,3.2,-7.12,17,ACTIVE
+2026-07-31,ASHOKLEY.NS,Ashok Leyland Limited,Auto,166.2,177.1,B-TSJump,5.1,6.0,-21.5,44,76,32,5.0,6.56,17,ACTIVE
+2026-07-31,BOSCH-HCIL.NS,Bosch Home Comfort India Limited,Consumer Durables,1391.3,1700.4,A+B,6.2,8.0,-22.1,17,45,28,8.0,22.22,17,ACTIVE
+2026-07-31,CENTEXT.NS,CENTEXT.NS,Metals & Mining,19.9,21.93,A+B,7.9,7.0,-42.8,0,27,27,6.6,10.2,17,ACTIVE
+2026-07-31,COMPUSOFT.NS,COMPUSOFT.NS,Hospitality,13.4,13.29,B-TSJump,2.9,6.0,-38.2,0,25,25,4.6,-0.82,17,ACTIVE
+2026-07-31,BESTAGRO.NS,BESTAGRO.NS,Chemicals,19.1,20.35,A-BigDay,15.2,9.0,-45.8,26,29,3,16.2,6.54,17,ACTIVE
+2026-07-31,EMSLIMITED.NS,EMSLIMITED.NS,Infrastructure,411.5,369.1,A-BigDay,7.3,8.0,-33.1,61,63,2,4.2,-10.3,17,ACTIVE
+2026-07-31,GMMPFAUDLR.NS,GMM Pfaudler Limited,Capital Goods,864.4,1056.55,A-BigDay,6.2,9.0,-38.9,24,26,2,7.7,22.23,17,ACTIVE
+2026-07-31,GANESHCP.NS,GANESHCP.NS,Consumer Goods,178.3,163.96,A-BigDay,8.7,8.0,-42.0,0,1,1,8.7,-8.04,17,ACTIVE
+2026-08-03,HEMIPROP.NS,Hemisphere Properties India Limited,Real Estate,140.0,134.27,B-TSJump,4.2,8.0,-26.6,29,86,57,4.4,-4.09,14,ACTIVE
+2026-08-03,ADL.NS,ADL.NS,Consumer Durables,79.0,68.65,A+B,10.7,7.0,-28.1,31,75,44,13.5,-13.1,14,ACTIVE
+2026-08-03,GOPAL.NS,GOPAL.NS,Consumer Goods,278.9,270.75,B-TSJump,3.1,6.0,-29.7,0,37,37,4.3,-2.92,14,ACTIVE
+2026-08-03,HARIOMPIPE.NS,HARIOMPIPE.NS,Metals & Mining,402.7,346.45,B-TSJump,3.1,7.0,-29.5,53,89,36,5.1,-13.97,14,ACTIVE
+2026-08-03,BLUEDART.NS,Blue Dart Express Limited,Infrastructure,5427.0,5125.0,A+B,5.2,7.0,-22.9,37,70,33,4.7,-5.56,14,ACTIVE
+2026-08-03,CTE.NS,CTE.NS,IT & Technology,37.7,40.77,A+B,7.8,9.0,-37.2,31,64,33,13.0,8.14,14,ACTIVE
+2026-08-03,ADVENZYMES.NS,Advanced Enzyme Technologies Limited,Pharma & Healthcare,323.8,305.6,B-TSJump,2.7,6.0,-22.4,32,64,32,0.7,-5.62,14,ACTIVE
+2026-08-03,ECLERX.NS,eClerx Services Limited,Capital Goods,1922.2,1848.9,B-TSJump,4.2,9.0,-23.0,44,75,31,-3.5,-3.81,14,ACTIVE
+2026-08-03,ICRA.NS,ICRA.NS,Financial Services,5131.5,5052.7,B-TSJump,4.6,6.0,-25.0,8,37,29,6.2,-1.54,14,ACTIVE
+2026-08-03,BBTC.NS,The Bombay Burmah Trading Corporation Limited,Consumer Goods,1537.2,1463.6,B-TSJump,2.7,8.0,-27.3,12,39,27,3.7,-4.79,14,ACTIVE
+2026-08-03,DBL.NS,Dilip Buildcon Limited,Capital Goods,444.4,419.6,B-TSJump,3.5,9.0,-24.0,13,40,27,6.1,-5.58,14,ACTIVE
+2026-08-03,DHUNINV.NS,DHUNINV.NS,Financial Services,886.9,1014.65,B-TSJump,4.8,8.0,-43.6,1,28,27,4.3,14.4,14,ACTIVE
+2026-08-03,EPIGRAL.NS,Epigral Limited,Chemicals,1120.7,1097.1,B-TSJump,2.9,8.0,-42.3,2,29,27,8.8,-2.11,14,ACTIVE
+2026-08-03,EXCELSOFT.NS,EXCELSOFT.NS,IT & Technology,83.0,73.07,A+B,7.2,7.0,-41.8,20,47,27,8.5,-11.96,14,ACTIVE
+2026-08-03,AGARIND.NS,AGARIND.NS,Chemicals,515.0,499.6,B-TSJump,3.0,6.0,-48.8,2,28,26,6.5,-2.99,14,ACTIVE
+2026-08-03,AJMERA.NS,AJMERA.NS,Real Estate,130.4,118.7,B-TSJump,3.2,6.0,-41.1,2,28,26,5.7,-8.97,14,ACTIVE
+2026-08-03,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,907.0,871.6,B-TSJump,2.6,6.0,-32.4,1,27,26,6.1,-3.9,14,ACTIVE
+2026-08-03,ELLEN.NS,ELLEN.NS,Chemicals,273.0,328.3,B-TSJump,3.6,8.0,-54.5,2,27,25,5.4,20.26,14,ACTIVE
+2026-08-03,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,17.1,14.49,A-BigDay,10.0,8.0,-24.5,60,75,15,12.1,-15.26,14,ACTIVE
+2026-08-03,BSOFT.NS,Birlasoft Limited,IT & Technology,321.5,310.8,A-BigDay,6.3,8.0,-31.2,26,29,3,8.2,-3.33,14,ACTIVE
+2026-08-03,DCMSRIND.NS,DCMSRIND.NS,Consumer Goods,41.6,45.73,A-BigDay,5.9,7.0,-76.9,22,23,1,-4.4,9.93,14,ACTIVE
+2026-08-03,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,364.0,349.15,A-BigDay,5.7,7.0,-34.3,0,0,0,8.2,-4.08,14,ACTIVE
+2026-08-04,HINDZINC.NS,Hindustan Zinc Limited,Metals & Mining,562.9,567.5,B-TSJump,2.9,7.0,-21.8,19,75,56,6.1,0.82,13,ACTIVE
+2026-08-04,CENTEXT.NS,CENTEXT.NS,Metals & Mining,23.7,21.93,A+B,19.1,9.0,-31.9,27,63,36,24.7,-7.47,13,ACTIVE
+2026-08-04,BESTAGRO.NS,BESTAGRO.NS,Chemicals,22.7,20.35,A+B,18.5,9.0,-35.8,29,64,35,27.2,-10.35,13,ACTIVE
+2026-08-04,DBL.NS,Dilip Buildcon Limited,Capital Goods,467.2,419.6,A+B,5.2,9.0,-20.1,40,73,33,10.3,-10.19,13,ACTIVE
+2026-08-04,EMUDHRA.NS,eMudhra Limited,IT & Technology,514.0,518.75,A+B,7.6,7.0,-35.2,28,61,33,9.4,0.92,13,ACTIVE
+2026-08-04,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,535.0,525.55,A+B,8.0,9.0,-33.0,18,47,29,9.3,-1.77,13,ACTIVE
+2026-08-04,ICDSLTD.NS,ICDSLTD.NS,Real Estate,43.6,40.47,A+B,8.0,8.0,-30.0,0,29,29,12.7,-7.18,13,ACTIVE
+2026-08-04,GENESYS.NS,GENESYS.NS,IT & Technology,316.6,170.85,A+B,16.6,7.0,-51.1,2,28,26,8.8,-46.04,13,ACTIVE
+2026-08-04,DREAMFOLKS.NS,DREAMFOLKS.NS,Infrastructure,70.4,65.85,B-TSJump,5.6,6.0,-56.0,0,25,25,3.3,-6.46,13,ACTIVE
+2026-08-04,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,366.5,349.15,A+B,6.4,7.0,-33.8,0,25,25,3.0,-4.73,13,ACTIVE
+2026-08-04,DECCANCE.NS,DECCANCE.NS,Cement & Materials,583.3,544.0,A+B,5.5,8.0,-49.9,0,23,23,7.6,-6.74,13,ACTIVE
+2026-08-04,CTE.NS,CTE.NS,IT & Technology,39.8,40.77,A-BigDay,14.0,8.0,-33.6,64,65,1,9.7,2.44,13,ACTIVE
+2026-08-04,EIDPARRY.NS,E.I.D.- Parry (India) Limited,Consumer Goods,803.1,792.05,A-BigDay,5.7,8.0,-35.5,25,26,1,1.7,-1.38,13,ACTIVE
+2026-08-04,EXCELINDUS.NS,EXCELINDUS.NS,Chemicals,1050.6,990.55,A-BigDay,6.5,9.0,-22.1,73,74,1,5.7,-5.72,13,ACTIVE
+2026-08-04,AGARIND.NS,AGARIND.NS,Chemicals,526.0,499.6,A-BigDay,5.2,7.0,-47.7,28,28,0,4.6,-5.02,13,ACTIVE
+2026-08-05,BMWVENTLTD.NS,BMWVENTLTD.NS,Metals & Mining,60.0,57.62,B-TSJump,4.9,6.0,-21.2,15,73,58,5.6,-3.97,12,ACTIVE
+2026-08-05,DIAMINESQ.NS,DIAMINESQ.NS,Chemicals,262.8,235.85,A+B,9.6,7.0,-37.2,0,58,58,12.7,-10.25,12,ACTIVE
+2026-08-05,GARUDA.NS,GARUDA.NS,Infrastructure,178.4,182.48,B-TSJump,2.9,7.0,-28.5,6,43,37,8.7,2.29,12,ACTIVE
+2026-08-05,HINDCOPPER.NS,Hindustan Copper Limited,Metals & Mining,533.8,572.65,A-BigDay,8.4,8.0,-29.7,55,92,37,10.8,7.28,12,ACTIVE
+2026-08-05,DEVYANI.NS,Devyani International Limited,Hospitality,125.1,143.65,B-TSJump,4.5,10.0,-34.5,29,61,32,6.8,14.83,12,ACTIVE
+2026-08-05,DVL.NS,DVL.NS,Financial Services,264.0,265.92,A+B,6.3,7.0,-30.6,30,62,32,8.3,0.73,12,ACTIVE
+2026-08-05,HPIL.NS,HPIL.NS,Chemicals,129.6,127.35,B-TSJump,3.6,9.0,-21.0,15,42,27,6.7,-1.74,12,ACTIVE
+2026-08-05,AROGRANITE.NS,AROGRANITE.NS,Cement & Materials,26.1,24.57,B-TSJump,4.3,7.0,-42.8,3,29,26,4.4,-5.86,12,ACTIVE
+2026-08-05,BLS.NS,BLS International Services Limited,Hospitality,255.6,272.56,B-TSJump,3.1,8.0,-37.8,0,26,26,6.9,6.64,12,ACTIVE
+2026-08-05,CELLO.NS,Cello World Limited,Consumer Durables,399.0,369.6,A+B,15.7,9.0,-40.5,0,26,26,18.3,-7.37,12,ACTIVE
+2026-08-05,BHARATRAS.NS,BHARATRAS.NS,Chemicals,1385.3,1301.0,B-TSJump,3.0,7.0,-53.8,0,24,24,6.3,-6.09,12,ACTIVE
+2026-08-05,CAPILLARY.NS,CAPILLARY.NS,IT & Technology,576.3,525.55,A-BigDay,7.7,9.0,-27.9,47,61,14,9.9,-8.81,12,ACTIVE
+2026-08-05,ALMONDZ.NS,ALMONDZ.NS,Financial Services,14.6,14.2,A-BigDay,6.4,9.0,-33.9,29,31,2,7.1,-2.74,12,ACTIVE
+2026-08-05,DGCONTENT.NS,DGCONTENT.NS,Hospitality,26.0,24.33,A-BigDay,8.9,8.0,-38.2,0,2,2,14.7,-6.42,12,ACTIVE
+2026-08-05,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto,62.7,59.11,A-BigDay,7.2,8.0,-30.7,79,80,1,0.5,-5.73,12,ACTIVE
+2026-08-06,GMMPFAUDLR.NS,GMM Pfaudler Limited,Capital Goods,1005.2,1056.55,A+B,17.3,10.0,-25.1,26,74,48,20.7,5.11,11,ACTIVE
+2026-08-06,ICDSLTD.NS,ICDSLTD.NS,Real Estate,47.4,40.47,A+B,8.9,8.0,-23.9,29,73,44,6.3,-14.62,11,ACTIVE
+2026-08-06,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,55.9,47.97,B-TSJump,4.7,7.0,-29.3,4,41,37,5.9,-14.19,11,ACTIVE
+2026-08-06,GRSE.NS,Garden Reach Shipbuilders & Engineers Limited,Aerospace & Defense,2616.8,2600.1,B-TSJump,4.4,6.0,-21.6,32,65,33,7.5,-0.64,11,ACTIVE
+2026-08-06,GFLLIMITED.NS,GFLLIMITED.NS,Financial Services,51.5,49.49,B-TSJump,3.4,8.0,-36.4,29,60,31,6.3,-3.9,11,ACTIVE
+2026-08-06,ALPA.NS,ALPA.NS,Pharma & Healthcare,70.4,63.72,B-TSJump,4.6,7.0,-30.3,7,34,27,6.3,-9.49,11,ACTIVE
+2026-08-06,ARCHIDPLY.NS,ARCHIDPLY.NS,Cement & Materials,83.8,95.91,B-TSJump,4.2,7.0,-25.9,17,44,27,5.1,14.45,11,ACTIVE
+2026-08-06,ATL.NS,ATL.NS,Infrastructure,24.8,23.91,A+B,6.9,7.0,-38.8,2,29,27,10.5,-3.59,11,ACTIVE
+2026-08-06,BAJEL.NS,BAJEL.NS,Power & Utilities,193.7,185.87,A-BigDay,5.4,9.0,-24.1,63,90,27,5.5,-4.04,11,ACTIVE
+2026-08-06,BLKASHYAP.NS,BLKASHYAP.NS,Infrastructure,56.4,53.73,A-BigDay,5.2,9.0,-25.2,62,89,27,9.3,-4.73,11,ACTIVE
+2026-08-06,CAMPUS.NS,Campus Activewear Limited,Textiles,232.5,217.92,B-TSJump,2.6,6.0,-21.1,10,37,27,4.2,-6.27,11,ACTIVE
+2026-08-06,COCHINSHIP.NS,Cochin Shipyard Limited,Infrastructure,1484.8,1457.8,B-TSJump,4.2,8.0,-24.7,15,42,27,7.9,-1.82,11,ACTIVE
+2026-08-06,ARIHANTSUP.NS,ARIHANTSUP.NS,Real Estate,269.3,257.6,B-TSJump,3.5,8.0,-42.1,3,29,26,7.0,-4.34,11,ACTIVE
+2026-08-06,HERITGFOOD.NS,Heritage Foods Limited,Consumer Goods,357.1,363.65,A-BigDay,5.7,8.0,-33.4,26,29,3,7.8,1.83,11,ACTIVE
+2026-08-07,BEML.NS,BEML Limited,Diversified,1787.8,1908.5,B-TSJump,3.6,7.0,-21.2,18,75,57,1.6,6.75,10,ACTIVE
+2026-08-07,BIRLANU.NS,BIRLANU.NS,Cement & Materials,1641.5,1551.8,A+B,6.7,9.0,-20.5,27,75,48,26.0,-5.46,10,ACTIVE
+2026-08-07,BECTORFOOD.NS,Mrs. Bectors Food Specialities Limited,Consumer Goods,224.4,255.3,A+B,6.6,9.0,-27.3,30,73,43,9.1,13.77,10,ACTIVE
+2026-08-07,ARCHIDPLY.NS,Archidply Industries Limited,Cement & Materials,89.5,95.91,A+B,9.1,9.0,-20.8,44,76,32,7.6,7.16,10,ACTIVE
+2026-08-07,HMAAGRO.NS,HMA Agro Industries Limited,Consumer Goods,22.2,22.95,B-TSJump,6.3,6.0,-35.1,0,25,25,10.5,3.38,10,ACTIVE
+2026-08-07,DEVYANI.NS,Devyani International Limited,Hospitality,134.7,143.65,A-BigDay,8.8,9.0,-29.5,61,74,13,11.9,6.64,10,ACTIVE
+2026-08-07,DOLATALGO.NS,Dolat Algotech Limited,Financial Services,71.0,71.18,A-BigDay,5.4,7.0,-25.8,8,11,3,5.5,0.25,10,ACTIVE
+2026-08-07,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,224.2,234.68,A-BigDay,12.3,9.0,-35.5,63,63,0,0.0,4.67,10,ACTIVE
+2026-08-07,TECHNOE.NS,Techno Electric & Engineering Company Limited,Infrastructure,1066.2,959.15,A-BigDay,7.5,8.0,-31.9,29,29,0,0.0,-10.04,10,ACTIVE
+2026-08-10,ESTER.NS,Ester Industries Limited,Chemicals,99.2,98.96,A+B,13.6,9.0,-25.1,4,75,71,15.2,-0.24,7,ACTIVE
+2026-08-10,AAATECH.NS,AAA Technologies Limited,IT & Technology,99.5,91.98,A+B,8.2,9.0,-26.9,4,72,68,10.9,-7.56,7,ACTIVE
+2026-08-10,ADL.NS,Archidply Decor Limited,Consumer Durables,73.8,68.65,B-TSJump,4.2,6.0,-32.9,6,62,56,9.0,-6.98,7,ACTIVE
+2026-08-10,GMDCLTD.NS,Gujarat Mineral Development Corporation Limited,Oil & Gas,603.2,574.0,B-TSJump,3.5,8.0,-21.9,35,91,56,5.4,-4.84,7,ACTIVE
+2026-08-10,DHARMAJ.NS,Dharmaj Crop Guard Limited,Chemicals,281.0,269.25,A+B,5.8,7.0,-27.3,50,88,38,9.8,-4.18,7,ACTIVE
+2026-08-10,HISARMETAL.NS,Hisar Metal Industries Limited,Metals & Mining,161.6,152.44,B-TSJump,6.3,6.0,-20.6,40,74,34,6.3,-5.67,7,ACTIVE
+2026-08-10,ATLANTAA.NS,Atlantaa Limited,Infrastructure,45.2,39.64,A+B,12.6,9.0,-38.4,28,61,33,13.3,-12.3,7,ACTIVE
+2026-08-10,GARUDA.NS,GARUDA.NS,Infrastructure,194.5,182.48,A+B,7.8,9.0,-22.0,43,76,33,5.0,-6.18,7,ACTIVE
+2026-08-10,AIROLAM.NS,Airo Lam Limited,Consumer Durables,92.8,87.42,B-TSJump,3.9,9.0,-25.8,38,70,32,8.3,-5.8,7,ACTIVE
+2026-08-10,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,607.7,593.7,B-TSJump,4.4,9.0,-24.0,42,74,32,0.2,-2.3,7,ACTIVE
+2026-08-10,CENTRUM.NS,Centrum Capital Limited,Financial Services,26.2,24.3,B-TSJump,4.5,7.0,-34.4,29,60,31,2.9,-7.25,7,ACTIVE
+2026-08-10,BAJAJHIND.NS,Bajaj Hindusthan Sugar Limited,Consumer Goods,18.1,17.93,B-TSJump,3.0,7.0,-23.5,15,42,27,2.9,-0.94,7,ACTIVE
+2026-08-10,BALAJITELE.NS,Balaji Telefilms Limited,Media,90.4,92.72,B-TSJump,5.5,6.0,-36.0,2,29,27,7.0,2.57,7,ACTIVE
+2026-08-10,JAIBALAJI.NS,Jai Balaji Industries Limited,Metals & Mining,68.5,69.96,B-TSJump,4.5,6.0,-37.5,1,28,27,6.6,2.13,7,ACTIVE
+2026-08-10,DVL.NS,Dhunseri Ventures Limited,Financial Services,283.1,265.92,A-BigDay,5.6,7.0,-25.6,73,75,2,7.4,-6.07,7,ACTIVE
+2026-08-11,HPAL.NS,HP Adhesives Limited,Chemicals,38.9,35.64,A+B,16.1,9.0,-26.5,3,75,72,18.1,-8.38,6,ACTIVE
+2026-08-11,AARTECH.NS,Aartech Solonics Limited,Capital Goods,48.5,50.82,B-TSJump,5.0,9.0,-26.9,7,74,67,7.6,4.78,6,ACTIVE
+2026-08-11,GODAVARIB.NS,GODAVARIB.NS,Chemicals,273.6,245.6,A+B,14.0,9.0,-22.5,0,42,42,16.8,-10.23,6,ACTIVE
+2026-08-11,COHANCE.NS,COHANCE.NS,Pharma & Healthcare,464.0,444.75,B-TSJump,3.8,7.0,-55.3,28,58,30,5.8,-4.15,6,ACTIVE
+2026-08-11,ARENTERP.NS,Rajdarshan Industries Limited,Metals & Mining,39.5,38.36,A+B,7.4,8.0,-35.1,2,30,28,8.5,-2.89,6,ACTIVE
+2026-08-11,AROGRANITE.NS,Aro Granite Industries Limited,Cement & Materials,25.5,24.57,B-TSJump,2.9,6.0,-44.1,2,28,26,2.8,-3.65,6,ACTIVE
+2026-08-11,DEVX.NS,Dev Accelerator Limited,Real Estate,35.8,32.88,A+B,5.2,7.0,-44.2,0,26,26,7.1,-8.16,6,ACTIVE
+2026-08-11,GLOBALVECT.NS,Global Vectra Helicorp Limited,Infrastructure,162.8,149.0,B-TSJump,2.5,6.0,-34.4,3,29,26,5.3,-8.48,6,ACTIVE
+2026-08-11,ABINFRA.NS,ABINFRA.NS,Infrastructure,10.8,11.36,B-TSJump,6.2,6.0,-54.1,0,25,25,8.1,5.19,6,ACTIVE
+2026-08-11,CELLO.NS,Cello World Limited,Consumer Durables,378.6,369.6,A+B,5.1,9.0,-43.6,0,24,24,7.3,-2.38,6,ACTIVE
+2026-08-11,AMDIND.NS,AMD Industries Limited,Capital Goods,51.9,51.41,A-BigDay,9.9,9.0,-23.7,62,75,13,12.6,-0.94,6,ACTIVE
+2026-08-11,DEVYANI.NS,Devyani International Limited,Hospitality,142.8,143.65,A-BigDay,6.9,9.0,-25.2,63,75,12,11.0,0.6,6,ACTIVE
+2026-08-11,AMJLAND.NS,AMJ Land Holdings Limited,Real Estate,40.7,38.62,A-BigDay,6.7,9.0,-33.2,28,31,3,8.3,-5.11,6,ACTIVE
+2026-08-11,AFFLE.NS,Affle 3i Limited,Media,1677.3,1703.9,A-BigDay,5.2,9.0,-23.3,72,74,2,4.4,1.59,6,ACTIVE
+2026-08-11,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,236.0,234.68,A-BigDay,7.0,9.0,-32.2,62,64,2,10.5,-0.56,6,ACTIVE
+2026-08-11,ALLCARGO.NS,Allcargo Logistics Limited,Infrastructure,10.2,10.06,A-BigDay,5.1,9.0,-72.0,23,24,1,5.1,-1.37,6,ACTIVE
+2026-08-11,ESTER.NS,Ester Industries Limited,Chemicals,104.5,98.96,A-BigDay,5.3,9.0,-21.1,75,76,1,10.0,-5.3,6,ACTIVE
+2026-08-12,ALICON.NS,Alicon Castalloy Limited,Capital Goods,773.0,726.1,A+B,6.1,9.0,-24.1,41,74,33,7.1,-6.07,5,ACTIVE
+2026-08-12,FORCEMOT.NS,Force Motors Limited,Auto,19269.0,18605.0,A-BigDay,5.1,7.0,-27.1,29,42,13,3.6,-3.45,5,ACTIVE
+2026-08-12,ELLEN.NS,ELLEN.NS,Chemicals,323.8,328.3,A-BigDay,10.0,8.0,-42.2,60,62,2,11.0,1.39,5,ACTIVE
+2026-08-12,CHEMPLASTS.NS,Chemplast Sanmar Limited,Chemicals,182.4,181.73,A-BigDay,6.2,7.0,-60.4,0,0,0,8.8,-0.37,5,ACTIVE
+2026-08-13,NATCOPHARM.NS,NATCO Pharma Limited,Pharma & Healthcare,951.7,889.8,B-TSJump,4.0,6.0,-22.4,14,72,58,5.9,-6.5,4,ACTIVE
+2026-08-13,EKC.NS,Everest Kanto Cylinder Limited,Capital Goods,116.4,109.53,B-TSJump,3.8,7.0,-25.7,15,72,57,4.7,-5.9,4,ACTIVE
+2026-08-13,DODLA.NS,Dodla Dairy Limited,Consumer Goods,1109.8,1099.5,A+B,6.3,8.0,-25.7,0,39,39,9.7,-0.93,4,ACTIVE
+2026-08-13,CLEAN.NS,Clean Science and Technology Limited,Chemicals,836.3,840.0,B-TSJump,3.9,9.0,-33.1,28,60,32,4.3,0.44,4,ACTIVE
+2026-08-13,DHUNINV.NS,Dhunseri Investments Limited,Financial Services,1042.6,1014.65,B-TSJump,7.6,6.0,-33.5,31,63,32,9.8,-2.68,4,ACTIVE
+2026-08-13,GFLLIMITED.NS,GFL Limited,Financial Services,51.3,49.49,A+B,7.1,9.0,-36.7,28,60,32,8.5,-3.53,4,ACTIVE
+2026-08-13,CENTEXT.NS,Century Extrusions Limited,Metals & Mining,21.7,21.93,B-TSJump,2.9,9.0,-37.5,29,60,31,4.7,1.06,4,ACTIVE
+2026-08-13,ECLERX.NS,eClerx Services Limited,IT & Technology,1869.4,1848.9,B-TSJump,3.3,9.0,-25.1,43,74,31,5.0,-1.1,4,ACTIVE
+2026-08-13,ESTER.NS,Ester Industries Limited,Chemicals,101.7,98.96,A+B,5.6,9.0,-23.2,44,75,31,7.6,-2.69,4,ACTIVE
+2026-08-13,ARENTERP.NS,Rajdarshan Industries Limited,Metals & Mining,39.2,38.36,A+B,5.3,8.0,-35.4,3,30,27,1.0,-2.14,4,ACTIVE
+2026-08-13,CYIENT.NS,Cyient Limited,Diversified,879.7,868.0,B-TSJump,4.7,7.0,-30.6,1,28,27,5.4,-1.33,4,ACTIVE
+2026-08-13,CUBEXTUB.NS,Cubex Tubings Limited,Metals & Mining,82.6,83.22,B-TSJump,4.4,6.0,-42.5,0,25,25,6.7,0.75,4,ACTIVE
+2026-08-13,SKFINDIA.NS,SKF India Limited,Auto,1606.3,1652.8,A+B,5.2,7.0,-67.6,0,22,22,11.4,2.89,4,ACTIVE
+2026-08-13,ARKADE.NS,ARKADE.NS,Real Estate,136.9,129.99,A-BigDay,5.6,8.0,-29.7,61,74,13,6.8,-5.05,4,ACTIVE
+2026-08-13,BBOX.NS,Black Box Limited,IT & Technology,832.5,774.1,A-BigDay,7.8,7.0,-24.5,55,67,12,8.7,-7.02,4,ACTIVE
+2026-08-13,GPIL.NS,Godawari Power & Ispat Limited,Metals & Mining,243.3,250.82,A-BigDay,6.3,9.0,-24.0,14,17,3,9.5,3.09,4,ACTIVE
+2026-08-13,AVONMORE.NS,Avonmore Capital & Management Services Limited,Financial Services,12.0,13.01,A-BigDay,5.4,8.0,-49.9,25,26,1,9.7,8.42,4,ACTIVE
+2026-08-14,BALUFORGE.NS,Balu Forge Industries Limited,Capital Goods,493.8,513.35,A+B,10.6,9.0,-29.1,4,43,39,11.8,3.96,3,ACTIVE
+2026-08-14,HMAAGRO.NS,HMA Agro Industries Limited,Consumer Goods,24.2,22.95,A+B,10.6,8.0,-29.2,0,39,39,11.2,-5.17,3,ACTIVE
+2026-08-14,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,420.2,426.8,A+B,6.4,8.0,-32.8,27,60,33,8.3,1.57,3,ACTIVE
+2026-08-14,GODREJAGRO.NS,Godrej Agrovet Limited,Consumer Goods,580.5,597.0,B-TSJump,3.3,8.0,-24.3,38,70,32,5.6,2.84,3,ACTIVE
+2026-08-14,GROBTEA.NS,The Grob Tea Company Limited,Consumer Goods,958.0,953.8,B-TSJump,3.3,8.0,-22.3,39,71,32,0.6,-0.44,3,ACTIVE
+2026-08-14,JUBLFOOD.NS,JUBLFOOD.NS,Hospitality,504.1,511.5,B-TSJump,2.6,9.0,-24.6,40,72,32,6.7,1.47,3,ACTIVE
+2026-08-14,JAIBALAJI.NS,Jai Balaji Industries Limited,Metals & Mining,70.6,69.96,B-TSJump,2.5,8.0,-35.6,29,60,31,5.6,-0.91,3,ACTIVE
+2026-08-14,FINKURVE.NS,Finkurve Financial Services Limited,Financial Services,72.7,72.93,A+B,15.8,8.0,-46.1,1,29,28,16.9,0.32,3,ACTIVE
+2026-08-14,GPPL.NS,Gujarat Pipavav Port Limited,Infrastructure,158.7,159.57,B-TSJump,4.6,7.0,-20.7,11,39,28,9.0,0.55,3,ACTIVE
+2026-08-14,CCCL.NS,Consolidated Construction Consortium Limited,Infrastructure,16.0,15.59,B-TSJump,6.0,6.0,-44.6,0,27,27,11.0,-2.56,3,ACTIVE
+2026-08-14,DONEAR.NS,Donear Industries Limited,Textiles,87.3,87.64,B-TSJump,2.6,9.0,-25.1,11,38,27,5.8,0.39,3,ACTIVE
+2026-08-14,FOODSIN.NS,Foods and Inns Limited,Consumer Goods,57.2,53.75,B-TSJump,6.1,6.0,-41.9,1,28,27,7.3,-6.03,3,ACTIVE
+2026-08-14,ENERGYDEV.NS,Energy Development Company Limited,Power & Utilities,16.9,16.51,B-TSJump,2.6,6.0,-43.2,1,27,26,4.0,-2.31,3,ACTIVE
+2026-08-14,SUDARSCHEM.NS,Sudarshan Chemical Industries Limited,Chemicals,1118.1,1092.9,A-BigDay,6.2,9.0,-29.9,77,89,12,7.0,-2.25,3,ACTIVE
+2026-08-17,APCL.NS,Anjani Portland Cement Limited,Cement & Materials,106.9,106.87,B-TSJump,3.2,8.0,-29.7,0,35,35,6.5,-0.03,0,ACTIVE
+2026-08-17,BALUFORGE.NS,Balu Forge Industries Limited,Capital Goods,513.3,513.35,B-TSJump,4.0,9.0,-26.3,43,75,32,5.9,0.01,0,ACTIVE
+2026-08-17,PURVA.NS,Puravankara Limited,Real Estate,226.6,226.6,B-TSJump,3.8,6.0,-25.7,42,74,32,9.5,0.0,0,ACTIVE
+2026-08-17,BAJAJHIND.NS,Bajaj Hindusthan Sugar Limited,Consumer Goods,17.9,17.93,B-TSJump,3.6,7.0,-23.1,14,41,27,4.3,0.17,0,ACTIVE
+2026-08-17,RENUKA.NS,Shree Renuka Sugars Limited,Consumer Goods,23.0,23.0,B-TSJump,4.8,7.0,-31.3,0,25,25,7.6,0.0,0,ACTIVE
+2026-08-17,RAYMONDLSL.NS,Raymond Lifestyle Limited,Textiles,762.1,762.1,B-TSJump,2.8,7.0,-43.5,0,24,24,5.2,-0.0,0,ACTIVE
+2026-08-17,GPIL.NS,Godawari Power & Ispat Limited,Metals & Mining,250.8,250.82,A-BigDay,6.5,9.0,-21.3,15,19,4,11.0,0.01,0,ACTIVE
+2026-08-17,JYOTHYLAB.NS,Jyothy Labs Limited,Consumer Goods,213.9,213.93,A-BigDay,7.3,9.0,-37.6,23,26,3,8.5,0.01,0,ACTIVE
+2026-08-17,AVONMORE.NS,Avonmore Capital & Management Services Limited,Financial Services,13.0,13.01,A-BigDay,5.3,8.0,-45.6,27,29,2,8.5,0.08,0,ACTIVE
+2026-08-17,ABINFRA.NS,ABINFRA.NS,Infrastructure,11.4,11.36,A-BigDay,5.1,8.0,-51.8,25,26,1,6.8,-0.35,0,ACTIVE
+2026-08-17,GOCOLORS.NS,Go Fashion (India) Limited,Retail,344.0,344.05,A-BigDay,5.1,7.0,-54.8,1,2,1,7.5,0.01,0,ACTIVE
+2026-08-17,SKFINDIA.NS,SKF India Limited,Auto,1652.8,1652.8,A-BigDay,5.1,7.0,-66.6,22,23,1,7.6,0.0,0,ACTIVE
+2026-08-17,DCMSRIND.NS,DCM Shriram Industries Limited,Consumer Goods,45.7,45.73,A-BigDay,8.3,7.0,-74.6,23,23,0,10.9,0.07,0,ACTIVE
