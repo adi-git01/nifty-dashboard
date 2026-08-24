@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-08-21",
+    "date": "2026-08-24",
     "cash": 259588.2143400191,
     "holdings": {
         "SYRMA.NS": {
@@ -13,7 +13,7 @@
             "entry_price": 546.75,
             "entry_date": "2026-06-12",
             "shares": 127,
-            "peak_price": 822.0
+            "peak_price": 855.7999877929688
         },
         "CUPID.NS": {
             "entry_price": 192.05999755859375,
@@ -31,7 +31,7 @@
             "entry_price": 1472.0,
             "entry_date": "2026-07-21",
             "shares": 48,
-            "peak_price": 1495.199951171875
+            "peak_price": 1533.300048828125
         },
         "FILATEX.NS": {
             "entry_price": 71.30000305175781,
@@ -61,7 +61,7 @@
             "entry_price": 354.8500061035156,
             "entry_date": "2026-08-07",
             "shares": 204,
-            "peak_price": 354.8500061035156
+            "peak_price": 365.1000061035156
         },
         "PGIL.NS": {
             "entry_price": 2464.10009765625,
@@ -70,141 +70,141 @@
             "peak_price": 2480.39990234375
         }
     },
-    "equity": 1139746.2866971968,
-    "cash_pct": 22.8,
+    "equity": 1146484.9975584028,
+    "cash_pct": 22.6,
     "count": 11,
     "portfolio": [
         {
             "Ticker": "CUPID.NS",
             "Sector": "Personal Products",
-            "Price": 284.5799865722656,
-            "RS_Score": 65.3,
+            "Price": 286.4100036621094,
+            "RS_Score": 65.5,
             "Entry": 192.05999755859375,
-            "PnL%": 48.17244100268503,
-            "Dist_MA50": 28.232852492847478,
-            "MA50": 221.92,
+            "PnL%": 49.12527715446382,
+            "Dist_MA50": 27.65872342710255,
+            "MA50": 224.36,
             "Trail_Stop": 259.48,
-            "Danger": ""
-        },
-        {
-            "Ticker": "CNL.NS",
-            "Sector": "IT - Hardware",
-            "Price": 1247.699951171875,
-            "RS_Score": 58.0,
-            "Entry": 1116.8499755859375,
-            "PnL%": 11.715984997652809,
-            "Dist_MA50": 33.19540370395875,
-            "MA50": 936.74,
-            "Trail_Stop": 1112.45,
-            "Danger": ""
-        },
-        {
-            "Ticker": "FILATEX.NS",
-            "Sector": "Textiles & Apparels",
-            "Price": 83.05999755859375,
-            "RS_Score": 42.2,
-            "Entry": 71.30000305175781,
-            "PnL%": 16.493680229297002,
-            "Dist_MA50": 22.34712937269653,
-            "MA50": 67.89,
-            "Trail_Stop": 76.34,
-            "Danger": ""
-        },
-        {
-            "Ticker": "DIACABS.NS",
-            "Sector": "Industrial Manufacturing",
-            "Price": 356.1000061035156,
-            "RS_Score": 41.9,
-            "Entry": 269.07000732421875,
-            "PnL%": 32.34474166956451,
-            "Dist_MA50": 30.454471588585104,
-            "MA50": 272.97,
-            "Trail_Stop": 324.28,
-            "Danger": ""
-        },
-        {
-            "Ticker": "AEGISLOG.NS",
-            "Sector": "Petroleum Products",
-            "Price": 1417.9000244140625,
-            "RS_Score": 41.1,
-            "Entry": 1371.0,
-            "PnL%": 3.420862466379467,
-            "Dist_MA50": 12.77749117503457,
-            "MA50": 1257.25,
-            "Trail_Stop": 1247.75,
             "Danger": ""
         },
         {
             "Ticker": "SHILPAMED.NS",
             "Sector": "Healthcare Services",
-            "Price": 814.9500122070312,
-            "RS_Score": 40.3,
+            "Price": 855.7999877929688,
+            "RS_Score": 49.5,
             "Entry": 546.75,
-            "PnL%": 49.05350017504001,
-            "Dist_MA50": 25.320627402573187,
-            "MA50": 650.29,
-            "Trail_Stop": 723.36,
+            "PnL%": 56.524917749056925,
+            "Dist_MA50": 30.307739795332772,
+            "MA50": 656.75,
+            "Trail_Stop": 753.1,
             "Danger": ""
         },
         {
             "Ticker": "REDINGTON.NS",
             "Sector": "Commercial Services & Supplies",
-            "Price": 350.54998779296875,
-            "RS_Score": 39.6,
+            "Price": 365.1000061035156,
+            "RS_Score": 47.2,
             "Entry": 354.8500061035156,
-            "PnL%": -1.2117847644315634,
-            "Dist_MA50": 18.85716437471902,
-            "MA50": 294.93,
-            "Trail_Stop": 312.27,
+            "PnL%": 2.8885444057199496,
+            "Dist_MA50": 22.729134215417037,
+            "MA50": 297.48,
+            "Trail_Stop": 321.29,
+            "Danger": ""
+        },
+        {
+            "Ticker": "CNL.NS",
+            "Sector": "IT - Hardware",
+            "Price": 1202.199951171875,
+            "RS_Score": 45.7,
+            "Entry": 1116.8499755859375,
+            "PnL%": 7.64202690170271,
+            "Dist_MA50": 27.043636136884313,
+            "MA50": 946.29,
+            "Trail_Stop": 1112.45,
+            "Danger": ""
+        },
+        {
+            "Ticker": "DIACABS.NS",
+            "Sector": "Industrial Manufacturing",
+            "Price": 353.20001220703125,
+            "RS_Score": 39.7,
+            "Entry": 269.07000732421875,
+            "PnL%": 31.26695751765419,
+            "Dist_MA50": 28.09818854478614,
+            "MA50": 275.73,
+            "Trail_Stop": 324.28,
+            "Danger": ""
+        },
+        {
+            "Ticker": "FILATEX.NS",
+            "Sector": "Textiles & Apparels",
+            "Price": 84.05000305175781,
+            "RS_Score": 37.8,
+            "Entry": 71.30000305175781,
+            "PnL%": 17.882187172901762,
+            "Dist_MA50": 22.683541202678413,
+            "MA50": 68.51,
+            "Trail_Stop": 76.34,
+            "Danger": ""
+        },
+        {
+            "Ticker": "AEGISLOG.NS",
+            "Sector": "Petroleum Products",
+            "Price": 1341.5,
+            "RS_Score": 34.4,
+            "Entry": 1371.0,
+            "PnL%": -2.1517140773158276,
+            "Dist_MA50": 6.089129469663904,
+            "MA50": 1264.5,
+            "Trail_Stop": 1247.75,
             "Danger": ""
         },
         {
             "Ticker": "CYIENTDLM.NS",
             "Sector": "Aerospace & Defense",
-            "Price": 721.1500244140625,
-            "RS_Score": 29.6,
+            "Price": 735.8499755859375,
+            "RS_Score": 32.2,
             "Entry": 623.0,
-            "PnL%": 15.75441804399077,
-            "Dist_MA50": 21.798600092774507,
-            "MA50": 592.08,
+            "PnL%": 18.11396076820827,
+            "Dist_MA50": 23.169237372440634,
+            "MA50": 597.43,
             "Trail_Stop": 648.96,
-            "Danger": ""
-        },
-        {
-            "Ticker": "PGIL.NS",
-            "Sector": "Consumer Durables",
-            "Price": 2386.10009765625,
-            "RS_Score": 27.5,
-            "Entry": 2464.10009765625,
-            "PnL%": -3.1654558219526217,
-            "Dist_MA50": 14.445203723938457,
-            "MA50": 2084.93,
-            "Trail_Stop": 2182.75,
             "Danger": ""
         },
         {
             "Ticker": "DPABHUSHAN.NS",
             "Sector": "Consumer Durables",
-            "Price": 1482.4000244140625,
-            "RS_Score": 25.6,
+            "Price": 1533.300048828125,
+            "RS_Score": 31.5,
             "Entry": 1472.0,
-            "PnL%": 0.7065233976944634,
-            "Dist_MA50": 21.001381340205754,
-            "MA50": 1225.11,
-            "Trail_Stop": 1315.78,
+            "PnL%": 4.164405491041101,
+            "Dist_MA50": 23.930373844703514,
+            "MA50": 1237.23,
+            "Trail_Stop": 1349.3,
+            "Danger": ""
+        },
+        {
+            "Ticker": "PGIL.NS",
+            "Sector": "Consumer Durables",
+            "Price": 2372.199951171875,
+            "RS_Score": 27.3,
+            "Entry": 2464.10009765625,
+            "PnL%": -3.72956222727261,
+            "Dist_MA50": 13.044047830748475,
+            "MA50": 2098.47,
+            "Trail_Stop": 2182.75,
             "Danger": ""
         },
         {
             "Ticker": "SYRMA.NS",
             "Sector": "Industrial Products",
-            "Price": 1439.300048828125,
-            "RS_Score": 14.9,
+            "Price": 1459.9000244140625,
+            "RS_Score": 20.9,
             "Entry": 1266.699951171875,
-            "PnL%": 13.625965446400368,
-            "Dist_MA50": 3.077803412055271,
-            "MA50": 1396.32,
+            "PnL%": 15.252236574529773,
+            "Dist_MA50": 4.31385095115235,
+            "MA50": 1399.53,
             "Trail_Stop": 1334.43,
-            "Danger": "\u26a0\ufe0f 3.1% to MA50"
+            "Danger": "\u26a0\ufe0f 4.3% to MA50"
         }
     ],
     "last_rebalance_date": "2026-08-07",
