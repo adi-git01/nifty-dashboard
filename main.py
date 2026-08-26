@@ -67,11 +67,20 @@ from utils.advanced_scanners import (
 
 import re as _re
 
-def _google_finance_url(ticker: str) -> str:
-    """Google Finance URL for a US stock ticker."""
-    return f"https://www.google.com/finance/quote/{ticker}"
+def _us_quote_url(ticker: str) -> str:
+    """
+    Quote URL for a US ticker.
 
-_GF_DISPLAY_RE = r"https://www\.google\.com/finance/quote/(.+)$"
+    Yahoo, not Google Finance: a Google quote URL only resolves with an
+    exchange suffix (AAPL:NASDAQ), and the US universe carries no exchange
+    column, so every bare /finance/quote/AAPL link was dead. Yahoo resolves
+    from the ticker alone, and data/sp500_tickers.csv already stores symbols
+    in Yahoo's convention (BRK-B, BF-B) because yfinance feeds this pipeline —
+    Google would need BRK.B, so those two were doubly broken.
+    """
+    return f"https://finance.yahoo.com/quote/{str(ticker).strip()}"
+
+_US_DISPLAY_RE = r"https://finance\.yahoo\.com/quote/(.+)$"
 
 # Debug mode: set DASH_DEBUG=1 to show debug panel
 DASH_DEBUG = os.environ.get('DASH_DEBUG', '0') == '1'
@@ -1013,11 +1022,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Price tightening + volume dry-up across top S&P 500 momentum names.")
                         if us_vcp_list:
                             _uvcp = pd.DataFrame(us_vcp_list)
-                            _uvcp['yf_link'] = _uvcp.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
+                            _uvcp['yf_link'] = _uvcp.apply(lambda r: _us_quote_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _uvcp[['yf_link', 'Price', 'Score', 'Compression', 'Vol_Ratio', 'MA50_Dist', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                     "Price":       st.column_config.NumberColumn("Price",       format="$%.2f"),
                                     "Score":       st.column_config.NumberColumn("Trend Score", format="%.0f"),
                                     "Compression": st.column_config.NumberColumn("10D ATR%",    format="%.1f%%"),
@@ -1035,11 +1044,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("US stocks closing positive while SPY falls > -0.3%.")
                         if us_rs_list:
                             _urs = pd.DataFrame(us_rs_list)
-                            _urs['yf_link'] = _urs.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
+                            _urs['yf_link'] = _urs.apply(lambda r: _us_quote_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _urs[['yf_link', 'Stock_Ret', 'Nifty_Ret', 'Delta_RS', 'Dist_52W']],
                                 column_config={
-                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                    "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                     "Stock_Ret": st.column_config.NumberColumn("Stock %",  format="%+.1f%%"),
                                     "Nifty_Ret": st.column_config.NumberColumn("SPY %",    format="%+.1f%%"),
                                     "Delta_RS":  st.column_config.NumberColumn("Delta RS", format="%+.1f%%"),
@@ -1055,11 +1064,11 @@ elif page == "🚀 Live Trading Desk":
                         st.caption("Day-0 gap > 4% on > 2.5× volume across S&P 500.")
                         if us_shock_list:
                             _ushk = pd.DataFrame(us_shock_list)
-                            _ushk['yf_link'] = _ushk.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
+                            _ushk['yf_link'] = _ushk.apply(lambda r: _us_quote_url(r['Ticker']), axis=1)
                             st.dataframe(
                                 _ushk[['yf_link', 'Jump_Pct', 'Vol_Mult', 'PEAD_Action']],
                                 column_config={
-                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                    "yf_link":     st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                     "Jump_Pct":    st.column_config.NumberColumn("Price Jump", format="%+.1f%%"),
                                     "Vol_Mult":    st.column_config.NumberColumn("Vol Ratio",  format="%.1fx"),
                                     "PEAD_Action": "Playbook",
@@ -1074,13 +1083,13 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("Beaten-down S&P 500 stocks showing an initial reversal catalyst. Pattern A = price gap ≥5% + vol score ≥7. Pattern B = TS jump ≥20 pts.")
                     if us_tc_list:
                         _utc = pd.DataFrame(us_tc_list)
-                        _utc['yf_link'] = _utc.apply(lambda r: _google_finance_url(r['Ticker']), axis=1)
+                        _utc['yf_link'] = _utc.apply(lambda r: _us_quote_url(r['Ticker']), axis=1)
                         _utc['RS21_Flag'] = _utc['RS21_Vel'].apply(lambda v: "🚀" if v >= 5 else "")
                         st.dataframe(
                             _utc[['yf_link', 'Name', 'Sector', 'Price', 'Pattern', 'Jump%',
                                   'Vol_Score', 'Dist_52W', 'TS_Pre', 'TS_Now', 'TS_Gain', 'RS21_Vel', 'RS21_Flag']],
                             column_config={
-                                "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "yf_link":   st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                 "Name":      st.column_config.TextColumn("Name"),
                                 "Sector":    st.column_config.TextColumn("Sector"),
                                 "Price":     st.column_config.NumberColumn("Price",     format="$%.2f"),
@@ -1107,7 +1116,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US stocks showing RS vs SPY in the last 365 days. Auto-closed after 21 days.")
                     if not us_rs_log_df.empty:
                         _urs_disp = us_rs_log_df.copy()
-                        _urs_disp['yf_link'] = _urs_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+                        _urs_disp['yf_link'] = _urs_disp.apply(lambda r: _us_quote_url(r['ticker']), axis=1)
                         _urs_disp['signal_date'] = pd.to_datetime(_urs_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _urs_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -1116,7 +1125,7 @@ elif page == "🚀 Live Trading Desk":
                                        'dist_52w', 'days_held', 'status']],
                             column_config={
                                 "signal_date":          st.column_config.TextColumn("Signal Date"),
-                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "yf_link":              st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                 "name":                 st.column_config.TextColumn("Name"),
                                 "sector":               st.column_config.TextColumn("Sector"),
                                 "signal_price":         st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -1139,7 +1148,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US earnings gap signals from the last 365 days. PEAD drift tracked at 5D and 21D.")
                     if not us_shock_log_df.empty:
                         _ushk_disp = us_shock_log_df.copy()
-                        _ushk_disp['yf_link'] = _ushk_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+                        _ushk_disp['yf_link'] = _ushk_disp.apply(lambda r: _us_quote_url(r['ticker']), axis=1)
                         _ushk_disp['signal_date'] = pd.to_datetime(_ushk_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         st.dataframe(
                             _ushk_disp[['signal_date', 'yf_link', 'name', 'sector',
@@ -1148,7 +1157,7 @@ elif page == "🚀 Live Trading Desk":
                                         'return_5d', 'return_21d', 'days_held', 'status']],
                             column_config={
                                 "signal_date":         st.column_config.TextColumn("Signal Date"),
-                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                 "name":                st.column_config.TextColumn("Name"),
                                 "sector":              st.column_config.TextColumn("Sector"),
                                 "signal_price":        st.column_config.NumberColumn("Signal $",   format="$%.2f"),
@@ -1172,7 +1181,7 @@ elif page == "🚀 Live Trading Desk":
                     st.caption("US turnaround catalyst signals. Pattern A = big gap day. Pattern B = TS jump ≥20 pts. 🚀 = RS21 velocity ≥5.")
                     if not us_tc_log_df.empty:
                         _utc_disp = us_tc_log_df.copy()
-                        _utc_disp['yf_link'] = _utc_disp.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+                        _utc_disp['yf_link'] = _utc_disp.apply(lambda r: _us_quote_url(r['ticker']), axis=1)
                         _utc_disp['signal_date'] = pd.to_datetime(_utc_disp['signal_date']).dt.strftime('%Y-%m-%d')
                         _utc_disp['vel_flag'] = _utc_disp['rs21_vel'].apply(lambda v: "🚀" if float(v or 0) >= 5 else "")
                         _utc_cols = [c for c in ['signal_date', 'yf_link', 'name', 'sector',
@@ -1184,7 +1193,7 @@ elif page == "🚀 Live Trading Desk":
                             _utc_disp[_utc_cols],
                             column_config={
                                 "signal_date":         st.column_config.TextColumn("Signal Date"),
-                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                                "yf_link":             st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                                 "name":                st.column_config.TextColumn("Name"),
                                 "sector":              st.column_config.TextColumn("Sector"),
                                 "signal_price":        st.column_config.NumberColumn("Signal $",  format="$%.2f"),
@@ -7215,11 +7224,11 @@ elif page == "🇺🇸 US Scanner":
     if not _bkouts.empty:
         with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
             _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
-            _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+            _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: _us_quote_url(r['ticker']), axis=1)
             st.dataframe(
                 _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
                 column_config={
-                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                    "yf_link":      st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                     "name":         "Company",
                     "currentPrice": st.column_config.NumberColumn("Price", format="$%.2f"),
                     "dist_52w":     st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
@@ -7329,7 +7338,7 @@ elif page == "🇺🇸 US Scanner":
         us_fdf["signal_display"] = us_fdf["trend_signal"].map(
             lambda s: f"{_EMOJI.get(s, '')} {s}" if s else s
         )
-        us_fdf["yf_link"] = us_fdf.apply(lambda r: _google_finance_url(r['ticker']), axis=1)
+        us_fdf["yf_link"] = us_fdf.apply(lambda r: _us_quote_url(r['ticker']), axis=1)
 
         _us_disp = [
             "yf_link", "name", "sector", "sub_industry", "currentPrice",
@@ -7342,7 +7351,7 @@ elif page == "🇺🇸 US Scanner":
         st.dataframe(
             us_fdf[_us_disp].sort_values("trend_score", ascending=False),
             column_config={
-                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                "yf_link":           st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                 "name":              "Company",
                 "sector":            "Sector",
                 "sub_industry":      "Sub-Industry",
@@ -7501,13 +7510,13 @@ elif page == "🇺🇸 US Scanner":
                 _bm5.metric("Worst (10D)", f"{_bt_summary['worst_10d_ret']:+.2f}%")
             if not _bt_top.empty:
                 st.markdown("#### Top 15 Signals by 10D Return")
-                _bt_top["INDmoney"] = _bt_top["Ticker"].apply(_google_finance_url)
+                _bt_top["INDmoney"] = _bt_top["Ticker"].apply(_us_quote_url)
                 st.dataframe(
                     _bt_top[["INDmoney", "Signal Date", "Signal Price",
                               "Compression", "Vol Ratio %", "Dist 52W %",
                               "Return 5D %", "Return 10D %", "Return 21D %"]],
                     column_config={
-                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=_GF_DISPLAY_RE),
+                        "INDmoney":      st.column_config.LinkColumn("Ticker", display_text=_US_DISPLAY_RE),
                         "Signal Price":  st.column_config.NumberColumn(format="$%.2f"),
                         "Compression":   st.column_config.NumberColumn("ATR% (10D)", format="%.2f%%"),
                         "Vol Ratio %":   st.column_config.NumberColumn("Vol %", format="%.1f%%"),
