@@ -216,10 +216,25 @@ if _needs_refresh:
     # Step 3: Pre-fetch Nifty index data (shared across all pages)
     progress_bar.progress(80, text="Step 3/4: Fetching Nifty index data...")
     try:
+        from utils.yf_safe import safe_history
         _nifty_start = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
-        _nifty_data = yf.Ticker("^NSEI").history(start=_nifty_start)
-        if not _nifty_data.empty:
+        # Retry-with-backoff, like every other fetch in the pipeline. A bare
+        # .history() here had no retry, and on failure the `if not empty` guard
+        # below silently LEFT THE PREVIOUS SERIES IN session_state — so one
+        # transient Yahoo blip froze the Nifty series indefinitely while stock
+        # prices kept refreshing. That is not just a stale label: the RS
+        # Divergence scan compares today's stock change against
+        # nifty_df.Close[-1] vs [-2], so a stale index series makes it compare
+        # today's stock move to a days-old Nifty move.
+        _nifty_data = safe_history("^NSEI", start=_nifty_start)
+        if _nifty_data is not None and not _nifty_data.empty:
             st.session_state['nifty_data'] = _nifty_data
+            st.session_state['nifty_fetched_at'] = datetime.now()
+        else:
+            # Fail loudly rather than inheriting a stale index series.
+            st.session_state.pop('nifty_data', None)
+            st.session_state['nifty_fetch_failed'] = True
+        if not _nifty_data.empty:
             
             # --- V2.2 Regime Manager ---
             from utils.regime_manager import classify_regime
@@ -630,9 +645,36 @@ elif page == "🚀 Live Trading Desk":
         if 'nifty_data' in st.session_state:
             nifty_live = st.session_state['nifty_data']
         else:
+            from utils.yf_safe import safe_history
             start_date = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
-            nifty_live = yf.Ticker("^NSEI").history(start=start_date)
-        if not nifty_live.empty:
+            nifty_live = safe_history("^NSEI", start=start_date)
+
+        # The divergence scan pairs today's stock change against the index's
+        # last-vs-previous bar, so both sides must describe the same session.
+        # Calendar age is the wrong measure — a Friday bar read on Monday is
+        # 3 days old and perfectly valid, while a Tuesday bar read on Thursday
+        # is only 2 days old and means Wednesday's session is missing. Count
+        # weekday sessions that elapsed with no bar instead.
+        _nifty_bar_date, _nifty_bar_age, _sessions_missed = None, None, 0
+        try:
+            _lb = nifty_live.index[-1]
+            _lb = _lb.tz_localize(None) if getattr(_lb, "tzinfo", None) else _lb
+            _nifty_bar_date = _lb.to_pydatetime().date()
+            _today = datetime.now().date()
+            _nifty_bar_age = (_today - _nifty_bar_date).days
+            _d = _nifty_bar_date + timedelta(days=1)
+            while _d < _today:
+                if _d.weekday() < 5:
+                    _sessions_missed += 1
+                _d += timedelta(days=1)
+        except Exception:
+            _nifty_bar_date = None
+        # A market holiday can produce one missed weekday, so the message says
+        # so — but the scan still stops. A day without this niche scanner costs
+        # nothing; a scan pairing mismatched sessions produces wrong signals.
+        _nifty_stale = _sessions_missed >= 1
+
+        if nifty_live is not None and not nifty_live.empty:
             regime_data = get_live_regime(nifty_live)
             
             # Show Auto-Regime detection Results
@@ -739,7 +781,9 @@ elif page == "🚀 Live Trading Desk":
                     hist_dict = get_fast_histories(tuple(top_300_tickers))
 
                     vcp_list   = find_vcp_setups(df[df['ticker'].isin(top_300_tickers)], hist_dict)
-                    rs_list    = find_rs_divergence(df, nifty_live)
+                    # A stale index series would pair today's stock move with a
+                    # days-old Nifty move and report nonsense; skip instead.
+                    rs_list    = [] if _nifty_stale else find_rs_divergence(df, nifty_live)
                     shock_list = find_live_earnings_shocks(df[df['ticker'].isin(top_300_tickers)], hist_dict)
 
                     _prev_scores, _prev_rs21 = _get_prev_day_maps()
@@ -798,7 +842,18 @@ elif page == "🚀 Live Trading Desk":
                         _rs_asof_str = _rs_asof.strftime('%Y-%m-%d') if hasattr(_rs_asof, 'strftime') else str(_rs_asof)
                     else:
                         _rs_asof_str = "unknown"
-                    with st.expander(f"🟢 RS Divergence — as of {_rs_asof_str} [{len(rs_list)}]", expanded=True):
+                    _rs_title = (f"🟢 RS Divergence — as of {_rs_asof_str} [{len(rs_list)}]"
+                                 if not _nifty_stale else
+                                 f"🔴 RS Divergence — STALE INDEX DATA ({_rs_asof_str})")
+                    with st.expander(_rs_title, expanded=True):
+                        if _nifty_stale:
+                            st.error(
+                                f"Index data ends at **{_rs_asof_str}** "
+                                f"({_sessions_missed} trading session(s) missing) while stock "
+                                f"prices are current. Scan suspended — pairing today's stock "
+                                f"move with a stale index move would report false divergences. "
+                                f"If those sessions were market holidays this is harmless; "
+                                f"otherwise use 🔄 Hard Reset Cache to force a re-fetch.")
                         st.caption(f"Green in a sea of Red. Stock closed > +0.3% while Nifty fell > -0.3% "
                                    f"on the bar dated **{_rs_asof_str}** (refreshes every {AUTO_REFRESH_MINUTES} min — "
                                    f"may lag the live intraday tape).")
