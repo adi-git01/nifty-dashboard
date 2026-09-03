@@ -1,92 +1,117 @@
 {
-    "TEXRAIL.NS": {
+    "COHANCE.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
+        "days_active": 3,
+        "ias": 96.1
     },
-    "TIMETECHNO.NS": {
+    "SBICARD.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 93.2
+    },
+    "BAJAJCON.NS": {
         "tier": "ALERT",
         "days_active": 2,
-        "ias": 94.7
+        "ias": 90.0
+    },
+    "AXISCADES.NS": {
+        "tier": "ALERT",
+        "days_active": 2,
+        "ias": 87.9
     },
     "TORNTPOWER.NS": {
+        "tier": "ALERT",
+        "days_active": 2,
+        "ias": 81.9
+    },
+    "ACI.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 72.4
+        "days_active": 2,
+        "ias": 73.1
     },
     "CLEAN.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 69.9
+        "days_active": 2,
+        "ias": 70.2
     },
-    "AXISCADES.NS": {
+    "ELECON.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 66.8
-    },
-    "MANINFRA.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 65.0
+        "ias": 68.6
     },
     "HERITGFOOD.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
-    "MASTEK.NS": {
+    "MANINFRA.NS": {
+        "tier": "READY",
+        "days_active": 4,
+        "ias": 65.0
+    },
+    "GESHIP.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 62.9
+    },
+    "NLCINDIA.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 61.7
+    },
+    "AAVAS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 57.0
+    },
+    "INOXWIND.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 53.8
+    },
+    "J&KBANK.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 52.6
     },
     "SPARC.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 54.0
-    },
-    "BAJAJCON.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 54.0
-    },
-    "CMSINFO.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 51.7
+        "ias": 51.5
     },
-    "COHANCE.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 50.8
-    },
-    "NLCINDIA.NS": {
+    "ADANIGREEN.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 44.9
+        "ias": 50.0
     },
-    "ACI.NS": {
+    "RENUKA.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 43.7
+        "ias": 44.5
     },
-    "FORCEMOT.NS": {
+    "JIOFIN.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 1,
         "ias": 42.3
     },
-    "KPITTECH.NS": {
+    "JMFINANCIL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 40.9
+        "ias": 41.8
     },
-    "ZENSARTECH.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 39.4
-    },
-    "BSOFT.NS": {
+    "TATACHEM.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 38.1
+        "ias": 41.2
+    },
+    "TRIVENI.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 40.1
+    },
+    "FIRSTCRY.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.1
     }
 }
