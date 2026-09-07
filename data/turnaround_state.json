@@ -1,147 +1,132 @@
 {
     "TEXRAIL.NS": {
         "tier": "ALERT",
+        "days_active": 2,
+        "ias": 100.0
+    },
+    "JISLJALEQS.NS": {
+        "tier": "ALERT",
         "days_active": 1,
         "ias": 100.0
     },
-    "SBICARD.NS": {
+    "HBLENGINE.NS": {
         "tier": "ALERT",
         "days_active": 2,
-        "ias": 97.9
+        "ias": 89.3
     },
-    "BAJAJCON.NS": {
+    "SBICARD.NS": {
         "tier": "ALERT",
         "days_active": 3,
-        "ias": 90.0
+        "ias": 89.0
     },
-    "TORNTPOWER.NS": {
+    "BSE.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 82.5
+    },
+    "INOXWIND.NS": {
         "tier": "ALERT",
         "days_active": 3,
-        "ias": 83.0
+        "ias": 81.7
     },
-    "IGL.NS": {
-        "tier": "ALERT",
+    "JPPOWER.NS": {
+        "tier": "READY",
         "days_active": 1,
-        "ias": 81.4
-    },
-    "TIMETECHNO.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 80.3
+        "ias": 77.2
     },
     "ACI.NS": {
         "tier": "READY",
-        "days_active": 3,
-        "ias": 75.6
+        "days_active": 4,
+        "ias": 77.0
     },
-    "AXISCADES.NS": {
+    "SWIGGY.NS": {
         "tier": "READY",
-        "days_active": 3,
-        "ias": 73.6
+        "days_active": 2,
+        "ias": 75.4
     },
-    "MANINFRA.NS": {
+    "NEWGEN.NS": {
         "tier": "READY",
-        "days_active": 5,
+        "days_active": 1,
+        "ias": 74.2
+    },
+    "INTELLECT.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 68.7
+    },
+    "PFC.NS": {
+        "tier": "READY",
+        "days_active": 2,
         "ias": 65.0
     },
     "AFFLE.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
     "HERITGFOOD.NS": {
         "tier": "READY",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 65.0
-    },
-    "AIIL.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 65.0
-    },
-    "INTELLECT.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 63.6
     },
     "PURVA.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 60.0
     },
-    "IXIGO.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 60.0
-    },
-    "MANYAVAR.NS": {
+    "HDFCBANK.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 59.8
+        "ias": 55.9
     },
-    "HBLENGINE.NS": {
+    "NCC.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 56.3
-    },
-    "HDFCLIFE.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 53.6
-    },
-    "SWIGGY.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.7
-    },
-    "INOXWIND.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 52.1
-    },
-    "PCJEWELLER.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 51.5
-    },
-    "ELECON.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 50.0
-    },
-    "PIIND.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 46.8
+        "ias": 55.4
     },
     "RENUKA.NS": {
         "tier": "WATCH",
+        "days_active": 3,
+        "ias": 54.4
+    },
+    "BAJAJCON.NS": {
+        "tier": "WATCH",
+        "days_active": 4,
+        "ias": 54.0
+    },
+    "BBOX.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 51.0
+    },
+    "CHEMPLASTS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.9
+    },
+    "TEGA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 46.4
+    },
+    "IGL.NS": {
+        "tier": "WATCH",
         "days_active": 2,
+        "ias": 46.4
+    },
+    "COCHINSHIP.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
         "ias": 42.8
     },
-    "SHREECEM.NS": {
+    "KAYNES.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 41.9
+        "ias": 41.7
     },
-    "IOC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 38.8
-    },
-    "PFC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 38.2
-    },
-    "FIRSTCRY.NS": {
+    "PIIND.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 37.3
-    },
-    "JIOFIN.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 35.4
+        "ias": 36.9
     }
 }
