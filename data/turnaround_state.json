@@ -1,132 +1,107 @@
 {
     "TEXRAIL.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
-    },
-    "JISLJALEQS.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 3,
         "ias": 100.0
     },
     "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 89.3
-    },
-    "SBICARD.NS": {
-        "tier": "ALERT",
         "days_active": 3,
-        "ias": 89.0
-    },
-    "BSE.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 82.5
+        "ias": 95.0
     },
     "INOXWIND.NS": {
         "tier": "ALERT",
-        "days_active": 3,
-        "ias": 81.7
+        "days_active": 4,
+        "ias": 81.9
+    },
+    "SYMPHONY.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 80.6
     },
     "JPPOWER.NS": {
         "tier": "READY",
-        "days_active": 1,
-        "ias": 77.2
-    },
-    "ACI.NS": {
-        "tier": "READY",
-        "days_active": 4,
-        "ias": 77.0
-    },
-    "SWIGGY.NS": {
-        "tier": "READY",
         "days_active": 2,
-        "ias": 75.4
-    },
-    "NEWGEN.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 74.2
-    },
-    "INTELLECT.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 68.7
-    },
-    "PFC.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
+        "ias": 75.7
     },
     "AFFLE.NS": {
         "tier": "READY",
-        "days_active": 2,
+        "days_active": 3,
+        "ias": 65.0
+    },
+    "GARUDA.NS": {
+        "tier": "READY",
+        "days_active": 1,
         "ias": 65.0
     },
     "HERITGFOOD.NS": {
         "tier": "READY",
-        "days_active": 4,
+        "days_active": 5,
         "ias": 65.0
-    },
-    "PURVA.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
-    "HDFCBANK.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.9
-    },
-    "NCC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.4
-    },
-    "RENUKA.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 54.4
     },
     "BAJAJCON.NS": {
         "tier": "WATCH",
-        "days_active": 4,
+        "days_active": 5,
         "ias": 54.0
     },
-    "BBOX.NS": {
+    "PURVA.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 53.5
+    },
+    "BANDHANBNK.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 52.9
+    },
+    "GENESYS.NS": {
         "tier": "WATCH",
         "days_active": 1,
         "ias": 51.0
     },
-    "CHEMPLASTS.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 50.9
-    },
-    "TEGA.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 46.4
-    },
-    "IGL.NS": {
+    "BBOX.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 46.4
+        "ias": 51.0
     },
     "COCHINSHIP.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 42.8
-    },
-    "KAYNES.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 41.7
-    },
-    "PIIND.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 36.9
+        "ias": 49.8
+    },
+    "RENUKA.NS": {
+        "tier": "WATCH",
+        "days_active": 4,
+        "ias": 47.4
+    },
+    "IGL.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 46.3
+    },
+    "AVANTIFEED.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 46.0
+    },
+    "HINDUNILVR.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.0
+    },
+    "PFC.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 42.2
+    },
+    "GMDCLTD.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 38.1
+    },
+    "THANGAMAYL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.5
     }
 }
