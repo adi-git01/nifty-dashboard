@@ -1,107 +1,102 @@
 {
-    "TEXRAIL.NS": {
+    "SWIGGY.NS": {
         "tier": "ALERT",
-        "days_active": 3,
+        "days_active": 1,
+        "ias": 100.0
+    },
+    "EIEL.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
         "ias": 100.0
     },
     "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 95.0
+    },
+    "TEGA.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 93.1
     },
     "INOXWIND.NS": {
         "tier": "ALERT",
-        "days_active": 4,
-        "ias": 81.9
+        "days_active": 5,
+        "ias": 85.1
+    },
+    "TORNTPOWER.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 83.8
+    },
+    "CESC.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 82.0
     },
     "SYMPHONY.NS": {
         "tier": "ALERT",
-        "days_active": 1,
-        "ias": 80.6
-    },
-    "JPPOWER.NS": {
-        "tier": "READY",
         "days_active": 2,
-        "ias": 75.7
+        "ias": 81.9
     },
-    "AFFLE.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 65.0
+    "SBICARD.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 81.6
     },
     "GARUDA.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
-    "HERITGFOOD.NS": {
+    "ELLEN.NS": {
         "tier": "READY",
-        "days_active": 5,
-        "ias": 65.0
-    },
-    "BAJAJCON.NS": {
-        "tier": "WATCH",
-        "days_active": 5,
-        "ias": 54.0
-    },
-    "PURVA.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 53.5
+        "days_active": 1,
+        "ias": 60.0
     },
     "BANDHANBNK.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.9
+        "days_active": 2,
+        "ias": 54.0
+    },
+    "BAJAJCON.NS": {
+        "tier": "WATCH",
+        "days_active": 6,
+        "ias": 54.0
     },
     "GENESYS.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 51.0
-    },
-    "BBOX.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 51.0
-    },
-    "COCHINSHIP.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 49.8
-    },
-    "RENUKA.NS": {
-        "tier": "WATCH",
-        "days_active": 4,
-        "ias": 47.4
-    },
-    "IGL.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 46.3
-    },
-    "AVANTIFEED.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 46.0
-    },
-    "HINDUNILVR.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 44.0
-    },
-    "PFC.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 42.2
+        "ias": 54.0
     },
     "GMDCLTD.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 38.1
+        "days_active": 2,
+        "ias": 50.9
     },
-    "THANGAMAYL.NS": {
+    "AGIIL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 36.5
+        "ias": 47.9
+    },
+    "AVANTIFEED.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 44.3
+    },
+    "UPL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.2
+    },
+    "EMAMILTD.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 39.7
+    },
+    "CROMPTON.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 37.1
     }
 }
