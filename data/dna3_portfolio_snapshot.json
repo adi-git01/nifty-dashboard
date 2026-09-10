@@ -1,7 +1,7 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-09-09",
-    "cash": 151606.08130965417,
+    "date": "2026-09-10",
+    "cash": 222074.36547713465,
     "holdings": {
         "SYRMA.NS": {
             "entry_price": 1266.699951171875,
@@ -33,17 +33,11 @@
             "shares": 114,
             "peak_price": 976.25
         },
-        "CNL.NS": {
-            "entry_price": 1116.8499755859375,
-            "entry_date": "2026-08-07",
-            "shares": 65,
-            "peak_price": 1279.5999755859375
-        },
         "REDINGTON.NS": {
             "entry_price": 354.8500061035156,
             "entry_date": "2026-08-07",
             "shares": 204,
-            "peak_price": 378.20001220703125
+            "peak_price": 392.0
         },
         "PGIL.NS": {
             "entry_price": 2464.10009765625,
@@ -73,7 +67,7 @@
             "entry_price": 2306.699951171875,
             "entry_date": "2026-08-26",
             "shares": 29,
-            "peak_price": 2641.60009765625
+            "peak_price": 2776.89990234375
         },
         "ARIES.NS": {
             "entry_price": 503.70001220703125,
@@ -82,165 +76,153 @@
             "peak_price": 503.70001220703125
         }
     },
-    "equity": 1172423.427104332,
-    "cash_pct": 12.9,
-    "count": 13,
+    "equity": 1162304.021547844,
+    "cash_pct": 19.1,
+    "count": 12,
     "portfolio": [
+        {
+            "Ticker": "WELCORP.NS",
+            "Sector": "Ferrous Metals",
+            "Price": 2776.89990234375,
+            "RS_Score": 68.0,
+            "Entry": 2306.699951171875,
+            "PnL%": 20.384096810380512,
+            "Dist_MA50": 42.768266738609135,
+            "MA50": 1945.04,
+            "Trail_Stop": 2443.67,
+            "Danger": ""
+        },
         {
             "Ticker": "CYIENTDLM.NS",
             "Sector": "Aerospace & Defense",
-            "Price": 945.6500244140625,
-            "RS_Score": 68.9,
+            "Price": 923.2999877929688,
+            "RS_Score": 60.4,
             "Entry": 623.0,
-            "PnL%": 51.78973104559591,
-            "Dist_MA50": 38.69415309264706,
-            "MA50": 681.82,
+            "PnL%": 48.20224523161617,
+            "Dist_MA50": 33.6169761668732,
+            "MA50": 691.01,
             "Trail_Stop": 859.1,
             "Danger": ""
         },
         {
             "Ticker": "DOLPHIN.NS",
             "Sector": "Oil",
-            "Price": 685.0,
-            "RS_Score": 66.3,
+            "Price": 654.0,
+            "RS_Score": 54.6,
             "Entry": 613.2999877929688,
-            "PnL%": 11.690854986815191,
-            "Dist_MA50": 44.38683079208335,
-            "MA50": 474.42,
+            "PnL%": 6.63623235237538,
+            "Dist_MA50": 36.23410660987964,
+            "MA50": 480.06,
             "Trail_Stop": 633.95,
-            "Danger": ""
-        },
-        {
-            "Ticker": "WELCORP.NS",
-            "Sector": "Ferrous Metals",
-            "Price": 2608.5,
-            "RS_Score": 57.9,
-            "Entry": 2306.699951171875,
-            "PnL%": 13.083628352911752,
-            "Dist_MA50": 35.89632125937885,
-            "MA50": 1919.48,
-            "Trail_Stop": 2324.61,
-            "Danger": ""
-        },
-        {
-            "Ticker": "ARIES.NS",
-            "Sector": "Fertilizers & Agrochemicals",
-            "Price": 486.1499938964844,
-            "RS_Score": 42.5,
-            "Entry": 503.70001220703125,
-            "PnL%": -3.484220346481439,
-            "Dist_MA50": 24.939924941974787,
-            "MA50": 389.11,
-            "Trail_Stop": 443.26,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 3.2% to trail"
         },
         {
             "Ticker": "SHILPAMED.NS",
             "Sector": "Healthcare Services",
-            "Price": 960.5999755859375,
+            "Price": 939.9000244140625,
             "RS_Score": 41.2,
             "Entry": 546.75,
-            "PnL%": 75.69272530149749,
-            "Dist_MA50": 29.579396555261045,
-            "MA50": 741.32,
+            "PnL%": 71.90672600165752,
+            "Dist_MA50": 25.63659418091237,
+            "MA50": 748.11,
             "Trail_Stop": 848.45,
             "Danger": ""
         },
         {
             "Ticker": "COMSYN.NS",
             "Sector": "Industrial Products",
-            "Price": 301.1499938964844,
-            "RS_Score": 39.0,
+            "Price": 299.0,
+            "RS_Score": 37.8,
             "Entry": 288.7200012207031,
-            "PnL%": 4.305206644232286,
-            "Dist_MA50": 26.239123706033162,
-            "MA50": 238.56,
+            "PnL%": 3.560542648875457,
+            "Dist_MA50": 24.169435215946837,
+            "MA50": 240.8,
             "Trail_Stop": 267.83,
+            "Danger": ""
+        },
+        {
+            "Ticker": "REDINGTON.NS",
+            "Sector": "Commercial Services & Supplies",
+            "Price": 392.0,
+            "RS_Score": 36.6,
+            "Entry": 354.8500061035156,
+            "PnL%": 10.469210443143435,
+            "Dist_MA50": 21.32091284112785,
+            "MA50": 323.11,
+            "Trail_Stop": 344.96,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ARIES.NS",
+            "Sector": "Fertilizers & Agrochemicals",
+            "Price": 468.6000061035156,
+            "RS_Score": 33.4,
+            "Entry": 503.70001220703125,
+            "PnL%": -6.968434634281643,
+            "Dist_MA50": 19.637565459656866,
+            "MA50": 391.68,
+            "Trail_Stop": 443.26,
             "Danger": ""
         },
         {
             "Ticker": "CUPID.NS",
             "Sector": "Personal Products",
-            "Price": 279.70001220703125,
-            "RS_Score": 32.3,
+            "Price": 277.45001220703125,
+            "RS_Score": 27.5,
             "Entry": 192.05999755859375,
-            "PnL%": 45.631581673690405,
-            "Dist_MA50": 12.583245433301638,
-            "MA50": 248.44,
+            "PnL%": 44.460072755330884,
+            "Dist_MA50": 10.915142135538128,
+            "MA50": 250.15,
             "Trail_Stop": 259.48,
             "Danger": ""
         },
         {
             "Ticker": "ALLCARGO.NS",
             "Sector": "Transport Services",
-            "Price": 12.75,
-            "RS_Score": 31.8,
+            "Price": 12.260000228881836,
+            "RS_Score": 23.3,
             "Entry": 13.319999694824219,
-            "PnL%": -4.2792770862127325,
-            "Dist_MA50": 30.81484763526456,
-            "MA50": 9.75,
+            "PnL%": -7.957954130841828,
+            "Dist_MA50": 24.791337513864597,
+            "MA50": 9.82,
             "Trail_Stop": 11.72,
-            "Danger": ""
-        },
-        {
-            "Ticker": "REDINGTON.NS",
-            "Sector": "Commercial Services & Supplies",
-            "Price": 378.04998779296875,
-            "RS_Score": 31.0,
-            "Entry": 354.8500061035156,
-            "PnL%": 6.537968519207325,
-            "Dist_MA50": 17.87025664383741,
-            "MA50": 320.73,
-            "Trail_Stop": 332.82,
-            "Danger": ""
-        },
-        {
-            "Ticker": "CNL.NS",
-            "Sector": "IT - Hardware",
-            "Price": 1141.4000244140625,
-            "RS_Score": 29.0,
-            "Entry": 1116.8499755859375,
-            "PnL%": 2.1981509929518697,
-            "Dist_MA50": 8.373554232380984,
-            "MA50": 1053.21,
-            "Trail_Stop": 1126.05,
-            "Danger": "\u26a0\ufe0f 1.4% to trail"
+            "Danger": "\u26a0\ufe0f 4.6% to trail"
         },
         {
             "Ticker": "DPABHUSHAN.NS",
             "Sector": "Consumer Durables",
-            "Price": 1397.699951171875,
-            "RS_Score": 22.1,
+            "Price": 1369.300048828125,
+            "RS_Score": 20.1,
             "Entry": 1472.0,
-            "PnL%": -5.0475576649541445,
-            "Dist_MA50": 3.6578728810795464,
-            "MA50": 1348.38,
+            "PnL%": -6.976898856784987,
+            "Dist_MA50": 0.9195782771431569,
+            "MA50": 1356.82,
             "Trail_Stop": 1349.3,
-            "Danger": "\u26a0\ufe0f 3.7% to MA50 | \u26a0\ufe0f 3.6% to trail"
-        },
-        {
-            "Ticker": "SYRMA.NS",
-            "Sector": "Industrial Products",
-            "Price": 1622.4000244140625,
-            "RS_Score": 19.2,
-            "Entry": 1266.699951171875,
-            "PnL%": 28.08084684246771,
-            "Dist_MA50": 13.733848957321584,
-            "MA50": 1426.49,
-            "Trail_Stop": 1442.5,
-            "Danger": ""
+            "Danger": "\u26a0\ufe0f 0.9% to MA50 | \u26a0\ufe0f 1.5% to trail"
         },
         {
             "Ticker": "PGIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 2277.89990234375,
-            "RS_Score": 14.6,
+            "Price": 2378.39990234375,
+            "RS_Score": 19.6,
             "Entry": 2464.10009765625,
-            "PnL%": -7.556519132059851,
-            "Dist_MA50": 3.82027522878499,
-            "MA50": 2194.08,
+            "PnL%": -3.4779510537747425,
+            "Dist_MA50": 8.11459022172102,
+            "MA50": 2199.89,
             "Trail_Stop": 2182.75,
-            "Danger": "\u26a0\ufe0f 3.8% to MA50 | \u26a0\ufe0f 4.4% to trail"
+            "Danger": ""
+        },
+        {
+            "Ticker": "SYRMA.NS",
+            "Sector": "Industrial Products",
+            "Price": 1598.800048828125,
+            "RS_Score": 17.6,
+            "Entry": 1266.699951171875,
+            "PnL%": 26.217739832468677,
+            "Dist_MA50": 11.799404118242162,
+            "MA50": 1430.06,
+            "Trail_Stop": 1442.5,
+            "Danger": ""
         }
     ],
     "last_rebalance_date": "2026-08-26",
@@ -251,7 +233,8 @@
         "3IINFOLTD.NS": "2026-08-19",
         "AARTISURF.NS": "2026-08-20",
         "FILATEX.NS": "2026-08-26",
-        "DIACABS.NS": "2026-09-03"
+        "DIACABS.NS": "2026-09-03",
+        "CNL.NS": "2026-09-10"
     },
     "last_dd_alert_date": "2026-07-03",
     "config": {
