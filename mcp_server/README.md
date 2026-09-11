@@ -31,6 +31,9 @@ python -m mcp_server.server --selftest    # exercises every tool, no protocol
 
 ## Client config
 
+Use the **absolute path to `server.py`**. It works from any working directory,
+so no client needs a `cwd` setting:
+
 **Claude Desktop** — `claude_desktop_config.json`
 (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`):
 
@@ -39,8 +42,7 @@ python -m mcp_server.server --selftest    # exercises every tool, no protocol
   "mcpServers": {
     "alpha-trend": {
       "command": "python",
-      "args": ["-m", "mcp_server.server"],
-      "cwd": "/absolute/path/to/nifty-dashboard"
+      "args": ["C:/path/to/nifty-dashboard/mcp_server/server.py"]
     }
   }
 }
@@ -49,11 +51,12 @@ python -m mcp_server.server --selftest    # exercises every tool, no protocol
 **Claude Code**
 
 ```bash
-claude mcp add alpha-trend -- python -m mcp_server.server
+claude mcp add alpha-trend -- python /absolute/path/to/nifty-dashboard/mcp_server/server.py
 ```
-(run from the repo root, or add `--cwd /absolute/path/to/nifty-dashboard`)
 
-**OpenCode** — add the same command/args/cwd under its MCP section.
+**OpenCode** — same command and args under its MCP section.
+
+On Windows use `python`; on macOS/Linux use `python3` if `python` is not on PATH.
 
 ## Notes
 

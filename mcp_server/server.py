@@ -19,7 +19,16 @@ from typing import Optional
 
 from mcp.server.mcpserver import MCPServer
 
-from . import data_access as D
+# Work both as a package (`python -m mcp_server.server`) and as a plain script
+# (`python /abs/path/to/mcp_server/server.py`). Many MCP clients offer no way to
+# set a working directory, and a config that only runs from the repo root is a
+# config that silently fails on someone else's machine.
+try:
+    from . import data_access as D
+except ImportError:  # pragma: no cover - direct-script execution
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from mcp_server import data_access as D
 
 mcp = MCPServer(
     name="alpha-trend",

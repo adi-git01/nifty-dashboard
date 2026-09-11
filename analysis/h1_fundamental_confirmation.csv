@@ -1,0 +1,7 @@
+label,mean_all,n_all,mean_nonoverlap,n_indep,t_indep,avg_names
+"baseline (CompRS>=17, >MA50)",2.29,61,4.6,3,1.35,97
++ earnings growth > 0,2.94,61,5.26,3,1.71,60
++ revenue growth > 0,2.71,61,5.39,3,1.57,76
++ earnings TREND > 0,2.77,61,5.33,3,1.59,68
++ eps AND rev growth > 0,3.19,61,5.54,3,1.66,58
++ earnings growth <= 0 (inv),1.87,61,1.41,3,0.42,22
