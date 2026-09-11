@@ -1,0 +1,5 @@
+component,weight,IC_full,IC_first_half,IC_second_half
+ias_vel,35,-0.244,-0.171,-0.253
+ias_lfl,30,0.028,-0.055,0.001
+ias_price,20,-0.125,-0.021,-0.104
+ias_rs63,15,-0.073,-0.025,-0.108

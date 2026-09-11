@@ -236,3 +236,40 @@ if __name__ == "__main__":
     if h3 is not None and not h3.empty:
         h3.to_csv(f"{OUT_DIR}/h3_ias_components.csv", index=False)
     print(f"\nsaved -> {OUT_DIR}/h1_*.csv, {OUT_DIR}/h3_*.csv")
+
+
+# ---------------------------------------------------------------------------
+def h3b_tier_boundaries():
+    """
+    Re-examination of the IAS tier boundaries (35 / 60 / 80).
+
+    Conclusion recorded here so it is not re-derived: do NOT retune them on
+    this sample. The whole log sits in one CAUTION regime over 3.5 months, and
+    the apparent inversion is inherited from the score's momentum-loaded
+    components — in a regime where momentum's IC is negative, any
+    momentum-weighted score inverts. Retuning would fit the regime, not the
+    score.
+
+    The one component finding that survives a regime change is the LFL term:
+    ~0 IC in BOTH sub-periods, i.e. dead weight rather than wrong-signed.
+    """
+    import pandas as pd
+    from scipy.stats import spearmanr
+    d = pd.read_csv(IAS_LOG)
+    d["signal_date"] = pd.to_datetime(d["signal_date"], errors="coerce")
+    for c in ["signal_ias", "signal_ias_vel", "signal_ias_lfl",
+              "signal_ias_price", "signal_ias_rs63", "return_21d"]:
+        d[c] = pd.to_numeric(d[c], errors="coerce")
+    s = d.dropna(subset=["return_21d"])
+    mid = s.signal_date.quantile(0.5)
+    rows = []
+    for col, pts in [("signal_ias_vel", 35), ("signal_ias_lfl", 30),
+                     ("signal_ias_price", 20), ("signal_ias_rs63", 15)]:
+        f = s.dropna(subset=[col])
+        ic = spearmanr(f[col], f.return_21d)[0]
+        a, b = f[f.signal_date <= mid], f[f.signal_date > mid]
+        rows.append({"component": col.replace("signal_", ""), "weight": pts,
+                     "IC_full": round(ic, 3),
+                     "IC_first_half": round(spearmanr(a[col], a.return_21d)[0], 3),
+                     "IC_second_half": round(spearmanr(b[col], b.return_21d)[0], 3)})
+    return pd.DataFrame(rows)
