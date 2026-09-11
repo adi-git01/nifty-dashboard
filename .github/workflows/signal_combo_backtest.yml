@@ -1,0 +1,47 @@
+name: Signal Combo Backtest (CompRS x IAS x earnings)
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Lookback in years."
+        required: true
+        default: "10"
+      max_tickers:
+        description: "Cap on names DOWNLOADED. 0 = all ~2110 (a cap takes an alphabetical slice)."
+        required: true
+        default: "0"
+      fetch_earnings:
+        description: "Also fetch quarterly statements for earnings buckets (slow; usually too thin to score)."
+        required: true
+        default: "false"
+
+jobs:
+  combo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.10", cache: pip }
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run signal combo backtest
+        run: |
+          EXTRA=""
+          if [ "${{ github.event.inputs.fetch_earnings }}" = "true" ]; then EXTRA="--fetch-earnings"; fi
+          python signal_combo_backtest.py \
+            --years "${{ github.event.inputs.years }}" \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            $EXTRA 2>&1 | tee combo_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: signal-combo-backtest
+          path: |
+            analysis/signal_combo.csv
+            combo_output.txt
+          retention-days: 30
