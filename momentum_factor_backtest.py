@@ -50,12 +50,57 @@ HORIZON = 21          # forward-return horizon for the signal test
 RS_CAP = 200.0        # corrupt-bar guard, same as the dashboard
 
 
-def load_universe(max_tickers: int) -> list:
-    df = pd.read_csv("data/nifty500_list.csv")
-    col = "Ticker" if "Ticker" in df.columns else df.columns[0]
-    t = [str(x).strip() for x in df[col].dropna().unique()]
+def load_candidates(source: str, max_tickers: int) -> list:
+    """
+    The pool we DOWNLOAD. Selection of which names are actually in the universe
+    on a given date happens later, in build_pit_universe().
+
+    Default is the full NSE EQ list rather than nifty500_list.csv for two
+    reasons. First, the live strategy does not trade the Nifty 500 — it trades
+    the top 1000 by market cap out of the whole EQ list, so backtesting the
+    Nifty 500 measures a universe you do not trade. Second, today's index
+    membership is itself a survivorship filter: a name that was in the Nifty
+    500 in 2019 and got demoted for performing badly is absent from the file,
+    which is exactly the cohort a momentum test must not drop.
+    """
+    if source == "nifty500":
+        df = pd.read_csv("data/nifty500_list.csv")
+        col = "Ticker" if "Ticker" in df.columns else df.columns[0]
+        t = [str(x).strip() for x in df[col].dropna().unique()]
+    elif source == "nifty1000":
+        t = [str(x).strip() for x in pd.read_csv("data/nifty1000_list.csv")["Ticker"].dropna()]
+    else:  # "all" — every live NSE EQ symbol
+        e = pd.read_csv("EQUITY_L.csv")
+        e.columns = [c.strip() for c in e.columns]
+        e["SERIES"] = e["SERIES"].astype(str).str.strip()
+        t = [str(x).strip() for x in e[e["SERIES"] == "EQ"]["SYMBOL"].dropna().unique()]
     t = [x if x.endswith((".NS", ".BO")) else x + ".NS" for x in t]
     return t[:max_tickers] if max_tickers else t
+
+
+def build_pit_universe(close_df, vol_df, top_n: int, lookback: int = 60):
+    """
+    Point-in-time universe: on each date, the top `top_n` names by trailing
+    median turnover. Returns a boolean mask (dates x tickers).
+
+    This mirrors the live universe rule — build_nifty1000_ci.py ranks the whole
+    EQ list and keeps the top 1000 — but applies it AS OF each date instead of
+    once, today. A stock that was liquid in 2019 and is illiquid now is in the
+    2019 universe and out of the current one, which is what the strategy would
+    actually have faced. Turnover stands in for market cap because shares
+    outstanding are not available historically, and it doubles as the same
+    liquidity notion the live entry gate already uses.
+
+    WHAT THIS DOES NOT FIX: delisting. Companies that went to zero or were
+    taken off the exchange are absent from EQUITY_L and from every other file
+    in this repo, so no reconstruction here can include them. The residual bias
+    is therefore one-directional — returns are still flattered — and the only
+    honest response is to say so rather than to imply the universe is clean.
+    """
+    turn = (close_df * vol_df).rolling(lookback, min_periods=lookback // 2).median()
+    rank = turn.rank(axis=1, ascending=False, method="first")
+    mask = rank <= top_n
+    return mask & close_df.notna()
 
 
 def ic_table(rs: pd.DataFrame, fwd: pd.DataFrame, label: str) -> dict:
@@ -102,20 +147,40 @@ def quintiles(rs: pd.DataFrame, fwd: pd.DataFrame) -> pd.Series:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--years", type=int, default=10)
-    ap.add_argument("--max-tickers", type=int, default=500)
+    ap.add_argument("--max-tickers", type=int, default=0,
+                    help="cap on names DOWNLOADED (0 = all)")
+    ap.add_argument("--source", default="all",
+                    choices=["all", "nifty1000", "nifty500"],
+                    help="candidate pool to download (default: whole NSE EQ list)")
+    ap.add_argument("--top-n", type=int, default=1000,
+                    help="point-in-time universe size, by trailing turnover "
+                         "(matches the live top-1000 rule)")
     args = ap.parse_args()
 
     end = datetime.now()
     start = end - timedelta(days=365 * args.years + 400)   # +400 to warm up RS63/MA200
-    tickers = load_universe(args.max_tickers)
-    print(f"[universe] {len(tickers)} Nifty 500 names "
-          f"(TODAY's constituents — survivorship-biased, see docstring)")
+    tickers = load_candidates(args.source, args.max_tickers)
+    print(f"[universe] downloading {len(tickers)} candidates from '{args.source}'; "
+          f"point-in-time universe = top {args.top_n} by trailing turnover")
 
     close_df, vol_df, nifty = fetch(tickers, start.strftime("%Y-%m-%d"),
                                     end.strftime("%Y-%m-%d"))
     dates = close_df.index
     rs_panel = build_rs_panel(close_df, nifty, dates).where(
         lambda x: x.abs() <= RS_CAP)
+
+    # Point-in-time universe. simulate() gates eligibility on rs_panel.notna(),
+    # so masking here excludes out-of-universe names from BOTH the signal test
+    # and the money test without touching the simulator.
+    pit = build_pit_universe(close_df, vol_df, args.top_n)
+    rs_panel = rs_panel.where(pit)
+    sizes = pit.sum(axis=1)
+    churn = (pit.astype(int).diff().abs().sum(axis=1) / 2).rolling(252).sum()
+    print(f"[universe] members/day: min {int(sizes.min())} median {int(sizes.median())} "
+          f"max {int(sizes.max())} | median names entering-or-leaving per year: "
+          f"{int(churn.median()) if churn.notna().any() else 0}")
+    print(f"[universe] a static list would have frozen today's members across all "
+          f"{len(dates)} days instead.")
     fwd = close_df.shift(-HORIZON) / close_df - 1
     print(f"[data] {len(dates)} trading days {dates[0].date()} -> {dates[-1].date()}")
 
@@ -186,8 +251,10 @@ def main():
     money_df.to_csv(f"{OUT_DIR}/factor_money_by_window.csv", index=False)
     qd.to_csv(f"{OUT_DIR}/factor_quintiles.csv")
     print(f"\nsaved -> {OUT_DIR}/factor_*.csv")
-    print("\nREMINDER: Nifty 500 = today's constituents. Absolute returns are an "
-          "upper bound;\nyear-over-year IC changes are the trustworthy signal.")
+    print("\nREMINDER: the universe is point-in-time by turnover, so index-membership\n"
+          "survivorship is handled — but DELISTED companies are absent from EQUITY_L and\n"
+          "cannot be recovered from any file in this repo. Returns remain flattered by an\n"
+          "unknown amount; year-over-year IC changes stay the most trustworthy output.")
 
 
 if __name__ == "__main__":
