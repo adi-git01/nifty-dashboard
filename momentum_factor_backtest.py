@@ -144,6 +144,51 @@ def quintiles(rs: pd.DataFrame, fwd: pd.DataFrame) -> pd.Series:
     return pd.DataFrame(rows).mean() if rows else pd.Series(dtype=float)
 
 
+
+def shuffle_panel(rs_panel: pd.DataFrame, seed: int) -> pd.DataFrame:
+    """
+    Same values, same NaN mask, randomly reassigned across names on each date.
+
+    This is the control for the central paradox: CompRS ranks forward returns
+    NEGATIVELY over 10 years, yet the strategy compounded at ~26%. If the money
+    comes from the exit discipline (cut ~10%, ride winners ~30%) rather than
+    from the ranking, then destroying the name-level information while leaving
+    the cross-sectional distribution intact should barely dent returns.
+    Permuting rather than randomising preserves how many names clear
+    min_comp_rs, so only the question of WHICH names changes.
+    """
+    rng = np.random.default_rng(seed)
+    out = rs_panel.copy()
+    vals = out.to_numpy(copy=True)
+    for i in range(vals.shape[0]):
+        row = vals[i]
+        ok = ~np.isnan(row)
+        if ok.sum() > 1:
+            picked = row[ok]
+            rng.shuffle(picked)
+            row[ok] = picked
+    return pd.DataFrame(vals, index=out.index, columns=out.columns)
+
+
+def earnings_surprise_mask(close_df, vol_df, window: int = 63,
+                           gap_pct: float = 4.0, vol_mult: float = 2.5):
+    """
+    Price-derived proxy for "momentum confirmed by an earnings event".
+
+    Real quarterly earnings history is not available for 10 years from
+    yfinance, but the shock itself is: a one-day move beyond gap_pct on volume
+    beyond vol_mult times its 20-day average is the same rule the live
+    earnings_shock scanner uses. Mask is True while a stock is within `window`
+    days of such an event, so it answers the article's claim — does momentum
+    backed by a fundamental surprise rank better than naked momentum — over
+    the full history rather than over six months.
+    """
+    ret1 = close_df.pct_change()
+    volavg = vol_df.rolling(20, min_periods=10).mean()
+    shock = (ret1 > gap_pct / 100.0) & (vol_df > vol_mult * volavg)
+    return shock.rolling(window, min_periods=1).max().fillna(0).astype(bool)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--years", type=int, default=10)
@@ -152,6 +197,8 @@ def main():
     ap.add_argument("--source", default="all",
                     choices=["all", "nifty1000", "nifty500"],
                     help="candidate pool to download (default: whole NSE EQ list)")
+    ap.add_argument("--random-seeds", type=int, default=20,
+                    help="random-ranking control runs (0 to skip)")
     ap.add_argument("--top-n", type=int, default=1000,
                     help="point-in-time universe size, by trailing turnover "
                          "(matches the live top-1000 rule)")
@@ -227,6 +274,27 @@ def main():
 
     # ---------------- MONEY ----------------
     print("\n" + "=" * 78)
+    print("SIGNAL WITH AN EARNINGS-SURPRISE OVERLAY (price-derived, full history)")
+    print("=" * 78)
+    conf = earnings_surprise_mask(close_df, vol_df)
+    orows = []
+    for y in (1, 3, 5, 10):
+        cut = dates[-1] - pd.Timedelta(days=365 * y)
+        m = (dates >= cut) & (dates <= dates[-HORIZON - 1])
+        if m.sum() < 60:
+            continue
+        for lbl, panel in (("all names", rs_panel.loc[m]),
+                           ("post-shock only", rs_panel.loc[m].where(conf.loc[m])),
+                           ("no recent shock", rs_panel.loc[m].where(~conf.loc[m]))):
+            r = ic_table(panel, fwd.loc[m], f"last {y}y — {lbl}")
+            if r:
+                orows.append(r)
+    over_df = pd.DataFrame(orows)
+    print(over_df.to_string(index=False))
+    print("  (if the article is right, 'post-shock only' should rank better than "
+          "'no recent shock')")
+
+    print("\n" + "=" * 78)
     print("MONEY — the strategy's own rules (baseline variant) per window")
     print("=" * 78)
     mrows = []
@@ -245,11 +313,46 @@ def main():
     money_df = pd.DataFrame(mrows)
     print(money_df.to_string(index=False))
 
+    if args.random_seeds > 0:
+        print("\n" + "=" * 78)
+        print(f"CONTROL — same rules, RANDOM ranking ({args.random_seeds} seeds)")
+        print("=" * 78)
+        crows = []
+        for y in (3, 10):
+            cut = dates[-1] - pd.Timedelta(days=365 * y)
+            sub = dates[dates >= cut]
+            if len(sub) < 60:
+                continue
+            real = money_df[money_df.variant == f"last {y}y"]
+            rets = []
+            for seed in range(args.random_seeds):
+                shuf = shuffle_panel(rs_panel, seed)
+                c, t = simulate("rand", VARIANTS["baseline"], close_df, vol_df,
+                                nifty, sub, rs_panel=shuf)
+                rets.append(stats(c, t, f"seed{seed}")["total_return_pct"])
+            rets = np.array(rets)
+            crows.append({
+                "window": f"last {y}y",
+                "real_CompRS_return_pct": float(real["total_return_pct"].iloc[0]) if len(real) else np.nan,
+                "random_mean_pct": round(float(rets.mean()), 1),
+                "random_p05_pct": round(float(np.percentile(rets, 5)), 1),
+                "random_p95_pct": round(float(np.percentile(rets, 95)), 1),
+                "real_beats_pct_of_seeds": round(float(
+                    (rets < (real["total_return_pct"].iloc[0] if len(real) else np.inf)).mean()) * 100, 0),
+            })
+        ctrl_df = pd.DataFrame(crows)
+        print(ctrl_df.to_string(index=False))
+        print("  If real sits inside the random band, the RANKING adds nothing and the\n"
+              "  edge is the exit discipline. If it sits above p95, the ranking earns its keep.")
+        ctrl_df.to_csv(f"{OUT_DIR}/factor_random_control.csv", index=False)
+
     os.makedirs(OUT_DIR, exist_ok=True)
     ic_df.to_csv(f"{OUT_DIR}/factor_ic_by_window.csv", index=False)
     year_df.to_csv(f"{OUT_DIR}/factor_ic_by_year.csv", index=False)
     money_df.to_csv(f"{OUT_DIR}/factor_money_by_window.csv", index=False)
     qd.to_csv(f"{OUT_DIR}/factor_quintiles.csv")
+    if not over_df.empty:
+        over_df.to_csv(f"{OUT_DIR}/factor_earnings_overlay.csv", index=False)
     print(f"\nsaved -> {OUT_DIR}/factor_*.csv")
     print("\nREMINDER: the universe is point-in-time by turnover, so index-membership\n"
           "survivorship is handled — but DELISTED companies are absent from EQUITY_L and\n"

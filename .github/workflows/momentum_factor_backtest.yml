@@ -1,4 +1,4 @@
-name: Momentum Factor Backtest (Nifty 500, 1/3/5/10y)
+name: Momentum Factor Backtest (NSE, point-in-time, 1/3/5/10y)
 
 # Manual only. Heavy research run — results upload as an artifact and are never
 # committed, so it cannot disturb the live data files.
@@ -10,9 +10,13 @@ on:
         required: true
         default: "10"
       max_tickers:
-        description: "Universe cap (0 or 500 = all Nifty 500)."
+        description: "Cap on names DOWNLOADED. 0 = all ~2110 NSE EQ (use 0; a cap takes an alphabetical slice)."
         required: true
-        default: "500"
+        default: "0"
+      random_seeds:
+        description: "Random-ranking control runs (0 to skip). 20 is enough for a p05/p95 band."
+        required: true
+        default: "20"
 
 jobs:
   factor-backtest:
@@ -33,6 +37,7 @@ jobs:
           python momentum_factor_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            --random-seeds "${{ github.event.inputs.random_seeds }}" \
             2>&1 | tee factor_backtest_output.txt
       - name: Upload results
         if: always()
