@@ -1,0 +1,48 @@
+name: H2 Regime-Gate Backtest (NSE, point-in-time)
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Lookback in years."
+        required: true
+        default: "10"
+      max_tickers:
+        description: "Cap on names DOWNLOADED. 0 = all ~2110 (use 0; a cap takes an alphabetical slice)."
+        required: true
+        default: "0"
+      top_n:
+        description: "Point-in-time universe size by trailing turnover."
+        required: true
+        default: "1000"
+
+jobs:
+  h2-backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run H2 regime-gate backtest
+        run: |
+          python h2_regime_backtest.py \
+            --years "${{ github.event.inputs.years }}" \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            --top-n "${{ github.event.inputs.top_n }}" \
+            2>&1 | tee h2_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: h2-regime-backtest
+          path: |
+            analysis/h2_regime_gates.csv
+            h2_output.txt
+          retention-days: 30
