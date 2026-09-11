@@ -113,6 +113,33 @@ GATES = {
 }
 
 
+
+def nifty_gated(dates, nifty, allow, cost_bps=10.0):
+    """
+    Buy-and-hold the index, but only while `allow` is True — otherwise cash.
+
+    This is the control the H2 result needs. If gating a plain index position
+    on breadth improves it just as much, then breadth is a general market-timing
+    overlay and the H2 finding says nothing specific about the momentum book.
+    Switching costs are charged on every on/off transition so the comparison is
+    not flattered by free trading.
+    """
+    n = nifty["Close"].reindex(dates).ffill()
+    r = n.pct_change().fillna(0.0)
+    a = allow.reindex(dates).fillna(True).astype(bool)
+    gross = (r * a.shift(1).fillna(False)).add(1.0)
+    switches = a.ne(a.shift(1)).fillna(False)
+    gross = gross * (1 - switches * cost_bps / 10000.0)
+    eq = gross.cumprod()
+    dd = (eq / eq.cummax() - 1).min() * 100
+    ann = eq.pct_change().dropna()
+    sharpe = float(ann.mean() / ann.std() * np.sqrt(252)) if ann.std() > 0 else 0.0
+    return {"total_return_pct": round(float(eq.iloc[-1] - 1) * 100, 1),
+            "max_drawdown_pct": round(float(dd), 1),
+            "sharpe": round(sharpe, 2),
+            "pct_days_invested_allowed": round(float(a.mean()) * 100, 0)}
+
+
 def run_window(label, dates_sub, rs_panel, close_df, vol_df, nifty, gates_ctx):
     rows = []
     n0 = nifty["Close"].reindex(dates_sub).ffill()
@@ -165,6 +192,31 @@ def main():
                                  "excess_vs_nifty_pp"]]
         print(df.to_string(index=False))
         all_rows += rows
+
+    # ---- CONTROL: is breadth gating generic market timing? ----
+    print(f"\n{'=' * 96}")
+    print("CONTROL — the SAME breadth gate applied to plain Nifty buy-and-hold")
+    print("(if the index improves as much, breadth is generic timing, not a")
+    print(" statement about the momentum book)")
+    print("=" * 96)
+    crows = []
+    for y in (1, 3, 5, 10):
+        cut = dates[-1] - pd.Timedelta(days=365 * y)
+        sub = dates[dates >= cut]
+        if len(sub) < 60:
+            continue
+        always = pd.Series(True, index=sub)
+        for lbl, allow in (("buy-and-hold", always),
+                           ("gated breadth>=45%", gate_breadth(sub, close_df)),
+                           ("gated breadth>=55%", gate_breadth(sub, close_df, thresh=55))):
+            r = nifty_gated(sub, nifty, allow)
+            r["window"], r["variant"] = f"last {y}y", f"NIFTY {lbl}"
+            crows.append(r)
+    cdf = pd.DataFrame(crows)[["window", "variant", "total_return_pct",
+                               "max_drawdown_pct", "sharpe",
+                               "pct_days_invested_allowed"]]
+    print(cdf.to_string(index=False))
+    cdf.to_csv(f"{OUT_DIR}/h2_breadth_control_nifty.csv", index=False)
 
     out = pd.DataFrame(all_rows)
     os.makedirs(OUT_DIR, exist_ok=True)
