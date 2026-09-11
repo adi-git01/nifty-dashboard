@@ -61,3 +61,46 @@ might improve too. That is not tested here. If it is generic, the gate is still
 useful but it is not evidence about the momentum factor.
 
 Survivorship still flatters all levels; delisted names remain absent.
+
+---
+
+## Addendum — breadth control on plain Nifty (run 34655143574)
+
+The gate was re-run with the same breadth rule and switching costs applied to
+Nifty buy-and-hold, to separate "breadth helps the momentum book" from
+"breadth is generic market timing that would help anything".
+
+Pre-registered criterion: if gated Nifty improves as much as the book did,
+the gate is generic. It does not — it moves the opposite way.
+
+Total return, always-in vs breadth >= 45%:
+
+| window | momentum A -> C | Nifty B&H -> same gate |
+|--------|-----------------|------------------------|
+| 1y     | 26.1  -> 23.6   | -6.1  -> -8.7          |
+| 3y     | 13.1  -> 24.1   | 17.3  -> -0.1          |
+| 5y     | 148.2 -> 142.7  | 35.1  -> 1.3           |
+| 10y    | 445.0 -> 502.3  | 169.1 -> 113.7         |
+
+Difference-in-differences in CAGR (gate's effect on the book minus its effect
+on the index): +0.1pp (1y), +8.8pp (3y), +5.4pp (5y), +3.7pp (10y). Positive
+in all four windows.
+
+Mechanism: the gate is invested ~56% of days. An index compounds with
+time-in-market, so sitting out costs it a third of its return. The book sits
+out the same days and returns more, which means those days are ones where
+momentum entries specifically lose beyond the market's average day.
+
+What IS generic: drawdown. Nifty -38.4 -> -15.1, book -40.4 -> -27.9. Any
+reduction in time-in-market buys this. Do not credit the factor for it.
+
+CAUTION — the threshold is fitted. The return benefit is not monotone in
+strictness: at 10y the 45% gate returns 502% while 55% returns 283% (worse
+than always-in); at 3y the ranking flips (55% -> 34.8 vs 45% -> 24.1). The
+best threshold is window-dependent.
+
+Stable across both thresholds and all four windows: drawdown (better 4/4) and
+Sharpe (C beats A 4/4 — 1.52->2.29, 0.33->0.60, 1.20->1.31, 1.03->1.18).
+
+Adopt breadth as a risk overlay at a 45% floor. Expect the drawdown and
+Sharpe benefit. Do not budget for the +57pp of extra 10-year return.
