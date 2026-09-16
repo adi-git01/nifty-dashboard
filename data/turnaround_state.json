@@ -1,57 +1,102 @@
 {
-    "AIIL.NS": {
+    "HLEGLAS.NS": {
         "tier": "ALERT",
         "days_active": 1,
         "ias": 100.0
     },
-    "TATAINVEST.NS": {
+    "SAMHI.NS": {
         "tier": "ALERT",
-        "days_active": 4,
-        "ias": 100.0
+        "days_active": 1,
+        "ias": 95.0
     },
-    "EMAMILTD.NS": {
+    "HDFCBANK.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 81.7
+    },
+    "DABUR.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 68.6
+    },
+    "SONATSOFTW.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 65.7
+    },
+    "MPHASIS.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 78.7
+        "ias": 63.2
     },
-    "COLPAL.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 68.4
-    },
-    "FSL.NS": {
+    "HCLTECH.NS": {
         "tier": "READY",
         "days_active": 1,
         "ias": 60.0
     },
+    "TATACHEM.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "TATAINVEST.NS": {
+        "tier": "READY",
+        "days_active": 5,
+        "ias": 60.0
+    },
+    "FSL.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 60.0
+    },
+    "HDFCLIFE.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 54.9
+    },
     "ZENSARTECH.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 57.5
-    },
-    "SONATSOFTW.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 54.7
     },
-    "AWFIS.NS": {
+    "ONGC.NS": {
         "tier": "WATCH",
-        "days_active": 3,
-        "ias": 54.0
+        "days_active": 1,
+        "ias": 53.5
+    },
+    "CSBBANK.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.8
+    },
+    "PATANJALI.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 49.4
     },
     "FIRSTCRY.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 49.5
+        "days_active": 2,
+        "ias": 45.8
     },
-    "SUNTV.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 47.2
-    },
-    "DABUR.NS": {
+    "DMART.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 44.9
+        "ias": 44.4
+    },
+    "MFSL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 40.8
+    },
+    "GODAVARIB.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.1
+    },
+    "KPITTECH.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 35.2
     }
 }
