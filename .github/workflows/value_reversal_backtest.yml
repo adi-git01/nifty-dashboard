@@ -1,0 +1,42 @@
+name: Value / Reversal Backtest (is cheap mispriced or informative?)
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Length of the test window in years"
+        default: "10"
+      formation:
+        description: "Formation window in trading days (756 = 3y, 1260 = 5y)"
+        default: "756"
+      top_n:
+        description: "Point-in-time universe size by trailing turnover"
+        default: "1000"
+
+jobs:
+  value-reversal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run value / reversal backtest
+        run: |
+          python value_reversal_backtest.py \
+            --years "${{ github.event.inputs.years }}" \
+            --formation "${{ github.event.inputs.formation }}" \
+            --top-n "${{ github.event.inputs.top_n }}" \
+            --max-tickers 0 \
+            2>&1 | tee value_reversal_output.txt
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: value-reversal
+          path: value_reversal_output.txt
