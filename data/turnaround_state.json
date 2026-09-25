@@ -1,157 +1,87 @@
 {
-    "CAPILLARY.NS": {
+    "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "PATANJALI.NS": {
-        "tier": "ALERT",
-        "days_active": 7,
+        "days_active": 4,
         "ias": 100.0
     },
     "SUNTV.NS": {
         "tier": "ALERT",
-        "days_active": 3,
-        "ias": 98.8
-    },
-    "ITCHOTELS.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 95.0
-    },
-    "AVANTEL.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 90.0
-    },
-    "KEI.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 88.6
-    },
-    "ONGC.NS": {
-        "tier": "ALERT",
         "days_active": 4,
-        "ias": 88.2
+        "ias": 99.0
     },
-    "VBL.NS": {
+    "ESCORTS.NS": {
         "tier": "ALERT",
-        "days_active": 1,
-        "ias": 87.6
+        "days_active": 2,
+        "ias": 88.0
     },
-    "ARE&M.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 79.8
-    },
-    "HBLENGINE.NS": {
-        "tier": "READY",
-        "days_active": 3,
-        "ias": 79.7
-    },
-    "COHANCE.NS": {
-        "tier": "READY",
-        "days_active": 4,
-        "ias": 73.0
-    },
-    "ASTRAL.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 67.1
-    },
-    "JMFINANCIL.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 63.0
-    },
-    "GODFRYPHLP.NS": {
+    "GODIGIT.NS": {
         "tier": "READY",
         "days_active": 2,
-        "ias": 60.5
+        "ias": 73.2
     },
-    "ARIHANTCAP.NS": {
+    "IDBI.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 65.0
+    },
+    "PIIND.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 64.2
     },
     "WHIRLPOOL.NS": {
         "tier": "READY",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 60.0
     },
-    "OLAELEC.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
-    "EKC.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 57.0
-    },
-    "ESCORTS.NS": {
+    "DIXON.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 56.8
+        "ias": 55.0
     },
-    "GODREJCP.NS": {
+    "COCHINSHIP.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 54.1
+        "days_active": 1,
+        "ias": 55.0
     },
-    "ELECON.NS": {
+    "AVANTEL.NS": {
         "tier": "WATCH",
         "days_active": 2,
         "ias": 54.0
     },
     "KSCL.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.8
-    },
-    "OLECTRA.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 51.3
+        "days_active": 2,
+        "ias": 54.0
     },
     "ICICIGI.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 50.3
+        "days_active": 2,
+        "ias": 49.1
     },
-    "HUDCO.NS": {
+    "ITCHOTELS.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 48.9
+        "ias": 46.9
+    },
+    "BLUESTARCO.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.8
+    },
+    "IREDA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 41.8
     },
     "HGINFRA.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 46.1
+        "days_active": 2,
+        "ias": 40.7
     },
     "SHREECEM.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 45.7
-    },
-    "BIKAJI.NS": {
-        "tier": "WATCH",
         "days_active": 2,
-        "ias": 45.4
-    },
-    "VMM.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 42.7
-    },
-    "SYNGENE.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 39.1
-    },
-    "GODIGIT.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 36.3
+        "ias": 39.4
     }
 }
