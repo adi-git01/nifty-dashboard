@@ -258,11 +258,18 @@ def _append_to_log(log_file, new_rows_df, key_cols, cols):
     return combined
 
 
-def save_rs_divergence_signals(rs_list):
-    """Append today's RS divergence signals to the log."""
+def save_rs_divergence_signals(rs_list, signal_date=None):
+    """
+    Append RS divergence signals to the log.
+
+    signal_date should be the date of the BAR the signal was computed from. The
+    headless logger passes the snapshot date; defaulting to the wall clock is
+    kept only for the dashboard, where the two coincide during market hours.
+    """
     if not rs_list:
         return
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = (pd.Timestamp(signal_date).strftime("%Y-%m-%d") if signal_date is not None
+             else datetime.now().strftime("%Y-%m-%d"))
     rows = []
     for r in rs_list:
         rows.append({
@@ -325,18 +332,26 @@ def refresh_signal_log_prices(log_file, cols, price_map):
     today = pd.Timestamp.now().normalize()
     df["days_held"] = (today - df["signal_date"]).dt.days
 
+    # Close BEFORE pricing, and never re-price a closed row. These are 21-day
+    # signals: once closed, return_since_signal must stay the return at close.
+    # Re-pricing every row on every run turned it into a return over however
+    # long the row had existed — a variable horizon that makes the column
+    # useless for comparing signals (the same artifact that invalidated the
+    # first IAS result). A row that was never refreshed while open closes at
+    # its last recorded price rather than today's.
+    df.loc[df["days_held"] > 21, "status"] = "CLOSED"
+    is_open = df["status"].astype(str) != "CLOSED"
+
     sig_price  = pd.to_numeric(df["signal_price"], errors="coerce")
     live_price = df["ticker"].map(price_map)
     live_price = pd.to_numeric(live_price, errors="coerce")
 
-    has_live = live_price.notna() & (live_price > 0) & sig_price.notna() & (sig_price > 0)
+    has_live = (is_open & live_price.notna() & (live_price > 0)
+                & sig_price.notna() & (sig_price > 0))
     if has_live.any():
         df.loc[has_live, "current_price"] = live_price[has_live].round(2)
         ret = (live_price[has_live] / sig_price[has_live] - 1) * 100
         df.loc[has_live, "return_since_signal"] = ret.round(2)
-
-    # Auto-close after 21 days
-    df.loc[df["days_held"] > 21, "status"] = "CLOSED"
 
     df["signal_date"] = df["signal_date"].dt.strftime("%Y-%m-%d")
     df.to_csv(log_file, index=False)
