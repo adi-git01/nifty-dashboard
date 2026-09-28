@@ -114,6 +114,14 @@ RS_WEIGHTS = [
     (63,  0.40),   # 3 Months (Quarter)
 ]
 
+# Ranking lookback for filling free slots, in bars. CompRS still decides WHO is
+# eligible (the regime floor); 6-month RS decides the ORDER eligible names are
+# bought in. In the 10-year point-in-time backtest (ranking_robustness_backtest.py,
+# analysis/RANKING_BREADTH_VERDICT.md) ranking by 6-month RS beat ranking by
+# CompRS in 8/8 staggered starts and 3/3 separate periods, and beat every
+# random-ranking seed; CompRS's 50% one-month weight is what drags it down.
+RANK_LOOKBACK = 126
+
 # Breadth Gate Threshold
 BREADTH_NARROW_THRESHOLD = 30  # % of stocks above 50DMA — below this = skip buys
 
@@ -300,6 +308,15 @@ class OptCompV21Engine:
 
         return rs_total
 
+    def rs_period(self, ticker, period):
+        """Excess return over Nifty across `period` bars, in points; None if too short."""
+        df, nifty = self.data_cache[ticker], self.data_cache['NIFTY']
+        if len(df) < period + 2 or len(nifty) < period + 2:
+            return None
+        stock = df['Close'].iloc[-1] / df['Close'].iloc[-(period + 1)] - 1
+        index = nifty['Close'].iloc[-1] / nifty['Close'].iloc[-(period + 1)] - 1
+        return (stock - index) * 100
+
     def calculate_metrics(self, ticker):
         """Calculate all entry metrics for a stock."""
         df = self.data_cache[ticker]
@@ -316,6 +333,7 @@ class OptCompV21Engine:
             'price': price,
             'ma50': ma50,
             'rs_score': rs,
+            'rs_6m': self.rs_period(ticker, RANK_LOOKBACK),
             'liquidity': vol_avg,
         }
 
@@ -615,9 +633,12 @@ class OptCompV21Engine:
                             'Price': m['price'],
                             'MA50': m['ma50'],
                             'RS_Score': m['rs_score'],
+                            'RS_6M': m['rs_6m'],
                         })
 
-                candidates.sort(key=lambda x: -x['RS_Score'])
+                # Fill order: 6-month RS, highest first. A name without 126 bars
+                # (cannot happen past the 200-bar history rule) goes last.
+                candidates.sort(key=lambda x: -(x['RS_6M'] if x['RS_6M'] is not None else float('-inf')))
 
                 # ============================================================
                 # 4. BUY NEW POSITIONS (fill empty slots)
@@ -653,10 +674,12 @@ class OptCompV21Engine:
                                 trade_log.append({
                                     'Ticker': cand['Ticker'], 'Action': 'BUY', 'Date': today,
                                     'Price': round(price, 2), 'PnL': 0, 'PnL%': 0,
-                                    'Reason': f"Composite RS: {cand['RS_Score']:+.1f}"
+                                    'Reason': (f"6M RS: {cand['RS_6M']:+.1f} | Composite RS: {cand['RS_Score']:+.1f}"
+                                               if cand['RS_6M'] is not None else f"Composite RS: {cand['RS_Score']:+.1f}")
                                 })
                                 free_slots -= 1
-                                print(f"    BUY  {cand['Ticker']}: RS={cand['RS_Score']:+.1f} @ Rs.{price:.0f}")
+                                print(f"    BUY  {cand['Ticker']}: 6M RS={cand['RS_6M'] or 0:+.1f} "
+                                      f"(CompRS {cand['RS_Score']:+.1f}) @ Rs.{price:.0f}")
 
                 # 🔔 SEND BUY ALERTS (Telegram + Email)
                 buy_events = [e for e in trade_log if e['Action'] == 'BUY']
@@ -774,6 +797,7 @@ class OptCompV21Engine:
             'config': {
                 'initial_capital': INITIAL_CAPITAL,
                 'rs_weights': RS_WEIGHTS,
+                'rank_lookback_bars': RANK_LOOKBACK,
                 'rebalance_days': rebal_days,
                 'max_positions': MAX_POSITIONS,
                 'breadth_threshold': BREADTH_NARROW_THRESHOLD,

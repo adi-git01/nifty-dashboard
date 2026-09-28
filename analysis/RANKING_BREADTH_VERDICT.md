@@ -75,11 +75,25 @@ Why: the book already de-risks stock by stock as breadth falls (12% CAUTION
 trail, MA50 exit). By the time the switch fires, what is left are the strongest
 names, and re-entry waits for breadth to recover, which lags the rebound.
 
-## Open issue
+## Baseline gap with H2 — found: a harness bug
 
-The baseline does not reconcile with the earlier H2 backtest: H2's exact window
-and settings give +847.8% (Sharpe 1.52) here vs +445% (1.03) reported by H2.
-Neither exit_rule_backtest.py nor utils/regime_manager.py changed in between,
-and H2's Sharpe sits below all 8 staggered-start baselines (1.13-1.40). Every
-comparison above uses one simulator on one dataset, so the conclusions stand,
-but H2's absolute numbers should be treated as unreliable until this is found.
+The two baselines disagreed by 2-3x (H2 today: +281%, Sharpe 0.94; ranking
+harness on H2's exact settings: +848%, 1.52) with identical simulator code --
+verified bit-for-bit on shared synthetic data. The cause was the input data:
+
+- A bulk download returns the union of every ticker's dates, so a few stray
+  rows carry prices for only one or two stocks.
+- close_df.rolling(50) cannot span a gap, so each stray row blanked MA50 for
+  ~96% of stocks for the next 50 rows: no entries, no MA50 exits.
+- H2 iterated over every close_df row; the ranking harness over Nifty sessions.
+  On synthetic data with 8 stray rows they returned +95% and +121% against
+  +110% clean.
+
+Fixed (exit_rule_backtest.py): fetch() drops rows outside the Nifty calendar,
+and MA50 is computed over each stock's own valid closes, as the live engine
+does. Both paths now reproduce the clean result exactly.
+
+Consequence: the ABSOLUTE numbers in this file and in earlier backtests were
+distorted. Every comparison within a run shared the same distortion, so the
+direction of each finding should hold, but the ranking robustness and breadth
+runs should be repeated on the fixed harness to confirm.
