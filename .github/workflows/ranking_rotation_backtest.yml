@@ -1,0 +1,48 @@
+name: Ranking / Rotation / IPO Backtest (NSE, point-in-time, 1/3/5/10y)
+
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Longest window in years (runs 1/3/5/10 inside it)"
+        required: true
+        default: "10"
+      max_tickers:
+        description: "Cap on names DOWNLOADED. 0 = all (a cap takes an alphabetical slice)."
+        required: true
+        default: "0"
+      top_n:
+        description: "Point-in-time universe size by trailing turnover"
+        required: true
+        default: "1000"
+
+jobs:
+  ranking-rotation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run ranking / rotation / IPO backtest
+        run: |
+          python ranking_rotation_backtest.py \
+            --years "${{ github.event.inputs.years }}" \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            --top-n "${{ github.event.inputs.top_n }}" \
+            2>&1 | tee ranking_rotation_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ranking-rotation-backtest
+          path: |
+            analysis/ranking_rotation_backtest.csv
+            ranking_rotation_output.txt
+          retention-days: 30
