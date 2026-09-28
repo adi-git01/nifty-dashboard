@@ -50,7 +50,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from exit_rule_backtest import (BREADTH_NARROW_THRESHOLD, BUY_COST, INITIAL_CAPITAL,
                                 MAX_POSITIONS, MIN_INVEST, SELL_COST, build_rs_panel,
-                                fetch, stats)
+                                fetch, ma50_per_stock, stats)
 from utils.regime_manager import classify_regime, get_regime_params
 
 RS_CAP = 200.0
@@ -118,7 +118,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
     holdings, cooldown, trades, curve = {}, {}, [], []
     last_rebal_idx = None
     was_on = True
-    ma50_all = close_df.rolling(50).mean()
+    ma50_all = ma50_per_stock(close_df)
     ma200_n = nifty["Close"].rolling(200).mean()
     hi52_n = nifty["High"].rolling(252).max()
     hist_ok = hist > cfg["min_hist"]
