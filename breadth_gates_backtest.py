@@ -67,6 +67,35 @@ def trend_score(c):
     return s.clip(0, 100).where(c.notna() & hi.notna())
 
 
+def hysteresis(b, enter, exit_):
+    """Risk-on once breadth >= enter; risk-off once it falls below exit_; else hold state."""
+    out, on = [], bool(b.iloc[0] >= enter) if len(b) else False
+    for v in b.values:
+        if np.isnan(v):
+            pass
+        elif on and v < exit_:
+            on = False
+        elif not on and v >= enter:
+            on = True
+        out.append(on)
+    return pd.Series(out, index=b.index)
+
+
+def nifty_switch(nifty, sub, sw, cost=0.002):
+    """Nifty buy-and-hold vs the same switch applied to Nifty (cash when off)."""
+    n = nifty["Close"].reindex(sub).ffill()
+    r = n.pct_change().fillna(0)
+    on = sw.reindex(sub).fillna(False).astype(bool)
+    pos = on.shift(1, fill_value=bool(on.iloc[0]))
+    flips = on.astype(int).diff().abs().fillna(0)
+    rs = r * pos - flips * cost
+    def st(x):
+        eq = (1 + x).cumprod()
+        sh = x.mean() / x.std() * np.sqrt(252) if x.std() else 0.0
+        return round((eq.iloc[-1] - 1) * 100, 1), round(((eq / eq.cummax()) - 1).min() * 100, 1), round(sh, 2)
+    return st(r), st(rs), int(flips.sum())
+
+
 def pct(mask, universe):
     return 100.0 * (mask & universe).sum(axis=1) / universe.sum(axis=1).replace(0, np.nan)
 
@@ -127,12 +156,22 @@ def main():
     VARIANTS = {k: dict(gate=v) for k, v in G.items()}
     VARIANTS["MA50>=30 + no MA50 exit"] = dict(gate=G[BASE], ma50_exit=False)
     VARIANTS["MA50>=30 + no MA50 entry filter"] = dict(gate=G[BASE], ma50_entry=False)
+    # Regime switch: hold only while breadth is healthy; SELL EVERYTHING when it
+    # drops below the lower level, stay in cash until it recovers above the upper.
+    SW = {f"SWITCH TS60 on>={a} / sell-all<{b}": hysteresis(b_ts60, a, b)
+          for a, b in [(40, 30), (45, 35), (50, 30), (50, 40)]}
+    SW.update({f"SWITCH MA50 on>={a} / sell-all<{b}": hysteresis(b_ma50, a, b)
+               for a, b in [(40, 30), (50, 30)]})
+    for k, sw in SW.items():
+        VARIANTS[k] = dict(gate=G[BASE], switch=sw)
+        flips = int(sw.astype(int).diff().abs().sum())
+        print(f"[switch] {k}: risk-on {sw.mean()*100:.0f}% of days, {flips} switches in {len(sw)} days")
 
     def run(name, over, sub):
         cfg = {**DEFAULTS, **over}
         curve, trades = simulate(name, cfg, close_df, vol_df, nifty, sub, base, base, hist)
         s = stats(curve, trades, name)
-        g = cfg["gate"].reindex(sub).fillna(False)
+        g = (cfg["switch"] if cfg.get("switch") is not None else cfg["gate"]).reindex(sub).fillna(False)
         s["pct_days_open"] = round(float(g.mean()) * 100)
         return s
 
@@ -150,10 +189,12 @@ def main():
             r = run(name, over, sub); r.update(test="B_stagger", period=f"start {sub[0].date()}"); rows.append(r)
         print(f"   stagger {sub[0].date()} done", flush=True)
     edges = [dates[i0], pd.Timestamp("2019-12-31"), pd.Timestamp("2022-12-31"), dates[-1]]
+    periods = []
     for a, b in zip(edges, edges[1:]):
         sub = dates[(dates >= a) & (dates <= b)] if a == edges[0] else dates[(dates > a) & (dates <= b)]
+        periods.append((f"{sub[0].date()} -> {sub[-1].date()}", sub))
         for name, over in VARIANTS.items():
-            r = run(name, over, sub); r.update(test="C_period", period=f"{sub[0].date()} -> {sub[-1].date()}")
+            r = run(name, over, sub); r.update(test="C_period", period=periods[-1][0])
             rows.append(r)
 
     T = pd.DataFrame(rows)
@@ -181,6 +222,21 @@ def main():
             row[f"{lab}: med dMaxDD"] = round(d_dd.median(), 1)
         out.append(row)
     print(pd.DataFrame(out).to_string(index=False))
+
+    print(f"\n{'=' * 100}\nCONTROL — the same switches applied to plain Nifty (in Nifty when on, cash when off)."
+          f"\nIf Nifty improves as much as the book, the switch is generic market timing.\n{'=' * 100}")
+    ctl = []
+    for label, sub in ([(f"last {y}y", dates[dates >= dates[-1] - pd.Timedelta(days=365 * y)]) for y in (3, 5, 10)]
+                       + periods):
+        for k, sw in SW.items():
+            (r0, d0, s0), (r1, d1, s1), fl = nifty_switch(nifty, sub, sw)
+            book = T[(T.variant == k) & (T.period == label)]
+            bb = T[(T.variant == BASE) & (T.period == label)]
+            ctl.append(dict(period=label, switch=k.replace("SWITCH ", ""), nifty_ret=r0, nifty_sw_ret=r1,
+                            nifty_dd=d0, nifty_sw_dd=d1, nifty_dSharpe=round(s1 - s0, 2),
+                            book_dSharpe=round(book.sharpe.iloc[0] - bb.sharpe.iloc[0], 2) if len(book) and len(bb) else np.nan,
+                            switches=fl))
+    print(pd.DataFrame(ctl).to_string(index=False))
     print(f"\nsaved -> {OUT_CSV}")
 
 
