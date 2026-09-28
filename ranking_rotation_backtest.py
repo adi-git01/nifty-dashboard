@@ -71,7 +71,16 @@ VARIANTS = {
     "I1 IPOs: hist > 64":                 dict(min_hist=64),
     "I2 IPOs: hist > 126":                dict(min_hist=126),
 }
-DEFAULTS = dict(key="base", rotate=None, min_hist=200)
+# gate      : None = breadth >= 30% over all priced names (the harness rule);
+#             a boolean Series by date = allow new entries only where True
+# ma50_exit : sell a holding that closes below its MA50 (live rule)
+# ma50_entry: require price > MA50 to enter (live rule)
+# switch    : None, or a boolean Series by date (True = risk-on). On a risk-off
+#             day every holding is sold and nothing is bought; the day it
+#             turns back on forces a rebalance instead of waiting for the
+#             13-session timer.
+DEFAULTS = dict(key="base", rotate=None, min_hist=200, gate=None, ma50_exit=True, ma50_entry=True,
+                switch=None)
 
 
 def rel(c, n, p):
@@ -108,6 +117,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
     cash = float(INITIAL_CAPITAL)
     holdings, cooldown, trades, curve = {}, {}, [], []
     last_rebal_idx = None
+    was_on = True
     ma50_all = close_df.rolling(50).mean()
     ma200_n = nifty["Close"].rolling(200).mean()
     hi52_n = nifty["High"].rolling(252).max()
@@ -132,21 +142,31 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
         params = get_regime_params(regime)
         keep = 1.0 - params["trail_stop"]
 
+        on = True if cfg["switch"] is None else bool(cfg["switch"].get(d, False))
+        if not on:
+            for t in list(holdings):
+                p = px.get(t)
+                if p is not None and not np.isnan(p):
+                    sell(t, d, p, "Breadth risk-off", regime)
+        turned_on = on and not was_on
+        was_on = on
+
         for t in list(holdings):
             p, m = px.get(t), ma50.get(t)
             if p is None or np.isnan(p):
                 continue
             h = holdings[t]
             h["peak"] = max(h["peak"], p)
-            if m is not None and not np.isnan(m) and p < m:
+            if cfg["ma50_exit"] and m is not None and not np.isnan(m) and p < m:
                 sell(t, d, p, "Trend Break", regime)
             elif p < h["peak"] * keep:
                 sell(t, d, p, "Trailing Stop", regime)
                 cooldown[t] = d
 
         rebal_days = params["rebalance_freq"]
-        due = last_rebal_idx is None or (rebal_days < 999 and (i - last_rebal_idx) >= rebal_days)
-        if due and params.get("new_entries", True):
+        due = last_rebal_idx is None or turned_on or \
+            (rebal_days < 999 and (i - last_rebal_idx) >= rebal_days)
+        if due and on and params.get("new_entries", True):
             last_rebal_idx = i
             cooldown = {t: dt for t, dt in cooldown.items()
                         if len(dates[(dates > dt) & (dates <= d)]) < rebal_days}
@@ -163,10 +183,13 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
             valid = px.notna() & ma50.notna()
             breadth = 100.0 * ((px > ma50) & valid).sum() / max(valid.sum(), 1)
             free = MAX_POSITIONS - len(holdings)
-            if free > 0 and breadth >= BREADTH_NARROW_THRESHOLD:
+            allowed = (breadth >= BREADTH_NARROW_THRESHOLD) if cfg["gate"] is None \
+                else bool(cfg["gate"].get(d, False))
+            if free > 0 and allowed:
                 rs_total = elig_rs.loc[d]
                 liq_cr = (px * vol_df.loc[d]) / 1e7
-                elig = (rs_total.notna() & px.notna() & ma50.notna() & (px > ma50)
+                above = (px > ma50) if cfg["ma50_entry"] else pd.Series(True, index=px.index)
+                elig = (rs_total.notna() & px.notna() & ma50.notna() & above
                         & (rs_total >= params["min_comp_rs"] * 100)
                         & (liq_cr >= params["min_liquidity"]) & hist_ok.loc[d])
                 for t in list(holdings) + list(cooldown):
