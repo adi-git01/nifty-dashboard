@@ -1,0 +1,33 @@
+name: Repair Signal Logs (one-off RS backfill + holiday phantoms)
+
+# Run once, after merging. Not during the EOD engine window (~20:15-21:00 IST):
+# both jobs commit the same CSVs.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report only, write nothing"
+        type: boolean
+        default: true
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Repair logs
+        run: |
+          python repair_signal_logs.py ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }}
+      - name: Commit repaired logs
+        if: github.event.inputs.dry_run != 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Repair signal logs: backfill RS divergence, drop holiday phantoms"
+          file_pattern: "data/rs_divergence_log.csv data/earnings_shock_log.csv data/tc_log.csv"

@@ -32,7 +32,7 @@ from utils.advanced_scanners import (
     TC_LOG_FILE, TC_LOG_COLS,
     SHOCK_LOG_FILE, SHOCK_LOG_COLS,
     RS_LOG_FILE, RS_LOG_COLS,
-    refresh_signal_log_prices,
+    refresh_signal_log_prices, is_duplicate_snapshot,
 )
 
 CACHE_DIR = "data/cache"
@@ -130,6 +130,14 @@ def main():
         sys.exit(1)
 
     price_map = today_df.set_index("ticker")["price"].dropna().to_dict() if "price" in today_df.columns else {}
+
+    # Holiday guard: a snapshot that copies the previous one would re-fire every
+    # scanner on yesterday's move under today's date.
+    files = sorted(glob.glob(os.path.join(CACHE_DIR, "market_master_*.parquet")))
+    if len(files) >= 2 and is_duplicate_snapshot(today_df, pd.read_parquet(files[-2])):
+        print("\n⏸  Snapshot is a copy of the previous session (market holiday) — "
+              "no signals logged.")
+        return
 
     # ── 1. Turnaround Catalyst ─────────────────────────────────────────────
     print("\n[TC] Running Turnaround Catalyst scanner...")
