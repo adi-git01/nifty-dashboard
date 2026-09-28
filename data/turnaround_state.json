@@ -1,87 +1,77 @@
 {
-    "HBLENGINE.NS": {
+    "CAPILLARY.NS": {
         "tier": "ALERT",
-        "days_active": 4,
+        "days_active": 1,
         "ias": 100.0
     },
-    "SUNTV.NS": {
+    "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 4,
-        "ias": 99.0
+        "days_active": 5,
+        "ias": 100.0
     },
-    "ESCORTS.NS": {
+    "KPIGREEN.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 88.0
+        "days_active": 1,
+        "ias": 95.0
+    },
+    "ELECON.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 90.0
     },
     "GODIGIT.NS": {
-        "tier": "READY",
+        "tier": "ALERT",
+        "days_active": 3,
+        "ias": 83.5
+    },
+    "FIRSTCRY.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 82.5
+    },
+    "DIXON.NS": {
+        "tier": "ALERT",
         "days_active": 2,
-        "ias": 73.2
+        "ias": 81.5
     },
-    "IDBI.NS": {
+    "ZENSARTECH.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 65.0
+        "ias": 73.4
     },
-    "PIIND.NS": {
+    "TTML.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 64.2
+        "ias": 68.3
+    },
+    "CHEMPLASTS.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "DAMCAPITAL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
     },
     "WHIRLPOOL.NS": {
         "tier": "READY",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 60.0
     },
-    "DIXON.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.0
-    },
-    "COCHINSHIP.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 55.0
-    },
-    "AVANTEL.NS": {
+    "IDBI.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 54.0
-    },
-    "KSCL.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 54.0
-    },
-    "ICICIGI.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 49.1
-    },
-    "ITCHOTELS.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 46.9
-    },
-    "BLUESTARCO.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 44.8
+        "ias": 56.8
     },
     "IREDA.NS": {
         "tier": "WATCH",
+        "days_active": 2,
+        "ias": 45.8
+    },
+    "MFSL.NS": {
+        "tier": "WATCH",
         "days_active": 1,
-        "ias": 41.8
-    },
-    "HGINFRA.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 40.7
-    },
-    "SHREECEM.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 39.4
+        "ias": 38.2
     }
 }
