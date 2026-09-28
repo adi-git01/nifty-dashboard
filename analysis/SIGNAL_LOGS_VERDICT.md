@@ -91,3 +91,65 @@ then a universe defect, then caught only the tail and was shaken out by the
 CAUTION-regime 12% trail. One name is an anecdote, not a test — but it shows
 where the pipeline can lose a winner: slot count, universe integrity, and trail
 width in CAUTION.
+
+## Winner profiling — which parameters separate winners from losers?
+
+Method: every parameter in the daily snapshot AS OF the signal date (tape:
+CompRS and legs, trend/momentum scores, 52w and 200dma distances, volatility,
+volume scores, liquidity, breadth; fundamentals: quality/value/growth/overall,
+PE, PB, ROE, ROA, margins, growth, D/E, size, beta; plus each signal's own
+inputs). Winners = top 20% by forward excess, losers = bottom 20%. A parameter
+counts only if its rank correlation with forward excess clears |rho| >= 0.05
+with a date-bootstrap CI excluding zero in the FIRST half of signal dates, then
+keeps its sign with |rho| >= 0.03 in the SECOND half. The same test run 60
+times on shuffled returns gives the chance baseline. Every surviving cluster is
+then re-tested on the signal's control group.
+
+| Signal | Horizon | Survivors | Chance mean / 95th pct |
+|---|---|---|---|
+| Earnings Shock | 10d / 21d | 2 / 1 | 1.1 / 5 ; 0.8 / 3 |
+| Turnaround Catalyst | 10d / 21d | 0 / 6 | 1.7 / 6 ; 1.6 / 5 |
+| RS Divergence | 10d / 21d | 2 / 9 | 0.6 / 3 ; 1.2 / 4 |
+
+**RS Divergence — a real pattern, but it is momentum, not divergence.** At 21d
+nine trend-strength parameters survive (trend_score, momentum score, 6m and 1y
+return, dist to 52w high, dist above 200dma, off 52w low, overall score). The
+same parameters predict equally in the control (near-high names up on ANY day):
+dist_200dma rho +0.13/+0.09 in both. Filter "trend_score >= median AND
+dist_200dma >= median", mean excess pp, pass vs rest:
+
+| | 10d, 1st half | 10d, 2nd half | 21d, 1st half | 21d, 2nd half |
+|---|---|---|---|---|
+| RS signals | +1.42 vs +0.59 | +1.53 vs +0.60 | +2.30 vs +1.26 | +2.24 vs +1.44 |
+| Control, any day | +1.05 vs +0.05 | +1.40 vs +0.79 | +2.06 vs +0.35 | +2.84 vs +1.76 |
+
+Consistent in all eight cells. This is the only pattern in the logs that held
+everywhere it was tested — and it is the premise OptComp already trades
+(strongest established trends near highs). It says nothing new about red days,
+and the 10-year backtest shows CompRS IC ~ 0 over a full cycle, so treat it as
+this regime's momentum, not a durable edge.
+
+**Turnaround Catalyst — the quality cluster reverses.** At 21d, growth /
+earnings-growth / overall correlate strongly in the first half (+0.24 to +0.31)
+and fade in the second (+0.03 to +0.10); a "low volatility AND high growth"
+filter flips from +0.36 vs -0.48 to -1.46 vs +1.80. The control shows none of
+it. Liquidity (+) and volatility (-) ARE consistent in both halves at both
+horizons and absent in the control, but the best slice (liquid AND calm) still
+does not beat the control: 10d +0.50 | -0.66 vs control +0.05 | +0.39; 21d
++0.14 | +0.90 vs control +2.37 | +1.12. The best TC names lose less; none win.
+
+**Earnings Shock — no cluster beyond chance; one directional hint.** Winners had
+SMALLER jumps (median 5.7% vs 6.6%), lower volume multiples (2.7x vs 3.0x) and
+lower volatility than losers. Split at the median jump (~5.8%), moderate shocks
+beat large ones in all four half x horizon cells (10d +0.90 vs -0.27 and +2.65
+vs +1.32; 21d +1.10 vs -1.45 and +2.87 vs +2.64) — though the last gap is
+small. The scanner and its Telegram summary rank shocks by jump size, largest
+first, which this suggests is the wrong order. Suggestive, not established.
+
+**Sectors.** Capital Goods, Pharma and Oil & Gas led in all three logs; Real
+Estate and Infrastructure lagged in all three. Across three unrelated signals
+this is sector leadership in the window, not a property of any signal.
+
+No third holdout exists — both halves were used — so none of the above is
+validated for trading. The clean next step is a forward test: log the filter
+flags at signal time from now on and read them once enough new events accrue.

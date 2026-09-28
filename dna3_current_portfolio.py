@@ -556,7 +556,14 @@ class OptCompV21Engine:
                 breadth = self.calculate_breadth()
                 print(f"     Market Breadth: {breadth:.0f}% above 50DMA", end="")
 
-                if breadth < BREADTH_NARROW_THRESHOLD:
+                # The gate used to be print-only: the scan and buy block below
+                # sit after this if/else, so they ran on narrow days too. That
+                # let the book fill with 25 names on 5 and 24 Mar 2026 (breadth
+                # 27% and 18%) -- median -7.8%, 32% winners -- and left 2 free
+                # slots on each of the next two rebalances, when the April
+                # leaders ranked. breadth_ok now zeroes the free slots.
+                breadth_ok = breadth >= BREADTH_NARROW_THRESHOLD
+                if not breadth_ok:
                     print(f" -> NARROW MARKET (< {BREADTH_NARROW_THRESHOLD}%) -> SKIPPING NEW BUYS")
                 else:
                     print(f" -> Healthy (>= {BREADTH_NARROW_THRESHOLD}%) -> Scanning...")
@@ -615,7 +622,7 @@ class OptCompV21Engine:
                 # ============================================================
                 # 4. BUY NEW POSITIONS (fill empty slots)
                 # ============================================================
-                free_slots = MAX_POSITIONS - len(holdings)
+                free_slots = (MAX_POSITIONS - len(holdings)) if breadth_ok else 0
                 if free_slots > 0 and candidates:
                     print(f"     {len(candidates)} candidates found, {free_slots} slots open")
                     
