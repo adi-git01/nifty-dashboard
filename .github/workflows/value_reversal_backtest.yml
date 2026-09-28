@@ -29,6 +29,7 @@ jobs:
           pip install scipy
       - name: Run value / reversal backtest
         run: |
+          set -o pipefail
           python value_reversal_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --formation "${{ github.event.inputs.formation }}" \

@@ -178,6 +178,21 @@ def ma50_per_stock(close_df):
     return close_df.apply(lambda s: s.dropna().rolling(50).mean()).reindex(close_df.index)
 
 
+def book_value(holdings, px):
+    """
+    Mark each holding at today's close, or at its last valid close when today's
+    is missing (suspension, data gap). A NaN price must never reach equity:
+    it would make every later position size NaN.
+    """
+    total = 0.0
+    for t, h in holdings.items():
+        p = px.get(t)
+        if p is not None and np.isfinite(p) and p > 0:
+            h["last"] = float(p)
+        total += h["shares"] * h.get("last", h["entry_price"])
+    return total
+
+
 # ── Simulation ───────────────────────────────────────────────────────────────
 def build_rs_panel(close_df, nifty, dates):
     """
@@ -305,8 +320,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, rs_panel=None):
                         elig[t] = False
 
                 for t in rs_total[elig].sort_values(ascending=False).index[:free]:
-                    equity = cash + sum(h["shares"] * px.get(k, h["entry_price"])
-                                        for k, h in holdings.items())
+                    equity = cash + book_value(holdings, px)
                     invest = min(equity / MAX_POSITIONS, cash / max(free, 1))
                     p = float(px[t])
                     if invest < MIN_INVEST or p <= 0:
@@ -319,8 +333,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, rs_panel=None):
                                            entry_date=d, below_ma50=0)
 
         # --- 3. mark equity ---
-        eq = cash + sum(h["shares"] * (px.get(t) if px.get(t) and not np.isnan(px.get(t))
-                                       else h["entry_price"]) for t, h in holdings.items())
+        eq = cash + book_value(holdings, px)
         curve.append(dict(date=d, equity=eq, regime=regime, holdings=len(holdings)))
 
     return pd.DataFrame(curve), pd.DataFrame(trades)

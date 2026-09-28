@@ -32,6 +32,7 @@ jobs:
 
       - name: Run multi-regime exit-rule backtest
         run: |
+          set -o pipefail
           python exit_rule_backtest.py \
             --start "${{ github.event.inputs.start }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \

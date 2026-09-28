@@ -49,8 +49,8 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from exit_rule_backtest import (BREADTH_NARROW_THRESHOLD, BUY_COST, INITIAL_CAPITAL,
-                                MAX_POSITIONS, MIN_INVEST, SELL_COST, build_rs_panel,
-                                fetch, ma50_per_stock, stats)
+                                MAX_POSITIONS, MIN_INVEST, SELL_COST, book_value,
+                                build_rs_panel, fetch, ma50_per_stock, stats)
 from utils.regime_manager import classify_regime, get_regime_params
 
 RS_CAP = 200.0
@@ -199,8 +199,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
                 # cannot score yet (e.g. <1y of history for the 1y key) go last.
                 order = k_today[elig].fillna(-np.inf).sort_values(ascending=False).index
                 for t in order[:free]:
-                    equity = cash + sum(h["shares"] * px.get(k, h["entry_price"])
-                                        for k, h in holdings.items())
+                    equity = cash + book_value(holdings, px)
                     invest = min(equity / MAX_POSITIONS, cash / max(free, 1))
                     p = float(px[t])
                     if invest < MIN_INVEST or p <= 0:
@@ -210,8 +209,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
                         cash -= sh * p * BUY_COST
                         holdings[t] = dict(entry_price=p, shares=sh, peak=p, entry_date=d)
 
-        eq = cash + sum(h["shares"] * (px.get(t) if px.get(t) and not np.isnan(px.get(t))
-                                       else h["entry_price"]) for t, h in holdings.items())
+        eq = cash + book_value(holdings, px)
         curve.append(dict(date=d, equity=eq, regime=regime, holdings=len(holdings)))
     return pd.DataFrame(curve), pd.DataFrame(trades)
 

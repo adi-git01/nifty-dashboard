@@ -39,6 +39,7 @@ jobs:
       - name: Run ranking / rotation / IPO backtest
         if: github.event.inputs.script == 'main'
         run: |
+          set -o pipefail
           python ranking_rotation_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
@@ -47,6 +48,7 @@ jobs:
       - name: Run robustness check (staggered starts, periods, random control)
         if: github.event.inputs.script == 'robustness'
         run: |
+          set -o pipefail
           python ranking_robustness_backtest.py \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
             --top-n "${{ github.event.inputs.top_n }}" \
@@ -54,6 +56,7 @@ jobs:
       - name: Run breadth-gate backtest (MA50 and TS>=60 breadth)
         if: github.event.inputs.script == 'breadth'
         run: |
+          set -o pipefail
           python breadth_gates_backtest.py \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
             --top-n "${{ github.event.inputs.top_n }}" \
