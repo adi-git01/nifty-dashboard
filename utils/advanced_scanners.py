@@ -219,6 +219,26 @@ def find_live_earnings_shocks(market_df, full_history_dict):
 # Signal log helpers
 # ---------------------------------------------------------------------------
 
+def is_duplicate_snapshot(today_df, prev_df, threshold=0.9):
+    """
+    True when today's snapshot is a copy of the previous one.
+
+    The EOD engine runs on market holidays too. Yahoo then serves the last
+    close, so the snapshot repeats the previous day, change_p included, and
+    every scanner re-fires on a move that already happened -- logged under the
+    holiday's date. Eleven of the first 151 snapshots were copies like this.
+    A real session never leaves 90% of ~1,000 prices unchanged.
+    """
+    if today_df is None or prev_df is None or today_df.empty or prev_df.empty:
+        return False
+    a = today_df.set_index("ticker")["price"]
+    b = prev_df.set_index("ticker")["price"]
+    both = a.index.intersection(b.index)
+    if len(both) < 100:
+        return False
+    return float((a[both] == b[both]).mean()) > threshold
+
+
 def _append_to_log(log_file, new_rows_df, key_cols, cols):
     """
     Append new signal rows to a log CSV.
