@@ -144,7 +144,38 @@ def fetch(tickers, start, end):
         close_df.index = close_df.index.tz_localize(None)
         vol_df.index = vol_df.index.tz_localize(None)
     print(f"[data] usable tickers: {close_df.shape[1]}")
+    close_df, vol_df = align_to_sessions(close_df, vol_df, nifty)
     return close_df, vol_df, nifty
+
+
+def align_to_sessions(close_df, vol_df, nifty):
+    """
+    Keep only dates that are Nifty trading sessions.
+
+    A bulk download across ~2,000 tickers returns the UNION of every ticker's
+    dates, so a handful of stray rows appear where only one or two stocks have
+    a price. Downstream, a stray row is not harmless: close_df.rolling(50)
+    cannot span it, so MA50 goes blank for almost every stock for the next 50
+    rows -- no entries, and no MA50 exits -- and every row-based shift (RS21,
+    RS63) is off by one across it. Backtests that iterated over close_df.index
+    and ones that iterated over Nifty sessions diverged by 2-3x on the same
+    data because of this.
+    """
+    keep = close_df.index.isin(nifty.index)
+    dropped = int((~keep).sum())
+    if dropped:
+        print(f"[data] dropped {dropped} non-session row(s) not in the Nifty calendar")
+    return close_df.loc[keep], vol_df.loc[keep]
+
+
+def ma50_per_stock(close_df):
+    """
+    MA50 over each stock's own last 50 VALID closes -- what the live engine
+    computes (it drops a ticker's missing days before rolling). A plain
+    close_df.rolling(50) goes NaN for 50 rows after any single missing day
+    (suspension, data gap), silently blocking entries and MA50 exits.
+    """
+    return close_df.apply(lambda s: s.dropna().rolling(50).mean()).reindex(close_df.index)
 
 
 # ── Simulation ───────────────────────────────────────────────────────────────
@@ -182,7 +213,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, rs_panel=None):
     trades, curve = [], []
     last_rebal_idx = None
 
-    ma50_all = close_df.rolling(50).mean()
+    ma50_all = ma50_per_stock(close_df)
     ma200_n = nifty["Close"].rolling(200).mean()
     hi52_n = nifty["High"].rolling(252).max()
 

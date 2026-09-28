@@ -43,7 +43,7 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from exit_rule_backtest import build_rs_panel, fetch, stats
+from exit_rule_backtest import build_rs_panel, fetch, ma50_per_stock, stats
 from ranking_rotation_backtest import DEFAULTS, RS_CAP, simulate
 
 OUT_CSV = "analysis/breadth_gates_backtest.csv"
@@ -118,7 +118,7 @@ def main():
     base = build_rs_panel(close_df, nifty, dates).where(lambda x: x.abs() <= RS_CAP).where(pit)
     hist = c.notna().cumsum()
 
-    ma50 = c.rolling(50).mean()
+    ma50 = ma50_per_stock(c)
     ts = trend_score(c)
     uni_ma = pit & ma50.notna()
     uni_ts = pit & ts.notna()
