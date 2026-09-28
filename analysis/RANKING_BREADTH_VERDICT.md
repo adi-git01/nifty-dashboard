@@ -97,3 +97,34 @@ Consequence: the ABSOLUTE numbers in this file and in earlier backtests were
 distorted. Every comparison within a run shared the same distortion, so the
 direction of each finding should hold, but the ranking robustness and breadth
 runs should be repeated on the fixed harness to confirm.
+
+## Breadth rerun on the fixed harness (Actions run 36466112712)
+
+2025 tickers, 13 stray rows dropped. Baseline (30% MA50 gate), 10y: +793%,
+Sharpe 1.29, max DD -30.7%. Wins are counted against this baseline across 4
+windows, 8 starts and 3 periods.
+
+| Variant | Windows | Starts | Periods | Verdict |
+|---|---|---|---|---|
+| No gate (old live bug) | 0/4 | 2/8 | 0/3 | 10y +501%, DD -43%. Gate fix confirmed. |
+| MA50 >= 40 / >= 50 | 1/4 | 2-3/8 | 1/3 | Reject |
+| TS60 >= 40 | 1/4 | 8/8 | 2/3 | Better earlier; worse in 1/3/5y. Not adopted. |
+| TS60 > TS30 | 1/4 | 8/8 | 2/3 | Same pattern as TS60 >= 40 |
+| TS60 above its 20d avg | 3/4 | 4/8 | 2/3 | Drawdown 7-12 pts shallower everywhere; 10y return lower (+594%). Watch. |
+| No MA50 exit | 2/4 | 1/8 | 0/3 | Keep the MA50 exit |
+| Switch TS60 45/35 | 1/4 | 8/8 | 1/3 | 10y +798% with DD -21.3%; slightly lower Sharpe in recent windows |
+| Other switches | 0-1/4 | 0-7/8 | 1-2/3 | Reject |
+
+The findings from the old harness hold: keep the 30% MA50 gate, the MA50 exit
+and no sell-all switch. What changed: the 45/35 switch no longer costs
+return over 10 years. It matches the baseline (+798% vs +793%) and cuts the
+worst drawdown by a third. On plain Nifty the same switch lowers Sharpe
+(-0.06 over 10y), so the drawdown cut is specific to this book, not generic
+market timing. It still fails the pre-registered rule (1/4 windows, 1/3
+periods), and it was picked as the best of four thresholds. Treat it as
+optional drawdown insurance, not an improvement.
+
+The robustness rerun crashed: a held stock with a missing close made equity
+NaN. The simulators now value a holding at its last valid close, and the
+workflows fail on a crash instead of reporting success. 6-month RS ranking is
+confirmed on the fixed harness only after that rerun.
