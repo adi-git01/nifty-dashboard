@@ -16,11 +16,11 @@ on:
         required: true
         default: "1000"
       script:
-        description: "main = 1/3/5/10y variants; robustness = staggered starts, separate periods, random-ranking control"
+        description: "main = 1/3/5/10y ranking variants; robustness = staggered starts/periods/random control; breadth = MA50 and TS>=60 breadth gates"
         required: true
         default: "main"
         type: choice
-        options: [main, robustness]
+        options: [main, robustness, breadth]
 
 jobs:
   ranking-rotation:
@@ -37,7 +37,7 @@ jobs:
           pip install -r requirements.txt
           pip install scipy
       - name: Run ranking / rotation / IPO backtest
-        if: github.event.inputs.script != 'robustness'
+        if: github.event.inputs.script == 'main'
         run: |
           python ranking_rotation_backtest.py \
             --years "${{ github.event.inputs.years }}" \
@@ -51,6 +51,13 @@ jobs:
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
             --top-n "${{ github.event.inputs.top_n }}" \
             2>&1 | tee ranking_rotation_output.txt
+      - name: Run breadth-gate backtest (MA50 and TS>=60 breadth)
+        if: github.event.inputs.script == 'breadth'
+        run: |
+          python breadth_gates_backtest.py \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            --top-n "${{ github.event.inputs.top_n }}" \
+            2>&1 | tee ranking_rotation_output.txt
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -59,5 +66,6 @@ jobs:
           path: |
             analysis/ranking_rotation_backtest.csv
             analysis/ranking_robustness.csv
+            analysis/breadth_gates_backtest.csv
             ranking_rotation_output.txt
           retention-days: 30

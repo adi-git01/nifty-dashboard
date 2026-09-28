@@ -71,7 +71,11 @@ VARIANTS = {
     "I1 IPOs: hist > 64":                 dict(min_hist=64),
     "I2 IPOs: hist > 126":                dict(min_hist=126),
 }
-DEFAULTS = dict(key="base", rotate=None, min_hist=200)
+# gate      : None = breadth >= 30% over all priced names (the harness rule);
+#             a boolean Series by date = allow new entries only where True
+# ma50_exit : sell a holding that closes below its MA50 (live rule)
+# ma50_entry: require price > MA50 to enter (live rule)
+DEFAULTS = dict(key="base", rotate=None, min_hist=200, gate=None, ma50_exit=True, ma50_entry=True)
 
 
 def rel(c, n, p):
@@ -138,7 +142,7 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
                 continue
             h = holdings[t]
             h["peak"] = max(h["peak"], p)
-            if m is not None and not np.isnan(m) and p < m:
+            if cfg["ma50_exit"] and m is not None and not np.isnan(m) and p < m:
                 sell(t, d, p, "Trend Break", regime)
             elif p < h["peak"] * keep:
                 sell(t, d, p, "Trailing Stop", regime)
@@ -163,10 +167,13 @@ def simulate(name, cfg, close_df, vol_df, nifty, dates, elig_rs, key, hist):
             valid = px.notna() & ma50.notna()
             breadth = 100.0 * ((px > ma50) & valid).sum() / max(valid.sum(), 1)
             free = MAX_POSITIONS - len(holdings)
-            if free > 0 and breadth >= BREADTH_NARROW_THRESHOLD:
+            allowed = (breadth >= BREADTH_NARROW_THRESHOLD) if cfg["gate"] is None \
+                else bool(cfg["gate"].get(d, False))
+            if free > 0 and allowed:
                 rs_total = elig_rs.loc[d]
                 liq_cr = (px * vol_df.loc[d]) / 1e7
-                elig = (rs_total.notna() & px.notna() & ma50.notna() & (px > ma50)
+                above = (px > ma50) if cfg["ma50_entry"] else pd.Series(True, index=px.index)
+                elig = (rs_total.notna() & px.notna() & ma50.notna() & above
                         & (rs_total >= params["min_comp_rs"] * 100)
                         & (liq_cr >= params["min_liquidity"]) & hist_ok.loc[d])
                 for t in list(holdings) + list(cooldown):
