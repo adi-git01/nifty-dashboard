@@ -1,0 +1,191 @@
+$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: LYPSAGEMS.NS"}}}
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: VISASTEEL.NS"}}}
+$VISASTEEL.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$CIGNITITEC.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$MIRCELECTR.NS: possibly delisted; no timezone found
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$LTIM.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$GSPL.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$EXCEL.NS: possibly delisted; no timezone found
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+
+12 Failed downloads:
+['JBCHEPHARM.NS', 'CIGNITITEC.NS', 'GSPL.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+['LYPSAGEMS.NS', 'VISASTEEL.NS', 'SASTASUNDR.NS', 'MIRCELECTR.NS', 'AKZOINDIA.NS', 'LTIM.NS', 'GUJGASLTD.NS', 'EXCEL.NS']: possibly delisted; no timezone found
+[yf_safe] bulk download attempt 1/3: 99% coverage (2098/2110 tickers)
+[data] dropped 14 non-session row(s) not in the Nifty calendar
+[data] 2097/2110 assets, 3031 sessions 2014-06-02 -> 2026-09-28, benchmark ^NSEI
+[india_subind] 58 sub-industries, top 5, rebalance every 13 sessions, tradable 2015-07-29 -> 2026-09-28 (2750 sessions)
+[yf_safe] bulk download attempt 1/3: 100% coverage (53/53 tickers)
+[data] 53/53 assets, 3100 sessions 2014-06-02 -> 2026-09-28, benchmark SMH
+[ai] 53 assets, top 10, rebalance every 10 sessions, tradable 2015-06-02 -> 2026-09-28 (2848 sessions)
+[yf_safe] bulk download attempt 1/3: 100% coverage (11/11 tickers)
+$HOLX: possibly delisted; no timezone found
+$EA: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$HBI: possibly delisted; no timezone found
+$DFS: possibly delisted; no timezone found
+$MRO: possibly delisted; no timezone found
+$PEAK: possibly delisted; no timezone found
+$ANSS: possibly delisted; no timezone found
+$JNPR: possibly delisted; no timezone found
+$IPG: possibly delisted; no timezone found
+$SEE: possibly delisted; no timezone found
+$EQR: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$WBA: possibly delisted; no timezone found
+$AVB: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$CTRA: possibly delisted; no timezone found
+$HES: possibly delisted; no timezone found
+$MMC: possibly delisted; no timezone found
+$FI: possibly delisted; no timezone found
+$EXAS: possibly delisted; no timezone found
+
+18 Failed downloads:
+['HOLX', 'HBI', 'DFS', 'MRO', 'PEAK', 'ANSS', 'JNPR', 'IPG', 'SEE', 'WBA', 'CTRA', 'HES', 'MMC', 'FI', 'EXAS']: possibly delisted; no timezone found
+['EA', 'EQR', 'AVB']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+[data] 11/11 assets, 3100 sessions 2014-06-02 -> 2026-09-28, benchmark SPY
+[us_sectors] 11 assets, top 3, rebalance every 21 sessions, tradable 2015-06-02 -> 2026-09-28 (2848 sessions)
+[yf_safe] bulk download attempt 1/3: 96% coverage (461/479 tickers)
+[data] 461/479 assets, 3100 sessions 2014-06-02 -> 2026-09-28, benchmark SPY
+[us_subind] 115 sub-industries, top 5, rebalance every 13 sessions, tradable 2015-06-02 -> 2026-09-28 (2848 sessions)
+
+====================================================================================================
+INDIA_SUBIND  (Sharpe; d = key minus LIVE on the same start/period)
+====================================================================================================
+Last 1/3/5/10 years:
+period              1y    3y    5y   10y
+key                                     
+live              1.32  1.02  1.37  1.25
+live_rs126        0.75  0.65  1.06  1.08
+rs63              1.45  1.20  1.32  1.10
+rs126             0.79  0.94  1.33  1.18
+rs252             0.46  0.91  1.19  1.20
+equal_weight_all  0.24  0.83  1.05  1.08
+benchmark ^NSEI  -0.54  0.45  0.44  0.70
+
+8 staggered 10-year starts / 3 separate periods. gross_ = before costs: a key that wins
+net but not gross wins by trading less, not by ranking better.
+   test                  key beats_live  median_d_sharpe gross_beats_live gross_d_sharpe beats_best_random  median_sharpe turnover_pa
+stagger                 live          -             0.00                -            0.0               8/8           1.23       1011%
+stagger           live_rs126        1/8            -0.12              0/8           -0.2               8/8           1.13        632%
+stagger                 rs63        5/8             0.03              2/8          -0.03               8/8           1.24        756%
+stagger                rs126        2/8            -0.01              0/8           -0.1               8/8           1.20        558%
+stagger                rs252        5/8             0.02              0/8          -0.09               8/8           1.21        428%
+stagger     equal_weight_all        0/8            -0.11              0/0                              8/8           1.13            
+stagger      benchmark ^NSEI        0/8            -0.50              0/0                              0/8           0.74            
+stagger random (median seed)        NaN              NaN              NaN            NaN               NaN           0.74         NaN
+ period                 live          -             0.00                -            0.0               2/3           1.47       1047%
+ period           live_rs126        1/3            -0.03              0/3           -0.1               2/3           1.26        653%
+ period                 rs63        1/3            -0.04              0/3          -0.11               2/3           1.49        789%
+ period                rs126        1/3            -0.06              1/3          -0.15               2/3           1.40        542%
+ period                rs252        1/3            -0.06              1/3          -0.16               2/3           1.22        424%
+ period     equal_weight_all        0/3            -0.15              0/0                              1/3           1.15            
+ period      benchmark ^NSEI        1/3            -0.87              0/0                              1/3           0.71            
+ period random (median seed)        NaN              NaN              NaN            NaN               NaN           0.80         NaN
+
+====================================================================================================
+AI  (Sharpe; d = key minus LIVE on the same start/period)
+====================================================================================================
+Last 1/3/5/10 years:
+period              1y    3y    5y   10y
+key                                     
+live              2.14  1.71  1.13  0.95
+optcomp_10_50_40  1.88  1.50  1.04  0.90
+rs63              1.87  1.37  0.94  0.84
+rs126             1.77  1.35  1.10  0.91
+rs252             2.04  1.73  1.37  1.12
+equal_weight_all  1.59  1.58  1.18  1.20
+benchmark SMH     1.77  1.48  1.04  1.05
+
+8 staggered 10-year starts / 3 separate periods. gross_ = before costs: a key that wins
+net but not gross wins by trading less, not by ranking better.
+   test                  key beats_live  median_d_sharpe gross_beats_live gross_d_sharpe beats_best_random  median_sharpe turnover_pa
+stagger                 live          -             0.00                -            0.0               2/8           1.04       1144%
+stagger     optcomp_10_50_40        4/8            -0.01              2/8          -0.03               2/8           1.04        979%
+stagger                 rs63        2/8            -0.04              1/8          -0.08               1/8           1.02        779%
+stagger                rs126        3/8            -0.01              0/8          -0.06               2/8           1.02        613%
+stagger                rs252        8/8             0.17              8/8           0.09               7/8           1.20        438%
+stagger     equal_weight_all        8/8             0.22              0/0                              8/8           1.25            
+stagger        benchmark SMH        8/8             0.05              0/0                              2/8           1.08            
+stagger random (median seed)        NaN              NaN              NaN            NaN               NaN           0.93         NaN
+ period                 live          -             0.00                -            0.0               1/3           0.55       1173%
+ period     optcomp_10_50_40        2/3             0.08              2/3           0.06               1/3           0.63        995%
+ period                 rs63        2/3             0.09              2/3           0.03               0/3           0.69        790%
+ period                rs126        1/3            -0.01              1/3          -0.08               0/3           0.90        610%
+ period                rs252        2/3             0.33              2/3           0.27               1/3           0.99        462%
+ period     equal_weight_all        3/3             0.19              0/0                              2/3           1.28            
+ period        benchmark SMH        2/3             0.09              0/0                              2/3           1.12            
+ period random (median seed)        NaN              NaN              NaN            NaN               NaN           0.92         NaN
+
+====================================================================================================
+US_SECTORS  (Sharpe; d = key minus LIVE on the same start/period)
+====================================================================================================
+Last 1/3/5/10 years:
+period              1y    3y    5y   10y
+key                                     
+live              1.44  0.94  0.51  0.45
+optcomp_10_50_40  0.91  0.87  0.48  0.48
+rs63              0.80  0.83  0.53  0.53
+rs126             0.14  0.81  0.55  0.64
+rs252             1.52  1.44  0.96  0.83
+equal_weight_all  1.19  1.33  0.77  0.79
+benchmark SPY     1.25  1.43  0.83  0.89
+
+8 staggered 10-year starts / 3 separate periods. gross_ = before costs: a key that wins
+net but not gross wins by trading less, not by ranking better.
+   test                  key beats_live  median_d_sharpe gross_beats_live gross_d_sharpe beats_best_random  median_sharpe turnover_pa
+stagger                 live          -             0.00                -            0.0               0/8           0.47        734%
+stagger     optcomp_10_50_40        5/8             0.04              4/8           0.02               0/8           0.48        641%
+stagger                 rs63        6/8             0.08              5/8           0.02               0/8           0.56        522%
+stagger                rs126        5/8             0.09              4/8           0.01               0/8           0.60        382%
+stagger                rs252        8/8             0.23              8/8           0.12               4/8           0.71        276%
+stagger     equal_weight_all        8/8             0.32              0/0                              8/8           0.80            
+stagger        benchmark SPY        8/8             0.41              0/0                              8/8           0.89            
+stagger random (median seed)        NaN              NaN              NaN            NaN               NaN           0.56         NaN
+ period                 live          -             0.00                -            0.0               0/3           0.40        734%
+ period     optcomp_10_50_40        3/3             0.05              2/3           0.03               0/3           0.53        658%
+ period                 rs63        2/3             0.50              2/3           0.43               0/3           0.82        511%
+ period                rs126        3/3             0.34              3/3           0.23               0/3           0.66        385%
+ period                rs252        3/3             0.14              2/3           0.06               1/3           0.64        259%
+ period     equal_weight_all        2/3             0.76              0/0                              1/3           1.16            
+ period        benchmark SPY        2/3             0.79              0/0                              1/3           1.19            
+ period random (median seed)        NaN              NaN              NaN            NaN               NaN           0.78         NaN
+
+====================================================================================================
+US_SUBIND  (Sharpe; d = key minus LIVE on the same start/period)
+====================================================================================================
+Last 1/3/5/10 years:
+period              1y    3y    5y   10y
+key                                     
+live              0.82  1.13  0.56  0.74
+live_rs126        1.34  0.78  0.74  0.70
+rs63              1.15  0.79  0.35  0.59
+rs126             1.21  0.59  0.64  0.63
+rs252             1.42  1.29  0.98  0.81
+equal_weight_all  1.46  1.24  0.75  0.89
+benchmark SPY     1.25  1.43  0.83  0.89
+
+8 staggered 10-year starts / 3 separate periods. gross_ = before costs: a key that wins
+net but not gross wins by trading less, not by ranking better.
+   test                  key beats_live  median_d_sharpe gross_beats_live gross_d_sharpe beats_best_random  median_sharpe turnover_pa
+stagger                 live          -             0.00                -            0.0               3/8           0.62       1237%
+stagger           live_rs126        7/8             0.14              5/8           0.05               7/8           0.78        704%
+stagger                 rs63        5/8             0.02              2/8          -0.04               3/8           0.62        914%
+stagger                rs126        6/8             0.05              2/8          -0.05               5/8           0.71        710%
+stagger                rs252        8/8             0.16              5/8           0.03               8/8           0.82        524%
+stagger     equal_weight_all        8/8             0.28              0/0                              8/8           0.90            
+stagger        benchmark SPY        8/8             0.26              0/0                              8/8           0.89            
+stagger random (median seed)        NaN              NaN              NaN            NaN               NaN           0.45         NaN
+ period                 live          -             0.00                -            0.0               1/3           0.51       1196%
+ period           live_rs126        2/3             0.33              2/3           0.26               1/3           0.81        706%
+ period                 rs63        1/3            -0.04              1/3          -0.06               0/3           0.61        970%
+ period                rs126        2/3             0.23              2/3           0.16               0/3           0.74        722%
+ period                rs252        3/3             0.03              1/3          -0.08               1/3           0.86        499%
+ period     equal_weight_all        3/3             0.11              0/0                              2/3           1.14            
+ period        benchmark SPY        2/3             0.38              0/0                              1/3           1.19            
+ period random (median seed)        NaN              NaN              NaN            NaN               NaN           0.53         NaN
+
+saved -> analysis/transfer_backtest.csv
