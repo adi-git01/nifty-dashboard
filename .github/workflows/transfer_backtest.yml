@@ -1,0 +1,49 @@
+name: Transfer Backtest (sub-industries, AI theme, US)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Which rotation tool to test."
+        required: true
+        default: "all"
+        type: choice
+        options: [all, india_subind, ai, us_sectors, us_subind]
+
+jobs:
+  transfer-backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run transfer backtest
+        run: |
+          set -o pipefail
+          python transfer_backtest.py --mode "${{ github.event.inputs.mode }}" \
+            2>&1 | tee transfer_backtest_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfer-backtest
+          path: |
+            analysis/transfer_backtest.csv
+            transfer_backtest_output.txt
+          retention-days: 30
+      - name: Commit results to the branch
+        if: success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        continue-on-error: true
+        with:
+          commit_message: "Transfer backtest results"
+          file_pattern: "analysis/transfer_backtest.csv transfer_backtest_output.txt"
