@@ -1,0 +1,48 @@
+ticker,launch,kind,tweet,total_pct,after_launch_pct,sessions_to_launch,sub_industry
+STLTECH,2026-02-09,base breakout,True,614.6,479.1,274,Telecom - Equipment & Accessories
+TFCILTD,2025-05-05,base breakout,False,326.8,235.2,82,
+MTARTECH,2025-09-23,base breakout,True,321.8,277.7,181,Industrial Manufacturing
+BLISSGVS,2025-07-30,base breakout,True,292.0,278.6,144,Pharmaceuticals & Biotechnology
+TDPOWERSYS,2025-05-14,base breakout,False,224.6,204.8,89,Electrical Equipment
+ACUTAAS,2025-07-31,base breakout,False,218.5,150.2,145,Chemicals & Petrochemicals
+LAURUSLABS,2025-04-22,base breakout,True,217.4,199.9,74,Pharmaceuticals & Biotechnology
+APOLLO,2025-01-20,base breakout,False,213.7,150.2,13,Aerospace & Defense
+LUMAXTECH,2025-05-21,base breakout,False,213.6,201.8,94,Consumer Durables
+WELCORP,2025-03-20,base breakout,True,205.4,184.6,55,Ferrous Metals
+AXISCADES,2025-03-07,base breakout,False,178.3,126.2,47,Construction
+SANSERA,2025-11-24,base breakout,True,175.9,147.1,222,Auto Components
+PARAS,2026-06-05,base breakout,False,173.0,42.9,351,Aerospace & Defense
+FORCEMOT,2025-05-02,base breakout,False,167.6,78.2,81,Automobiles
+PRECWIRE,2026-02-12,base breakout,False,166.4,61.5,277,
+SBC,2025-10-09,base breakout,False,166.1,109.8,192,
+MCX,2025-06-05,base breakout,False,161.3,131.4,105,Capital Markets
+SYRMA,2025-07-09,base breakout,True,159.6,149.7,129,Industrial Products
+GABRIEL,2025-03-19,base breakout,True,157.7,121.4,54,Auto Components
+RBLBANK,2025-07-11,base breakout,True,157.7,53.9,131,Banks
+NAVINFLUOR,2025-01-30,base breakout,True,151.5,111.1,21,Chemicals & Petrochemicals
+MANINDS,2025-11-20,base breakout,False,151.5,77.4,220,
+BAJAJCON,2025-10-10,base breakout,True,149.4,90.2,193,Personal Products
+IOLCP,2025-07-31,base breakout,False,146.1,94.0,145,
+TBZ,2026-07-09,base breakout,False,145.8,150.0,374,
+THANGAMAYL,2025-11-03,base breakout,False,142.4,85.3,208,Consumer Durables
+AEROFLEX,2026-02-18,base breakout,False,140.9,119.7,281,Industrial Products
+CHENNPETRO,2025-10-28,base breakout,True,137.1,76.4,204,Petroleum Products
+SHILPAMED,2025-06-10,base breakout,False,134.9,101.3,108,Healthcare Services
+CEMPRO,2025-05-15,base breakout,False,132.5,87.0,90,Construction
+AVALON,2025-10-03,base breakout,True,129.2,111.3,188,Industrial Manufacturing
+ANANDRATHI,2025-07-14,base breakout,False,126.0,74.5,132,Capital Markets
+LTF,2025-06-06,base breakout,True,125.3,60.9,106,Finance
+RPEL,2026-06-05,base breakout,False,123.4,49.1,351,
+ABCAPITAL,2025-06-11,base breakout,True,117.9,58.4,109,Finance
+SHAILY,2025-05-30,base breakout,False,116.3,54.3,101,Industrial Products
+KIRLOSENG,2025-11-19,base breakout,True,112.8,80.8,219,Industrial Manufacturing
+GVT&D,2025-05-27,base breakout,True,112.8,97.2,98,Industrial Manufacturing
+REDINGTON,2025-01-20,base breakout,True,109.3,88.3,13,Commercial Services & Supplies
+ASTRAMICRO,2025-05-16,base breakout,True,107.4,50.4,91,Telecom - Equipment & Accessories
+CRAFTSMAN,2025-07-30,base breakout,True,105.8,59.5,144,Auto Components
+DEEDEV,2026-04-10,no base (already making highs),False,103.6,85.7,314,
+SHRIPISTON,2025-05-13,base breakout,False,103.3,86.6,88,Consumer Durables
+TMB,2026-04-28,base breakout,False,102.9,22.7,325,
+SKYGOLD,2026-04-15,base breakout,False,102.7,89.1,316,Consumer Durables
+POWERINDIA,2025-05-14,base breakout,True,102.5,86.7,89,Electrical Equipment
+SJS,2025-08-19,base breakout,False,100.7,73.8,157,

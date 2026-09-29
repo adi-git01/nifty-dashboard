@@ -1,0 +1,260 @@
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: LYPSAGEMS.NS"}}}
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: EXCEL.NS"}}}
+$EXCEL.NS: possibly delisted; no timezone found
+$VISASTEEL.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$GSPL.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+$MIRCELECTR.NS: possibly delisted; no timezone found
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+$LTIM.NS: possibly delisted; no timezone found
+
+10 Failed downloads:
+['LYPSAGEMS.NS', 'EXCEL.NS', 'VISASTEEL.NS', 'GUJGASLTD.NS', 'MIRCELECTR.NS', 'AKZOINDIA.NS', 'SASTASUNDR.NS', 'LTIM.NS']: possibly delisted; no timezone found
+['GSPL.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+[data] Nifty 2015-06-01 -> 2026-09-29
+[data] 2110 tickers (this is the slow part)...
+[yf_safe] bulk download attempt 1/3: 100% coverage (2100/2110 tickers)
+[data] usable tickers: 2025
+[data] dropped 11 non-session row(s) not in the Nifty calendar
+[data] 2792 sessions 2015-06-01 -> 2026-09-28, 2025 tickers
+[events] 7645 base breakouts (new 52w closing high after >= 40 sessions without one)
+
+[winners] 47 stocks in the top-1000 on 2025-01-01 doubled by 2026-09-17
+   tweet name not counted: GUJGASLTD    no price data
+   tweet name not counted: SALSTEEL     no price data
+   tweet name not counted: WHEELS       not in top-1000 in the first week of 2025
+   tweet name not counted: INDOBORAX    not in top-1000 in the first week of 2025
+   tweet name not counted: ITDCEM       no price data
+   tweet name not counted: HAPPYFORGE   not in top-1000 in the first week of 2025
+   tweet name not counted: UNIPARTS     not in top-1000 in the first week of 2025
+   tweet name not counted: CENTUM       not in top-1000 in the first week of 2025
+   tweet name not counted: RELINFRA     no price data
+
+    launch type: {'base breakout': 46, 'no base (already making highs)': 1}
+    median move 146%, of which after the launch breakout 90%; median 132 sessions into 2025
+    sub-industries with 3+ winners: Industrial Manufacturing 4, Consumer Durables 4, Auto Components 3, Industrial Products 3
+    ticker     launch                           kind  tweet  total_pct  after_launch_pct  sessions_to_launch                      sub_industry
+   STLTECH 2026-02-09                  base breakout   True      614.6             479.1                 274 Telecom - Equipment & Accessories
+   TFCILTD 2025-05-05                  base breakout  False      326.8             235.2                  82                               NaN
+  MTARTECH 2025-09-23                  base breakout   True      321.8             277.7                 181          Industrial Manufacturing
+  BLISSGVS 2025-07-30                  base breakout   True      292.0             278.6                 144   Pharmaceuticals & Biotechnology
+TDPOWERSYS 2025-05-14                  base breakout  False      224.6             204.8                  89              Electrical Equipment
+   ACUTAAS 2025-07-31                  base breakout  False      218.5             150.2                 145        Chemicals & Petrochemicals
+LAURUSLABS 2025-04-22                  base breakout   True      217.4             199.9                  74   Pharmaceuticals & Biotechnology
+    APOLLO 2025-01-20                  base breakout  False      213.7             150.2                  13               Aerospace & Defense
+ LUMAXTECH 2025-05-21                  base breakout  False      213.6             201.8                  94                 Consumer Durables
+   WELCORP 2025-03-20                  base breakout   True      205.4             184.6                  55                    Ferrous Metals
+ AXISCADES 2025-03-07                  base breakout  False      178.3             126.2                  47                      Construction
+   SANSERA 2025-11-24                  base breakout   True      175.9             147.1                 222                   Auto Components
+     PARAS 2026-06-05                  base breakout  False      173.0              42.9                 351               Aerospace & Defense
+  FORCEMOT 2025-05-02                  base breakout  False      167.6              78.2                  81                       Automobiles
+  PRECWIRE 2026-02-12                  base breakout  False      166.4              61.5                 277                               NaN
+       SBC 2025-10-09                  base breakout  False      166.1             109.8                 192                               NaN
+       MCX 2025-06-05                  base breakout  False      161.3             131.4                 105                   Capital Markets
+     SYRMA 2025-07-09                  base breakout   True      159.6             149.7                 129               Industrial Products
+   GABRIEL 2025-03-19                  base breakout   True      157.7             121.4                  54                   Auto Components
+   RBLBANK 2025-07-11                  base breakout   True      157.7              53.9                 131                             Banks
+NAVINFLUOR 2025-01-30                  base breakout   True      151.5             111.1                  21        Chemicals & Petrochemicals
+   MANINDS 2025-11-20                  base breakout  False      151.5              77.4                 220                               NaN
+  BAJAJCON 2025-10-10                  base breakout   True      149.4              90.2                 193                 Personal Products
+     IOLCP 2025-07-31                  base breakout  False      146.1              94.0                 145                               NaN
+       TBZ 2026-07-09                  base breakout  False      145.8             150.0                 374                               NaN
+THANGAMAYL 2025-11-03                  base breakout  False      142.4              85.3                 208                 Consumer Durables
+  AEROFLEX 2026-02-18                  base breakout  False      140.9             119.7                 281               Industrial Products
+CHENNPETRO 2025-10-28                  base breakout   True      137.1              76.4                 204                Petroleum Products
+ SHILPAMED 2025-06-10                  base breakout  False      134.9             101.3                 108               Healthcare Services
+    CEMPRO 2025-05-15                  base breakout  False      132.5              87.0                  90                      Construction
+    AVALON 2025-10-03                  base breakout   True      129.2             111.3                 188          Industrial Manufacturing
+ANANDRATHI 2025-07-14                  base breakout  False      126.0              74.5                 132                   Capital Markets
+       LTF 2025-06-06                  base breakout   True      125.3              60.9                 106                           Finance
+      RPEL 2026-06-05                  base breakout  False      123.4              49.1                 351                               NaN
+ ABCAPITAL 2025-06-11                  base breakout   True      117.9              58.4                 109                           Finance
+    SHAILY 2025-05-30                  base breakout  False      116.3              54.3                 101               Industrial Products
+ KIRLOSENG 2025-11-19                  base breakout   True      112.8              80.8                 219          Industrial Manufacturing
+     GVT&D 2025-05-27                  base breakout   True      112.8              97.2                  98          Industrial Manufacturing
+ REDINGTON 2025-01-20                  base breakout   True      109.3              88.3                  13    Commercial Services & Supplies
+ASTRAMICRO 2025-05-16                  base breakout   True      107.4              50.4                  91 Telecom - Equipment & Accessories
+ CRAFTSMAN 2025-07-30                  base breakout   True      105.8              59.5                 144                   Auto Components
+    DEEDEV 2026-04-10 no base (already making highs)  False      103.6              85.7                 314                               NaN
+SHRIPISTON 2025-05-13                  base breakout  False      103.3              86.6                  88                 Consumer Durables
+       TMB 2026-04-28                  base breakout  False      102.9              22.7                 325                               NaN
+   SKYGOLD 2026-04-15                  base breakout  False      102.7              89.1                 316                 Consumer Durables
+POWERINDIA 2025-05-14                  base breakout   True      102.5              86.7                  89              Electrical Equipment
+       SJS 2025-08-19                  base breakout  False      100.7              73.8                 157                               NaN
+
+A1. WINNERS AT LAUNCH (46) vs OTHER BREAKOUTS 2025-01-01 -> 2026-06-30 (668)
+    winners_percentile = where the winners' median sits among other breakouts (50 = typical)
+                             feature  winners  other_breakouts winners_percentile  scored
+    sessions since previous 52w high   222.00           180.50                 56        
+      deepest fall in prior year (%)   -40.32           -35.76                 36        
+                 3m RS vs Nifty (pp)    29.88            19.52                 71 > 19.52
+                 6m RS vs Nifty (pp)    31.17            22.06                 70 > 22.06
+                1y return before (%)    23.63            22.60                 51        
+                      % above 200dma    29.79            20.95                 76 > 20.95
+             200dma 20-day slope (%)     1.33             1.20                 54        
+               volatility 20d / 120d     1.01             0.94                 60        
+                   volume 10d / 120d     1.83             1.42                 64        
+     turnover rank (1 = most liquid)   511.00           388.00                 62        
+       new 3-year high (% of stocks)    60.00            49.50                           
+Nifty above its 200dma (% of stocks)    76.10            62.40                           
+              Nifty % below 52w high    -5.20            -5.30                           
+
+A2. OUT-OF-PERIOD TEST: every base breakout 2016-06-02 -> 2024-12-31 (6708), scored with the 2025 winners' rule
+    rule (one point each): 3m RS vs Nifty (pp) > 19.52; 6m RS vs Nifty (pp) > 22.06; % above 200dma > 20.95
+    base rate: 30.6% of breakouts doubled within 420 sessions
+       breakouts  doubled_pct  med_fwd12_excess  mean_fwd12_excess  lift
+score                                                                   
+0           1743         19.5               0.5                9.3   0.6
+1           1253         29.1               2.3               17.7   1.0
+2           2204         31.9               2.1               19.2   1.0
+3           1508         42.6               6.2               32.6   1.4
+
+    high score = 2+ of 3 conditions, by era (mean = % doubled):
+                    size  mean
+era     high_score            
+2016-20 False       1255  19.1
+        True        1495  38.5
+2021-24 False       1741  26.7
+        True        2217  34.7
+
+    % doubled by quintile of each feature on its own (Q1 = lowest value):
+                         feature   Q1   Q2   Q3   Q4   Q5  Q5_minus_Q1
+sessions since previous 52w high 25.8 25.4 27.8 30.1 43.8         18.0
+  deepest fall in prior year (%) 38.9 35.9 29.8 28.0 20.2        -18.7
+             3m RS vs Nifty (pp) 23.9 25.8 28.0 32.7 42.4         18.5
+             6m RS vs Nifty (pp) 21.7 25.4 31.1 37.3 37.3         15.6
+            1y return before (%) 34.9 29.5 29.4 28.6 30.4         -4.5
+                  % above 200dma 18.9 26.6 31.3 35.6 40.4         21.5
+         200dma 20-day slope (%) 35.6 27.2 27.5 30.7 31.7         -3.9
+           volatility 20d / 120d 33.5 30.7 29.9 30.4 28.4         -5.1
+               volume 10d / 120d 29.3 25.7 29.7 34.5 33.7          4.4
+ turnover rank (1 = most liquid) 19.1 29.3 33.9 33.5 37.0         18.0
+
+A3. SIMILAR SETUPS NOW (2026-09-28): 51 names breaking out or coiled; top by score (max 3)
+
+  broke out (30 sessions):
+            score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge                       sub_industry
+SUNFLAG         3    2026-09-28            0.0      97.0  113.5  37.0  -53.3          0.9        1.8                 Diversified Metals
+OPTIEMUS        3    2026-09-22           -2.2     489.0  104.5  58.2  -57.0          0.9        4.6  Telecom - Equipment & Accessories
+FCL             3    2026-08-21           -5.1      42.0  101.6  40.4  -57.6          0.8        1.0         Chemicals & Petrochemicals
+WABAG           3    2026-09-11          -13.2      44.0   94.1  42.1  -52.8          1.0        1.4                       Construction
+DYCL            3    2026-08-28          -20.1     419.0   77.3  49.1  -49.8          0.7        0.9               Electrical Equipment
+JINDWORLD       3    2026-09-01          -16.8     407.0   71.6  41.0  -55.2          0.5        2.1                  Consumer Durables
+SHAREINDIA      3    2026-09-17           -9.7     630.0   69.1  61.4  -42.8          0.9        7.1                            Finance
+QPOWER          3    2026-08-28            0.0      85.0   68.4  33.3  -57.5          0.8        0.4                                NaN
+NIACL           3    2026-09-04          -26.5      52.0   66.5  51.7  -44.5          0.6        2.6                          Insurance
+COFORGE         3    2026-08-28          -12.0     178.0   62.6  34.8  -45.6          0.6        0.6                      IT - Services
+GNA             3    2026-09-23           -4.2      47.0   56.3  44.6  -50.0          0.6        2.0                    Auto Components
+ONEPOINT        3    2026-09-23           -0.2     548.0   54.8  20.3  -35.8          1.0        3.1                                NaN
+DWARKESH        3    2026-08-20          -21.7     712.0   52.2  22.3  -35.5          1.2        3.0                      Food Products
+SYNCOMF         3    2026-08-28            0.0     487.0   52.2  28.4  -43.0          1.2        4.4                                NaN
+GIPCL           3    2026-08-26          -10.6     541.0   51.3  26.6  -37.6          1.0        2.8                              Power
+TNPETRO         3    2026-09-01           -9.1     203.0   50.3  48.4  -35.8          1.3       15.8                                NaN
+BAJAJHIND       3    2026-08-20          -15.6     509.0   47.4  23.5  -35.8          1.2        5.7                      Food Products
+JTLIND          3    2026-08-28           -4.8     632.0   44.6  30.9  -50.9          0.6        1.1                                NaN
+AARTIPHARM      3    2026-09-23           -2.8     292.0   43.7  35.1  -36.9          0.7        2.5    Pharmaceuticals & Biotechnology
+KSL             3    2026-09-10           -4.6      42.0   42.8  21.9  -40.6          1.1        2.9                 Diversified Metals
+VENKEYS         3    2026-09-11           -8.6     499.0   41.9  30.2  -31.5          0.9        3.1                                NaN
+PFOCUS          3    2026-09-21          -11.8     114.0   38.3  60.0  -53.4          0.8        1.8                                NaN
+ENGINERSIN      3    2026-09-01           -0.6      81.0   33.9  20.0  -37.7          0.9        2.1                       Construction
+TEGA            3    2026-09-21           -5.5     458.0   24.5  24.1  -29.9          1.4        9.8           Industrial Manufacturing
+ANTELOPUS       2    2026-09-02           -8.1      62.0   92.0   1.8  -60.7          0.9        5.6                                Oil
+
+  coiled under 52w high:
+           score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge sub_industry
+TATVA          3           NaT           -2.1      44.0   52.4  52.1  -44.9          0.9        0.8          NaN
+GAIL           1           NaT           -4.7      40.0   26.2   4.3  -25.4          0.9        0.6          Gas
+LICHSGFIN      0           NaT           -3.0     556.0   20.7   6.6  -22.4          1.0        1.4      Finance
+MAHLOG         0           NaT           -4.1     108.0   18.8  18.1  -36.9          0.7        0.9          NaN
+
+[screener] scraping 1294 names at ~1.0s each...
+[screener] 100/1294  failed 0  HTTP {200: 105}
+[screener] 200/1294  failed 0  HTTP {200: 222}
+[screener] 300/1294  failed 0  HTTP {200: 335}
+[screener] 400/1294  failed 0  HTTP {200: 447}
+[screener] 500/1294  failed 2  HTTP {200: 559, 404: 4}
+[screener] 600/1294  failed 3  HTTP {200: 668, 404: 6}
+[screener] 700/1294  failed 3  HTTP {200: 778, 404: 6}
+[screener] 800/1294  failed 3  HTTP {200: 888, 404: 6}
+[screener] 900/1294  failed 3  HTTP {200: 1008, 404: 6}
+[screener] 1000/1294  failed 3  HTTP {200: 1118, 404: 6}
+[screener] 1100/1294  failed 3  HTTP {200: 1232, 404: 6}
+[screener] 1200/1294  failed 3  HTTP {200: 1341, 404: 6}
+[screener] done: 1291 parsed, 3 failed; HTTP {200: 1449, 404: 6}
+   failed: GUJGASLTD HEG ITDCEM
+
+B1. WINNERS' LAST PUBLIC QUARTER BEFORE LAUNCH (47 with data)
+    median value, and median percentile vs every universe stock on the same day (50 = typical)
+             field  winners_with_data median share_true_pct median_percentile
+         sales_yoy                 47   13.4                               55
+            np_yoy                 43   26.0                               63
+          np_accel                 42    3.7                               56
+        turnaround                 47                     9                  
+       inst_chg_2q                 47    0.3                               63
+    inst_rising_2q                 47                    28                  
+        fii_chg_2q                 47    0.2                               63
+        dii_chg_2q                 47    0.3                               56
+   promoter_chg_2q                 44   -0.0                               29
+holders_chg_2q_pct                 47    0.4                               46
+
+B2. DOES IT PREDICT? 3978 stock-dates (4 decision dates, Nov 2024 - Aug 2025)
+    base: median 12m excess -6.9 pp, doubled within 12m 5.3%
+    median 12m excess vs Nifty (pp) by quintile within each date; Q5 = highest value
+                    field    n  Q1_excess  Q2_excess  Q3_excess  Q4_excess  Q5_excess  Q1_doubled  Q5_doubled
+                sales_yoy 3916      -10.3       -5.1       -6.1       -2.8      -10.6         5.2         7.7
+                   np_yoy 3597       -7.7       -5.9       -5.2       -6.1       -8.3         4.4         8.2
+                 np_accel 3421       -8.1       -4.8       -4.1       -4.9       -9.6         7.7         4.8
+              inst_chg_2q 3808       -8.2       -5.0       -7.0       -7.5       -6.0         8.4         6.3
+               fii_chg_2q 3808       -3.8       -7.0       -8.9       -8.1       -5.6         6.2         6.3
+               dii_chg_2q 3808       -5.6       -9.6      -11.7       -4.1       -3.6         7.6         5.1
+          promoter_chg_2q 3683       -8.4       -3.2       -6.2       -8.7       -7.5         6.4         4.9
+       holders_chg_2q_pct 3808       -9.0       -6.6       -3.8       -4.7       -8.8         3.4         6.6
+inst_rising_2q (no / yes) 3808       -6.4        NaN        NaN        NaN       -6.6         5.8         4.4
+    turnaround (no / yes) 3918       -6.8        NaN        NaN        NaN       -6.5         5.3         7.6
+
+B3. FII + DII ROSE IN EACH OF THE LAST TWO QUARTERS (to 2026-06-30): 166 of 497 universe stocks; both FII and DII up in 76
+            inst_now  inst_chg_2q  fii_chg_2q  dii_chg_2q  promoter_chg_2q  holders_chg_2q_pct  np_yoy  sales_yoy  rs126_now  from_52w_high_pct  setup_score                     sub_industry
+BAJAJHIND       51.8         42.1        -0.7        42.8            -11.6                -2.1     NaN       -9.8       31.1              -15.6          3.0                    Food Products
+VMM             55.2         14.2         4.9         9.3            -14.0                -4.1    25.7       18.7       -5.1              -33.8          NaN                        Retailing
+JSWINFRA        20.4         11.1         4.1         7.0             -9.7                -6.4    -8.2       18.1       39.1               -5.1          2.0         Transport Infrastructure
+MARKSANS        23.7          9.6         9.3         0.3              0.0                -3.3   174.1       35.6      102.6               -4.6          NaN  Pharmaceuticals & Biotechnology
+PREMIERENE      25.9          8.7         3.4         5.2             -5.5                -8.8    53.2       35.3        2.5              -18.9          NaN             Electrical Equipment
+NRBBEARING      32.8          8.3         4.8         3.5             -6.5                -8.4    15.2       19.4      136.2                0.0          NaN                              NaN
+POLICYBZR       77.7          7.4        -3.5        10.9              NaN                -5.5    91.8       40.1      -20.6              -41.2          NaN   Financial Technology (Fintech)
+UJJIVANSFB      50.3          6.1         1.4         4.8              0.0                -8.7   207.8       25.1       23.5              -12.9          NaN                          Finance
+NHPC            26.8          6.1         1.9         4.2             -6.0                -4.8     4.2       18.5       -1.8              -13.4          NaN                            Power
+IDEAFORGE        7.6          5.9         4.7         1.2             -0.0               -10.3     NaN      436.7       77.7              -25.8          NaN                              NaN
+BAJAJCON        31.0          5.6         6.4        -0.8              0.0                -0.7    86.8       25.3       33.3              -28.4          NaN                Personal Products
+PARAS           11.3          5.1         3.4         1.8              0.0                -8.8    50.0       37.6      113.0              -13.8          NaN              Aerospace & Defense
+BANDHANBNK      46.1          5.0        -3.7         8.7             -2.2               -13.4    34.9        2.8       22.3              -15.8          NaN                            Banks
+EASEMYTRIP       7.9          5.0         5.5        -0.5             -4.2                -5.4     NaN       18.4       -9.4              -38.0          NaN                 Leisure Services
+MTARTECH        47.2          5.0        12.6        -7.6             -1.2                18.3   354.5      129.9      100.0              -15.5          NaN         Industrial Manufacturing
+SOUTHBANK       39.6          4.9         4.4         0.5              NaN                -0.7    17.4       11.3       42.0               -2.6          1.0                            Banks
+INDUSINDBK      71.0          4.4        -2.4         6.9              0.0               -12.5    71.7       -7.8       14.9              -14.9          NaN                            Banks
+VINCOFE         15.0          4.3         1.0         3.3              0.0                17.4    50.0       57.8       35.7               -3.0          1.0                              NaN
+BSE             45.5          4.3         3.9         0.4              NaN                -5.6    62.3       63.5       11.3              -29.5          NaN                  Capital Markets
+BETA             7.2          4.2        -0.1         4.3             -5.8                99.2    33.3       26.0       90.8              -23.5          NaN  Pharmaceuticals & Biotechnology
+JSWCEMENT       15.2          4.1         0.7         3.4             -0.3                -3.8     NaN       21.5       -1.3              -24.4          NaN               Diversified Metals
+JINDALSAW       21.4          3.8        -1.0         4.9              0.0               -16.7   -78.1        9.0       53.7              -13.0          NaN                   Ferrous Metals
+SENORES         16.4          3.7         3.3         0.4              0.0                 6.1    42.9       30.4       85.1              -12.8          NaN                              NaN
+JSWENERGY       27.6          3.7         1.9         1.8             -2.7                -5.6   -36.2        1.2        3.2              -17.5          NaN                            Power
+ANGELONE        34.1          3.5         1.3         2.2             -0.3                 8.7   102.6       25.3       23.0              -21.1          NaN                  Capital Markets
+ZENTEC          16.9          3.5         0.9         2.6              0.0               -12.0   -39.6      -10.1       21.1              -17.7          NaN              Aerospace & Defense
+GMRAIRPORT      26.9          3.3         2.8         0.5              0.9                -6.1     NaN       23.8        7.0              -17.6          NaN         Transport Infrastructure
+YESBANK         70.2          3.3         0.4         2.9              NaN                -4.3    32.5        5.9       17.8              -16.9          NaN                            Banks
+PCJEWELLER      16.5          3.1         5.8        -2.8              1.3                 4.0    37.0       21.0       69.6               -6.6          NaN                Consumer Durables
+WAAREEENER      12.6          2.9         1.7         1.2             -0.1                 5.2    15.4       79.2      -19.8              -32.2          NaN             Electrical Equipment
+LAURUSLABS      41.7          2.8         1.5         1.3             -0.0                 3.9   123.5       29.0      103.3               -1.1          NaN  Pharmaceuticals & Biotechnology
+SWIGGY          41.3          2.7        -2.1         4.8              NaN                 6.6     NaN       37.3       -6.6              -44.2          NaN                        Retailing
+SJS             48.7          2.7        -2.3         4.9             -1.0                 0.8   111.4       24.3       43.2              -11.7          NaN                              NaN
+DATAPATTNS      24.5          2.7         1.0         1.7              0.0                 2.2   -15.4       17.2       33.0              -13.3          2.0              Aerospace & Defense
+IRFC             5.2          2.6         0.2         2.4             -3.5                -1.6    10.4       19.5      -14.8              -40.6          NaN                          Finance
+WELCORP         34.6          2.6         3.2        -0.6              0.0                 5.8   200.3       14.9      243.2               -3.3          NaN                   Ferrous Metals
+TDPOWERSYS      50.1          2.5         1.8         0.7              0.0                14.4    72.0       72.0       68.6              -10.3          NaN             Electrical Equipment
+RADICO          46.3          2.4        -1.6         4.0             -0.0                -6.0    75.6       11.8       70.8               -5.4          NaN                        Beverages
+MOTISONS         3.6          2.4         2.2         0.2             -8.6                 2.9    37.5       23.0       47.4               -6.0          NaN                              NaN
+EQUITASBNK      67.0          2.4         1.1         1.3              NaN                -9.0     NaN       18.9       18.5              -20.5          NaN                            Banks
+    full list -> analysis/fii_dii_rising.csv
