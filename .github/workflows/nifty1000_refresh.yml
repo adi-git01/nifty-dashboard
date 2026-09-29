@@ -39,11 +39,11 @@ jobs:
       # Uses market cap ranking (faster than OHLCV) — ~15 min for 1000 stocks
 
     - name: Commit updated universe
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "🤖 System: Quarterly Nifty 1000 universe refresh (top 1000 by market cap)"
-        file_pattern: 'data/nifty1000_list.csv'
-        push_options: '--force-with-lease'
+      # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).
+      run: >
+        bash scripts/commit_and_push.sh
+        "🤖 System: Quarterly Nifty 1000 universe refresh (top 1000 by market cap)"
+        data/nifty1000_list.csv
 
     - name: Notify on failure
       if: failure()
