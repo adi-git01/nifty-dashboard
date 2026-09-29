@@ -1,7 +1,7 @@
 {
     "strategy": "OptComp-V22",
     "date": "2026-09-28",
-    "cash": 184455.53965927122,
+    "cash": 218829.9530592712,
     "holdings": {
         "SYRMA.NS": {
             "entry_price": 1266.699951171875,
@@ -76,8 +76,8 @@
             "peak_price": 276.20001220703125
         }
     },
-    "equity": 1128875.940934906,
-    "cash_pct": 16.3,
+    "equity": 1163250.354334906,
+    "cash_pct": 18.8,
     "count": 12,
     "portfolio": [
         {
@@ -232,7 +232,6 @@
     "recently_exited": {
         "DIACABS.NS": "2026-09-03",
         "CNL.NS": "2026-09-10",
-        "PGIL.NS": "2026-09-11",
         "ALLCARGO.NS": "2026-09-15",
         "WELCORP.NS": "2026-09-15",
         "HATSUN.NS": "2026-09-28"
