@@ -35,11 +35,11 @@ jobs:
       timeout-minutes: 30
 
     - name: Commit updated history files
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "🤖 System: Backfill market mood & breadth history (Mar–Apr 2026)"
-        file_pattern: 'data/market_mood_history.csv data/market_breadth_history.csv'
-        push_options: '--force-with-lease'
+      # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).
+      run: >
+        bash scripts/commit_and_push.sh
+        "🤖 System: Backfill market mood & breadth history (Mar–Apr 2026)"
+        data/market_mood_history.csv data/market_breadth_history.csv
 
     - name: Notify on success
       run: |

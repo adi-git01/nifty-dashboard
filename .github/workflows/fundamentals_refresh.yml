@@ -38,11 +38,11 @@ jobs:
       # ~750 stocks × 0.6s delay ≈ 7-8 minutes. Sequential to stay under Yahoo rate limits.
 
     - name: Commit fundamentals cache
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "🤖 System: Bi-weekly fundamentals refresh (PE, ROE, margins, growth)"
-        file_pattern: 'data/fundamentals_cache.csv'
-        push_options: '--force-with-lease'
+      # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).
+      run: >
+        bash scripts/commit_and_push.sh
+        "🤖 System: Bi-weekly fundamentals refresh (PE, ROE, margins, growth)"
+        data/fundamentals_cache.csv
 
     - name: Notify on failure
       if: failure()

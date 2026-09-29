@@ -53,6 +53,24 @@ Upgrades do not help: red -> green -1.5 pp over 3 months (no better than
 staying red, -1.6); yellow -> green -0.1 pp. Only green -> green is positive
 (+0.3 pp). The colour's level carries the information, not the change.
 
+## 6. Buying on the day a sub-industry turns green
+
+Rerun 29 Sep 2026 (run 36597886523; the results commit was overwritten by an
+engine force-push, so the numbers are recorded here). Entry at the close on the
+day score_0_100 first crosses 70; 5,830 entries 2016-2026. Median pp.
+
+| next | return | vs Nifty | beat Nifty | vs avg group | beat group |
+|---|---|---|---|---|---|
+| 1 week | +0.64% | +0.20 | 53% | -0.05 | 49% |
+| 2 weeks | +1.08% | +0.47 | 55% | +0.04 | 51% |
+| 4 weeks | +2.09% | +1.02 | 57% | +0.09 | 51% |
+| baseline, any group any day, 2 weeks | +0.80% | +0.25 | 53% | -0.17 | 47% |
+
+Entries from red: -0.38 pp vs the average group over 2 weeks (45% beat).
+2021-26 is better than 2016-20 vs Nifty (+0.77 pp, 58% at 2 weeks) but still
+~0 vs other groups. The part due to turning green is about +0.2 pp over two
+weeks -- less than the cost of trading a basket in and out.
+
 ## Use
 
 - As a filter: avoid new buys in bottom-fifth sub-industries (score < 20).

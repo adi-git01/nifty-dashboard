@@ -106,12 +106,13 @@ jobs:
       continue-on-error: true
 
     - name: Commit State Changes (All Data Files)
-      uses: stefanzweifel/git-auto-commit-action@v5
-      continue-on-error: true  # Don't fail the job if nothing changed or push conflicts
-      with:
-        commit_message: "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
-        file_pattern: 'data/*.csv data/*.json data/cache/*.parquet positions.json'
-        push_options: '--force-with-lease'  # Safely handle non-fast-forward errors
+      continue-on-error: true  # a failed push must not trigger the crash alert; the step log shows it
+      # Rebase-and-retry instead of a force push, which overwrote commits that
+      # landed during the run (see scripts/commit_and_push.sh).
+      run: >
+        bash scripts/commit_and_push.sh
+        "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
+        'data/*.csv' 'data/*.json' 'data/cache/*.parquet' positions.json
 
 
     - name: 🚨 Notify on Crash (Telegram & Email)
