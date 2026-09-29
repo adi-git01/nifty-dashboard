@@ -1,0 +1,60 @@
+name: Winners Setup Scan + FII/DII Ownership (NSE)
+
+on:
+  workflow_dispatch:
+    inputs:
+      screener:
+        description: "Screener.in data: scrape (~30 min), reuse (committed analysis/screener_raw.csv) or skip."
+        required: true
+        default: "scrape"
+        type: choice
+        options: [scrape, reuse, skip]
+      max_tickers:
+        description: "Cap on names DOWNLOADED. 0 = all ~2110."
+        required: true
+        default: "0"
+
+jobs:
+  winners-setup-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run scan
+        run: |
+          set -o pipefail
+          python winners_setup_scan.py \
+            --screener "${{ github.event.inputs.screener }}" \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            2>&1 | tee winners_setup_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winners-setup-scan
+          path: |
+            analysis/winners_2025_launches.csv
+            analysis/setup_score_history.csv
+            analysis/setup_scan_now.csv
+            analysis/winners_fundamentals_at_launch.csv
+            analysis/fundamentals_lift.csv
+            analysis/fii_dii_rising.csv
+            analysis/screener_raw.csv
+            analysis/screener_sample_*.html
+            winners_setup_output.txt
+          retention-days: 30
+      - name: Commit results to the branch
+        if: always()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        continue-on-error: true
+        with:
+          commit_message: "Winners setup scan results"
+          file_pattern: "analysis/winners_2025_launches.csv analysis/setup_score_history.csv analysis/setup_scan_now.csv analysis/winners_fundamentals_at_launch.csv analysis/fundamentals_lift.csv analysis/fii_dii_rising.csv analysis/screener_raw.csv winners_setup_output.txt"
