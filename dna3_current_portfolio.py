@@ -121,6 +121,19 @@ RS_WEIGHTS = [
 # CompRS in 8/8 staggered starts and 3/3 separate periods, and beat every
 # random-ranking seed; CompRS's 50% one-month weight is what drags it down.
 RANK_LOOKBACK = 126
+# Split / bonus detection for held stocks. Yahoo rescales the whole adjusted
+# history after a split or bonus, but the stored entry and peak stay in old
+# units, so a 1:1 bonus reads as a -50% fall. PGIL (1:1, 11 Sep 2026) was sold
+# on that "-52% trailing stop" while it was flat. Dividend adjustments are a few
+# percent; the smallest common bonus (1:10) moves prices by 9%.
+CORP_ACTION_TOL = 0.07
+# Price ratios (new / old) of the corporate actions NSE stocks actually do:
+# bonus p:q -> q/(p+q), face-value splits -> 1/2, 2/5, 1/5, 1/10, and their
+# inverses for consolidations. Snapping to this list, not to any fraction,
+# stops a 1% entry-vs-close gap turning a 1:10 bonus into 11/12.
+_BONUS = {(p, q) for p in range(1, 6) for q in range(1, 6)} | {(1, 10)}
+CORP_ACTION_RATIOS = sorted({q / (p + q) for p, q in _BONUS} | {1 / 2, 2 / 5, 1 / 5, 1 / 10}
+                            | {2.0, 2.5, 5.0, 10.0})
 
 # Breadth Gate Threshold
 BREADTH_NARROW_THRESHOLD = 30  # % of stocks above 50DMA — below this = skip buys
@@ -260,8 +273,53 @@ class OptCompV21Engine:
                 print(f"  [HELD RETRY] WARNING: no data for held ticker {t} — "
                       f"will value at last known price")
 
+        # A row with no close (Yahoo sometimes returns a partial last row) makes
+        # iloc[-1] NaN: every comparison with it is False, so the stock's exits
+        # silently stop firing, and a held one turns equity into NaN (the blank
+        # equity rows on 26-27 Aug 2026). Keep only rows that have a close.
+        for t in list(self.data_cache):
+            df = self.data_cache[t].dropna(subset=['Close'])
+            if df.empty:
+                del self.data_cache[t]
+            else:
+                self.data_cache[t] = df
+
         print(f"  Loaded {loaded} stocks. Nifty: {len(nifty)} days.")
         return True
+
+    def adjust_for_corporate_actions(self, holdings):
+        """
+        Rescale a holding to Yahoo's adjusted units after a split or bonus.
+
+        The engine buys at the day's close, so Yahoo's adjusted close on the
+        entry date should match the stored entry price to within dividend
+        adjustments. A bigger gap is a split or bonus: snap it to a simple
+        known ratio (1:1 bonus -> 1/2, 1:5 split -> 1/5, 1:10 bonus -> 10/11) and
+        scale entry and peak by it and shares by its inverse. Position value
+        is unchanged. Idempotent: once rescaled the ratio is ~1.
+        Returns a list of (ticker, ratio) that were adjusted.
+        """
+        done = []
+        for t, h in holdings.items():
+            df = self.data_cache.get(t)
+            ed = pd.Timestamp(h.get('entry_date', ''))
+            if df is None or ed not in df.index:
+                continue
+            raw = float(df.at[ed, 'Close']) / float(h['entry_price'])
+            if not np.isfinite(raw) or abs(raw - 1) <= CORP_ACTION_TOL:
+                continue
+            ratio = min(CORP_ACTION_RATIOS, key=lambda r: abs(r / raw - 1))
+            if abs(ratio / raw - 1) > 0.03:
+                print(f"  [CORP ACTION?] {t}: entry-date close / entry = {raw:.3f}, "
+                      f"no simple split ratio -- NOT adjusted, check manually")
+                continue
+            h['entry_price'] = float(h['entry_price']) * ratio
+            h['peak_price'] = float(h.get('peak_price', h['entry_price'] / ratio)) * ratio
+            h['shares'] = int(round(h['shares'] / ratio))
+            done.append((t, ratio))
+            print(f"  [CORP ACTION] {t}: split/bonus, price x{ratio:.4f} -> "
+                  f"entry Rs{h['entry_price']:.2f}, peak Rs{h['peak_price']:.2f}, {h['shares']} shares")
+        return done
 
     def held_price(self, ticker, holdings, prev_state):
         """
@@ -401,7 +459,8 @@ class OptCompV21Engine:
         holdings = state['holdings']
         recently_exited = state.get('recently_exited', {})  # stop-loss cooldown tracker
         trade_log = []
-        
+        self.adjust_for_corporate_actions(holdings)
+
         today = self.data_cache['NIFTY'].index[-1].strftime('%Y-%m-%d')
         self.current_date = today
 
