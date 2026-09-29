@@ -566,15 +566,21 @@ def part_b(raw, L, close, nifty, pit, subind, setup_now):
     now["sub_industry"] = now.index.map(subind)
     now["setup_score"] = setup_now.reindex(now.index)
     rising = now[now.inst_rising_2q == 1].sort_values("inst_chg_2q", ascending=False)
+    # A rise matched by a promoter fall is supply from the promoter (OFS, block
+    # sale, QIP) or lenders converting debt -- not open-market accumulation.
+    xfer = (rising.promoter_chg_2q < 0) & (-rising.promoter_chg_2q >= 0.5 * rising.inst_chg_2q) \
+           & (rising.inst_chg_2q >= 2)
+    rising["note"] = np.where(xfer, "promoter stake moved to institutions", "")
     cols = ["inst_now", "inst_chg_2q", "fii_chg_2q", "dii_chg_2q", "promoter_chg_2q",
             "holders_chg_2q_pct", "np_yoy", "sales_yoy", "rs126_now", "from_52w_high_pct",
-            "setup_score", "sub_industry"]
+            "setup_score", "sub_industry", "note"]
     out = rising[[c for c in cols if c in rising]].round(1)
     out.index = out.index.str.replace(".NS", "", regex=False)
     out.to_csv(f"{OUT}/fii_dii_rising.csv")
     both = ((rising.fii_chg_2q > 0) & (rising.dii_chg_2q > 0)).sum()
     print(f"\nB3. FII + DII ROSE IN EACH OF THE LAST TWO QUARTERS (to {latest}): {len(rising)} of {len(now)} "
           f"universe stocks; both FII and DII up in {both}")
+    print(f"    {int(xfer.sum())} of these are promoter stake moving to institutions (see note column)")
     print(out.head(40).to_string())
     print(f"    full list -> {OUT}/fii_dii_rising.csv")
 
@@ -594,6 +600,17 @@ def main():
 
     tickers = load_candidates("all", args.max_tickers)
     close, vol, nifty = fetch(tickers, "2015-06-01", datetime.now().strftime("%Y-%m-%d"))
+    # Yahoo often returns the latest session for only part of the list. Every
+    # "as of today" step (universe, scan, ownership list) needs a close on the
+    # last date, so a partial final row silently shrinks them -- the first run
+    # listed 497 universe stocks instead of ~1000. Cut to the last complete day.
+    cnt = close.notna().sum(axis=1)
+    full = cnt >= 0.9 * cnt.rolling(20, min_periods=5).median().shift(1)
+    last_ok = full[full].index[-1]
+    if last_ok != close.index[-1]:
+        print(f"[data] {close.index[-1].date()} has closes for {cnt.iloc[-1]} of ~{int(cnt.iloc[-21:-1].median())} "
+              f"stocks -- using {last_ok.date()} as today")
+        close, vol = close.loc[:last_ok], vol.loc[:last_ok]
     pit = build_pit_universe(close, vol, args.top_n)
     print(f"[data] {len(close)} sessions {close.index[0].date()} -> {close.index[-1].date()}, "
           f"{close.shape[1]} tickers")
