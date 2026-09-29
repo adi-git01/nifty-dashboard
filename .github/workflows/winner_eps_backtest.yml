@@ -26,6 +26,7 @@ jobs:
           pip install scipy
       - name: Run winner EPS trajectory test
         run: |
+          set -o pipefail
           python winner_eps_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \

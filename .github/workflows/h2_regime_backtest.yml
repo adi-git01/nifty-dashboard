@@ -32,6 +32,7 @@ jobs:
           pip install scipy
       - name: Run H2 regime-gate backtest
         run: |
+          set -o pipefail
           python h2_regime_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \

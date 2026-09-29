@@ -34,6 +34,7 @@ jobs:
           pip install scipy
       - name: Run factor backtest
         run: |
+          set -o pipefail
           python momentum_factor_backtest.py \
             --years "${{ github.event.inputs.years }}" \
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
