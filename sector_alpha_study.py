@@ -233,6 +233,43 @@ def main():
     Te = summary(T, "change", [f"vsgrp{h}" for h in HORIZONS])
     print(Te.reindex([o for o in order if o in Te.index]).to_string())
 
+    # ---- E2: buy on the day it turns green -----------------------------------
+    print(f"\n{'=' * 120}\nE2. BOUGHT AT THE CLOSE ON THE DAY A SUB-INDUSTRY FIRST TURNS GREEN (score crosses 70; daily)"
+          f"\n    return over the next 1 / 2 / 4 weeks, pp. mean shows the average buyer; median the typical case.\n{'=' * 120}")
+    prev = score.shift(1)
+    entry = (score >= 70) & (prev < 70)
+    frm = pd.DataFrame(colour(prev), index=score.index, columns=score.columns)
+    rows = []
+    for h in (5, 10, 21):
+        g = (gidx.shift(-h) / gidx - 1) * 100
+        nf = (bench.shift(-h) / bench - 1) * 100
+        vn, vg = g.sub(nf, axis=0), g.sub(g.mean(axis=1), axis=0)
+        e = pd.DataFrame({"from": frm[entry].stack(), "vn": vn[entry].stack(), "vg": vg[entry].stack(),
+                          "abs": g[entry].stack()}).dropna()
+        e["era"] = np.where(e.index.get_level_values(0) < ERA_SPLIT, "2016-20", "2021-26")
+        for key, sub in [("all entries", e)] + [(f"from {b}", e[e["from"] == b]) for b in ("yellow", "red")] \
+                        + [(f"all, {er}", e[e.era == er]) for er in ("2016-20", "2021-26")]:
+            if len(sub) < 20:
+                continue
+            rows.append(dict(horizon=f"{h // 5} wk", entry=key, n=len(sub),
+                             abs_median=round(sub["abs"].median(), 2), vs_nifty_median=round(sub.vn.median(), 2),
+                             vs_nifty_mean=round(sub.vn.mean(), 2), beat_nifty_pct=round((sub.vn > 0).mean() * 100),
+                             vs_grp_median=round(sub.vg.median(), 2), vs_grp_mean=round(sub.vg.mean(), 2),
+                             beat_grp_pct=round((sub.vg > 0).mean() * 100)))
+    # baseline: any sub-industry on any day, same horizons
+    for h in (5, 10, 21):
+        g = (gidx.shift(-h) / gidx - 1) * 100
+        nf = (bench.shift(-h) / bench - 1) * 100
+        vn, vg = g.sub(nf, axis=0).stack().dropna(), g.sub(g.mean(axis=1), axis=0).stack().dropna()
+        rows.append(dict(horizon=f"{h // 5} wk", entry="baseline: any group, any day", n=len(vn),
+                         abs_median=round(g.stack().median(), 2), vs_nifty_median=round(vn.median(), 2),
+                         vs_nifty_mean=round(vn.mean(), 2), beat_nifty_pct=round((vn > 0).mean() * 100),
+                         vs_grp_median=round(vg.median(), 2), vs_grp_mean=round(vg.mean(), 2),
+                         beat_grp_pct=round((vg > 0).mean() * 100)))
+    E2 = pd.DataFrame(rows).sort_values(["horizon", "entry"], kind="stable")
+    E2.to_csv(f"{OUT}/sector_green_entries.csv", index=False)
+    print(E2.to_string(index=False))
+
     # ---- F: now ---------------------------------------------------------------
     d = cp[-1]
     now = pd.DataFrame({"score": S.loc[d].round(0), "band": colour(S.loc[d]),
