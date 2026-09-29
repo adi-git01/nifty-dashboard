@@ -1,10 +1,10 @@
-name: Sub-Industry Colour-Change Study (NSE)
+name: Sub-Industry Alpha Study (NSE)
 
 on:
   workflow_dispatch:
 
 jobs:
-  sector-transitions:
+  sector-alpha:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -22,21 +22,21 @@ jobs:
       - name: Run study
         run: |
           set -o pipefail
-          python sector_transition_study.py 2>&1 | tee sector_transition_output.txt
+          python sector_alpha_study.py 2>&1 | tee sector_alpha_output.txt
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sector-transition-study
+          name: sector-alpha-study
           path: |
-            analysis/sector_transitions.csv
-            analysis/sector_bands_now.csv
-            sector_transition_output.txt
+            analysis/sector_group_character.csv
+            analysis/sector_now.csv
+            sector_alpha_output.txt
           retention-days: 30
       - name: Commit results to the branch
         if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         continue-on-error: true
         with:
-          commit_message: "Sub-industry colour-change study results"
-          file_pattern: "analysis/sector_bands_now.csv sector_transition_output.txt"
+          commit_message: "Sub-industry alpha study results"
+          file_pattern: "analysis/sector_group_character.csv analysis/sector_now.csv sector_alpha_output.txt"
