@@ -39,7 +39,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from exit_rule_backtest import (build_rs_panel, fetch, simulate, stats,
+from exit_rule_backtest import (build_rs_panel, fetch, ma50_per_stock, simulate, stats,
                                 VARIANTS, BREADTH_NARROW_THRESHOLD)
 from momentum_factor_backtest import (build_pit_universe, load_candidates,
                                       shuffle_panel, RS_CAP)
@@ -89,8 +89,12 @@ def gate_nifty_ma200(dates, nifty, **kw):
 
 
 def gate_breadth(dates, close_df, thresh=45, **kw):
-    ma50 = close_df.rolling(50).mean()
-    b = ((close_df > ma50).sum(axis=1) / close_df.notna().sum(axis=1) * 100).reindex(dates)
+    # Same breadth as the simulator's 30% rule: per-stock MA50, and only stocks
+    # that have one count (a gap or a new listing must not read as "below").
+    ma50 = ma50_per_stock(close_df)
+    valid = close_df.notna() & ma50.notna()
+    b = ((close_df > ma50) & valid).sum(axis=1) / valid.sum(axis=1).clip(lower=1) * 100
+    b = b.reindex(dates)
     return (b >= thresh).fillna(True)
 
 
