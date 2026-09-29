@@ -1,90 +1,90 @@
 signal_date,ticker,name,sector,signal_price,current_price,stock_ret_on_day,nifty_ret_on_day,delta_rs,dist_52w,return_since_signal,days_held,status
-2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2219.2,13.69,-0.95,14.64,-0.6,4.48,133,CLOSED
-2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1787.0,10.97,-0.95,11.92,-1.0,4.99,133,CLOSED
-2026-05-18,SCI.NS,The Shipping Corporation of India Limited,Infrastructure,344.55,346.45,3.97,-0.95,4.92,-6.6,0.55,133,CLOSED
-2026-05-18,CARBORUNIV.NS,Carborundum Universal Limited,Capital Goods,1136.35,1092.0,3.08,-0.95,4.03,-2.6,-3.9,133,CLOSED
-2026-05-18,UNOMINDA.NS,Uno Minda Limited,Auto,1147.9,1028.0,2.33,-0.95,3.28,-16.9,-10.45,133,CLOSED
-2026-05-18,SOLARINDS.NS,Solar Industries India Limited,Chemicals,17642.0,18340.0,1.89,-0.95,2.85,-1.7,3.96,133,CLOSED
-2026-05-18,IPCALAB.NS,Ipca Laboratories Limited,Pharma & Healthcare,1631.9,1643.0,1.68,-0.95,2.63,-1.4,0.68,133,CLOSED
-2026-05-18,ARVIND.NS,Arvind Limited,Textiles,458.45,486.45,1.63,-0.95,2.58,-3.0,6.11,133,CLOSED
-2026-05-18,OFSS.NS,Oracle Financial Services Software Limited,IT & Technology,9137.5,9749.5,1.36,-0.95,2.31,-5.0,6.7,133,CLOSED
-2026-05-18,COALINDIA.NS,Coal India Limited,Oil & Gas,467.55,457.7,1.16,-0.95,2.11,-4.8,-2.11,133,CLOSED
-2026-05-18,VIJAYA.NS,Vijaya Diagnostic Centre Limited,Pharma & Healthcare,1340.6,1285.7,0.86,-0.95,1.81,-2.8,-4.1,133,CLOSED
-2026-05-18,ACUTAAS.NS,Acutaas Chemicals Limited,Chemicals,2753.0,2889.1,0.81,-0.95,1.76,-3.4,4.94,133,CLOSED
-2026-05-18,SHILPAMED.NS,Shilpa Medicare Limited,Pharma & Healthcare,482.25,469.6,0.8,-0.95,1.76,-3.4,-2.62,133,CLOSED
-2026-05-18,BSE.NS,BSE Limited,Financial Services,4029.0,4261.0,0.71,-0.95,1.66,-1.4,5.76,133,CLOSED
-2026-05-18,INNOVACAP.NS,Innova Captab Limited,Pharma & Healthcare,864.1,891.85,0.68,-0.95,1.63,-15.1,3.21,133,CLOSED
-2026-05-18,RATEGAIN.NS,RateGain Travel Technologies Limited,IT & Technology,629.5,649.5,0.66,-0.95,1.62,-15.1,3.18,133,CLOSED
-2026-05-18,PREMIERENE.NS,PREMIERENE.NS,Capital Goods,987.8,994.4,0.63,-0.95,1.58,-15.0,0.67,133,CLOSED
-2026-05-18,AJANTPHARM.NS,Ajanta Pharma Limited,Pharma & Healthcare,3196.0,3241.4,0.59,-0.95,1.54,-2.9,1.42,133,CLOSED
-2026-05-18,BHARTIARTL.NS,Bharti Airtel Limited,Telecom,1915.5,1924.2,0.53,-0.95,1.48,-11.9,0.45,133,CLOSED
-2026-05-18,LALPATHLAB.NS,Dr. Lal PathLabs Limited,Pharma & Healthcare,1611.2,1691.3,0.52,-0.95,1.47,-8.5,4.97,133,CLOSED
-2026-05-18,TORNTPOWER.NS,Torrent Power Limited,Power & Utilities,1471.5,1523.5,0.38,-0.95,1.33,-19.3,3.53,133,CLOSED
-2026-05-18,ONESOURCE.NS,ONESOURCE.NS,Pharma & Healthcare,1841.2,1845.9,0.35,-0.95,1.3,-18.1,0.26,133,CLOSED
-2026-09-28,SUNFLAG.NS,Sunflag Iron and Steel Company Limited,Metals & Mining,449.2000122070313,449.2,9.39,-1.56,10.94,-0.6,-0.0,0,ACTIVE
-2026-09-28,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,809.9500122070312,809.95,6.78,-1.56,8.33,-4.8,0.0,0,ACTIVE
-2026-09-28,AEQUS.NS,Aequs Limited,Aerospace & Defense,260.1000061035156,260.1,5.71,-1.56,7.27,-5.2,0.0,0,ACTIVE
-2026-09-28,DIVGIITTS.NS,Divgi TorqTransfer Systems Limited,Auto,1218.5999755859375,1218.6,5.54,-1.56,7.1,-8.1,0.0,0,ACTIVE
-2026-09-28,GANESHBE.NS,Ganesh Benzoplast Limited,Chemicals,137.32000732421875,137.32,4.95,-1.56,6.51,-0.0,0.0,0,ACTIVE
-2026-09-28,EMAMIPAP.NS,Emami Paper Mills Limited,Cement & Materials,117.4000015258789,117.4,4.94,-1.56,6.5,-9.8,0.0,0,ACTIVE
-2026-09-28,BLISSGVS.NS,Bliss GVS Pharma Limited,Pharma & Healthcare,737.6500244140625,737.65,4.68,-1.56,6.23,-0.3,0.0,0,ACTIVE
-2026-09-28,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,Oil & Gas,298.54998779296875,298.55,3.84,-1.56,5.4,-7.0,0.0,0,ACTIVE
-2026-09-28,FILATEX.NS,Filatex India Limited,Textiles,110.75,110.75,3.56,-1.56,5.12,-1.1,0.0,0,ACTIVE
-2026-09-28,APOLLO.NS,Apollo Micro Systems Limited,Aerospace & Defense,408.2999877929688,408.3,3.21,-1.56,4.77,-12.4,-0.0,0,ACTIVE
-2026-09-28,DIFFNKG.NS,Diffusion Engineers Limited,Capital Goods,444.1499938964844,444.15,3.18,-1.56,4.74,-14.6,0.0,0,ACTIVE
-2026-09-28,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,169.8000030517578,169.8,3.16,-1.56,4.72,-19.9,0.0,0,ACTIVE
-2026-09-28,BLUSPRING.NS,Bluspring Enterprises Limited,Capital Goods,149.44000244140625,149.44,2.98,-1.56,4.53,-1.6,0.0,0,ACTIVE
-2026-09-28,CRISIL.NS,CRISIL Limited,Financial Services,4650.60009765625,4650.6,2.89,-1.56,4.45,-7.1,0.0,0,ACTIVE
-2026-09-28,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2896.39990234375,2896.4,2.87,-1.56,4.42,-7.2,0.0,0,ACTIVE
-2026-09-28,MIDHANI.NS,Mishra Dhatu Nigam Limited,Aerospace & Defense,416.0,416.0,2.7,-1.56,4.26,-13.5,0.0,0,ACTIVE
-2026-09-28,ADROITINFO.NS,Adroit Infotech Limited,IT & Technology,13.510000228881836,13.51,2.5,-1.56,4.06,-5.5,0.0,0,ACTIVE
-2026-09-28,MTARTECH.NS,MTAR Technologies Limited,Capital Goods,7072.5,7072.5,2.5,-1.56,4.06,-18.8,0.0,0,ACTIVE
-2026-09-28,GEECEE.NS,GeeCee Ventures Limited,Real Estate,369.3500061035156,369.35,2.43,-1.56,3.98,-4.8,0.0,0,ACTIVE
-2026-09-28,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1533.4000244140625,1533.4,2.42,-1.56,3.97,-13.2,0.0,0,ACTIVE
-2026-09-28,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1408.0999755859375,1408.1,2.3,-1.56,3.86,-16.1,0.0,0,ACTIVE
-2026-09-28,ENDURANCE.NS,Endurance Technologies Limited,Auto,2700.39990234375,2700.4,2.06,-1.56,3.62,-12.1,0.0,0,ACTIVE
-2026-09-28,MAHLIFE.NS,Mahindra Lifespace Developers Limited,Real Estate,363.1000061035156,363.1,1.75,-1.56,3.31,-14.2,0.0,0,ACTIVE
-2026-09-28,DRREDDY.NS,Dr. Reddy's Laboratories Limited,Pharma & Healthcare,1221.0,1221.0,1.67,-1.56,3.22,-13.2,0.0,0,ACTIVE
-2026-09-28,SARDAEN.NS,Sarda Energy & Minerals Limited,Metals & Mining,501.2999877929688,501.3,1.65,-1.56,3.21,-19.4,-0.0,0,ACTIVE
-2026-09-28,VARROC.NS,Varroc Engineering Limited,Auto,848.3499755859375,848.35,1.62,-1.56,3.17,-7.0,0.0,0,ACTIVE
-2026-09-28,EXCELINDUS.NS,Excel Industries Limited,Chemicals,942.7999877929688,942.8,1.5,-1.56,3.05,-18.1,0.0,0,ACTIVE
-2026-09-28,WELSPUNLIV.NS,Welspun Living Limited,Textiles,227.9499969482422,227.95,1.46,-1.56,3.01,-2.2,0.0,0,ACTIVE
-2026-09-28,AMBIKCO.NS,Ambika Cotton Mills Limited,Textiles,1568.0,1568.0,1.42,-1.56,2.97,-16.9,0.0,0,ACTIVE
-2026-09-28,TIMETECHNO.NS,Time Technoplast Limited,Capital Goods,183.44000244140625,183.44,1.23,-1.56,2.78,-18.7,0.0,0,ACTIVE
-2026-09-28,ABDL.NS,Allied Blenders and Distillers Limited,Consumer Goods,723.4500122070312,723.45,1.17,-1.56,2.73,-4.0,0.0,0,ACTIVE
-2026-09-28,PETRONET.NS,Petronet LNG Limited,Oil & Gas,289.8500061035156,289.85,1.17,-1.56,2.73,-10.2,0.0,0,ACTIVE
-2026-09-28,SHILPAMED.NS,Shilpa Medicare Limited,Pharma & Healthcare,1025.25,1025.25,1.16,-1.56,2.72,-4.6,0.0,0,ACTIVE
-2026-09-28,JAMNAAUTO.NS,Jamna Auto Industries Limited,Auto,139.67999267578125,139.68,1.07,-1.56,2.63,-7.4,0.0,0,ACTIVE
-2026-09-28,GOACARBON.NS,Goa Carbon Limited,Chemicals,405.75,405.75,0.98,-1.56,2.54,-18.0,0.0,0,ACTIVE
-2026-09-28,CPPLUS.NS,Aditya Infotech Limited,Cement & Materials,3723.39990234375,3723.4,0.97,-1.56,2.53,-9.1,0.0,0,ACTIVE
-2026-09-28,VGUARD.NS,V-Guard Industries Limited,Consumer Durables,307.25,307.25,0.95,-1.56,2.51,-19.6,0.0,0,ACTIVE
-2026-09-28,ICICIAMC.NS,ICICI Prudential Asset Management Company Limited,Financial Services,3214.5,3214.5,0.94,-1.56,2.5,-10.6,0.0,0,ACTIVE
-2026-09-28,FEDERALBNK.NS,The Federal Bank Limited,Banking,325.0,325.0,0.93,-1.56,2.49,-12.3,0.0,0,ACTIVE
-2026-09-28,ZYDUSLIFE.NS,Zydus Lifesciences Limited,Pharma & Healthcare,1215.0,1215.0,0.92,-1.56,2.48,-1.1,0.0,0,ACTIVE
-2026-09-28,ANANDRATHI.NS,Anand Rathi Wealth Limited,Financial Services,2146.199951171875,2146.2,0.91,-1.56,2.47,-5.4,0.0,0,ACTIVE
-2026-09-28,NAZARA.NS,Nazara Technologies Limited,Media,379.6499938964844,379.65,0.85,-1.56,2.41,-1.3,0.0,0,ACTIVE
-2026-09-28,VMART.NS,V-Mart Retail Limited,Retail,766.5,766.5,0.84,-1.56,2.4,-13.6,0.0,0,ACTIVE
-2026-09-28,ASKAUTOLTD.NS,ASK Automotive Limited,Auto,650.3499755859375,650.35,0.81,-1.56,2.36,-5.4,0.0,0,ACTIVE
-2026-09-28,FINEORG.NS,Fine Organic Industries Limited,Chemicals,5124.0,5124.0,0.81,-1.56,2.36,-5.0,0.0,0,ACTIVE
-2026-09-28,SYRMA.NS,Syrma SGS Technology Limited,Capital Goods,1746.4000244140625,1746.4,0.8,-1.56,2.35,-3.2,0.0,0,ACTIVE
-2026-09-28,CHOICEIN.NS,Choice International Limited,Financial Services,756.9000244140625,756.9,0.78,-1.56,2.34,-12.0,0.0,0,ACTIVE
-2026-09-28,HALEOSLABS.NS,Haleos Labs Limited,Pharma & Healthcare,1513.5,1513.5,0.78,-1.56,2.34,-14.6,0.0,0,ACTIVE
-2026-09-28,HARSHA.NS,Harsha Engineers International Limited,Capital Goods,465.5499877929688,465.55,0.76,-1.56,2.31,-2.4,-0.0,0,ACTIVE
-2026-09-28,ZYDUSWELL.NS,Zydus Wellness Limited,Consumer Goods,524.4000244140625,524.4,0.73,-1.56,2.29,-14.3,0.0,0,ACTIVE
-2026-09-28,AGARWALEYE.NS,Dr. Agarwal's Health Care Limited,Pharma & Healthcare,503.6000061035156,503.6,0.72,-1.56,2.28,-11.3,0.0,0,ACTIVE
-2026-09-28,INDGN.NS,Indegene Limited,IT & Technology,613.2999877929688,613.3,0.71,-1.56,2.27,-1.4,0.0,0,ACTIVE
-2026-09-28,CAPLIPOINT.NS,Caplin Point Laboratories Limited,Pharma & Healthcare,2854.0,2854.0,0.67,-1.56,2.22,-4.5,0.0,0,ACTIVE
-2026-09-28,IONEXCHANG.NS,Ion Exchange (India) Limited,Capital Goods,422.8999938964844,422.9,0.65,-1.56,2.21,-12.7,0.0,0,ACTIVE
-2026-09-28,HEROMOTOCO.NS,Hero MotoCorp Limited,Auto,5390.0,5390.0,0.56,-1.56,2.12,-12.7,0.0,0,ACTIVE
-2026-09-28,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,429.6499938964844,429.65,0.53,-1.56,2.08,-19.1,0.0,0,ACTIVE
-2026-09-28,EBGNG.NS,GNG Electronics Limited,IT & Technology,672.1500244140625,672.15,0.47,-1.56,2.03,-7.9,0.0,0,ACTIVE
-2026-09-28,NEOGEN.NS,Neogen Chemicals Limited,Chemicals,2396.300048828125,2396.3,0.47,-1.56,2.02,-4.1,0.0,0,ACTIVE
-2026-09-28,CHEVIOT.NS,Cheviot Company Limited,Textiles,1187.9000244140625,1187.9,0.43,-1.56,1.99,-11.4,0.0,0,ACTIVE
-2026-09-28,SKYGOLD.NS,Sky Gold and Diamonds Limited,Consumer Durables,796.9500122070312,796.95,0.43,-1.56,1.99,-8.3,0.0,0,ACTIVE
-2026-09-28,KRN.NS,KRN Heat Exchanger and Refrigeration Limited,Capital Goods,1387.4000244140625,1387.4,0.41,-1.56,1.96,-17.8,0.0,0,ACTIVE
-2026-09-28,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,601.2000122070312,601.2,0.38,-1.56,1.93,-19.6,0.0,0,ACTIVE
-2026-09-28,ALEMBICLTD.NS,Alembic Limited,Real Estate,106.91000366210938,106.91,0.36,-1.56,1.91,-9.2,0.0,0,ACTIVE
-2026-09-28,GULFOILLUB.NS,Gulf Oil Lubricants India Limited,Chemicals,1110.5,1110.5,0.35,-1.56,1.91,-9.8,0.0,0,ACTIVE
-2026-09-28,ESAFSFB.NS,ESAF Small Finance Bank,Banking,43.0,43.0,0.33,-1.56,1.88,-4.4,0.0,0,ACTIVE
-2026-09-28,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,Hospitality,547.9000244140625,547.9,0.32,-1.56,1.88,-6.0,0.0,0,ACTIVE
-2026-09-28,PRIVISCL.NS,Privi Speciality Chemicals Limited,Chemicals,3605.300048828125,3605.3,0.31,-1.56,1.87,-4.5,0.0,0,ACTIVE
+2026-05-18,GLAND.NS,Gland Pharma Limited,Pharma & Healthcare,2124.0,2219.2,13.69,-0.95,14.64,-0.6,4.48,134,CLOSED
+2026-05-18,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1702.1,1787.0,10.97,-0.95,11.92,-1.0,4.99,134,CLOSED
+2026-05-18,SCI.NS,The Shipping Corporation of India Limited,Infrastructure,344.55,346.45,3.97,-0.95,4.92,-6.6,0.55,134,CLOSED
+2026-05-18,CARBORUNIV.NS,Carborundum Universal Limited,Capital Goods,1136.35,1092.0,3.08,-0.95,4.03,-2.6,-3.9,134,CLOSED
+2026-05-18,UNOMINDA.NS,Uno Minda Limited,Auto,1147.9,1028.0,2.33,-0.95,3.28,-16.9,-10.45,134,CLOSED
+2026-05-18,SOLARINDS.NS,Solar Industries India Limited,Chemicals,17642.0,18340.0,1.89,-0.95,2.85,-1.7,3.96,134,CLOSED
+2026-05-18,IPCALAB.NS,Ipca Laboratories Limited,Pharma & Healthcare,1631.9,1643.0,1.68,-0.95,2.63,-1.4,0.68,134,CLOSED
+2026-05-18,ARVIND.NS,Arvind Limited,Textiles,458.45,486.45,1.63,-0.95,2.58,-3.0,6.11,134,CLOSED
+2026-05-18,OFSS.NS,Oracle Financial Services Software Limited,IT & Technology,9137.5,9749.5,1.36,-0.95,2.31,-5.0,6.7,134,CLOSED
+2026-05-18,COALINDIA.NS,Coal India Limited,Oil & Gas,467.55,457.7,1.16,-0.95,2.11,-4.8,-2.11,134,CLOSED
+2026-05-18,VIJAYA.NS,Vijaya Diagnostic Centre Limited,Pharma & Healthcare,1340.6,1285.7,0.86,-0.95,1.81,-2.8,-4.1,134,CLOSED
+2026-05-18,ACUTAAS.NS,Acutaas Chemicals Limited,Chemicals,2753.0,2889.1,0.81,-0.95,1.76,-3.4,4.94,134,CLOSED
+2026-05-18,SHILPAMED.NS,Shilpa Medicare Limited,Pharma & Healthcare,482.25,469.6,0.8,-0.95,1.76,-3.4,-2.62,134,CLOSED
+2026-05-18,BSE.NS,BSE Limited,Financial Services,4029.0,4261.0,0.71,-0.95,1.66,-1.4,5.76,134,CLOSED
+2026-05-18,INNOVACAP.NS,Innova Captab Limited,Pharma & Healthcare,864.1,891.85,0.68,-0.95,1.63,-15.1,3.21,134,CLOSED
+2026-05-18,RATEGAIN.NS,RateGain Travel Technologies Limited,IT & Technology,629.5,649.5,0.66,-0.95,1.62,-15.1,3.18,134,CLOSED
+2026-05-18,PREMIERENE.NS,PREMIERENE.NS,Capital Goods,987.8,994.4,0.63,-0.95,1.58,-15.0,0.67,134,CLOSED
+2026-05-18,AJANTPHARM.NS,Ajanta Pharma Limited,Pharma & Healthcare,3196.0,3241.4,0.59,-0.95,1.54,-2.9,1.42,134,CLOSED
+2026-05-18,BHARTIARTL.NS,Bharti Airtel Limited,Telecom,1915.5,1924.2,0.53,-0.95,1.48,-11.9,0.45,134,CLOSED
+2026-05-18,LALPATHLAB.NS,Dr. Lal PathLabs Limited,Pharma & Healthcare,1611.2,1691.3,0.52,-0.95,1.47,-8.5,4.97,134,CLOSED
+2026-05-18,TORNTPOWER.NS,Torrent Power Limited,Power & Utilities,1471.5,1523.5,0.38,-0.95,1.33,-19.3,3.53,134,CLOSED
+2026-05-18,ONESOURCE.NS,ONESOURCE.NS,Pharma & Healthcare,1841.2,1845.9,0.35,-0.95,1.3,-18.1,0.26,134,CLOSED
+2026-09-28,SUNFLAG.NS,Sunflag Iron and Steel Company Limited,Metals & Mining,449.2000122070313,464.3,9.39,-1.56,10.94,-0.6,3.36,1,ACTIVE
+2026-09-28,OPTIEMUS.NS,Optiemus Infracom Limited,Telecom,809.9500122070312,796.2,6.78,-1.56,8.33,-4.8,-1.7,1,ACTIVE
+2026-09-28,AEQUS.NS,Aequs Limited,Aerospace & Defense,260.1000061035156,271.63,5.71,-1.56,7.27,-5.2,4.43,1,ACTIVE
+2026-09-28,DIVGIITTS.NS,Divgi TorqTransfer Systems Limited,Auto,1218.5999755859375,1212.9,5.54,-1.56,7.1,-8.1,-0.47,1,ACTIVE
+2026-09-28,GANESHBE.NS,Ganesh Benzoplast Limited,Chemicals,137.32000732421875,137.83,4.95,-1.56,6.51,-0.0,0.37,1,ACTIVE
+2026-09-28,EMAMIPAP.NS,Emami Paper Mills Limited,Cement & Materials,117.4000015258789,118.62,4.94,-1.56,6.5,-9.8,1.04,1,ACTIVE
+2026-09-28,BLISSGVS.NS,Bliss GVS Pharma Limited,Pharma & Healthcare,737.6500244140625,710.9,4.68,-1.56,6.23,-0.3,-3.63,1,ACTIVE
+2026-09-28,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,Oil & Gas,298.54998779296875,294.25,3.84,-1.56,5.4,-7.0,-1.44,1,ACTIVE
+2026-09-28,FILATEX.NS,Filatex India Limited,Textiles,110.75,112.0,3.56,-1.56,5.12,-1.1,1.13,1,ACTIVE
+2026-09-28,APOLLO.NS,Apollo Micro Systems Limited,Aerospace & Defense,408.2999877929688,402.6,3.21,-1.56,4.77,-12.4,-1.4,1,ACTIVE
+2026-09-28,DIFFNKG.NS,Diffusion Engineers Limited,Capital Goods,444.1499938964844,448.15,3.18,-1.56,4.74,-14.6,0.9,1,ACTIVE
+2026-09-28,MRPL.NS,Mangalore Refinery and Petrochemicals Limited,Oil & Gas,169.8000030517578,171.65,3.16,-1.56,4.72,-19.9,1.09,1,ACTIVE
+2026-09-28,BLUSPRING.NS,Bluspring Enterprises Limited,Capital Goods,149.44000244140625,143.11,2.98,-1.56,4.53,-1.6,-4.24,1,ACTIVE
+2026-09-28,CRISIL.NS,CRISIL Limited,Financial Services,4650.60009765625,4464.1,2.89,-1.56,4.45,-7.1,-4.01,1,ACTIVE
+2026-09-28,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2896.39990234375,2783.8,2.87,-1.56,4.42,-7.2,-3.89,1,ACTIVE
+2026-09-28,MIDHANI.NS,Mishra Dhatu Nigam Limited,Aerospace & Defense,416.0,419.1,2.7,-1.56,4.26,-13.5,0.75,1,ACTIVE
+2026-09-28,ADROITINFO.NS,Adroit Infotech Limited,IT & Technology,13.510000228881836,14.23,2.5,-1.56,4.06,-5.5,5.33,1,ACTIVE
+2026-09-28,MTARTECH.NS,MTAR Technologies Limited,Capital Goods,7072.5,7426.0,2.5,-1.56,4.06,-18.8,5.0,1,ACTIVE
+2026-09-28,GEECEE.NS,GeeCee Ventures Limited,Real Estate,369.3500061035156,375.65,2.43,-1.56,3.98,-4.8,1.71,1,ACTIVE
+2026-09-28,GESHIP.NS,The Great Eastern Shipping Company Limited,Infrastructure,1533.4000244140625,1537.8,2.42,-1.56,3.97,-13.2,0.29,1,ACTIVE
+2026-09-28,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1408.0999755859375,1436.9,2.3,-1.56,3.86,-16.1,2.05,1,ACTIVE
+2026-09-28,ENDURANCE.NS,Endurance Technologies Limited,Auto,2700.39990234375,2654.8,2.06,-1.56,3.62,-12.1,-1.69,1,ACTIVE
+2026-09-28,MAHLIFE.NS,Mahindra Lifespace Developers Limited,Real Estate,363.1000061035156,361.0,1.75,-1.56,3.31,-14.2,-0.58,1,ACTIVE
+2026-09-28,DRREDDY.NS,Dr. Reddy's Laboratories Limited,Pharma & Healthcare,1221.0,1251.9,1.67,-1.56,3.22,-13.2,2.53,1,ACTIVE
+2026-09-28,SARDAEN.NS,Sarda Energy & Minerals Limited,Metals & Mining,501.2999877929688,500.35,1.65,-1.56,3.21,-19.4,-0.19,1,ACTIVE
+2026-09-28,VARROC.NS,Varroc Engineering Limited,Auto,848.3499755859375,837.4,1.62,-1.56,3.17,-7.0,-1.29,1,ACTIVE
+2026-09-28,EXCELINDUS.NS,Excel Industries Limited,Chemicals,942.7999877929688,924.8,1.5,-1.56,3.05,-18.1,-1.91,1,ACTIVE
+2026-09-28,WELSPUNLIV.NS,Welspun Living Limited,Textiles,227.9499969482422,225.21,1.46,-1.56,3.01,-2.2,-1.2,1,ACTIVE
+2026-09-28,AMBIKCO.NS,Ambika Cotton Mills Limited,Textiles,1568.0,1527.1,1.42,-1.56,2.97,-16.9,-2.61,1,ACTIVE
+2026-09-28,TIMETECHNO.NS,Time Technoplast Limited,Capital Goods,183.44000244140625,183.92,1.23,-1.56,2.78,-18.7,0.26,1,ACTIVE
+2026-09-28,ABDL.NS,Allied Blenders and Distillers Limited,Consumer Goods,723.4500122070312,716.5,1.17,-1.56,2.73,-4.0,-0.96,1,ACTIVE
+2026-09-28,PETRONET.NS,Petronet LNG Limited,Oil & Gas,289.8500061035156,282.95,1.17,-1.56,2.73,-10.2,-2.38,1,ACTIVE
+2026-09-28,SHILPAMED.NS,Shilpa Medicare Limited,Pharma & Healthcare,1025.25,1055.75,1.16,-1.56,2.72,-4.6,2.97,1,ACTIVE
+2026-09-28,JAMNAAUTO.NS,Jamna Auto Industries Limited,Auto,139.67999267578125,136.27,1.07,-1.56,2.63,-7.4,-2.44,1,ACTIVE
+2026-09-28,GOACARBON.NS,Goa Carbon Limited,Chemicals,405.75,408.85,0.98,-1.56,2.54,-18.0,0.76,1,ACTIVE
+2026-09-28,CPPLUS.NS,Aditya Infotech Limited,Cement & Materials,3723.39990234375,3817.6,0.97,-1.56,2.53,-9.1,2.53,1,ACTIVE
+2026-09-28,VGUARD.NS,V-Guard Industries Limited,Consumer Durables,307.25,307.05,0.95,-1.56,2.51,-19.6,-0.07,1,ACTIVE
+2026-09-28,ICICIAMC.NS,ICICI Prudential Asset Management Company Limited,Financial Services,3214.5,3233.0,0.94,-1.56,2.5,-10.6,0.58,1,ACTIVE
+2026-09-28,FEDERALBNK.NS,The Federal Bank Limited,Banking,325.0,320.2,0.93,-1.56,2.49,-12.3,-1.48,1,ACTIVE
+2026-09-28,ZYDUSLIFE.NS,Zydus Lifesciences Limited,Pharma & Healthcare,1215.0,1200.5,0.92,-1.56,2.48,-1.1,-1.19,1,ACTIVE
+2026-09-28,ANANDRATHI.NS,Anand Rathi Wealth Limited,Financial Services,2146.199951171875,2100.6,0.91,-1.56,2.47,-5.4,-2.12,1,ACTIVE
+2026-09-28,NAZARA.NS,Nazara Technologies Limited,Media,379.6499938964844,388.4,0.85,-1.56,2.41,-1.3,2.3,1,ACTIVE
+2026-09-28,VMART.NS,V-Mart Retail Limited,Retail,766.5,760.05,0.84,-1.56,2.4,-13.6,-0.84,1,ACTIVE
+2026-09-28,ASKAUTOLTD.NS,ASK Automotive Limited,Auto,650.3499755859375,619.85,0.81,-1.56,2.36,-5.4,-4.69,1,ACTIVE
+2026-09-28,FINEORG.NS,Fine Organic Industries Limited,Chemicals,5124.0,5140.0,0.81,-1.56,2.36,-5.0,0.31,1,ACTIVE
+2026-09-28,SYRMA.NS,Syrma SGS Technology Limited,Capital Goods,1746.4000244140625,1692.6,0.8,-1.56,2.35,-3.2,-3.08,1,ACTIVE
+2026-09-28,CHOICEIN.NS,Choice International Limited,Financial Services,756.9000244140625,741.15,0.78,-1.56,2.34,-12.0,-2.08,1,ACTIVE
+2026-09-28,HALEOSLABS.NS,Haleos Labs Limited,Pharma & Healthcare,1513.5,1487.9,0.78,-1.56,2.34,-14.6,-1.69,1,ACTIVE
+2026-09-28,HARSHA.NS,Harsha Engineers International Limited,Capital Goods,465.5499877929688,465.05,0.76,-1.56,2.31,-2.4,-0.11,1,ACTIVE
+2026-09-28,ZYDUSWELL.NS,Zydus Wellness Limited,Consumer Goods,524.4000244140625,506.1,0.73,-1.56,2.29,-14.3,-3.49,1,ACTIVE
+2026-09-28,AGARWALEYE.NS,Dr. Agarwal's Health Care Limited,Pharma & Healthcare,503.6000061035156,495.25,0.72,-1.56,2.28,-11.3,-1.66,1,ACTIVE
+2026-09-28,INDGN.NS,Indegene Limited,IT & Technology,613.2999877929688,605.15,0.71,-1.56,2.27,-1.4,-1.33,1,ACTIVE
+2026-09-28,CAPLIPOINT.NS,Caplin Point Laboratories Limited,Pharma & Healthcare,2854.0,2744.0,0.67,-1.56,2.22,-4.5,-3.85,1,ACTIVE
+2026-09-28,IONEXCHANG.NS,Ion Exchange (India) Limited,Capital Goods,422.8999938964844,410.2,0.65,-1.56,2.21,-12.7,-3.0,1,ACTIVE
+2026-09-28,HEROMOTOCO.NS,Hero MotoCorp Limited,Auto,5390.0,5208.0,0.56,-1.56,2.12,-12.7,-3.38,1,ACTIVE
+2026-09-28,AARTIDRUGS.NS,Aarti Drugs Limited,Pharma & Healthcare,429.6499938964844,428.6,0.53,-1.56,2.08,-19.1,-0.24,1,ACTIVE
+2026-09-28,EBGNG.NS,GNG Electronics Limited,IT & Technology,672.1500244140625,674.8,0.47,-1.56,2.03,-7.9,0.39,1,ACTIVE
+2026-09-28,NEOGEN.NS,Neogen Chemicals Limited,Chemicals,2396.300048828125,2435.3,0.47,-1.56,2.02,-4.1,1.63,1,ACTIVE
+2026-09-28,CHEVIOT.NS,Cheviot Company Limited,Textiles,1187.9000244140625,1176.0,0.43,-1.56,1.99,-11.4,-1.0,1,ACTIVE
+2026-09-28,SKYGOLD.NS,Sky Gold and Diamonds Limited,Consumer Durables,796.9500122070312,820.85,0.43,-1.56,1.99,-8.3,3.0,1,ACTIVE
+2026-09-28,KRN.NS,KRN Heat Exchanger and Refrigeration Limited,Capital Goods,1387.4000244140625,1443.1,0.41,-1.56,1.96,-17.8,4.01,1,ACTIVE
+2026-09-28,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,601.2000122070312,622.4,0.38,-1.56,1.93,-19.6,3.53,1,ACTIVE
+2026-09-28,ALEMBICLTD.NS,Alembic Limited,Real Estate,106.91000366210938,108.44,0.36,-1.56,1.91,-9.2,1.43,1,ACTIVE
+2026-09-28,GULFOILLUB.NS,Gulf Oil Lubricants India Limited,Chemicals,1110.5,1105.8,0.35,-1.56,1.91,-9.8,-0.42,1,ACTIVE
+2026-09-28,ESAFSFB.NS,ESAF Small Finance Bank,Banking,43.0,44.54,0.33,-1.56,1.88,-4.4,3.58,1,ACTIVE
+2026-09-28,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,Hospitality,547.9000244140625,533.6,0.32,-1.56,1.88,-6.0,-2.61,1,ACTIVE
+2026-09-28,PRIVISCL.NS,Privi Speciality Chemicals Limited,Chemicals,3605.300048828125,3605.5,0.31,-1.56,1.87,-4.5,0.01,1,ACTIVE

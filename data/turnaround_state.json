@@ -1,77 +1,67 @@
 {
-    "CAPILLARY.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 100.0
-    },
     "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 5,
+        "days_active": 6,
         "ias": 100.0
     },
     "KPIGREEN.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 95.0
     },
     "ELECON.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 90.0
     },
-    "GODIGIT.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 83.5
-    },
-    "FIRSTCRY.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 82.5
-    },
-    "DIXON.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 81.5
-    },
-    "ZENSARTECH.NS": {
+    "BSE.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 73.4
+        "ias": 67.9
     },
-    "TTML.NS": {
+    "ELECTCAST.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 68.3
+        "ias": 65.0
     },
-    "CHEMPLASTS.NS": {
+    "NATCOPHARM.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 60.0
+        "ias": 63.4
     },
     "DAMCAPITAL.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 60.0
     },
-    "WHIRLPOOL.NS": {
-        "tier": "READY",
-        "days_active": 4,
-        "ias": 60.0
-    },
-    "IDBI.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 56.8
-    },
-    "IREDA.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 45.8
-    },
-    "MFSL.NS": {
+    "IRFC.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 38.2
+        "ias": 53.5
+    },
+    "TTML.NS": {
+        "tier": "WATCH",
+        "days_active": 2,
+        "ias": 51.2
+    },
+    "APOLLOTYRE.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.4
+    },
+    "TATAELXSI.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 48.3
+    },
+    "THANGAMAYL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 47.5
+    },
+    "KPITTECH.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.2
     }
 }
