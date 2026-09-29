@@ -126,5 +126,22 @@ optional drawdown insurance, not an improvement.
 
 The robustness rerun crashed: a held stock with a missing close made equity
 NaN. The simulators now value a holding at its last valid close, and the
-workflows fail on a crash instead of reporting success. 6-month RS ranking is
-confirmed on the fixed harness only after that rerun.
+workflows fail on a crash instead of reporting success.
+
+## Ranking rerun on the fixed harness (Actions run 36507857498) -- 6-month RS confirmed
+
+| Test | K3 6-month RS vs baseline (CompRS) |
+|---|---|
+| 8 staggered starts | better 8/8; median +0.33 Sharpe, +4.9 pts CAGR, drawdown 5.6 pts shallower |
+| 3 separate periods | better 3/3: 0.10 -> 1.10, 2.25 -> 2.63, 1.15 -> 1.44 |
+| Random-ranking control | K3's worst start (1.45) beats the best random seed at any start (1.39); same in every period |
+
+The margins are larger than on the old harness (+0.31 / 3/3). The other
+long-lookback keys again beat CompRS (1y RS 7/8 and 3/3, distance above the
+200dma 8/8 and 3/3), and 6-month RS remains the best. Earlier IPO eligibility
+still does nothing (median +0.02). The live engine's 6-month RS ordering (PR
+#62) stays.
+
+The reconciliation run on H2's window now gives +883%, Sharpe 1.55. The H2
+figures it is compared with (+445% / +281%) came from the old harness, so the
+H2 backtest has to be rerun before its numbers can be compared.
