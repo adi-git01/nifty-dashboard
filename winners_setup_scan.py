@@ -91,15 +91,17 @@ def build_features(close, vol, nifty):
                         columns=close.columns).ffill()
     since = pd.DataFrame(pos - last.values, index=dates, columns=close.columns)
     ret = close.pct_change(fill_method=None)
+    cf = close.ffill(limit=5)       # for "N sessions ago": a 1-5 day gap uses the last close
     ma200 = close.rolling(200, min_periods=150).mean()
     n_ret = lambda k: nc / nc.shift(k) - 1
     turn = (close * vol).rolling(60, min_periods=30).median()
+    hi3y = close.rolling(756, min_periods=500).max()
     F = {
         "base_len": since.shift(1),
         "depth": (close.rolling(252, min_periods=200).min().shift(1) / hi252.shift(1) - 1) * 100,
-        "rs63": (close / close.shift(63) - 1).sub(n_ret(63), axis=0) * 100,
-        "rs126": (close / close.shift(126) - 1).sub(n_ret(126), axis=0) * 100,
-        "prior1y": (close.shift(1) / close.shift(253) - 1) * 100,
+        "rs63": (close / cf.shift(63) - 1).sub(n_ret(63), axis=0) * 100,
+        "rs126": (close / cf.shift(126) - 1).sub(n_ret(126), axis=0) * 100,
+        "prior1y": (cf.shift(1) / cf.shift(253) - 1) * 100,
         "dist200": (close / ma200 - 1) * 100,
         "slope200": (ma200 / ma200.shift(20) - 1) * 100,
         "contraction": (ret.rolling(20, min_periods=15).std()
@@ -107,14 +109,15 @@ def build_features(close, vol, nifty):
         "vol_surge": vol.rolling(10, min_periods=5).mean()
                      / vol.rolling(120, min_periods=60).mean().shift(10),
         "turn_rank": turn.rank(axis=1, ascending=False),
-        "high3y": close.ge(close.rolling(756, min_periods=500).max()).astype(float),
+        # unknown (NaN), not False, when there are < 500 sessions of history
+        "high3y": close.ge(hi3y).astype(float).where(hi3y.notna()),
     }
     mkt = pd.DataFrame({"nifty_up": (nc > nc.rolling(200).mean()).astype(float),
                         "nifty_dd": (nc / nc.rolling(252).max() - 1) * 100}, index=dates)
     fmax = close.iloc[::-1].rolling(HORIZON, min_periods=1).max().iloc[::-1].shift(-1)
     doubled = (fmax / close >= 2).astype(float)
     doubled.iloc[len(dates) - HORIZON:] = np.nan
-    fwd = close.shift(-252) / close - 1
+    fwd = cf.shift(-252) / close - 1
     fwd_x = fwd.sub(nc.shift(-252) / nc - 1, axis=0) * 100
     return F, mkt, new_high, since, hi252, doubled, fwd * 100, fwd_x
 
@@ -137,14 +140,16 @@ def winner_list(close, pit):
     d = close.index
     t0 = d[d >= WIN_START][0]
     t1 = d[d <= WIN_END][-1]
-    tot = (close.loc[t1] / close.loc[t0] - 1) * 100
-    W = tot[(tot >= 100) & pit.loc[t0]].sort_values(ascending=False)
+    cf = close.ffill(limit=5)
+    tot = (cf.loc[t1] / cf.loc[t0] - 1) * 100
+    inuni = pit.loc[t0:].head(5).any()                  # in the universe in the first week
+    W = tot[(tot >= 100) & inuni].sort_values(ascending=False)
     print(f"\n[winners] {len(W)} stocks in the top-1000 on {t0.date()} doubled by {t1.date()}")
     for t in TWEET:
         if t in W.index:
             continue
         why = ("no price data" if t not in close.columns else
-               "not in top-1000 on first 2025 session" if not pit.loc[t0].get(t, False) else
+               "not in top-1000 in the first week of 2025" if not inuni.get(t, False) else
                f"{tot.get(t, np.nan):+.0f}% on adjusted prices")
         print(f"   tweet name not counted: {t[:-3]:<12} {why}")
     return W, t0, t1, tot
@@ -161,7 +166,7 @@ def launches(W, E, close, new_high, t0, t1):
             if not nh.any():
                 continue
             d, kind = nh.idxmax(), "no base (already making highs)"
-        c = close[t]
+        c = close[t].ffill(limit=5)
         rows.append(dict(ticker=t, launch=d, kind=kind, tweet=t in TWEET,
                          total_pct=round(W[t], 1),
                          after_launch_pct=round((c.loc[t1] / c.loc[d] - 1) * 100, 1),
@@ -410,45 +415,61 @@ def scrape(tickers, delay):
     return df
 
 
+def _qe(q, back):
+    """Quarter end `back` quarters before quarter end q."""
+    return q - pd.offsets.MonthEnd(3 * back)
+
+
 def fund_features(P, when):
     """One row per ticker: what was public on `when` (results +60d, holdings +21d).
-    P: {ticker: DataFrame indexed by quarter end, one column per field}."""
+    P: {ticker: DataFrame indexed by quarter end, one column per field}.
+
+    Every comparison is by DATE (same quarter a year earlier, the quarters 3
+    and 6 months earlier), never by column position: a missing column or an
+    off-cycle filing (Screener shows e.g. "Feb 2025" after a merger) would
+    otherwise pair the wrong quarters -- the same class of error as the MA50
+    bug.
+    """
     out = {}
+    pos = lambda a: a if a > 0 else np.nan
     for t, g in P.items():
         row = {}
-        res = g[g.index + pd.Timedelta(days=60) <= when]
-        if "np" in res and "sales" in res:
-            r = res[["sales", "np"]].dropna(how="all")
-            if len(r) >= 6:
-                cur, yago = r.iloc[-1], r.iloc[-5] if len(r) >= 5 else None
-                prev, prev_y = r.iloc[-2], r.iloc[-6]
-                pos = lambda a: a if a and a > 0 else np.nan
-                row["sales_yoy"] = (cur.sales / pos(yago.sales) - 1) * 100
-                row["np_yoy"] = (cur.np / pos(yago.np) - 1) * 100
-                row["np_yoy_prev"] = (prev.np / pos(prev_y.np) - 1) * 100
-                row["np_accel"] = row["np_yoy"] - row["np_yoy_prev"]
-                row["turnaround"] = float(yago.np <= 0 < cur.np)
-                row["results_q"] = r.index[-1].date()
-        sh = g[g.index + pd.Timedelta(days=21) <= when]
-        if {"fii", "dii"} <= set(sh.columns):
-            s = sh[["fii", "dii"] + [c for c in ("promoters", "holders") if c in sh]].dropna(subset=["fii", "dii"])
-            if len(s) >= 3:
-                inst = s.fii + s.dii
-                row["inst_now"] = inst.iloc[-1]
-                row["inst_chg_2q"] = inst.iloc[-1] - inst.iloc[-3]
-                row["inst_rising_2q"] = float(inst.iloc[-1] > inst.iloc[-2] > inst.iloc[-3])
-                row["fii_chg_2q"] = s.fii.iloc[-1] - s.fii.iloc[-3]
-                row["dii_chg_2q"] = s.dii.iloc[-1] - s.dii.iloc[-3]
-                if "promoters" in s:
-                    row["promoter_chg_2q"] = s.promoters.iloc[-1] - s.promoters.iloc[-3]
-                if "holders" in s:
-                    row["holders_chg_2q_pct"] = (s.holders.iloc[-1] / s.holders.iloc[-3] - 1) * 100
-                row["holding_q"] = s.index[-1].date()
+        g = g[g.index.is_month_end & g.index.month.isin([3, 6, 9, 12])]
+        if {"sales", "np"} <= set(g.columns):
+            r = g.loc[g.index + pd.Timedelta(days=60) <= when, ["sales", "np"]].dropna()
+            if len(r):
+                q = r.index[-1]
+                at = lambda k: r.loc[_qe(q, k)] if _qe(q, k) in r.index else None
+                yago, prev, prev_y = at(4), at(1), at(5)
+                if yago is not None:
+                    row["sales_yoy"] = (r.at[q, "sales"] / pos(yago.sales) - 1) * 100
+                    row["np_yoy"] = (r.at[q, "np"] / pos(yago.np) - 1) * 100
+                    row["turnaround"] = float(yago.np <= 0 < r.at[q, "np"])
+                    if prev is not None and prev_y is not None:
+                        row["np_accel"] = row["np_yoy"] - (prev.np / pos(prev_y.np) - 1) * 100
+                    row["results_q"] = q.date()
+        if {"fii", "dii"} <= set(g.columns):
+            sh = g.loc[g.index + pd.Timedelta(days=21) <= when].dropna(subset=["fii", "dii"])
+            if len(sh):
+                h = sh.index[-1]
+                if _qe(h, 1) in sh.index and _qe(h, 2) in sh.index:
+                    x0, x1, x2 = sh.loc[h], sh.loc[_qe(h, 1)], sh.loc[_qe(h, 2)]
+                    i0, i1, i2 = x0.fii + x0.dii, x1.fii + x1.dii, x2.fii + x2.dii
+                    row.update(inst_now=i0, inst_chg_2q=i0 - i2,
+                               inst_rising_2q=float(i0 > i1 > i2),
+                               fii_chg_2q=x0.fii - x2.fii, dii_chg_2q=x0.dii - x2.dii,
+                               holding_q=h.date())
+                    if "promoters" in sh:
+                        row["promoter_chg_2q"] = x0.promoters - x2.promoters
+                    if "holders" in sh and x2.holders > 0:
+                        row["holders_chg_2q_pct"] = (x0.holders / x2.holders - 1) * 100
         if row:
             out[t] = row
     return pd.DataFrame.from_dict(out, orient="index")
 
 
+# the first session on which each quarter's results are public (quarter end + 60d)
+B2_DATES = ("2024-11-29", "2025-03-03", "2025-06-02", "2025-08-29")
 FUND = ["sales_yoy", "np_yoy", "np_accel", "turnaround", "inst_chg_2q", "inst_rising_2q",
         "fii_chg_2q", "dii_chg_2q", "promoter_chg_2q", "holders_chg_2q_pct"]
 
@@ -497,7 +518,7 @@ def part_b(raw, L, close, nifty, pit, subind, setup_now):
     # B2 base rate at four decision dates
     nc = nifty["Close"].reindex(dates).ffill()
     B = []
-    for d in ("2024-11-29", "2025-03-03", "2025-06-02", "2025-08-29"):
+    for d in B2_DATES:
         d = snap(d)
         e = dates[min(dates.get_loc(d) + 252, len(dates) - 1)]
         ff = fund_features(P, d)
@@ -618,7 +639,13 @@ def main():
 
     if args.screener == "skip":
         return
-    names = sorted(set(close.columns[pit.iloc[-1].values]) | set(W.index) | set(TWEET))
+    # Everyone in the universe on any date part B looks at -- not just today's
+    # names, or stocks that fell out since (mostly losers) would vanish from the
+    # base-rate test and flatter it.
+    look = [pd.Timestamp(d) for d in B2_DATES] + list(L.launch) + [close.index[-1]]
+    look = [close.index[close.index >= d][0] for d in look]
+    names = sorted(set().union(*[set(close.columns[pit.loc[d].values]) for d in look])
+                   | set(W.index) | set(TWEET))
     if args.screener == "reuse" and os.path.exists(SCREENER_RAW):
         raw = pd.read_csv(SCREENER_RAW, parse_dates=["quarter"])
     else:
