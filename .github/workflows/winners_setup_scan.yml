@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       screener:
-        description: "Screener.in data: scrape (~30 min), reuse (committed analysis/screener_raw.csv) or skip."
+        description: "Screener.in data: scrape (~30 min), reuse (committed analysis/screener_raw.csv.gz) or skip."
         required: true
         default: "scrape"
         type: choice
@@ -27,7 +27,9 @@ jobs:
           python-version: "3.10"
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
       - name: Run scan
         run: |
           set -o pipefail
@@ -47,14 +49,14 @@ jobs:
             analysis/winners_fundamentals_at_launch.csv
             analysis/fundamentals_lift.csv
             analysis/fii_dii_rising.csv
-            analysis/screener_raw.csv
+            analysis/screener_raw.csv.gz
             analysis/screener_sample_*.html
             winners_setup_output.txt
           retention-days: 30
       - name: Commit results to the branch
-        if: always()
+        if: success()
         uses: stefanzweifel/git-auto-commit-action@v5
         continue-on-error: true
         with:
           commit_message: "Winners setup scan results"
-          file_pattern: "analysis/winners_2025_launches.csv analysis/setup_score_history.csv analysis/setup_scan_now.csv analysis/winners_fundamentals_at_launch.csv analysis/fundamentals_lift.csv analysis/fii_dii_rising.csv analysis/screener_raw.csv winners_setup_output.txt"
+          file_pattern: "analysis/*.csv* winners_setup_output.txt"
