@@ -1,4 +1,4 @@
-name: Breakout x Sub-Industry Study (NSE)
+name: Breakout and Sub-Industry Study (NSE)
 
 on:
   workflow_dispatch:
@@ -35,6 +35,5 @@ jobs:
           retention-days: 30
       - name: Commit results
         if: success()
-        run: >
-          bash scripts/commit_and_push.sh "Breakout x sub-industry study results"
-          analysis/breakout_sector_study.csv analysis/breakout_sector_recent.csv breakout_sector_output.txt
+        run: |
+          bash scripts/commit_and_push.sh "Breakout and sub-industry study results" analysis/breakout_sector_study.csv analysis/breakout_sector_recent.csv breakout_sector_output.txt
