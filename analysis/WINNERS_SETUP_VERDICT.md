@@ -58,10 +58,20 @@ buy list. Large jumps are often supply, not buying: BAJAJHIND's DII +43 pp
 came with a promoter -12 pp (debt converted to lenders); VMM and JSWINFRA are
 promoter stake sales.
 
-## Data fix for the "today" lists
+## Current lists (rerun with the data fix, as of 25 Sep 2026)
 
-Yahoo returned 28 Sep closes for only part of the list, and the universe on the
-last date requires a close, so the current scans covered ~half the universe
-(497 names). The script now cuts to the last day with near-complete prices.
-The historical tests above are unaffected; the setup scan and the FII + DII
-list need a rerun (screener = reuse, ~10 min).
+Yahoo had 28 Sep closes for only 657 of 2,025 stocks, so the scan uses 25 Sep.
+Universe 969 stocks (the first run covered 497).
+
+Setup scan (analysis/setup_scan_now.csv): 90 recent breakouts, 46 meeting all
+three conditions -- e.g. WHEELS, OPTIEMUS, FCL, EBGNG, WABAG, VENUSPIPES,
+GRANULES, GNA, AARTIPHARM, TEGA. Coiled within 5% of a 52-week high with 3/3:
+SUNFLAG, EMUDHRA, TATVA. Historically about 4 in 10 of the 3/3 group doubled
+within ~20 months; most did not.
+
+FII + DII rose in each of the last two quarters (to Jun 2026) for 321 of 969;
+26 of those are promoter stake moving to institutions (note column), and
+BAJAJHIND's +42 pp is debt converted to lenders. Excluding those, FII and DII
+both rose for 113, of which 102 also beat Nifty over 6 months (MARKSANS,
+STLTECH, SHAILY, ANTHEM, UJJIVANSFB, PARAS, SKYGOLD, LAURUSLABS, TDPOWERSYS ...).
+The test above found no edge in rising ownership on its own.
