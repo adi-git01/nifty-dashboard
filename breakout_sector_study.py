@@ -11,11 +11,16 @@ Event study. A stock breaks out on day t (bought at that close):
               history, after >= 20 sessions without one -- "all-time high"
               as far as the data goes
 
-Confirmations (the chart checks):
-  vol   volume >= 1.5x its prior 50-day average (the "strong volume" cut in
-        utils/scoring.py)
-  clv   close location value (C - L) / (H - L) >= 0.8: closed in the top fifth
-        of the day's range
+  anchor_up   a bullish volume anchor on its own (no breakout needed)
+
+Confirmations -- the user's chart-tool definitions:
+  anchor  VolRatio = volume / median(volume, prior 50 sessions) >= 3.0 AND
+          close x volume >= Rs 5 crore, with bullish direction CLV >= 0.50
+  clv80   close location value (C - L) / (H - L) >= 0.8 (closed in the top
+          fifth of the day's range)
+
+Event retention (2 weeks): share of the next 10 sessions whose close held at
+or above the close before the event day -- the day's gain not given back.
 
 Context: the stock's sub-industry score_0_100 that day (the rotation heatmap's
 score, rebuilt with the live formula): leader >= 70, mid 40-69, laggard < 40.
@@ -113,8 +118,13 @@ def build(close, high, low, vol, nifty, pit, gscore):
     }
     rng = (high - low).where(lambda x: x > 0)
     clv = (close - low) / rng
-    vavg = vol.rolling(50, min_periods=30).mean().shift(1)
-    conf = {"vol": vol >= 1.5 * vavg, "clv": clv >= 0.8}
+    vmed = vol.rolling(50, min_periods=30).median().shift(1)
+    anchor = (vol >= 3.0 * vmed) & (close * vol >= 5e7) & (clv >= 0.5)
+    ev["anchor_up"] = anchor & (since_last(anchor) >= 5)
+    conf = {"anchor": anchor, "clv80": clv >= 0.8}
+    prev = cf.shift(1)
+    held = sum((cf.shift(-k) >= prev).astype(float) for k in range(1, 11))
+    retention = (held / 10).where(cf.shift(-10).notna())
 
     fwd = {}
     for h in H:
@@ -129,14 +139,14 @@ def build(close, high, low, vol, nifty, pit, gscore):
     # fell back under the 50-day average at any close in the next 10 sessions
     under = (close < ma50).astype(float).where(close.notna())
     below50 = under[::-1].rolling(10, min_periods=1).max()[::-1].shift(-1)
-    return ev, conf, fwd, below50, gscore
+    return ev, conf, fwd, below50, retention, gscore
 
 
 def band(s):
     return np.select([s >= 70, s >= 40, s >= 0], ["leader", "mid", "laggard"], "")
 
 
-def collect(mask, conf, fwd, below50, gscore, pit):
+def collect(mask, conf, fwd, below50, retention, gscore, pit):
     m = mask & pit
     ii, jj = np.where(m.fillna(False).values)
     d = pd.DataFrame({"date": m.index[ii], "ticker": m.columns[jj]})
@@ -148,6 +158,7 @@ def collect(mask, conf, fwd, below50, gscore, pit):
         d[f"ret{h}"], d[f"vn{h}"] = r.values[ii, jj], vn.values[ii, jj]
         d[f"vu{h}"], d[f"vm{h}"] = vu.values[ii, jj], vm.values[ii, jj]
     d["below50_2wk"] = below50.values[ii, jj]
+    d["retention"] = retention.values[ii, jj]
     return d[d.industry != ""]
 
 
@@ -171,6 +182,9 @@ def stats(d, label):
         x = d[f"ret{h}"].dropna()
         if len(x) >= 30:
             r[f"below entry {HLAB[h]}%"] = round((x < 0).mean() * 100)
+    if d.retention.notna().sum() >= 30:
+        r["retention 2wk%"] = round(d.retention.mean() * 100)
+        r["held all 2wk%"] = round((d.retention == 1).mean() * 100)
     if d.below50_2wk.notna().sum() >= 30:
         r["under 50dma in 2wk%"] = round(d.below50_2wk.mean() * 100)
     y = d.dropna(subset=["vu63"]).groupby(d.date.dt.year).vu63.median()
@@ -203,55 +217,59 @@ def main():
     gscore = pd.DataFrame({t: score[g] if g in score.columns else np.nan for t, g in gmap.items()},
                           index=close.index)
     pit = pit & gscore.notna()
-    ev, conf, fwd, below50, gscore = build(close, high, low, vol, nifty, pit, gscore)
+    ev, conf, fwd, below50, retention, gscore = build(close, high, low, vol, nifty, pit, gscore)
 
     # baseline: every universe stock, weekly
     wk = pd.DataFrame(False, index=close.index, columns=close.columns)
     wk.iloc[::5] = True
-    base = collect(wk, conf, fwd, below50, gscore, pit)
+    base = collect(wk, conf, fwd, below50, retention, gscore, pit)
 
     rows = []
     for b in ("leader", "mid", "laggard"):
         rows.append(dict(breakout="BASELINE any stock, weekly", **stats(base[base.industry == b], f"{b} industry")))
     allev = []
     for name, m in ev.items():
-        d = collect(m, conf, fwd, below50, gscore, pit)
+        d = collect(m, conf, fwd, below50, retention, gscore, pit)
         d["breakout"] = name
         allev.append(d)
         for b in ("leader", "mid", "laggard"):
             x = d[d.industry == b]
             rows.append(dict(breakout=name, **stats(x, f"{b} industry")))
-            rows.append(dict(breakout=name, **stats(x[x.vol], f"{b} + volume")))
-            rows.append(dict(breakout=name, **stats(x[x.vol & x.clv], f"{b} + volume + CLV")))
+            if name != "anchor_up":
+                rows.append(dict(breakout=name, **stats(x[x.anchor], f"{b} + volume anchor")))
+            rows.append(dict(breakout=name, **stats(x[x.anchor & x.clv80], f"{b} + anchor + CLV>=0.8")))
     T = pd.DataFrame(rows)
     T.to_csv(f"{OUT}/breakout_sector_study.csv", index=False)
 
     print(f"\n{'=' * 150}\nBREAKOUTS BY SUB-INDUSTRY STRENGTH (pp).  vsTypical = median breakout minus the median universe "
           f"stock over the same window.\nportfolio vsAvg = mean breakout minus mean stock (what an equal-weight basket of these "
           f"would add).  beat% = share beating the median stock.\n'yrs 3mo>0' = calendar years in which the 3-month "
-          f"vsTypical was positive.  Compare every row with the BASELINE row for the same industry band.\n{'=' * 150}")
+          f"vsTypical was positive.  Compare every row with the BASELINE row for the same industry band.\n"
+          f"Retention is partly mechanical: an event day closed UP, so even random prices stay above the pre-event\n"
+          f"close for a while (on random data a 50dma reclaim 'retains' ~73% vs ~53% for any day). Judge it against\n"
+          f"other rows of the same event type, not in absolute terms.\n{'=' * 150}")
     for name in ["BASELINE any stock, weekly"] + list(ev):
         print(f"\n--- {name}")
         print(T[T.breakout == name].drop(columns="breakout").to_string(index=False))
 
     E = pd.concat(allev)
     E["era"] = np.where(E.date < ERA_SPLIT, "2016-20", "2021-26")
-    print(f"\n{'=' * 150}\nBY ERA -- leader industry + volume + CLV vs the same breakout in laggard industries\n{'=' * 150}")
+    print(f"\n{'=' * 150}\nBY ERA -- leader industry + volume anchor vs the same breakout in laggard industries\n{'=' * 150}")
     er = []
     for name in ev:
         for era in ("2016-20", "2021-26"):
             x = E[(E.breakout == name) & (E.era == era)]
-            er.append(dict(breakout=name, era=era, **stats(x[(x.industry == "leader") & x.vol & x.clv], "leader+vol+CLV")))
+            er.append(dict(breakout=name, era=era, **stats(x[(x.industry == "leader") & x.anchor], "leader+anchor")))
             er.append(dict(breakout=name, era=era, **stats(x[x.industry == "laggard"], "laggard, any")))
     print(pd.DataFrame(er).to_string(index=False))
 
     # recent qualifying events, for a look at what it picks now
-    last = E[(E.date >= close.index[-30]) & (E.industry == "leader") & E.vol & E.clv]
+    last = E[(E.date >= close.index[-30]) & (E.industry == "leader") & E.anchor]
     last = last[["date", "ticker", "breakout"]].sort_values("date", ascending=False)
     last["ticker"] = last.ticker.str.replace(".NS", "", regex=False)
     last["sub_industry"] = last.ticker.add(".NS").map(SUB_INDUSTRY_MAP)
     last.to_csv(f"{OUT}/breakout_sector_recent.csv", index=False)
-    print(f"\nLAST 30 SESSIONS -- breakouts in leader industries with volume + CLV: {len(last)}")
+    print(f"\nLAST 30 SESSIONS -- breakouts / anchors in leader industries with a volume anchor: {len(last)}")
     print(last.head(40).to_string(index=False))
     print(f"\nsaved -> {OUT}/breakout_sector_study.csv, {OUT}/breakout_sector_recent.csv")
 
