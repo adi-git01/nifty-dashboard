@@ -1,21 +1,21 @@
+$CIGNITITEC.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$GSPL.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MIRCELECTR.NS"}}}
+$MIRCELECTR.NS: possibly delisted; no timezone found
 HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: EXCEL.NS"}}}
 $EXCEL.NS: possibly delisted; no timezone found
-HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: GUJGASLTD.NS"}}}
-$GUJGASLTD.NS: possibly delisted; no timezone found
+$LTIM.NS: possibly delisted; no timezone found
 $VISASTEEL.NS: possibly delisted; no timezone found
-$SASTASUNDR.NS: possibly delisted; no timezone found
-$SANGHIIND.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
 $LYPSAGEMS.NS: possibly delisted; no timezone found
 $AKZOINDIA.NS: possibly delisted; no timezone found
-$MIRCELECTR.NS: possibly delisted; no timezone found
-$GSPL.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
-$LTIM.NS: possibly delisted; no timezone found
-$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
-$CIGNITITEC.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
 
 12 Failed downloads:
-['EXCEL.NS', 'GUJGASLTD.NS', 'VISASTEEL.NS', 'SASTASUNDR.NS', 'LYPSAGEMS.NS', 'AKZOINDIA.NS', 'MIRCELECTR.NS', 'LTIM.NS']: possibly delisted; no timezone found
-['SANGHIIND.NS', 'GSPL.NS', 'JBCHEPHARM.NS', 'CIGNITITEC.NS']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+['CIGNITITEC.NS', 'GSPL.NS', 'JBCHEPHARM.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-29)
+['MIRCELECTR.NS', 'EXCEL.NS', 'LTIM.NS', 'VISASTEEL.NS', 'LYPSAGEMS.NS', 'AKZOINDIA.NS', 'SASTASUNDR.NS', 'GUJGASLTD.NS']: possibly delisted; no timezone found
 [yf_safe] bulk download attempt 1/3: 99% coverage (2098/2110 tickers)
 /home/runner/work/nifty-dashboard/nifty-dashboard/sector_alpha_study.py:129: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
   gage, rage = run_length(green.fillna(False)), run_length(red.fillna(False))
@@ -34,9 +34,9 @@ $CIGNITITEC.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-0
 /home/runner/work/nifty-dashboard/nifty-dashboard/sector_alpha_study.py:193: FutureWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
   full = L.groupby("group").apply(char)
 [data] dropped 14 non-session row(s) not in the Nifty calendar
-[data] 2097/2110 assets, 3031 sessions 2014-06-02 -> 2026-09-28, benchmark ^NSEI
+[data] 2096/2110 assets, 3031 sessions 2014-06-02 -> 2026-09-28, benchmark ^NSEI
 [score] 58 sub-industries, 2968 sessions 2014-09-02 -> 2026-09-28
-[validate] 6472 stored group-days since 2025-04-30: rank corr 0.78, same colour 69%
+[validate] 6473 stored group-days since 2025-04-30: rank corr 0.78, same colour 69%
 
 ========================================================================================================================
 A. DOES A HIGH SCORE PREDICT RETURNS?  median forward excess (pp) by score band, weekly checkpoints
@@ -44,152 +44,176 @@ A. DOES A HIGH SCORE PREDICT RETURNS?  median forward excess (pp) by score band,
 ========================================================================================================================
              n  vsnifty5  vsnifty21  vsnifty63  vsnifty126  vsgrp5  vsgrp21  vsgrp63  vsgrp126  beat%5  beat%21  beat%63  beat%126
 quintile                                                                                                                          
-0-20      5346     -0.11       0.11       0.73        2.08   -0.28    -0.87    -2.06     -3.49      44       42       39        37
-20-40     5759      0.07       0.54       1.70        4.12   -0.16    -0.46    -1.09     -1.89      47       45       43        42
-40-60     5769      0.14       0.73       2.22        4.81   -0.12    -0.29    -0.41     -1.09      47       47       47        45
-60-80     5758      0.19       1.06       2.53        5.40   -0.06     0.05    -0.20     -0.63      49       50       48        46
-80-100    5941      0.28       0.92       2.99        6.16   -0.00     0.12     0.40      0.35      50       51       51        49
+0-20      5346     -0.11       0.11       0.74        2.08   -0.28    -0.87    -2.04     -3.54      44       42       39        37
+20-40     5759      0.07       0.54       1.69        4.13   -0.17    -0.48    -1.10     -1.85      46       45       43        42
+40-60     5770      0.15       0.73       2.21        4.79   -0.12    -0.30    -0.39     -1.15      47       47       47        45
+60-80     5759      0.18       1.06       2.54        5.45   -0.06     0.06    -0.19     -0.65      49       50       48        45
+80-100    5940      0.29       0.92       2.99        6.19   -0.00     0.12     0.37      0.33      50       51       51        49
 
    by era (vs average group):
                      n  vsgrp21  vsgrp63  vsgrp126  beat%21  beat%63  beat%126
 era     quintile                                                              
-2016-20 0-20      2790    -0.91    -2.22     -3.73       43       41        38
-        20-40     2950    -0.40    -0.75     -1.73       46       46        45
-        40-60     3078    -0.24    -0.20     -0.65       47       49        48
-        60-80     2949     0.00     0.10      0.13       50       51        50
-        80-100    3101     0.14     0.58      0.23       51       53        51
-2021-26 0-20      2556    -0.86    -1.94     -3.22       41       38        36
-        20-40     2809    -0.52    -1.37     -2.10       43       41        40
-        40-60     2691    -0.35    -0.62     -1.76       47       44        41
-        60-80     2809     0.11    -0.59     -1.65       50       45        41
-        80-100    2840     0.09     0.22      0.50       50       49        47
+2016-20 0-20      2790    -0.89    -2.19     -3.79       43       41        38
+        20-40     2950    -0.40    -0.78     -1.65       47       46        45
+        40-60     3078    -0.26    -0.19     -0.71       47       49        48
+        60-80     2950    -0.01     0.08      0.04       50       51        50
+        80-100    3100     0.15     0.58      0.21       52       53        51
+2021-26 0-20      2556    -0.85    -1.93     -3.19       41       38        36
+        20-40     2809    -0.55    -1.40     -2.12       43       40        40
+        40-60     2692    -0.35    -0.66     -1.74       46       44        41
+        60-80     2809     0.10    -0.55     -1.63       50       45        40
+        80-100    2840     0.06     0.22      0.52       50       49        47
 
 ========================================================================================================================
 B. HOW LONG DOES THE LEAD PAY?  rank corr of today's score with the 1-month return starting k sessions later
 ========================================================================================================================
           start_after  mean_IC  pct_weeks_positive  IC_2016_20  IC_2021_26  weeks
-   0 sessions (~0 mo)    0.077                  67       0.076       0.078    590
-  21 sessions (~1 mo)    0.043                  57       0.062       0.021    586
-  63 sessions (~3 mo)    0.023                  56       0.009       0.038    577
- 126 sessions (~6 mo)    0.037                  56       0.035       0.039    565
- 189 sessions (~9 mo)    0.044                  61       0.026       0.068    552
-252 sessions (~12 mo)   -0.024                  44      -0.019      -0.032    539
+   0 sessions (~0 mo)    0.077                  68       0.076       0.079    590
+  21 sessions (~1 mo)    0.042                  57       0.062       0.020    586
+  63 sessions (~3 mo)    0.023                  56       0.009       0.039    577
+ 126 sessions (~6 mo)    0.037                  56       0.035       0.040    565
+ 189 sessions (~9 mo)    0.045                  61       0.026       0.068    552
+252 sessions (~12 mo)   -0.024                  44      -0.018      -0.031    539
    IC 0.05 is a usable ranking signal for groups; sign flip = leaders start lagging.
 
 ========================================================================================================================
 C. SPELLS  (weeks)
 ========================================================================================================================
-   leader (>=70): 2292 spells, median 2 wk, 75th pct 5 wk, 90th pct 9 wk, longest 41 wk
-   laggard (<40): 2444 spells, median 2 wk, 75th pct 5 wk, 90th pct 11 wk, longest 48 wk
+   leader (>=70): 2283 spells, median 2 wk, 75th pct 5 wk, 90th pct 9 wk, longest 41 wk
+   laggard (<40): 2449 spells, median 2 wk, 75th pct 5 wk, 90th pct 11 wk, longest 48 wk
 
    LEADERS by how long they have led -- fresh vs mature:
              n  vsgrp5  vsgrp21  vsgrp63  vsgrp126  vsnifty63  beat%5  beat%21  beat%63  beat%126
 age                                                                                              
-1 wk      2307   -0.11     0.13    -0.39     -0.92       2.53      48       51       47        45
-2-4 wk    3179    0.04     0.09     0.22      0.46       2.61      50       50       50        49
-5-12 wk   2576   -0.07     0.11     0.55      0.21       3.10      49       51       52        49
-13-26 wk   770    0.10     0.16     0.23      0.82       3.91      52       52       50        51
-26+ wk      78    0.09    -1.37    -1.83     -3.25       0.16      51       40       41        36
+1 wk      2298   -0.11     0.12    -0.40     -1.00       2.45      48       50       47        45
+2-4 wk    3182    0.04     0.09     0.23      0.46       2.61      51       50       50        49
+5-12 wk   2582   -0.07     0.10     0.58      0.22       3.19      49       51       52        49
+13-26 wk   770    0.14     0.19     0.28      0.77       4.20      52       53       51        50
+26+ wk      78    0.09    -1.37    -1.83     -3.27       0.16      51       40       41        35
 
    LAGGARDS by how long they have lagged -- do long-time laggards turn around?:
              n  vsgrp5  vsgrp21  vsgrp63  vsgrp126  vsnifty63  beat%5  beat%21  beat%63  beat%126
 age                                                                                              
-1 wk      2463   -0.12    -0.53    -1.31     -2.32       1.38      47       45       43        41
-2-4 wk    3595   -0.25    -0.60    -1.46     -2.36       1.14      45       43       42        40
-5-12 wk   3555   -0.22    -0.73    -1.56     -2.99       1.13      45       43       41        38
-13-26 wk  1338   -0.23    -0.66    -1.87     -3.02       1.22      45       43       39        40
-26+ wk     154   -0.49    -0.89    -3.29     -2.69       3.15      44       43       41        42
+1 wk      2468   -0.12    -0.54    -1.29     -2.31       1.39      47       45       43        41
+2-4 wk    3592   -0.25    -0.62    -1.45     -2.32       1.14      45       43       41        40
+5-12 wk   3562   -0.23    -0.74    -1.50     -2.94       1.12      45       43       41        38
+13-26 wk  1331   -0.23    -0.64    -1.86     -2.91       1.22      45       43       39        40
+26+ wk     152   -0.50    -0.81    -3.08     -1.74       3.18      43       43       41        43
 
 ========================================================================================================================
 D. SUB-INDUSTRY CHARACTER  (3-month forward return vs average group, median pp)
 ========================================================================================================================
    Does a group's character repeat? rank corr of each statistic, 2016-20 vs 2021-26 (~0 = group-specific patterns are noise):
-   persistence +0.09, when_leading +0.03, when_lagging +0.03, pct_time_leading +0.03
+   persistence +0.09, when_leading +0.01, when_lagging -0.02, pct_time_leading +0.02
    (pct_time_leading repeats even on random data: small, volatile groups sit at the extremes more
     often. It describes volatility, not an edge -- judge character by the return columns.)
 
    Leads persist (> +3 pp spread) in BOTH eras: 5 of 51
                                  lead_persist_16_20  lead_persist_21_26  turnaround_16_20  turnaround_21_26  pct_time_leading  persistent_both_eras  turnaround_both_eras
 group                                                                                                                                                                    
-IT - Software                                   3.8                 4.5              -0.2              -2.7              33.7                  True                 False
-Pharmaceuticals & Biotechnology                10.7                 4.2              -6.7              -2.7              32.7                  True                 False
-Aerospace & Defense                             9.9                 3.5              -6.4               2.3              43.5                  True                 False
-Fertilizers & Agrochemicals                     4.2                 3.3              -3.1              -3.4              29.8                  True                 False
-Diversified Metals                              9.2                 3.2              -4.0              -1.2              37.2                  True                 False
+IT - Software                                   3.7                 4.6              -0.2              -2.9              33.3                  True                 False
+Pharmaceuticals & Biotechnology                10.6                 4.2              -6.6              -2.7              32.7                  True                 False
+Aerospace & Defense                             9.8                 3.5              -6.4               2.3              43.5                  True                 False
+Fertilizers & Agrochemicals                     3.5                 3.3              -2.4              -3.5              29.8                  True                 False
+Diversified Metals                              9.3                 3.2              -4.0              -1.2              37.2                  True                 False
 
    Laggards rebound (> +2 pp vs avg group) in BOTH eras: 0 of 51
 Empty DataFrame
 Columns: [lead_persist_16_20, lead_persist_21_26, turnaround_16_20, turnaround_21_26, pct_time_leading, persistent_both_eras, turnaround_both_eras]
 Index: []
 
-   Chance baseline (era labels shuffled across groups): persistent in both eras 2.5 groups on average, turnaround in both 0.9. Counts near these are luck.
+   Chance baseline (era labels shuffled across groups): persistent in both eras 2.5 groups on average, turnaround in both 1.0. Counts near these are luck.
 
 ========================================================================================================================
 E. COLOUR CHANGES (week on week) vs staying in the band -- median pp vs average group
 ========================================================================================================================
                      n  vsgrp5  vsgrp21  vsgrp63  vsgrp126  beat%5  beat%21  beat%63  beat%126
 change                                                                                        
-red -> red        8642   -0.24    -0.67    -1.60     -2.68      45       43       41        39
-red -> yellow     2031   -0.17    -0.44    -0.65     -1.51      46       46       46        44
-red -> green       405   -0.38    -0.86    -1.52     -2.14      44       43       42        42
-yellow -> red     2105   -0.14    -0.54    -1.38     -2.37      46       45       43        41
-yellow -> yellow  4556   -0.09    -0.09    -0.16     -0.66      48       49       48        46
-yellow -> green   1881   -0.07     0.27    -0.09     -0.64      49       52       48        46
-green -> red       337    0.03    -0.36    -0.66     -2.14      51       44       44        40
-green -> yellow   1952   -0.04    -0.19    -0.38     -1.20      48       48       47        44
-green -> green    6603   -0.00     0.09     0.31      0.35      50       51       50        49
+red -> red        8637   -0.24    -0.67    -1.57     -2.67      45       43       41        39
+red -> yellow     2035   -0.18    -0.46    -0.60     -1.57      45       46       46        43
+red -> green       406   -0.38    -0.88    -1.46     -1.92      44       43       43        42
+yellow -> red     2107   -0.13    -0.54    -1.43     -2.37      47       45       43        42
+yellow -> yellow  4565   -0.09    -0.10    -0.18     -0.64      48       49       48        46
+yellow -> green   1871   -0.07     0.26    -0.23     -0.95      48       52       48        45
+green -> red       340    0.03    -0.44    -0.58     -2.25      50       44       44        40
+green -> yellow   1940   -0.06    -0.19    -0.41     -1.36      48       47       47        44
+green -> green    6612    0.01     0.10     0.32      0.33      50       51       51        49
+
+========================================================================================================================
+E2. BOUGHT AT THE CLOSE ON THE DAY A SUB-INDUSTRY FIRST TURNS GREEN (score crosses 70; daily)
+    return over the next 1 / 2 / 4 weeks, pp. mean shows the average buyer; median the typical case.
+========================================================================================================================
+horizon                        entry      n  abs_median  vs_nifty_median  vs_nifty_mean  beat_nifty_pct  vs_grp_median  vs_grp_mean  beat_grp_pct
+   1 wk                  all entries   5847        0.63             0.19           0.34              53          -0.04         0.09            49
+   1 wk                 all, 2016-20   3137        0.48             0.04           0.24              51          -0.10         0.08            48
+   1 wk                 all, 2021-26   2710        0.77             0.36           0.46              55           0.03         0.09            50
+   1 wk baseline: any group, any day 142473        0.45             0.11           0.23              52          -0.13        -0.00            47
+   1 wk                     from red    261        0.43             0.20           0.47              51          -0.27         0.09            47
+   1 wk                  from yellow   5586        0.64             0.19           0.33              53          -0.03         0.09            49
+   2 wk                  all entries   5833        1.07             0.47           0.69              55           0.04         0.18            51
+   2 wk                 all, 2016-20   3136        0.81             0.22           0.46              52          -0.01         0.12            50
+   2 wk                 all, 2021-26   2697        1.33             0.78           0.96              58           0.10         0.25            52
+   2 wk baseline: any group, any day 142184        0.80             0.25           0.47              53          -0.17        -0.00            47
+   2 wk                     from red    259        0.90             0.51           0.73              53          -0.44        -0.10            45
+   2 wk                  from yellow   5574        1.07             0.47           0.69              55           0.06         0.19            51
+   4 wk                  all entries   5804        2.11             1.01           1.38              57           0.06         0.35            51
+   4 wk                 all, 2016-20   3136        1.91             0.54           1.02              53           0.05         0.30            50
+   4 wk                 all, 2021-26   2668        2.38             1.43           1.81              61           0.12         0.40            51
+   4 wk baseline: any group, any day 141561        1.79             0.64           1.00              55          -0.26         0.00            47
+   4 wk                     from red    257        1.79             0.91           1.47              54          -0.03         0.23            49
+   4 wk                  from yellow   5547        2.15             1.02           1.38              57           0.08         0.35            51
 
 ========================================================================================================================
 F. SUB-INDUSTRIES NOW (as of 2026-09-24)
 ========================================================================================================================
                                                   score    band  weeks_leading  weeks_lagging  score_4wk_ago  score_13wk_ago  lead_persist_16_20  lead_persist_21_26  turnaround_16_20  turnaround_21_26 persistent_both_eras turnaround_both_eras
-Oil                                               100.0   green              4              0           64.0            55.0                 2.2                 1.2              -6.3               0.2                False                False
-Entertainment                                      98.0   green              3              0           94.0            60.0                -1.2                 0.7              -0.7              -2.6                False                False
-Pharmaceuticals & Biotechnology                    96.0   green              5              0           79.0            79.0                10.7                 4.2              -6.7              -2.7                 True                False
-Ferrous Metals                                     94.0   green              4              0           45.0            49.0                 6.0                -0.9              -1.8               4.7                False                False
-Diversified FMCG                                   92.0   green              5              0           85.0            32.0                -2.3                 1.6              -0.0              -2.3                False                False
-Industrial Products                                90.0   green             14              0           98.0            74.0                -1.0                -0.2               1.2               1.5                False                False
-Healthcare Services                                88.0   green              2              0           60.0            64.0                 1.7                -1.5              -1.3               0.1                False                False
-Petroleum Products                                 85.0   green             10              0           91.0            47.0                 0.3                -2.7               0.2              -0.1                False                False
-Non - Ferrous Metals                               83.0   green              1              0           72.0             4.0                 1.0                 1.0              -4.5              -0.6                False                False
-Diversified                                        81.0   green              1              0           40.0            26.0                -2.3                -3.0               2.3              -1.2                False                False
-Auto Components                                    79.0   green              2              0           89.0            87.0                 3.0                 0.9              -1.8               0.7                False                False
-Consumable Fuels                                   77.0   green              1              0            6.0             9.0                -2.3                -2.2              -0.3               4.7                False                False
-Industrial Manufacturing                           75.0   green              3              0           43.0            98.0                -0.4                 1.8              -1.5               2.7                False                False
-Agricultural, Commercial & Construction Vehicles   73.0   green              8              0          100.0            11.0                 2.4                -4.1               1.7               3.1                False                False
-Beverages                                          71.0   green              1              0           68.0            57.0                 4.5                 0.6               0.2               0.4                False                False
+Oil                                               100.0   green              4              0           64.0            55.0                 2.2                 1.1              -6.3               0.3                False                False
+Entertainment                                      98.0   green              3              0           94.0            57.0                -1.4                 0.8              -0.4              -2.7                False                False
+Pharmaceuticals & Biotechnology                    96.0   green              5              0           79.0            79.0                10.6                 4.2              -6.6              -2.7                 True                False
+Ferrous Metals                                     94.0   green              4              0           45.0            49.0                 6.0                -0.8              -1.8               4.7                False                False
+Diversified FMCG                                   92.0   green              5              0           85.0            32.0                -2.3                 1.5               0.0              -2.2                False                False
+Healthcare Services                                90.0   green              2              0           60.0            64.0                 1.5                -1.2              -1.0               0.1                False                False
+Industrial Products                                88.0   green             14              0           98.0            74.0                -0.9                -0.1               1.2               1.5                False                False
+Petroleum Products                                 85.0   green             10              0           91.0            47.0                 0.3                -2.6               0.1              -0.1                False                False
+Non - Ferrous Metals                               83.0   green              1              0           72.0             4.0                 0.8                 1.0              -4.5              -0.6                False                False
+Diversified                                        81.0   green              1              0           40.0            26.0                -2.3                -3.0               2.3              -1.3                False                False
+Auto Components                                    79.0   green              2              0           89.0            87.0                 3.0                 1.0              -1.9               0.7                False                False
+Consumable Fuels                                   77.0   green              1              0            6.0             9.0                -2.4                -2.0              -0.2               4.6                False                False
+Industrial Manufacturing                           75.0   green              3              0           43.0            98.0                -0.3                 1.9              -1.6               2.7                False                False
+Agricultural, Commercial & Construction Vehicles   73.0   green              8              0          100.0            11.0                 2.2                -4.0               1.8               3.1                False                False
+Beverages                                          71.0   green              1              0           68.0            60.0                 4.5                 0.7               0.2               0.4                False                False
 Healthcare Equipment & Supplies                    69.0  yellow              0              0            NaN             NaN                 NaN               -19.7               NaN              -6.9                False                False
-Chemicals & Petrochemicals                         67.0  yellow              0              0           55.0            81.0                -3.8                 3.9               5.5              -3.2                False                False
-Transport Infrastructure                           65.0  yellow              0              0           15.0            94.0                -6.3                 9.6              -2.4              -2.0                False                False
-Capital Markets                                    62.0  yellow              0              0           77.0            70.0                 2.6                 0.3              -3.3              -1.0                False                False
-Food Products                                      60.0  yellow              0              0           51.0            21.0                 3.5                -1.7              -0.6              -2.7                False                False
-Banks                                              58.0  yellow              0              0           74.0            68.0                 1.6                 2.2              -4.4              -2.5                False                False
-Leisure Services                                   56.0  yellow              0              0           81.0            66.0                -0.5                 1.7              -1.4              -4.0                False                False
-Aerospace & Defense                                54.0  yellow              0              0           96.0            96.0                 9.9                 3.5              -6.4               2.3                 True                False
-Commercial Services & Supplies                     52.0  yellow              0              0           66.0            51.0                -5.9                 1.3               6.4              -2.7                False                False
-Realty                                             50.0  yellow              0              0           57.0            34.0                 1.7                 1.0              -1.0               0.6                False                False
-Automobiles                                        48.0  yellow              0              0           83.0            38.0                -4.1                -1.4               1.4               2.0                False                False
-Consumer Durables                                  46.0  yellow              0              0           70.0            53.0                 1.4                 2.4               2.5              -2.0                False                False
-Cement & Cement Products                           44.0  yellow              0              0           11.0             6.0                -0.1                -1.0              -0.5              -3.4                False                False
-IT - Services                                      42.0  yellow              0              0           47.0            40.0                 5.5                 1.4              -1.4              -2.8                False                False
-Personal Products                                  40.0     red              0              8            4.0            19.0                 5.5                 0.7              -3.3              -3.3                False                False
-IT - Software                                      38.0     red              0              1           26.0            28.0                 3.8                 4.5              -0.2              -2.7                 True                False
-Textiles & Apparels                                35.0     red              0              2           38.0            83.0                 1.5                 0.2              -0.3              -4.4                False                False
-Retailing                                          33.0     red              0              1           53.0            72.0                -2.6                -3.8               1.5              -2.3                False                False
-Gas                                                31.0     red              0              2           28.0            91.0                 0.6                -5.0               2.3              -2.4                False                False
-Telecom - Equipment & Accessories                  29.0     red              0              2           62.0           100.0                 4.7                 0.4              -3.5              -0.0                False                False
-Transport Services                                 27.0     red              0              1           23.0            30.0                 2.3                -0.9              -3.0              -1.1                False                False
-Diversified Metals                                 25.0     red              0              7            9.0            43.0                 9.2                 3.2              -4.0              -1.2                 True                False
+Chemicals & Petrochemicals                         67.0  yellow              0              0           55.0            81.0                -3.6                 3.9               5.4              -3.3                False                False
+Transport Infrastructure                           65.0  yellow              0              0           15.0            94.0                -6.7                 9.4              -2.4              -2.0                False                False
+Capital Markets                                    62.0  yellow              0              0           77.0            70.0                 2.6                -0.2              -3.3              -0.7                False                False
+Food Products                                      60.0  yellow              0              0           51.0            21.0                 3.5                -1.8              -0.6              -2.6                False                False
+Banks                                              58.0  yellow              0              0           74.0            68.0                 1.5                 2.2              -4.4              -2.6                False                False
+Leisure Services                                   56.0  yellow              0              0           81.0            66.0                -0.2                 1.8              -1.4              -4.1                False                False
+Aerospace & Defense                                54.0  yellow              0              0           96.0            96.0                 9.8                 3.5              -6.4               2.3                 True                False
+Commercial Services & Supplies                     52.0  yellow              0              0           66.0            51.0                -5.6                 1.7               6.4              -2.8                False                False
+Realty                                             50.0  yellow              0              0           57.0            34.0                 1.7                 1.2              -1.0               0.4                False                False
+Automobiles                                        48.0  yellow              0              0           83.0            38.0                -4.0                -1.5               1.4               2.3                False                False
+Consumer Durables                                  46.0  yellow              0              0           70.0            53.0                 1.3                 2.5               2.5              -2.0                False                False
+Cement & Cement Products                           44.0  yellow              0              0           11.0             6.0                -0.4                -1.0              -0.4              -3.4                False                False
+IT - Services                                      42.0  yellow              0              0           47.0            40.0                 5.6                 1.0              -1.4              -2.4                False                False
+Personal Products                                  40.0     red              0              8            4.0            19.0                 5.4                 0.7              -3.2              -3.2                False                False
+IT - Software                                      38.0     red              0              1           28.0            28.0                 3.7                 4.6              -0.2              -2.9                 True                False
+Textiles & Apparels                                35.0     red              0              2           38.0            83.0                 1.2                -0.1              -0.4              -4.3                False                False
+Retailing                                          33.0     red              0              1           53.0            72.0                -2.2                -3.9               1.6              -2.3                False                False
+Gas                                                31.0     red              0              2           30.0            89.0                 0.6                -5.0               2.3              -2.4                False                False
+Telecom - Equipment & Accessories                  29.0     red              0              2           62.0           100.0                 5.0                 0.7              -3.4               0.3                False                False
+Transport Services                                 27.0     red              0              1           26.0            30.0                 2.3                -0.9              -3.1              -1.1                False                False
+Diversified Metals                                 25.0     red              0              7            9.0            43.0                 9.3                 3.2              -4.0              -1.2                 True                False
 Financial Technology (Fintech)                     23.0     red              0              1           87.0             2.0                 NaN                 2.1               NaN              -3.8                False                False
-Finance                                            21.0     red              0              1           49.0            62.0                 0.4                 3.5               3.0              -2.9                False                False
-Other Construction Materials                       19.0     red              0              6           21.0            36.0                -0.2                -0.4               0.2              -3.2                False                False
-Electrical Equipment                               17.0     red              0              5           32.0            89.0                 0.7                -1.9              -0.1               5.5                False                False
-Media                                              15.0     red              0             19           34.0            23.0                -1.1                 1.6              -2.1              -8.1                False                False
-Construction                                       12.0     red              0             11           36.0            85.0                -2.2                 4.5              -1.5              -1.4                False                False
-Insurance                                          10.0     red              0              1           19.0            17.0                 6.0                -3.3              -0.8              -3.0                False                False
-Telecom - Services                                  8.0     red              0              1           17.0            45.0                -0.7                -1.7              -3.8               0.1                False                False
-Power                                               6.0     red              0             10            2.0            77.0                 0.5                 6.1              -1.8              -0.4                False                False
-Agricultural Food & other Products                  4.0     red              0             18           30.0            15.0                 2.4                -1.2               1.1              -0.7                False                False
-Fertilizers & Agrochemicals                         2.0     red              0             21           13.0            13.0                 4.2                 3.3              -3.1              -3.4                 True                False
+Finance                                            21.0     red              0              1           49.0            62.0                 0.4                 3.5               3.0              -2.8                False                False
+Electrical Equipment                               19.0     red              0              5           23.0            91.0                 1.1                -1.8              -1.1               5.3                False                False
+Other Construction Materials                       17.0     red              0              6           21.0            36.0                -0.2                -0.7               0.2              -3.2                False                False
+Media                                              15.0     red              0             19           34.0            23.0                -1.2                 1.5              -2.0              -8.1                False                False
+Construction                                       12.0     red              0             11           36.0            85.0                -2.2                 4.4              -1.4              -1.5                False                False
+Insurance                                          10.0     red              0              1           19.0            17.0                 6.0                -3.5              -0.8              -2.8                False                False
+Telecom - Services                                  8.0     red              0              1           17.0            45.0                -0.9                -1.7              -3.6               0.2                False                False
+Power                                               6.0     red              0             10            2.0            77.0                 0.5                 6.5              -1.8              -0.4                False                False
+Agricultural Food & other Products                  4.0     red              0             18           32.0            15.0                 2.4                -1.3               1.1              -0.7                False                False
+Fertilizers & Agrochemicals                         2.0     red              0             21           13.0            13.0                 3.5                 3.3              -2.4              -3.5                 True                False
 
 saved -> analysis/sector_group_character.csv, analysis/sector_now.csv
