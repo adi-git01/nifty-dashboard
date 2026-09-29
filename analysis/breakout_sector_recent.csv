@@ -1,0 +1,317 @@
+date,ticker,breakout,sub_industry
+2026-09-28,ZYDUSLIFE,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-28,MRPL,anchor_up,Petroleum Products
+2026-09-28,GLAXO,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-28,DIVGIITTS,anchor_up,Auto Components
+2026-09-28,BLISSGVS,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-28,ZYDUSLIFE,high52,Pharmaceuticals & Biotechnology
+2026-09-25,LLOYDSENGG,ath,Industrial Manufacturing
+2026-09-25,LLOYDSENGG,anchor_up,Industrial Manufacturing
+2026-09-25,FCL,anchor_up,Chemicals & Petrochemicals
+2026-09-25,AETHER,anchor_up,Chemicals & Petrochemicals
+2026-09-25,LLOYDSENGG,high52,Industrial Manufacturing
+2026-09-24,ABDL,high52,Beverages
+2026-09-24,JAMNAAUTO,anchor_up,Auto Components
+2026-09-24,GREAVESCOT,anchor_up,Industrial Manufacturing
+2026-09-24,RAINBOW,anchor_up,Healthcare Services
+2026-09-24,GREAVESCOT,reclaim50,Industrial Manufacturing
+2026-09-23,ELECON,reclaim50,Industrial Manufacturing
+2026-09-23,GNA,anchor_up,Auto Components
+2026-09-23,GMRP&UI,reclaim50,Consumable Fuels
+2026-09-23,SAIL,reclaim50,Ferrous Metals
+2026-09-23,GNA,high52,Auto Components
+2026-09-23,GMRP&UI,anchor_up,Consumable Fuels
+2026-09-23,ELECON,anchor_up,Industrial Manufacturing
+2026-09-23,BAJAJHCARE,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-23,CARBORUNIV,high52,Diversified
+2026-09-23,GNA,ath,Auto Components
+2026-09-23,AARTIPHARM,high52,Pharmaceuticals & Biotechnology
+2026-09-23,WOCKPHARMA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-23,SUPRIYA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-23,SAIL,anchor_up,Ferrous Metals
+2026-09-23,INNOVACAP,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-23,INGERRAND,anchor_up,Industrial Manufacturing
+2026-09-22,SANSERA,anchor_up,Auto Components
+2026-09-22,ZFCVINDIA,anchor_up,Auto Components
+2026-09-22,CHEMPLASTS,reclaim50,Chemicals & Petrochemicals
+2026-09-22,DCW,reclaim50,Chemicals & Petrochemicals
+2026-09-22,GABRIEL,reclaim50,Auto Components
+2026-09-22,SOLARINDS,reclaim50,Chemicals & Petrochemicals
+2026-09-22,ANURAS,anchor_up,Chemicals & Petrochemicals
+2026-09-22,SOLARINDS,anchor_up,Chemicals & Petrochemicals
+2026-09-22,DCW,anchor_up,Chemicals & Petrochemicals
+2026-09-22,EASEMYTRIP,anchor_up,Leisure Services
+2026-09-22,GABRIEL,anchor_up,Auto Components
+2026-09-21,USHAMART,ath,Ferrous Metals
+2026-09-21,COHANCE,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-21,MANKIND,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-21,DELTACORP,reclaim50,Leisure Services
+2026-09-21,ORCHPHARMA,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-21,EPL,anchor_up,Industrial Products
+2026-09-21,USHAMART,high52,Ferrous Metals
+2026-09-21,AARTIPHARM,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-21,SYNGENE,anchor_up,Healthcare Services
+2026-09-21,SHYAMMETL,anchor_up,Ferrous Metals
+2026-09-21,CHEMPLASTS,anchor_up,Chemicals & Petrochemicals
+2026-09-21,SAPPHIRE,anchor_up,Leisure Services
+2026-09-21,REFEX,anchor_up,Chemicals & Petrochemicals
+2026-09-21,ORCHPHARMA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-21,MANKIND,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-21,COHANCE,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-21,BASF,anchor_up,Chemicals & Petrochemicals
+2026-09-21,AGI,anchor_up,Industrial Products
+2026-09-21,HARSHA,anchor_up,Industrial Products
+2026-09-18,CHALET,anchor_up,Leisure Services
+2026-09-18,SUPREMEIND,anchor_up,Industrial Products
+2026-09-18,PVRINOX,anchor_up,Entertainment
+2026-09-18,MEDANTA,anchor_up,Healthcare Services
+2026-09-18,IIFLCAPS,anchor_up,Capital Markets
+2026-09-18,JYOTICNC,anchor_up,Industrial Products
+2026-09-18,APLLTD,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-18,ABBOTINDIA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-18,ALIVUS,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-18,CRAFTSMAN,anchor_up,Auto Components
+2026-09-18,BALKRISIND,anchor_up,Auto Components
+2026-09-18,BELRISE,anchor_up,Auto Components
+2026-09-18,BEML,anchor_up,Diversified
+2026-09-18,CAPLIPOINT,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-18,CARBORUNIV,anchor_up,Diversified
+2026-09-18,IGIL,anchor_up,Commercial Services & Supplies
+2026-09-18,DCAL,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-18,SCHAEFFLER,anchor_up,Auto Components
+2026-09-18,JYOTICNC,high52,Industrial Products
+2026-09-18,USHAMART,reclaim50,Ferrous Metals
+2026-09-18,ABBOTINDIA,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-18,AIIL,reclaim50,Capital Markets
+2026-09-18,BELRISE,reclaim50,Auto Components
+2026-09-18,CAPLIPOINT,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-18,CHALET,reclaim50,Leisure Services
+2026-09-18,EIHOTEL,reclaim50,Leisure Services
+2026-09-18,JSL,reclaim50,Ferrous Metals
+2026-09-18,SCHAEFFLER,reclaim50,Auto Components
+2026-09-18,SUPREMEIND,reclaim50,Industrial Products
+2026-09-18,CARBORUNIV,reclaim50,Diversified
+2026-09-18,CASTROLIND,high52,Petroleum Products
+2026-09-17,SYRMA,anchor_up,Industrial Products
+2026-09-17,JISLJALEQS,reclaim50,Industrial Products
+2026-09-17,JISLJALEQS,anchor_up,Industrial Products
+2026-09-17,HCG,anchor_up,Healthcare Services
+2026-09-17,CASTROLIND,anchor_up,Petroleum Products
+2026-09-17,AEROENTER,anchor_up,Ferrous Metals
+2026-09-17,YATHARTH,anchor_up,Healthcare Services
+2026-09-17,AEGISVOPAK,high52,Oil
+2026-09-16,SAMHI,anchor_up,Leisure Services
+2026-09-16,EIHOTEL,anchor_up,Leisure Services
+2026-09-16,DELTACORP,anchor_up,Leisure Services
+2026-09-16,CSBBANK,anchor_up,Banks
+2026-09-16,AEROFLEX,anchor_up,Industrial Products
+2026-09-16,ABDL,anchor_up,Beverages
+2026-09-16,HIKAL,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-15,AEGISVOPAK,anchor_up,Oil
+2026-09-15,FDC,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-11,ONESOURCE,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-11,HLEGLAS,reclaim50,Industrial Manufacturing
+2026-09-11,AIIL,reclaim50,Capital Markets
+2026-09-11,GRANULES,high52,Pharmaceuticals & Biotechnology
+2026-09-11,AIIL,anchor_up,Capital Markets
+2026-09-11,CONCORDBIO,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-11,DYNAMATECH,anchor_up,Auto Components
+2026-09-11,GRANULES,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-11,JAMNAAUTO,anchor_up,Auto Components
+2026-09-11,USHAMART,anchor_up,Ferrous Metals
+2026-09-11,GRANULES,ath,Pharmaceuticals & Biotechnology
+2026-09-11,JBMA,anchor_up,Auto Components
+2026-09-10,INOXINDIA,anchor_up,Industrial Products
+2026-09-10,ZAGGLE,anchor_up,Financial Technology (Fintech)
+2026-09-10,SWANCORP,anchor_up,Diversified
+2026-09-10,GMMPFAUDLR,golden,Industrial Manufacturing
+2026-09-09,JSL,anchor_up,Ferrous Metals
+2026-09-09,HUHTAMAKI,anchor_up,Industrial Products
+2026-09-09,ADANIPORTS,reclaim50,Transport Services
+2026-09-09,ADANIPORTS,anchor_up,Transport Services
+2026-09-09,MRPL,anchor_up,Petroleum Products
+2026-09-09,HUHTAMAKI,reclaim50,Industrial Products
+2026-09-09,CONFIPET,anchor_up,Petroleum Products
+2026-09-09,CHENNPETRO,anchor_up,Petroleum Products
+2026-09-09,AHCL,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-08,DATAPATTNS,high52,Aerospace & Defense
+2026-09-08,APOLLO,anchor_up,Aerospace & Defense
+2026-09-08,CYIENTDLM,anchor_up,Aerospace & Defense
+2026-09-08,DATAPATTNS,anchor_up,Aerospace & Defense
+2026-09-08,ANTELOPUS,ath,Oil
+2026-09-08,DATAPATTNS,ath,Aerospace & Defense
+2026-09-08,AGI,anchor_up,Industrial Products
+2026-09-08,AGARWALEYE,anchor_up,Healthcare Equipment & Supplies
+2026-09-08,MIDHANI,high52,Aerospace & Defense
+2026-09-08,UNIMECH,anchor_up,Aerospace & Defense
+2026-09-08,GVT&D,reclaim50,Industrial Manufacturing
+2026-09-08,GVT&D,anchor_up,Industrial Manufacturing
+2026-09-08,PPLPHARMA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-08,MIDHANI,anchor_up,Aerospace & Defense
+2026-09-08,HOMEFIRST,anchor_up,Finance
+2026-09-08,HAL,anchor_up,Aerospace & Defense
+2026-09-07,AEROENTER,anchor_up,Ferrous Metals
+2026-09-07,AVALON,anchor_up,Industrial Manufacturing
+2026-09-07,SUPRIYA,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-07,SYRMA,anchor_up,Industrial Products
+2026-09-07,TARC,anchor_up,Realty
+2026-09-07,TEGA,anchor_up,Industrial Manufacturing
+2026-09-07,STAR,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-07,WOCKPHARMA,ath,Pharmaceuticals & Biotechnology
+2026-09-07,WOCKPHARMA,high52,Pharmaceuticals & Biotechnology
+2026-09-04,WOCKPHARMA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-04,CASTROLIND,anchor_up,Petroleum Products
+2026-09-04,CRISIL,anchor_up,Capital Markets
+2026-09-04,GLAND,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-04,HLEGLAS,anchor_up,Industrial Manufacturing
+2026-09-04,JISLJALEQS,anchor_up,Industrial Products
+2026-09-04,JUBLPHARMA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-04,PFC,anchor_up,Finance
+2026-09-04,IONEXCHANG,anchor_up,Industrial Manufacturing
+2026-09-04,JISLJALEQS,reclaim50,Industrial Products
+2026-09-04,IONEXCHANG,reclaim50,Industrial Manufacturing
+2026-09-03,MANORAMA,anchor_up,Diversified FMCG
+2026-09-03,JYOTICNC,anchor_up,Industrial Products
+2026-09-03,KIRLOSENG,anchor_up,Industrial Manufacturing
+2026-09-03,IDFCFIRSTB,anchor_up,Banks
+2026-09-03,HIKAL,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-03,GRANULES,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-03,EIMCOELECO,anchor_up,"Agricultural, Commercial & Construction Vehicles"
+2026-09-03,MAHABANK,anchor_up,Banks
+2026-09-03,CENTUM,reclaim50,Industrial Manufacturing
+2026-09-03,RBLBANK,anchor_up,Banks
+2026-09-03,KIRLOSENG,reclaim50,Industrial Manufacturing
+2026-09-03,HINDOILEXP,high52,Oil
+2026-09-03,HIKAL,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-03,GRANULES,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-03,EPL,reclaim50,Industrial Products
+2026-09-03,DEEPINDS,anchor_up,Oil
+2026-09-02,SUPRIYA,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-02,AEGISVOPAK,reclaim50,Oil
+2026-09-02,NUVAMA,anchor_up,Capital Markets
+2026-09-02,INNOVACAP,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-02,CENTUM,anchor_up,Industrial Manufacturing
+2026-09-02,BEML,anchor_up,Diversified
+2026-09-02,ASIANENE,anchor_up,Oil
+2026-09-02,ANTELOPUS,anchor_up,Oil
+2026-09-02,AEGISVOPAK,anchor_up,Oil
+2026-09-02,ANTELOPUS,reclaim50,Oil
+2026-09-02,NUVAMA,reclaim50,Capital Markets
+2026-09-02,ANTELOPUS,high52,Oil
+2026-09-02,MARKSANS,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-01,ALIVUS,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-01,CAPLIPOINT,reclaim50,Pharmaceuticals & Biotechnology
+2026-09-01,CAPLIPOINT,ath,Pharmaceuticals & Biotechnology
+2026-09-01,CAPLIPOINT,high52,Pharmaceuticals & Biotechnology
+2026-09-01,CRAFTSMAN,anchor_up,Auto Components
+2026-09-01,BALKRISIND,anchor_up,Auto Components
+2026-09-01,CAPLIPOINT,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-01,SAILIFE,anchor_up,Pharmaceuticals & Biotechnology
+2026-09-01,PVRINOX,anchor_up,Entertainment
+2026-09-01,IIFLCAPS,anchor_up,Capital Markets
+2026-09-01,HINDOILEXP,anchor_up,Oil
+2026-09-01,DIVGIITTS,anchor_up,Auto Components
+2026-09-01,IIFLCAPS,reclaim50,Capital Markets
+2026-08-31,ANGELONE,anchor_up,Capital Markets
+2026-08-31,OLAELEC,reclaim50,Automobiles
+2026-08-31,CARERATING,reclaim50,Capital Markets
+2026-08-31,APCOTEXIND,anchor_up,Chemicals & Petrochemicals
+2026-08-31,VARROC,anchor_up,Auto Components
+2026-08-31,ASKAUTOLTD,anchor_up,Auto Components
+2026-08-31,CARERATING,anchor_up,Capital Markets
+2026-08-31,EPL,anchor_up,Industrial Products
+2026-08-31,HAPPYFORGE,anchor_up,Industrial Products
+2026-08-31,HARSHA,anchor_up,Industrial Products
+2026-08-31,LAURUSLABS,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-31,OLAELEC,anchor_up,Automobiles
+2026-08-31,RENUKA,anchor_up,Diversified FMCG
+2026-08-28,SAGILITY,anchor_up,IT - Services
+2026-08-28,TVSMOTOR,anchor_up,Automobiles
+2026-08-28,ELGIEQUIP,anchor_up,Industrial Manufacturing
+2026-08-28,JUSTDIAL,reclaim50,IT - Services
+2026-08-28,MASTEK,reclaim50,IT - Services
+2026-08-28,ADOR,anchor_up,Industrial Manufacturing
+2026-08-28,ATHERENERG,anchor_up,Automobiles
+2026-08-28,CAMS,anchor_up,IT - Services
+2026-08-28,CARRARO,anchor_up,Auto Components
+2026-08-28,COMSYN,anchor_up,Industrial Products
+2026-08-28,INDGN,anchor_up,IT - Services
+2026-08-28,INGERRAND,anchor_up,Industrial Manufacturing
+2026-08-28,JUSTDIAL,anchor_up,IT - Services
+2026-08-28,MASTEK,anchor_up,IT - Services
+2026-08-28,NAZARA,anchor_up,Entertainment
+2026-08-28,TEGA,reclaim50,Industrial Manufacturing
+2026-08-28,TEGA,anchor_up,Industrial Manufacturing
+2026-08-27,INOXINDIA,ath,Industrial Products
+2026-08-27,INOXINDIA,reclaim50,Industrial Products
+2026-08-27,INOXINDIA,high52,Industrial Products
+2026-08-27,CRISIL,anchor_up,Capital Markets
+2026-08-27,INOXINDIA,anchor_up,Industrial Products
+2026-08-26,MAHABANK,anchor_up,Banks
+2026-08-26,CDSL,golden,Capital Markets
+2026-08-26,ANTHEM,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-26,MAHABANK,reclaim50,Banks
+2026-08-26,JISLJALEQS,anchor_up,Industrial Products
+2026-08-25,ABDL,anchor_up,Beverages
+2026-08-25,AUBANK,anchor_up,Banks
+2026-08-25,CHALET,anchor_up,Leisure Services
+2026-08-25,GODREJAGRO,anchor_up,Food Products
+2026-08-25,CONFIPET,anchor_up,Petroleum Products
+2026-08-25,DELTACORP,anchor_up,Leisure Services
+2026-08-25,CONFIPET,reclaim50,Petroleum Products
+2026-08-25,ABDL,reclaim50,Beverages
+2026-08-25,GOKULAGRO,anchor_up,Food Products
+2026-08-24,VMM,reclaim50,Retailing
+2026-08-24,SENCO,reclaim50,Consumer Durables
+2026-08-24,OPTIEMUS,reclaim50,Telecom - Equipment & Accessories
+2026-08-24,HEXT,reclaim50,IT - Services
+2026-08-24,KRBL,anchor_up,Diversified FMCG
+2026-08-24,AARTIPHARM,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-24,VMM,anchor_up,Retailing
+2026-08-24,SENCO,anchor_up,Consumer Durables
+2026-08-24,PCJEWELLER,anchor_up,Consumer Durables
+2026-08-24,OPTIEMUS,anchor_up,Telecom - Equipment & Accessories
+2026-08-24,HEXT,anchor_up,IT - Services
+2026-08-24,SHRIPISTON,anchor_up,Consumer Durables
+2026-08-21,BLUSPRING,anchor_up,Commercial Services & Supplies
+2026-08-21,JBMA,reclaim50,Auto Components
+2026-08-21,JBMA,anchor_up,Auto Components
+2026-08-21,THOMASCOOK,anchor_up,Leisure Services
+2026-08-21,VIYASH,reclaim50,Pharmaceuticals & Biotechnology
+2026-08-21,THOMASCOOK,reclaim50,Leisure Services
+2026-08-21,AGI,anchor_up,Industrial Products
+2026-08-21,BLUSPRING,high52,Commercial Services & Supplies
+2026-08-21,DCBBANK,high52,Banks
+2026-08-21,DCBBANK,anchor_up,Banks
+2026-08-20,SAPPHIRE,anchor_up,Leisure Services
+2026-08-20,NETWEB,anchor_up,IT - Services
+2026-08-20,BLSE,anchor_up,Commercial Services & Supplies
+2026-08-20,COHANCE,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-20,REDINGTON,anchor_up,Commercial Services & Supplies
+2026-08-19,THELEELA,anchor_up,Leisure Services
+2026-08-19,DLINKINDIA,anchor_up,Telecom - Equipment & Accessories
+2026-08-19,CMSINFO,anchor_up,Commercial Services & Supplies
+2026-08-18,ACE,anchor_up,"Agricultural, Commercial & Construction Vehicles"
+2026-08-18,TIINDIA,reclaim50,Auto Components
+2026-08-18,ANTELOPUS,reclaim50,Oil
+2026-08-18,ACE,high52,"Agricultural, Commercial & Construction Vehicles"
+2026-08-18,ZENTEC,anchor_up,Aerospace & Defense
+2026-08-18,TIINDIA,anchor_up,Auto Components
+2026-08-18,PCBL,anchor_up,Chemicals & Petrochemicals
+2026-08-18,JYOTICNC,anchor_up,Industrial Products
+2026-08-18,APCOTEXIND,anchor_up,Chemicals & Petrochemicals
+2026-08-18,ANTELOPUS,anchor_up,Oil
+2026-08-18,ASIANENE,ath,Oil
+2026-08-17,ABLBL,anchor_up,Retailing
+2026-08-17,PTCIL,anchor_up,Industrial Products
+2026-08-17,IPCALAB,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-17,HINDCOPPER,anchor_up,Non - Ferrous Metals
+2026-08-17,GNFC,anchor_up,Chemicals & Petrochemicals
+2026-08-17,DEEPAKNTR,anchor_up,Chemicals & Petrochemicals
+2026-08-17,GNFC,high52,Chemicals & Petrochemicals
+2026-08-17,PTCIL,high52,Industrial Products
+2026-08-17,DCAL,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-17,CONCORDBIO,anchor_up,Pharmaceuticals & Biotechnology
+2026-08-17,CAMLINFINE,anchor_up,Chemicals & Petrochemicals
+2026-08-17,PTCIL,ath,Industrial Products
+2026-08-17,MIDHANI,reclaim50,Aerospace & Defense
