@@ -1,26 +1,29 @@
+$GSPL.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
 HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: LYPSAGEMS.NS"}}}
 $LYPSAGEMS.NS: possibly delisted; no timezone found
-HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: EXCEL.NS"}}}
-$EXCEL.NS: possibly delisted; no timezone found
-$VISASTEEL.NS: possibly delisted; no timezone found
-$GUJGASLTD.NS: possibly delisted; no timezone found
-$GSPL.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
-$MIRCELECTR.NS: possibly delisted; no timezone found
-$AKZOINDIA.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: SASTASUNDR.NS"}}}
 $SASTASUNDR.NS: possibly delisted; no timezone found
-$SANGHIIND.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$CIGNITITEC.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
 $LTIM.NS: possibly delisted; no timezone found
+$EXCEL.NS: possibly delisted; no timezone found
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+$VISASTEEL.NS: possibly delisted; no timezone found
+$MIRCELECTR.NS: possibly delisted; no timezone found
 
-10 Failed downloads:
-['LYPSAGEMS.NS', 'EXCEL.NS', 'VISASTEEL.NS', 'GUJGASLTD.NS', 'MIRCELECTR.NS', 'AKZOINDIA.NS', 'SASTASUNDR.NS', 'LTIM.NS']: possibly delisted; no timezone found
-['GSPL.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+12 Failed downloads:
+['GSPL.NS', 'CIGNITITEC.NS', 'JBCHEPHARM.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2015-06-01 -> 2026-09-29)
+['LYPSAGEMS.NS', 'SASTASUNDR.NS', 'GUJGASLTD.NS', 'LTIM.NS', 'EXCEL.NS', 'AKZOINDIA.NS', 'VISASTEEL.NS', 'MIRCELECTR.NS']: possibly delisted; no timezone found
 [data] Nifty 2015-06-01 -> 2026-09-29
 [data] 2110 tickers (this is the slow part)...
-[yf_safe] bulk download attempt 1/3: 100% coverage (2100/2110 tickers)
+[yf_safe] bulk download attempt 1/3: 99% coverage (2098/2110 tickers)
 [data] usable tickers: 2025
 [data] dropped 11 non-session row(s) not in the Nifty calendar
-[data] 2792 sessions 2015-06-01 -> 2026-09-28, 2025 tickers
-[events] 7645 base breakouts (new 52w closing high after >= 40 sessions without one)
+[data] 2026-09-28 has closes for 657 of ~2025 stocks -- using 2026-09-25 as today
+[data] 2791 sessions 2015-06-01 -> 2026-09-25, 2025 tickers
+[events] 7644 base breakouts (new 52w closing high after >= 40 sessions without one)
 
 [winners] 47 stocks in the top-1000 on 2025-01-01 doubled by 2026-09-17
    tweet name not counted: GUJGASLTD    no price data
@@ -133,58 +136,51 @@ sessions since previous 52w high 25.8 25.4 27.8 30.1 43.8         18.0
                volume 10d / 120d 29.3 25.7 29.7 34.5 33.7          4.4
  turnover rank (1 = most liquid) 19.1 29.3 33.9 33.5 37.0         18.0
 
-A3. SIMILAR SETUPS NOW (2026-09-28): 51 names breaking out or coiled; top by score (max 3)
+A3. SIMILAR SETUPS NOW (2026-09-25): 103 names breaking out or coiled; top by score (max 3)
 
   broke out (30 sessions):
-            score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge                       sub_industry
-SUNFLAG         3    2026-09-28            0.0      97.0  113.5  37.0  -53.3          0.9        1.8                 Diversified Metals
-OPTIEMUS        3    2026-09-22           -2.2     489.0  104.5  58.2  -57.0          0.9        4.6  Telecom - Equipment & Accessories
-FCL             3    2026-08-21           -5.1      42.0  101.6  40.4  -57.6          0.8        1.0         Chemicals & Petrochemicals
-WABAG           3    2026-09-11          -13.2      44.0   94.1  42.1  -52.8          1.0        1.4                       Construction
-DYCL            3    2026-08-28          -20.1     419.0   77.3  49.1  -49.8          0.7        0.9               Electrical Equipment
-JINDWORLD       3    2026-09-01          -16.8     407.0   71.6  41.0  -55.2          0.5        2.1                  Consumer Durables
-SHAREINDIA      3    2026-09-17           -9.7     630.0   69.1  61.4  -42.8          0.9        7.1                            Finance
-QPOWER          3    2026-08-28            0.0      85.0   68.4  33.3  -57.5          0.8        0.4                                NaN
-NIACL           3    2026-09-04          -26.5      52.0   66.5  51.7  -44.5          0.6        2.6                          Insurance
-COFORGE         3    2026-08-28          -12.0     178.0   62.6  34.8  -45.6          0.6        0.6                      IT - Services
-GNA             3    2026-09-23           -4.2      47.0   56.3  44.6  -50.0          0.6        2.0                    Auto Components
-ONEPOINT        3    2026-09-23           -0.2     548.0   54.8  20.3  -35.8          1.0        3.1                                NaN
-DWARKESH        3    2026-08-20          -21.7     712.0   52.2  22.3  -35.5          1.2        3.0                      Food Products
-SYNCOMF         3    2026-08-28            0.0     487.0   52.2  28.4  -43.0          1.2        4.4                                NaN
-GIPCL           3    2026-08-26          -10.6     541.0   51.3  26.6  -37.6          1.0        2.8                              Power
-TNPETRO         3    2026-09-01           -9.1     203.0   50.3  48.4  -35.8          1.3       15.8                                NaN
-BAJAJHIND       3    2026-08-20          -15.6     509.0   47.4  23.5  -35.8          1.2        5.7                      Food Products
-JTLIND          3    2026-08-28           -4.8     632.0   44.6  30.9  -50.9          0.6        1.1                                NaN
-AARTIPHARM      3    2026-09-23           -2.8     292.0   43.7  35.1  -36.9          0.7        2.5    Pharmaceuticals & Biotechnology
-KSL             3    2026-09-10           -4.6      42.0   42.8  21.9  -40.6          1.1        2.9                 Diversified Metals
-VENKEYS         3    2026-09-11           -8.6     499.0   41.9  30.2  -31.5          0.9        3.1                                NaN
-PFOCUS          3    2026-09-21          -11.8     114.0   38.3  60.0  -53.4          0.8        1.8                                NaN
-ENGINERSIN      3    2026-09-01           -0.6      81.0   33.9  20.0  -37.7          0.9        2.1                       Construction
-TEGA            3    2026-09-21           -5.5     458.0   24.5  24.1  -29.9          1.4        9.8           Industrial Manufacturing
-ANTELOPUS       2    2026-09-02           -8.1      62.0   92.0   1.8  -60.7          0.9        5.6                                Oil
+            score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge                                      sub_industry
+WHEELS          3    2026-09-08           -4.3      49.0  143.3  32.0  -60.5          0.8        3.1                                               NaN
+OPTIEMUS        3    2026-09-22           -8.4     489.0  104.5  58.2  -57.0          0.9        4.6                 Telecom - Equipment & Accessories
+FCL             3    2026-08-21            0.0      42.0  101.6  40.4  -57.6          0.8        1.0                        Chemicals & Petrochemicals
+EBGNG           3    2026-09-09           -6.5      48.0   97.6  60.3  -64.1          1.1        1.7                                     IT - Hardware
+WABAG           3    2026-09-11          -11.8      44.0   94.1  42.1  -52.8          1.0        1.4                                      Construction
+AEROENTER       3    2026-08-28          -18.8      47.0   91.3  52.1  -55.2          0.8        1.2                                    Ferrous Metals
+VENUSPIPES      3    2026-09-08           -5.2      44.0   89.4  40.1  -51.6          1.0        2.3                                               NaN
+DYCL            3    2026-08-28          -16.0     419.0   77.3  49.1  -49.8          0.7        0.9                              Electrical Equipment
+JINDWORLD       3    2026-09-01          -20.1     407.0   71.6  41.0  -55.2          0.5        2.1                                 Consumer Durables
+SHAREINDIA      3    2026-09-17           -8.1     630.0   69.1  61.4  -42.8          0.9        7.1                                           Finance
+QPOWER          3    2026-08-28           -2.4      85.0   68.4  33.3  -57.5          0.8        0.4                                               NaN
+NIACL           3    2026-09-04          -23.6      52.0   66.5  51.7  -44.5          0.6        2.6                                         Insurance
+RPGLIFE         3    2026-09-23            0.0      45.0   65.7  35.9  -42.8          0.8        1.0                                               NaN
+COFORGE         3    2026-08-28          -11.4     178.0   62.6  34.8  -45.6          0.6        0.6                                     IT - Services
+GRANULES        3    2026-09-11           -4.5      40.0   60.3  23.6  -43.4          0.8        1.7                   Pharmaceuticals & Biotechnology
+GNA             3    2026-09-23           -0.5      47.0   56.3  44.6  -50.0          0.6        2.0                                   Auto Components
+ONEPOINT        3    2026-09-23            0.0     548.0   54.8  20.3  -35.8          1.0        3.1                                               NaN
+EIMCOELECO      3    2026-09-11           -1.0     527.0   54.5  46.8  -38.5          1.0        0.7  Agricultural, Commercial & Construction Vehicles
+GMMPFAUDLR      3    2026-09-09           -0.1     989.0   53.8  75.9  -43.1          1.1        3.2                          Industrial Manufacturing
+DWARKESH        3    2026-08-20          -18.7     712.0   52.2  22.3  -35.5          1.2        3.0                                     Food Products
+NOCIL           3    2026-09-10           -8.7     523.0   52.2  22.6  -32.8          0.7        0.8                                               NaN
+SYNCOMF         3    2026-08-28           -5.8     487.0   52.2  28.4  -43.0          1.2        4.4                                               NaN
+GIPCL           3    2026-08-26           -8.8     541.0   51.3  26.6  -37.6          1.0        2.8                                             Power
+JYOTICNC        3    2026-09-18           -4.4     433.0   49.0  45.0  -43.8          0.9        0.7                               Industrial Products
+BAJAJHIND       3    2026-08-20          -14.2     509.0   47.4  23.5  -35.8          1.2        5.7                                     Food Products
 
   coiled under 52w high:
-           score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge sub_industry
-TATVA          3           NaT           -2.1      44.0   52.4  52.1  -44.9          0.9        0.8          NaN
-GAIL           1           NaT           -4.7      40.0   26.2   4.3  -25.4          0.9        0.6          Gas
-LICHSGFIN      0           NaT           -3.0     556.0   20.7   6.6  -22.4          1.0        1.4      Finance
-MAHLOG         0           NaT           -4.1     108.0   18.8  18.1  -36.9          0.7        0.9          NaN
-
-[screener] scraping 1294 names at ~1.0s each...
-[screener] 100/1294  failed 0  HTTP {200: 105}
-[screener] 200/1294  failed 0  HTTP {200: 222}
-[screener] 300/1294  failed 0  HTTP {200: 335}
-[screener] 400/1294  failed 0  HTTP {200: 447}
-[screener] 500/1294  failed 2  HTTP {200: 559, 404: 4}
-[screener] 600/1294  failed 3  HTTP {200: 668, 404: 6}
-[screener] 700/1294  failed 3  HTTP {200: 778, 404: 6}
-[screener] 800/1294  failed 3  HTTP {200: 888, 404: 6}
-[screener] 900/1294  failed 3  HTTP {200: 1008, 404: 6}
-[screener] 1000/1294  failed 3  HTTP {200: 1118, 404: 6}
-[screener] 1100/1294  failed 3  HTTP {200: 1232, 404: 6}
-[screener] 1200/1294  failed 3  HTTP {200: 1341, 404: 6}
-[screener] done: 1291 parsed, 3 failed; HTTP {200: 1449, 404: 6}
-   failed: GUJGASLTD HEG ITDCEM
+            score breakout_date  from_high_pct  base_len  rs126  rs63  depth  contraction  vol_surge                sub_industry
+SUNFLAG         3           NaT           -1.0      97.0   96.0  24.2  -53.3          0.9        1.0          Diversified Metals
+EMUDHRA         3           NaT           -4.3     437.0   68.2  51.0  -45.7          1.8       20.9               IT - Software
+TATVA           3           NaT           -0.3      43.0   57.7  53.5  -44.9          0.9        0.7                         NaN
+GOODLUCK        2           NaT           -3.0      53.0   69.0  10.5  -43.5          0.9        0.8              Ferrous Metals
+ORIENTHOT       2           NaT           -3.4     448.0   54.6   3.7  -44.0          0.4        0.6                         NaN
+CEIGALL         2           NaT           -2.9      63.0   43.3   0.5  -42.8          0.8        0.5                Construction
+MOTILALOFS      1           NaT           -4.9     225.0   61.0  11.9  -42.0          0.8        0.7             Capital Markets
+OBEROIRLTY      1           NaT           -4.8     433.0   29.2   9.4  -27.8          1.0        1.0                      Realty
+FINEORG         1           NaT           -4.5     535.0   24.3  -1.1  -27.1          0.6        1.1  Chemicals & Petrochemicals
+PRIVISCL        1           NaT           -3.9      60.0   23.6   3.5  -37.1          0.9        1.0  Chemicals & Petrochemicals
+LICHSGFIN       1           NaT           -2.7     555.0   22.5   6.3  -22.4          1.0        1.9                     Finance
+APLAPOLLO       1           NaT           -2.5     153.0   14.6  27.7  -27.2          1.2        0.8              Ferrous Metals
+MAHLOG          0           NaT           -4.5     107.0   18.4  16.9  -36.9          0.7        0.8                         NaN
 
 B1. WINNERS' LAST PUBLIC QUARTER BEFORE LAUNCH (47 with data)
     median value, and median percentile vs every universe stock on the same day (50 = typical)
@@ -215,46 +211,47 @@ B2. DOES IT PREDICT? 3978 stock-dates (4 decision dates, Nov 2024 - Aug 2025)
 inst_rising_2q (no / yes) 3808       -6.4        NaN        NaN        NaN       -6.6         5.8         4.4
     turnaround (no / yes) 3918       -6.8        NaN        NaN        NaN       -6.5         5.3         7.6
 
-B3. FII + DII ROSE IN EACH OF THE LAST TWO QUARTERS (to 2026-06-30): 166 of 497 universe stocks; both FII and DII up in 76
-            inst_now  inst_chg_2q  fii_chg_2q  dii_chg_2q  promoter_chg_2q  holders_chg_2q_pct  np_yoy  sales_yoy  rs126_now  from_52w_high_pct  setup_score                     sub_industry
-BAJAJHIND       51.8         42.1        -0.7        42.8            -11.6                -2.1     NaN       -9.8       31.1              -15.6          3.0                    Food Products
-VMM             55.2         14.2         4.9         9.3            -14.0                -4.1    25.7       18.7       -5.1              -33.8          NaN                        Retailing
-JSWINFRA        20.4         11.1         4.1         7.0             -9.7                -6.4    -8.2       18.1       39.1               -5.1          2.0         Transport Infrastructure
-MARKSANS        23.7          9.6         9.3         0.3              0.0                -3.3   174.1       35.6      102.6               -4.6          NaN  Pharmaceuticals & Biotechnology
-PREMIERENE      25.9          8.7         3.4         5.2             -5.5                -8.8    53.2       35.3        2.5              -18.9          NaN             Electrical Equipment
-NRBBEARING      32.8          8.3         4.8         3.5             -6.5                -8.4    15.2       19.4      136.2                0.0          NaN                              NaN
-POLICYBZR       77.7          7.4        -3.5        10.9              NaN                -5.5    91.8       40.1      -20.6              -41.2          NaN   Financial Technology (Fintech)
-UJJIVANSFB      50.3          6.1         1.4         4.8              0.0                -8.7   207.8       25.1       23.5              -12.9          NaN                          Finance
-NHPC            26.8          6.1         1.9         4.2             -6.0                -4.8     4.2       18.5       -1.8              -13.4          NaN                            Power
-IDEAFORGE        7.6          5.9         4.7         1.2             -0.0               -10.3     NaN      436.7       77.7              -25.8          NaN                              NaN
-BAJAJCON        31.0          5.6         6.4        -0.8              0.0                -0.7    86.8       25.3       33.3              -28.4          NaN                Personal Products
-PARAS           11.3          5.1         3.4         1.8              0.0                -8.8    50.0       37.6      113.0              -13.8          NaN              Aerospace & Defense
-BANDHANBNK      46.1          5.0        -3.7         8.7             -2.2               -13.4    34.9        2.8       22.3              -15.8          NaN                            Banks
-EASEMYTRIP       7.9          5.0         5.5        -0.5             -4.2                -5.4     NaN       18.4       -9.4              -38.0          NaN                 Leisure Services
-MTARTECH        47.2          5.0        12.6        -7.6             -1.2                18.3   354.5      129.9      100.0              -15.5          NaN         Industrial Manufacturing
-SOUTHBANK       39.6          4.9         4.4         0.5              NaN                -0.7    17.4       11.3       42.0               -2.6          1.0                            Banks
-INDUSINDBK      71.0          4.4        -2.4         6.9              0.0               -12.5    71.7       -7.8       14.9              -14.9          NaN                            Banks
-VINCOFE         15.0          4.3         1.0         3.3              0.0                17.4    50.0       57.8       35.7               -3.0          1.0                              NaN
-BSE             45.5          4.3         3.9         0.4              NaN                -5.6    62.3       63.5       11.3              -29.5          NaN                  Capital Markets
-BETA             7.2          4.2        -0.1         4.3             -5.8                99.2    33.3       26.0       90.8              -23.5          NaN  Pharmaceuticals & Biotechnology
-JSWCEMENT       15.2          4.1         0.7         3.4             -0.3                -3.8     NaN       21.5       -1.3              -24.4          NaN               Diversified Metals
-JINDALSAW       21.4          3.8        -1.0         4.9              0.0               -16.7   -78.1        9.0       53.7              -13.0          NaN                   Ferrous Metals
-SENORES         16.4          3.7         3.3         0.4              0.0                 6.1    42.9       30.4       85.1              -12.8          NaN                              NaN
-JSWENERGY       27.6          3.7         1.9         1.8             -2.7                -5.6   -36.2        1.2        3.2              -17.5          NaN                            Power
-ANGELONE        34.1          3.5         1.3         2.2             -0.3                 8.7   102.6       25.3       23.0              -21.1          NaN                  Capital Markets
-ZENTEC          16.9          3.5         0.9         2.6              0.0               -12.0   -39.6      -10.1       21.1              -17.7          NaN              Aerospace & Defense
-GMRAIRPORT      26.9          3.3         2.8         0.5              0.9                -6.1     NaN       23.8        7.0              -17.6          NaN         Transport Infrastructure
-YESBANK         70.2          3.3         0.4         2.9              NaN                -4.3    32.5        5.9       17.8              -16.9          NaN                            Banks
-PCJEWELLER      16.5          3.1         5.8        -2.8              1.3                 4.0    37.0       21.0       69.6               -6.6          NaN                Consumer Durables
-WAAREEENER      12.6          2.9         1.7         1.2             -0.1                 5.2    15.4       79.2      -19.8              -32.2          NaN             Electrical Equipment
-LAURUSLABS      41.7          2.8         1.5         1.3             -0.0                 3.9   123.5       29.0      103.3               -1.1          NaN  Pharmaceuticals & Biotechnology
-SWIGGY          41.3          2.7        -2.1         4.8              NaN                 6.6     NaN       37.3       -6.6              -44.2          NaN                        Retailing
-SJS             48.7          2.7        -2.3         4.9             -1.0                 0.8   111.4       24.3       43.2              -11.7          NaN                              NaN
-DATAPATTNS      24.5          2.7         1.0         1.7              0.0                 2.2   -15.4       17.2       33.0              -13.3          2.0              Aerospace & Defense
-IRFC             5.2          2.6         0.2         2.4             -3.5                -1.6    10.4       19.5      -14.8              -40.6          NaN                          Finance
-WELCORP         34.6          2.6         3.2        -0.6              0.0                 5.8   200.3       14.9      243.2               -3.3          NaN                   Ferrous Metals
-TDPOWERSYS      50.1          2.5         1.8         0.7              0.0                14.4    72.0       72.0       68.6              -10.3          NaN             Electrical Equipment
-RADICO          46.3          2.4        -1.6         4.0             -0.0                -6.0    75.6       11.8       70.8               -5.4          NaN                        Beverages
-MOTISONS         3.6          2.4         2.2         0.2             -8.6                 2.9    37.5       23.0       47.4               -6.0          NaN                              NaN
-EQUITASBNK      67.0          2.4         1.1         1.3              NaN                -9.0     NaN       18.9       18.5              -20.5          NaN                            Banks
+B3. FII + DII ROSE IN EACH OF THE LAST TWO QUARTERS (to 2026-06-30): 321 of 969 universe stocks; both FII and DII up in 151
+    26 of these are promoter stake moving to institutions (see note column)
+            inst_now  inst_chg_2q  fii_chg_2q  dii_chg_2q  promoter_chg_2q  holders_chg_2q_pct  np_yoy  sales_yoy  rs126_now  from_52w_high_pct  setup_score                       sub_industry                                  note
+BAJAJHIND       51.8         42.1        -0.7        42.8            -11.6                -2.1     NaN       -9.8       32.9              -14.2          3.0                      Food Products                                      
+GMRP&UI         21.5         15.9        12.2         3.7             -4.3                -3.7     NaN        3.5       -0.3              -22.3          NaN                   Consumable Fuels                                      
+VMM             55.2         14.2         4.9         9.3            -14.0                -4.1    25.7       18.7        1.0              -32.1          NaN                          Retailing  promoter stake moved to institutions
+JSWINFRA        20.4         11.1         4.1         7.0             -9.7                -6.4    -8.2       18.1       47.7               -1.5          2.0           Transport Infrastructure  promoter stake moved to institutions
+MARKSANS        23.7          9.6         9.3         0.3              0.0                -3.3   174.1       35.6      108.1               -3.1          NaN    Pharmaceuticals & Biotechnology                                      
+CRAFTSMAN       50.2          8.9         1.3         7.6             -6.3                -1.0   115.7       36.3       61.4               -9.4          NaN                    Auto Components  promoter stake moved to institutions
+PREMIERENE      25.9          8.7         3.4         5.2             -5.5                -8.8    53.2       35.3        0.7              -19.8          NaN               Electrical Equipment  promoter stake moved to institutions
+NRBBEARING      32.8          8.3         4.8         3.5             -6.5                -8.4    15.2       19.4      133.1               -1.2          NaN                                NaN  promoter stake moved to institutions
+STLTECH         29.6          7.7         7.3         0.4              0.1                 6.2  1870.0       87.4      380.6               -6.7          NaN  Telecom - Equipment & Accessories                                      
+POLICYBZR       77.7          7.4        -3.5        10.9              NaN                -5.5    91.8       40.1      -21.5              -40.4          NaN     Financial Technology (Fintech)                                      
+SHAILY          33.0          7.4         6.2         1.2             -2.3                 1.0    17.1       13.8       39.5               -9.0          NaN                Industrial Products                                      
+ANTHEM          16.0          7.1         1.2         5.9             -3.3               -13.1   -11.8      -22.6       36.6               -8.8          NaN    Pharmaceuticals & Biotechnology                                      
+DOMS            33.4          6.7        -0.9         7.6             -7.0                 4.7   -23.7       19.4       -8.3              -22.0          NaN     Commercial Services & Supplies  promoter stake moved to institutions
+UJJIVANSFB      50.3          6.1         1.4         4.8              0.0                -8.7   207.8       25.1       24.3              -10.7          NaN                            Finance                                      
+NHPC            26.8          6.1         1.9         4.2             -6.0                -4.8     4.2       18.5       -1.6              -11.7          NaN                              Power  promoter stake moved to institutions
+BHEL            31.9          5.9         3.2         2.7             -5.0                -9.1     NaN       40.3       63.4               -5.4          NaN           Industrial Manufacturing  promoter stake moved to institutions
+IDEAFORGE        7.6          5.9         4.7         1.2             -0.0               -10.3     NaN      436.7       80.8              -24.4          NaN                                NaN                                      
+ASTRAMICRO      26.8          5.8         4.5         1.3              0.0                 0.4   -25.0      -11.5       79.3              -12.7          NaN  Telecom - Equipment & Accessories                                      
+BAJAJCON        31.0          5.6         6.4        -0.8              0.0                -0.7    86.8       25.3       39.7              -25.5          NaN                  Personal Products                                      
+KRN             17.2          5.5         3.6         2.0             -5.1                 8.9   175.0      119.1       60.2              -16.8          NaN                Industrial Products  promoter stake moved to institutions
+HOMEFIRST       73.7          5.3         3.1         2.2             -5.4                -2.9    34.5       18.5       21.9              -12.3          NaN                            Finance  promoter stake moved to institutions
+PARAS           11.3          5.1         3.4         1.8              0.0                -8.8    50.0       37.6      123.3              -13.4          NaN                Aerospace & Defense                                      
+BANDHANBNK      46.1          5.0        -3.7         8.7             -2.2               -13.4    34.9        2.8       24.8              -12.6          NaN                              Banks                                      
+EBGNG           12.1          5.0         2.9         2.2             -3.9                -2.5    52.6       32.1       76.0               -6.5          3.0                      IT - Hardware  promoter stake moved to institutions
+EASEMYTRIP       7.9          5.0         5.5        -0.5             -4.2                -5.4     NaN       18.4      -11.3              -38.5          NaN                   Leisure Services  promoter stake moved to institutions
+MTARTECH        47.2          5.0        12.6        -7.6             -1.2                18.3   354.5      129.9      101.8              -17.6          NaN           Industrial Manufacturing                                      
+SOUTHBANK       39.6          4.9         4.4         0.5              NaN                -0.7    17.4       11.3       47.3                0.0          1.0                              Banks                                      
+NIBE            11.1          4.8         4.6         0.2             -2.7                 2.9 -1300.0      -23.2       38.8              -31.2          NaN                                NaN  promoter stake moved to institutions
+GICRE           20.2          4.7         0.3         4.4             -5.0                -0.1   -31.1       -1.5       -4.9              -14.4          NaN                          Insurance  promoter stake moved to institutions
+SHYAMMETL       16.7          4.6        -0.2         4.9              0.0                -4.5    20.6       23.4       37.4               -1.8          NaN                     Ferrous Metals                                      
+SKYGOLD         17.0          4.5         2.0         2.5              0.0               -12.1   138.6       78.0      142.2               -6.4          NaN                  Consumer Durables                                      
+ONESOURCE       42.6          4.5        -0.0         4.6              0.6                -7.9     NaN       37.3       12.6              -15.2          NaN    Pharmaceuticals & Biotechnology                                      
+INDUSINDBK      71.0          4.4        -2.4         6.9              0.0               -12.5    71.7       -7.8       14.6              -14.7          NaN                              Banks                                      
+MASTEK          27.3          4.4        -2.8         7.2             -0.0                -7.3    15.2        7.7       12.7              -35.0          NaN                      IT - Services                                      
+BLACKBUCK       45.8          4.4         3.2         1.2             -0.1                -4.1    23.5       41.7       -0.8              -18.3          NaN                      IT - Software                                      
+VINCOFE         15.0          4.3         1.0         3.3              0.0                17.4    50.0       57.8       35.6               -0.8          1.0                                NaN                                      
+BSE             45.5          4.3         3.9         0.4              NaN                -5.6    62.3       63.5       15.1              -27.3          NaN                    Capital Markets                                      
+BETA             7.2          4.2        -0.1         4.3             -5.8                99.2    33.3       26.0       93.8              -21.3          NaN    Pharmaceuticals & Biotechnology  promoter stake moved to institutions
+JSWCEMENT       15.2          4.1         0.7         3.4             -0.3                -3.8     NaN       21.5       -0.3              -23.4          NaN                 Diversified Metals                                      
+JINDALSAW       21.4          3.8        -1.0         4.9              0.0               -16.7   -78.1        9.0       58.1              -10.1          NaN                     Ferrous Metals                                      
     full list -> analysis/fii_dii_rising.csv
