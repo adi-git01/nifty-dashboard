@@ -1,4 +1,8 @@
-# H2 — regime-conditional exposure. Result: breadth works, trailing IC does not.
+# H2 — regime-conditional exposure
+
+> SUPERSEDED (2026-09-29): on the fixed harness no H2 gate beats the baseline
+> over 5 or 10 years, including breadth >= 45%. See the last section. The
+> sections below were produced by the buggy harness.
 
 Run 34653237189, 2026-09-11. NSE point-in-time top-1000 by turnover, 2741 days,
 2015-08 -> 2026-09. Gates block NEW ENTRIES only; open positions still exit on
@@ -104,3 +108,35 @@ Sharpe (C beats A 4/4 — 1.52->2.29, 0.33->0.60, 1.20->1.31, 1.03->1.18).
 
 Adopt breadth as a risk overlay at a 45% floor. Expect the drawdown and
 Sharpe benefit. Do not budget for the +57pp of extra 10-year return.
+
+---
+
+## Rerun on the fixed harness (run 36510400534) -- the breadth gate does not hold
+
+The runs above had the harness bug (stray rows blanked MA50 for ~50 rows at a
+time, see RANKING_BREADTH_VERDICT.md). Fixed-harness baseline: 10y +802.9%,
+Sharpe 1.51, max DD -38.2%, matching the ranking harness on the same window
+(+883%, 1.55, -38.2%). The two harnesses now agree.
+
+| gate | 10y return | 10y Sharpe | 10y max DD | Sharpe better |
+|---|---|---|---|---|
+| A always in (30% rule only) | **802.9%** | **1.51** | -38.2% | -- |
+| B nifty > MA200 | 405.9% | 1.23 | -45.7% | 1/4 (tie 5y) |
+| C breadth >= 45% | 226.5% | 0.93 | -38.5% | 2/4 (1y, 3y) |
+| C2 breadth >= 55% | 212.2% | 1.00 | -30.1% | 3/4 |
+| D trailing IC > 0 | 193.2% | 0.93 | -30.8% | 1/4 |
+| E MA200 AND IC > 0 | 79.4% | 0.57 | -36.9% | 0/4 |
+
+- Breadth >= 45% now costs about three quarters of the 10-year return and
+  does not reduce drawdown. It helps only in the last 1 and 3 years. The
+  earlier "4/4 Sharpe, 4/4 drawdown" came from the bug. It was never deployed
+  (the live gate is 30%), and it should not be.
+- The breadth backtest (per-stock MA50 breadth, 8 starts, 3 periods) agrees:
+  40% and 50% MA50 gates are worse than the live 30% rule.
+- Trailing IC stays rejected.
+
+One caveat on this run: gate C's own breadth series still used the old
+whole-table MA50, which reads a stock with a recent data gap as "below". It now
+uses the per-stock MA50 like the simulator. The drawdown and 5/10y findings
+match the breadth backtest, which never had this problem, so a rerun should not
+change the verdict.
