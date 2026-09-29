@@ -53,7 +53,7 @@ WIN_START, WIN_END = "2025-01-01", "2026-09-17"
 POOL_END = "2026-06-30"          # breakouts after this have too little runway to compare
 BASE_MIN = 40                    # sessions without a new 52w high before a breakout
 HORIZON = 420                    # ~20 months: the same span as the 2025-26 window
-SCREENER_RAW = "analysis/screener_raw.csv"
+SCREENER_RAW = "analysis/screener_raw.csv.gz"   # ~250k rows; gzip keeps the repo small
 OUT = "analysis"
 
 TWEET = ["STLTECH", "GUJGASLTD", "MTARTECH", "BLISSGVS", "SALSTEEL", "LAURUSLABS",
