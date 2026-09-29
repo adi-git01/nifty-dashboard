@@ -1,0 +1,42 @@
+name: Sub-Industry Colour-Change Study (NSE)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sector-transitions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install scipy
+      - name: Run study
+        run: |
+          set -o pipefail
+          python sector_transition_study.py 2>&1 | tee sector_transition_output.txt
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sector-transition-study
+          path: |
+            analysis/sector_transitions.csv
+            analysis/sector_bands_now.csv
+            sector_transition_output.txt
+          retention-days: 30
+      - name: Commit results to the branch
+        if: success()
+        uses: stefanzweifel/git-auto-commit-action@v5
+        continue-on-error: true
+        with:
+          commit_message: "Sub-industry colour-change study results"
+          file_pattern: "analysis/sector_bands_now.csv sector_transition_output.txt"
