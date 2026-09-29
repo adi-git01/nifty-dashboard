@@ -31,6 +31,7 @@ jobs:
           path: |
             analysis/sector_group_character.csv
             analysis/sector_now.csv
+            analysis/sector_green_entries.csv
             sector_alpha_output.txt
           retention-days: 30
       - name: Commit results to the branch
@@ -39,4 +40,4 @@ jobs:
         continue-on-error: true
         with:
           commit_message: "Sub-industry alpha study results"
-          file_pattern: "analysis/sector_group_character.csv analysis/sector_now.csv sector_alpha_output.txt"
+          file_pattern: "analysis/sector_group_character.csv analysis/sector_now.csv analysis/sector_green_entries.csv sector_alpha_output.txt"
