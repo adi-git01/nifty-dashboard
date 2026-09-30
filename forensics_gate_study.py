@@ -75,97 +75,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 OUT = "analysis"
 ERA_SPLIT = "2021-01-01"
-LOOK = 60           # anchor search window
-SHELF_WIN = 252
-BIN = np.log(1.03)
 MAX_HOLD = 126
 
 
-# ----------------------------------------------------------------------------
-# indicators (panels: dates x tickers)
-# ----------------------------------------------------------------------------
-def wilder(x, n):
-    return x.ewm(alpha=1 / n, adjust=False, min_periods=n).mean()
-
-
-def indicators(close, high, low):
-    pc = close.shift(1)
-    tr = pd.concat([high - low, (high - pc).abs(), (low - pc).abs()]).groupby(level=0).max()
-    tr = tr.reindex(close.index)
-    atr = wilder(tr, 14)
-    d = close.diff()
-    rsi = 100 - 100 / (1 + wilder(d.clip(lower=0), 14) / wilder((-d).clip(lower=0), 14))
-    up, dn = high.diff(), -low.diff()
-    pdm = up.where((up > dn) & (up > 0), 0.0)
-    ndm = dn.where((dn > up) & (dn > 0), 0.0)
-    pdi = 100 * wilder(pdm, 14) / atr
-    ndi = 100 * wilder(ndm, 14) / atr
-    adx = wilder(100 * (pdi - ndi).abs() / (pdi + ndi), 14)
-    m20, s20 = close.rolling(20).mean(), close.rolling(20).std()
-    bbw = 4 * s20 / m20
-    bbp = bbw.rolling(SHELF_WIN, min_periods=120).rank(pct=True) * 100
-    return atr, rsi, adx, pdi, ndi, bbp
+# indicators, Gate 2 grading and Gate 3 shelves live in utils/forensics.py,
+# shared with the Technicals tab so the tab shows exactly what was tested.
+from utils.forensics import grade, indicators, pick_anchors, qualifying, supply_at  # noqa: E402
 
 
 # ----------------------------------------------------------------------------
 # per-stock gate features at the sampled rows
 # ----------------------------------------------------------------------------
-def grade(c, h, l, v, vmed, ma50, atr, clv, a, i, window=None):
-    """
-    Gate 2 for one anchor day `a`, seen from day i. window=None measures
-    everything since the anchor (v6); window=15 only the first 15 sessions
-    after it (v5's 'retention n/15'). Returns (fields, stop).
-    """
-    f = {}
-    ca, la = c[a], l[a]
-    dirn = 1 if clv[a] >= 0.5 else (-1 if clv[a] <= 0.3 else 0)
-    dd = i - a
-    f["days"] = dd
-    f["gap"] = bool(la > h[a - 1])
-    e = i if window is None else min(i, a + window)
-    post = slice(a + 1, e + 1)
-    pc = c[a - 1] if not np.isnan(c[a - 1]) else c[a - 2]
-    cp = c[post]
-    ok = ~np.isnan(cp)
-    veto = False
-    if dirn == 1:
-        veto = bool((c[a + 1:i + 1][~np.isnan(c[a + 1:i + 1])] < la).any())   # invalidation: any close since
-        ret = float((cp[ok] >= pc).mean()) if ok.any() else np.nan
-        f["retention"] = ret
-        if veto:
-            f["state"] = "VETO"
-        elif dd < 5 or np.isnan(ret):
-            f["state"] = "WAIT (running)"
-        elif ret >= 0.8:
-            f["state"] = "GO"
-        elif ret >= 0.4:
-            f["state"] = "WAIT (40-80%)"
-        else:
-            f["state"] = "FADE"
-        stop = max(la, ma50[i] - 0.5 * atr[i])
-    else:
-        f["state"] = "BEAR anchor" if dirn == -1 else "MIXED anchor"
-        stop = ma50[i] - 0.5 * atr[i]
-    if e - a >= 3:
-        f["cum_clv"] = float(np.nanmean(clv[post]))
-        k = np.arange(a + 1, e + 1)
-        down = k[(c[k] < c[k - 1])]
-        if len(down) >= 2:
-            f["dn_vs_anchor"] = float(np.nanmean(v[down]) / v[a])
-            f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
-            dist = bool(((v[down] >= 1.5 * vmed[down]) & (c[down] < ca)).any())
-            f["signature"] = ("DISTRIBUTION" if dist else
-                              "ABSORPTION" if (f["dn_vs_med"] <= 0.8 and not veto) else "NEUTRAL")
-            f["literal_absorb"] = bool(0.15 <= f["dn_vs_anchor"] <= 0.40 and not veto)
-        lowv = v[k] < 0.8 * vmed[k]
-        strong = clv[k] >= 0.6
-        probe = np.zeros(len(k), dtype=bool)
-        for S in (ma50[k], np.full(len(k), la)):
-            probe |= (l[k] < S) & (c[k] > S)
-        f["shakeout"] = bool((probe & lowv & strong).any())
-    return f, stop
-
-
 def stock_features(c, h, l, v, vmed, ma50, atr, rows):
     """
     c..atr: 1-d arrays for one stock; rows: sample indices (Gate 1 passes).
@@ -175,57 +95,28 @@ def stock_features(c, h, l, v, vmed, ma50, atr, rows):
     """
     clv = np.where(h > l, (c - l) / np.where(h > l, h - l, 1), np.nan)
     turn = c * v
-    qual = (v >= 3 * vmed) & (turn >= 5e7) & ~np.isnan(c)
+    qual = qualifying(c, v, vmed)
     out = []
     for i in rows:
         f = dict(i=i)
-        lo = max(2, i - LOOK + 1)
-        q = qual[lo:i + 1]
-        if not q.any():
+        a6, a5 = pick_anchors(qual, v, i)
+        if a6 is None:
             f["state"] = f["v5_state"] = "NO ANCHOR"
             stop = ma50[i] - 0.5 * atr[i]
         else:
-            a6 = lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
-            a5 = lo + int(np.where(q)[0][-1])
             g6, stop = grade(c, h, l, v, vmed, ma50, atr, clv, a6, i)
             g5, stop5 = grade(c, h, l, v, vmed, ma50, atr, clv, a5, i, window=15)
+            g6.pop("shakeout_i", None)
+            g5.pop("shakeout_i", None)
             f.update(g6)
             f.update({f"v5_{k}": x for k, x in g5.items()})
             f["same_anchor"] = a5 == a6
             f["v5_stop_pct"] = (c[i] - stop5) / c[i] * 100 if stop5 < c[i] else np.nan
         f["stop_pct"] = (c[i] - stop) / c[i] * 100 if stop < c[i] else np.nan
         f.setdefault("v5_stop_pct", f["stop_pct"])
-        # Gate 3: supply shelves from volume-by-price
-        w0 = max(0, i - SHELF_WIN)
-        cw, tw = c[w0:i], turn[w0:i]
-        okw = ~np.isnan(cw) & ~np.isnan(tw)
-        if okw.sum() >= 120:
-            cw, tw = cw[okw], tw[okw]
-            idx = np.arange(w0, i)[okw]
-            b = np.floor(np.log(cw) / BIN).astype(int)
-            b0 = b.min()
-            tb = np.bincount(b - b0, weights=tw)
-            occ = tb > 0
-            shelf = np.where(occ & (tb >= 2 * tb[occ].mean()))[0] + b0
-            cur = int(np.floor(np.log(c[i]) / BIN))
-            status, near_top = "CLEAN AIR", np.nan
-            if cur in set(shelf):
-                status = "INSIDE shelf"
-            trapped_above = []
-            for sb in shelf:
-                L = np.exp(sb * BIN)
-                if L <= c[i]:
-                    continue
-                vis = idx[cw >= L]
-                if len(vis) and i - vis[-1] >= 21:
-                    trapped_above.append(L)
-            if trapped_above:
-                L = min(trapped_above)
-                if L <= c[i] + 1.5 * atr[i]:
-                    status = "NEAR OVERHANG"
-                elif status == "CLEAN AIR":
-                    status = "FAR OVERHANG"
-            f["supply"] = status
+        sup = supply_at(c, turn, atr[i], i)
+        if sup:
+            f["supply"] = sup["supply"]
         out.append(f)
     return out
 

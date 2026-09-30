@@ -469,7 +469,7 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 page = "🌊 Trend Scanner" # Default
 
 if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
+    page = st.sidebar.radio("View", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
     
 elif active_workspace == "📋 Portfolio Manager":
     page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
@@ -2190,6 +2190,10 @@ elif page == "🌊 Trend Scanner":
                         st.rerun()
 
 # --- VIEW: RETURN TRACKER ---
+elif page == "🔬 Technicals":
+    from utils.technicals_view import render as _render_technicals
+    _render_technicals(df)
+
 elif page == "📊 Return Tracker":
     
     # Show toast for recently deleted items (after rerun)
