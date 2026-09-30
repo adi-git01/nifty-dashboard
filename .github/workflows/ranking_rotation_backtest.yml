@@ -16,16 +16,18 @@ on:
         required: true
         default: "1000"
       script:
-        description: "main = 1/3/5/10y ranking variants; robustness = staggered starts/periods/random control; breadth = MA50 and TS>=60 breadth gates"
+        description: "main = 1/3/5/10y ranking variants; robustness = staggered starts/periods/random control; breadth = MA50 and TS>=60 breadth gates; breakout = live-portfolio test of preferring 52w/ATH breakouts in leader sub-industries"
         required: true
         default: "main"
         type: choice
-        options: [main, robustness, breadth]
+        options: [main, robustness, breadth, breakout]
 
 jobs:
   ranking-rotation:
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,6 +63,17 @@ jobs:
             --max-tickers "${{ github.event.inputs.max_tickers }}" \
             --top-n "${{ github.event.inputs.top_n }}" \
             2>&1 | tee ranking_rotation_output.txt
+      - name: Run breakout-preference portfolio test
+        if: github.event.inputs.script == 'breakout'
+        run: |
+          set -o pipefail
+          python breakout_portfolio_backtest.py \
+            --max-tickers "${{ github.event.inputs.max_tickers }}" \
+            2>&1 | tee breakout_portfolio_output.txt
+      - name: Commit breakout-test results
+        if: success() && github.event.inputs.script == 'breakout'
+        run: |
+          bash scripts/commit_and_push.sh "Breakout portfolio test results" analysis/breakout_portfolio_backtest.csv breakout_portfolio_output.txt
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,5 +83,7 @@ jobs:
             analysis/ranking_rotation_backtest.csv
             analysis/ranking_robustness.csv
             analysis/breadth_gates_backtest.csv
+            analysis/breakout_portfolio_backtest.csv
             ranking_rotation_output.txt
+            breakout_portfolio_output.txt
           retention-days: 30
