@@ -38,7 +38,7 @@ def generate_daily_master_cache():
     _log(f"Universe loaded: {len(tickers)} tickers, fundamentals shape={fundamentals.shape}")
     
     # This also auto-saves the Parquet inside the function
-    df = fetch_and_process_market_data(tickers, fundamentals, live_mode=True)
+    df = fetch_and_process_market_data(tickers, fundamentals, live_mode=True, update_ath=True)
     _log(f"END: generate_daily_master_cache — result shape={df.shape}, columns={list(df.columns[:8])}{'...' if len(df.columns)>8 else ''}")
 
     # Save daily mood snapshot so the Market Mood History chart stays current

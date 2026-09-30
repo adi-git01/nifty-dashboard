@@ -1957,6 +1957,25 @@ elif page == "🌊 Trend Scanner":
             filtered_df = filtered_df[filtered_df['entry_label'].isin(_sel_entry)]
             st.caption(f"Showing **{len(filtered_df)}** stocks with entry status: {' · '.join(_sel_entry)}")
 
+    # === BREAKOUT FILTER (52-week-high breakout x sub-industry strength) ===
+    from utils.breakout_tags import add_breakout_tags, TAG_ORDER, TAG_HELP
+    filtered_df = add_breakout_tags(filtered_df)
+    if 'hi52_bo_days' not in filtered_df.columns:
+        st.caption("⚡ Breakout tags appear after the next engine run (the cached data predates them); "
+                   "🟢 Leader Industry is already shown.")
+    elif 'ath_bo_days' not in filtered_df.columns:
+        st.caption("⚡ ATH tags appear once the all-time-high table is seeded (Actions → Seed All-Time Highs) "
+                   "and the engine has run; 52-week tags are live.")
+    _bo_present = [s for s in TAG_ORDER if s in set(filtered_df['breakout_tag'])]
+    if _bo_present:
+        _sel_bo = st.multiselect(
+            "⚡ Filter by Breakout", options=_bo_present, default=_bo_present,
+            help=TAG_HELP + ". Keep only ⚡ Leader Breakout for the best-tested setup. Empty = show all.",
+        )
+        if _sel_bo and len(_sel_bo) < len(_bo_present):
+            filtered_df = filtered_df[filtered_df['breakout_tag'].isin(_sel_bo)]
+            st.caption(f"Showing **{len(filtered_df)}** stocks with breakout tag: {' · '.join(_sel_bo)}")
+
     # === ENTRY TIMING & POSITION SIZING PANEL ===
     # Directly addresses the "this leader already ran up — what do I buy and
     # how much?" hesitation. Ranks the current filtered names by freshness and
@@ -2007,7 +2026,10 @@ elif page == "🌊 Trend Scanner":
                    "🔵/🟢 = best fresh entries · 🟡 Extended = wait for a pullback · 🔴 = momentum fading.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
-                    'entry_label', 'freshness', 'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_200dma']
+                    'entry_label', 'breakout_tag', 'bo_days', 'bo_anchor', 'ind_score',
+                    'freshness', 'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
+    if 'dist_ath' not in filtered_df.columns:
+        filtered_df['dist_ath'] = np.nan
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
 
@@ -2030,6 +2052,11 @@ elif page == "🌊 Trend Scanner":
             "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%", help="Composite Relative Strength vs Nifty (1W+1M+3M)"),
             "entry_label": st.column_config.TextColumn("Entry", help="🔵 Pullback Buy (near MA50) · 🟢 Actionable · 🟡 Extended (chase risk, wait for pullback) · 🔴 Late/Fading · ⚪ Weak"),
             "freshness": st.column_config.ProgressColumn("Fresh", min_value=0, max_value=100, format="%d", help="Entry freshness 0–100: higher = closer to MA50 with accelerating RS = better risk-adjusted entry. Sort by this to find fresh replacements."),
+            "breakout_tag": st.column_config.TextColumn("Breakout", help=TAG_HELP),
+            "bo_days": st.column_config.NumberColumn("BO days ago", format="%d", help="Sessions since the 52-week / all-time-high breakout (0 = today)"),
+            "bo_anchor": st.column_config.CheckboxColumn("Vol anchor", help="Breakout day had volume >= 3x the 50-day median, turnover >= Rs 5 cr and CLV >= 0.5 -- added ~+1 pp over 3-6 months in the backtest"),
+            "dist_ath": st.column_config.NumberColumn("% from ATH", format="%.1f%%", help="Distance from the all-time closing high (data/ath_levels.csv)"),
+            "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d", help="Sub-industry rotation score (0-100): >= 70 leader, < 40 laggard"),
             "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
             "volatility": st.column_config.NumberColumn("Volatility", format="%.0f%%", help="Annualized Price Volatility"),
             "dna_signal": st.column_config.TextColumn("DNA Signal", help="BUY = All DNA-3 filters pass"),

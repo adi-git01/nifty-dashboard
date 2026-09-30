@@ -283,7 +283,7 @@ def fetch_missing_fundamentals(df):
 
     return df
 
-def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
+def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, update_ath=False):
     """
     Vectorized fetch of price data for all tickers + merging with fundamentals.
     """
@@ -370,7 +370,15 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
     
     # Create lookup for fundamentals
     fund_lookup = fundamental_df.set_index('ticker').to_dict('index') if not fundamental_df.empty else {}
-    
+
+    # All-time highs (data/ath_levels.csv, seeded by seed_ath.py). Read here;
+    # written back only by the EOD engine (update_ath=True) -- see below.
+    try:
+        from utils.ath import load_ath, ath_breakout, save_ath
+        ath_rows, ath_updates = load_ath(), {}
+    except Exception:
+        ath_rows, ath_updates = {}, {}
+
     for ticker in tickers:
         try:
             # Extract Ticker Data
@@ -437,6 +445,22 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             base_data['fiftyTwoWeekHigh'] = float(high_52)
             base_data['fiftyTwoWeekLow'] = float(low_52)
             base_data['dist_52w'] = ((current_price - high_52) / high_52) * 100
+
+            # 2b. Fresh 52-week-high breakout (Trend Scanner "Breakout" tag;
+            # definition and backtest in utils/breakout_tags.py)
+            try:
+                from utils.breakout_tags import hi52_breakout
+                base_data.update(hi52_breakout(df))
+            except Exception:
+                pass
+            if ath_rows:
+                try:
+                    _ath, _row = ath_breakout(df, ath_rows.get(ticker))
+                    base_data.update(_ath)
+                    if _row is not None:
+                        ath_updates[ticker] = _row
+                except Exception:
+                    pass
             
             # 3. Volume Metrics (VPT + A/D)
             if 'Volume' in df.columns:
@@ -549,6 +573,15 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             # print(f"Error processing {ticker}: {e}")
             continue
             
+    # Roll the stored all-time-high bases forward -- only from the EOD engine
+    # and only on a good-coverage run, so a bad Yahoo day never rewrites them.
+    if update_ath and ath_rows and len(ath_updates) >= 0.5 * len(ath_rows):
+        try:
+            save_ath({**ath_rows, **ath_updates})
+            print(f"[ENGINE] ATH table rolled forward for {len(ath_updates)}/{len(ath_rows)} tickers", flush=True)
+        except Exception as e:
+            print(f"[ENGINE] ATH table not saved: {e}", flush=True)
+
     # Convert to DataFrame
     final_df = pd.DataFrame(processed_rows)
     coverage = len(processed_rows) / max(total_tickers, 1)
