@@ -1975,7 +1975,7 @@ elif page == "🌊 Trend Scanner":
                                  help="Breakout day volume >= 3x its 50-day median, turnover >= Rs 5 cr, CLV >= 0.5 -- "
                                       "added ~+1 pp over 3-6 months. Implies a fresh breakout.")
     if 'hi52_bo_days' not in filtered_df.columns:
-        st.caption("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
+        st.info("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
                    "Industry and % from ATH already work.")
     _bo_mask = pd.Series(True, index=filtered_df.index)
     if _sel_bo:
@@ -2020,7 +2020,7 @@ elif page == "🌊 Trend Scanner":
         _et['stop_price'] = (pd.to_numeric(_et['price'], errors='coerce') * (1 - _et['stop_pct'] / 100)).round(2)
         _et['risk_rs'] = (_et['suggested_shares'] * pd.to_numeric(_et['price'], errors='coerce') * _et['stop_pct'] / 100).round(0)
         _et['screener_link'] = "https://www.screener.in/company/" + _et['ticker'].str.replace('.NS', '', regex=False) + "/"
-        _etc = ['screener_link', 'entry_label', 'breakout_label', 'vol_label', 'ind_score', 'edge_3m', 'edge_6m',
+        _etc = ['screener_link', 'entry_label', 'breakout_label', 'ind_score', 'edge_3m', 'edge_6m',
                 'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs']
         st.dataframe(
             _et[_etc],
@@ -2028,7 +2028,6 @@ elif page == "🌊 Trend Scanner":
                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                 "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
                 "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
-                "vol_label": st.column_config.TextColumn("Vol", help="🔊 = breakout on a volume anchor"),
                 "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d"),
                 "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this tag x industry x breakout cell, 2016-26"),
                 "edge_6m": st.column_config.NumberColumn("Edge 6m", format="%+.1f pp"),
@@ -2048,7 +2047,7 @@ elif page == "🌊 Trend Scanner":
                    "6-month RS ranking, so use this to choose among names you already like.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
-                    'entry_label', 'edge_3m', 'breakout_label', 'vol_label', 'ind_score',
+                    'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
                     'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
@@ -2073,7 +2072,6 @@ elif page == "🌊 Trend Scanner":
             "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
             "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this entry tag x industry band x breakout status, 2016-26 backtest"),
             "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
-            "vol_label": st.column_config.TextColumn("Vol", help="🔊 = the breakout day was a volume anchor (>= 3x median volume, >= Rs 5 cr, CLV >= 0.5)"),
             "dist_ath": st.column_config.NumberColumn("% from ATH", format="%.1f%%", help="Distance from the all-time closing high (data/ath_levels.csv)"),
             "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d", help="Sub-industry rotation score (0-100): >= 70 leader, < 40 laggard"),
             "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
