@@ -139,7 +139,42 @@ def build(close, high, low, vol, nifty, pit, gscore):
     # fell back under the 50-day average at any close in the next 10 sessions
     under = (close < ma50).astype(float).where(close.notna())
     below50 = under[::-1].rolling(10, min_periods=1).max()[::-1].shift(-1)
-    return ev, conf, fwd, below50, retention, gscore
+    return ev, conf, fwd, below50, retention, gscore, ma50, ma200
+
+
+def scanner_tags(close, nifty, ma50, ma200):
+    """
+    The Trend Scanner's entry_label (utils/entry_timing.add_entry_freshness),
+    rebuilt for every stock and day. Same thresholds and precedence:
+      Weak         not in an uptrend (trend_score < 55 and price <= MA50)
+      Late/Fading  rs_accel = rs_1w - rs_1m/4 < -6  (RS decelerating)
+      Extended     > 18% above MA50
+      Pullback Buy <= 6% above MA50 (incl. below)
+      Actionable   6-18% above MA50
+    trend_score is utils/scoring.calculate_trend_metrics with per-stock MAs;
+    rs_1w / rs_1m are 5 / 21-session returns minus Nifty's, in points, as in
+    utils/fast_data_engine.
+    """
+    dist = (close / ma50 - 1) * 100
+    hi = close.rolling(252, min_periods=50).max()
+    lo = close.rolling(252, min_periods=50).min()
+    ts = pd.DataFrame(50.0, index=close.index, columns=close.columns)
+    ts += np.where(ma50.notna(), np.where(close > ma50, 15, -10), 0)
+    ts += np.where(ma200.notna(), np.where(close > ma200, 15, -15), 0)
+    ts += np.where(ma50.notna() & ma200.notna(), np.where(ma50 > ma200, 10, -5), 0)
+    rng = hi - lo
+    ts += np.trunc((((close - lo) / rng.where(rng > 0)) - 0.5).fillna(0) * 30)
+    d52 = (close - hi) / hi * 100
+    ts += np.where(rng > 0, np.where(d52 > -5, 10, np.where(d52 < -30, -10, 0)), 0)
+    ts = ts.clip(0, 100)
+    cf = close.ffill(limit=5)
+    ret = lambda k: (close / cf.shift(k) - 1) * 100
+    nret = lambda k: (nifty / nifty.shift(k) - 1) * 100
+    accel = ret(5).sub(nret(5), axis=0) - ret(21).sub(nret(21), axis=0) / 4
+    up = (ts >= 55) | (dist > 0)
+    tag = np.select([dist.isna(), ~up, accel < -6, dist > 18, dist <= 6],
+                    ["", "Weak", "Late/Fading", "Extended", "Pullback Buy"], "Actionable")
+    return pd.DataFrame(tag, index=close.index, columns=close.columns)
 
 
 def band(s):
@@ -217,7 +252,7 @@ def main():
     gscore = pd.DataFrame({t: score[g] if g in score.columns else np.nan for t, g in gmap.items()},
                           index=close.index)
     pit = pit & gscore.notna()
-    ev, conf, fwd, below50, retention, gscore = build(close, high, low, vol, nifty, pit, gscore)
+    ev, conf, fwd, below50, retention, gscore, ma50, ma200 = build(close, high, low, vol, nifty, pit, gscore)
 
     # baseline: every universe stock, weekly
     wk = pd.DataFrame(False, index=close.index, columns=close.columns)
@@ -263,6 +298,39 @@ def main():
             er.append(dict(breakout=name, era=era, **stats(x[x.industry == "laggard"], "laggard, any")))
     print(pd.DataFrame(er).to_string(index=False))
 
+    # ---- Trend Scanner entry tags --------------------------------------------
+    tags = scanner_tags(close, nifty, ma50, ma200)
+    base["tag"] = tags.values[close.index.get_indexer(base.date), close.columns.get_indexer(base.ticker)]
+    # a 52-week or all-time-high breakout in the last 10 sessions (incl. today)
+    hb = (ev["high52"] | ev["ath"]).astype(float).rolling(10, min_periods=1).max().astype(bool)
+    base["fresh_high"] = hb.values[close.index.get_indexer(base.date), close.columns.get_indexer(base.ticker)]
+    base["era"] = np.where(base.date < ERA_SPLIT, "2016-20", "2021-26")
+    order = ["Actionable", "Pullback Buy", "Extended", "Late/Fading", "Weak"]
+    tr = [dict(view="all stocks", **stats(base, "ALL (baseline)"))]
+    for tg in order:
+        tr.append(dict(view="all stocks", **stats(base[base.tag == tg], tg)))
+    for b in ("leader", "mid", "laggard"):
+        for tg in order:
+            x = base[(base.tag == tg) & (base.industry == b)]
+            tr.append(dict(view=f"{b} industry", **stats(x, tg)))
+    for tg in order:
+        x = base[(base.tag == tg) & base.fresh_high]
+        tr.append(dict(view="52w/ATH breakout in last 2 weeks", **stats(x, tg)))
+        x = base[(base.tag == tg) & base.fresh_high & (base.industry == "leader")]
+        tr.append(dict(view="52w/ATH breakout, leader industry", **stats(x, tg)))
+    for era in ("2016-20", "2021-26"):
+        for tg in order:
+            tr.append(dict(view=f"era {era}", **stats(base[(base.tag == tg) & (base.era == era)], tg)))
+    TG = pd.DataFrame(tr)
+    TG.to_csv(f"{OUT}/scanner_tags_study.csv", index=False)
+    share = base.tag.value_counts(normalize=True).mul(100).round(1)
+    print(f"\n{'=' * 150}\nTREND SCANNER ENTRY TAGS -- every universe stock, weekly. Same columns as above; "
+          f"compare each tag with ALL (baseline).\nShare of stock-weeks: "
+          + ", ".join(f"{k} {v}%" for k, v in share.items() if k) + f"\n{'=' * 150}")
+    for view in TG.view.unique():
+        print(f"\n--- {view}")
+        print(TG[TG.view == view].drop(columns="view").to_string(index=False))
+
     # recent qualifying events, for a look at what it picks now
     last = E[(E.date >= close.index[-30]) & (E.industry == "leader") & E.anchor]
     last = last[["date", "ticker", "breakout"]].sort_values("date", ascending=False)
@@ -271,7 +339,7 @@ def main():
     last.to_csv(f"{OUT}/breakout_sector_recent.csv", index=False)
     print(f"\nLAST 30 SESSIONS -- breakouts / anchors in leader industries with a volume anchor: {len(last)}")
     print(last.head(40).to_string(index=False))
-    print(f"\nsaved -> {OUT}/breakout_sector_study.csv, {OUT}/breakout_sector_recent.csv")
+    print(f"\nsaved -> {OUT}/breakout_sector_study.csv, {OUT}/breakout_sector_recent.csv, {OUT}/scanner_tags_study.csv")
 
 
 if __name__ == "__main__":

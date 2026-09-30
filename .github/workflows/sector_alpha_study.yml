@@ -6,7 +6,7 @@ on:
 jobs:
   sector-alpha:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 90
     permissions:
       contents: write
     steps:
@@ -19,16 +19,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install scipy
-      # Also runs the breakout x sub-industry study: GitHub did not register
-      # breakout_sector_study.yml (added 29 Sep), so it rides on this
-      # already-registered workflow. Each study commits its own results.
-      - name: Run breakout x sub-industry study
-        run: |
-          set -o pipefail
-          python breakout_sector_study.py 2>&1 | tee breakout_sector_output.txt
-      - name: Commit breakout results
-        run: |
-          bash scripts/commit_and_push.sh "Breakout and sub-industry study results" analysis/breakout_sector_study.csv analysis/breakout_sector_recent.csv breakout_sector_output.txt
       - name: Run sub-industry alpha study
         run: |
           set -o pipefail
@@ -43,9 +33,6 @@ jobs:
             analysis/sector_now.csv
             analysis/sector_green_entries.csv
             sector_alpha_output.txt
-            analysis/breakout_sector_study.csv
-            analysis/breakout_sector_recent.csv
-            breakout_sector_output.txt
           retention-days: 30
       - name: Commit sub-industry results
         if: success()
