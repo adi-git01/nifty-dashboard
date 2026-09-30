@@ -48,3 +48,27 @@ Retention caveat: retention of 80-90% after these events is partly mechanical
 
 Survivorship: delisted stocks are missing, which flatters every row alike; the
 comparisons between rows are fair. Costs (~0.4% round trip) are not deducted.
+
+## Live-portfolio test: do not change the engine (run 30 Sep 2026)
+
+breakout_portfolio_backtest.py -- live rules, only the order free slots are
+filled changed. Baseline = 6-month RS (live). 10y: +897%, Sharpe 1.63.
+
+| variant | 8 starts beat BASE | 3 periods beat BASE | median d Sharpe (starts) | 10y return |
+|---|---|---|---|---|
+| leader breakout first | 3/8 | 1/3 | -0.06 | +473% |
+| + volume anchor | 2/8 | 2/3 | -0.08 | +483% |
+| any breakout first | 0/8 | 0/3 | -0.25 | +399% |
+| leader industry first | 5/8 | 1/3 | +0.04 | +948% |
+| skip laggard industries | 1/8 | 2/3 | -0.04 | +842% |
+| breakout first + skip laggards | 3/8 | 1/3 | -0.04 | +414% |
+
+Forcing breakouts in changes the book (63% of buys vs 7%) and makes it worse.
+The event study measured holding a breakout for 3-6 months; the live book
+exits on an MA50 break or trailing stop and gives up the slot of a higher
+6-month-RS name. The 6-month ranking already captures the momentum these
+breakouts carry. "Leader industry first" is the only one close (shallower
+drawdowns, +0.04 Sharpe) but fails the periods test (1/3) -- not adopted.
+
+Use the breakout tags as a discretionary watchlist in the Trend Scanner, not
+as an engine rule.
