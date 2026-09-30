@@ -204,7 +204,6 @@ def _table(df: pd.DataFrame):
 
 
 def _deep_dive(df: pd.DataFrame):
-    from utils.forensics import report
 
     st.markdown("#### 🧾 Single-stock report (v6 format)")
     st.caption("Fresh 2-year daily bars, same logic as the table. While NSE is open, today's candle is treated as "
@@ -229,12 +228,101 @@ def _deep_dive(df: pd.DataFrame):
     if held and (hp <= 0 or hd is None):
         st.warning("Held mode needs the buy price and date (the exit rule tracks the peak since then).")
         return
+    key = (t, hp if held else None, str(hd) if held else None, risk)
     if st.button(f"Run report for {t.replace('.NS', '')}", key="tx_run", type="primary"):
-        with st.spinner("Fetching 2 years of daily bars…"):
-            h = _history(t)
-        if h is None or h.empty:
-            st.error(f"No data for {t}.")
-            return
-        txt = report(h, t.replace(".NS", ""), held_price=hp if held else None,
-                     held_date=hd if held else None, risk_rupees=risk)
-        st.code(txt, language=None)
+        st.session_state["tx_last"] = key
+    if st.session_state.get("tx_last") != key:
+        return
+    with st.spinner("Fetching 2 years of daily bars…"):
+        h = _history(t)
+    if h is None or h.empty:
+        st.error(f"No data for {t}.")
+        return
+    _visual_report(h, t.replace(".NS", ""), hp if held else None, hd if held else None, risk)
+
+
+def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: float):
+    from utils.forensics import SUPPLY_LABEL, events, plan, report
+    from utils.forensics_chart import levels_ladder, price_chart, retention_chart
+
+    P = plan(h, held_price, held_date, risk)
+    if not P:
+        st.error(f"{name}: fewer than 60 closed sessions -- aborted.")
+        return
+    r = P["r"]
+    cfg = {"displayModeBar": False}
+    if P["provisional"]:
+        st.caption("⏱️ NSE is open: today's candle is provisional and left out.")
+
+    # headline tiles -- the report's decision block at a glance
+    k = st.columns(6)
+    k[0].metric("Action", P["action"], help="Gate 1 + GO + no near overhang = BUY NOW; GO under an overhang = "
+                "BUY ON TRIGGER; held mode applies the exit rule")
+    k[1].metric("Event", r["state"], f"day {r['days']}" if "days" in r else None, delta_color="off")
+    k[2].metric("Supply", SUPPLY_LABEL.get(r["supply"], r["supply"]))
+    if r["stop"] < r["close"]:
+        k[3].metric("Stop", f"₹{r['stop']:,.2f}", f"-{r['stop_pct']:.1f}%" + (" · ½ size" if r["half_size"] else ""),
+                    delta_color="inverse")
+    else:
+        k[3].metric("Stop", "—", "price below stop", delta_color="off")
+    if P["trigger"]:
+        k[4].metric("Trigger (close >)", f"₹{P['trigger']:,.2f}", f"{(P['trigger'] / r['close'] - 1) * 100:+.1f}%",
+                    delta_color="off")
+    else:
+        k[4].metric("Trend (Gate 1)", "PASS" if r["gate1"] else "FAIL",
+                    f"{r['dist_ma50']:+.1f}% vs MA50", delta_color="off")
+    k[5].metric("Size", f"{P['shares']:,} sh", f"₹{P['shares'] * r['close']:,.0f}", delta_color="off",
+                help=f"Risk ₹{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
+
+    st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
+
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.plotly_chart(levels_ladder(P), use_container_width=True, config=cfg)
+    with c2:
+        fr = retention_chart(P)
+        if fr is not None:
+            st.plotly_chart(fr, use_container_width=True, config=cfg)
+        # the report's qualitative lines, as short cards
+        sig = r.get("signature")
+        notes = []
+        if P["trig_a"]:
+            notes.append(f"**Trigger A** · {P['trig_a']}")
+        if P["trig_b"]:
+            notes.append(f"**Trigger B** · {P['trig_b']}")
+        if sig:
+            notes.append(f"**Pullback** · {sig.lower()} -- down days {r['dn_vs_med']:.2f}× median volume"
+                         + (" ⭐ (best backtested cell with GO)" if sig == "ABSORPTION" else "")
+                         + (" (not a warning in the backtest)" if sig == "DISTRIBUTION" else ""))
+        if r.get("shakeout"):
+            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke ₹{r['shakeout_level']:,.2f} "
+                         f"intraday, closed back above on {r['shakeout_volx']:.2f}× volume")
+        notes.append(f"**Lens** · RSI {r['rsi']:.0f} · ADX {r['adx']:.0f} (+DI {r['pdi']:.0f} / −DI {r['ndi']:.0f}) · "
+                     f"Bollinger width {r['bbp']:.0f} pct" + (" (squeeze)" if r["bbp"] < 20 else ""))
+        ex = (f"**Exit rule** · MA50 ₹{r['ma50']:,.2f} ({r['dist_ma50']:+.1f}%), closes below {r['closes_below_ma50']}/2"
+              + (f" · trail ₹{P['trail']:,.2f} (0.85 × peak ₹{P['peak']:,.2f})" if P["held"] else "")
+              + (f" · **FIRED {pd.Timestamp(P['fired']):%d %b %Y}**" if P["fired"] is not None else " · not fired"))
+        notes.append(ex)
+        st.markdown("\n\n".join(f"- {n}" for n in notes))
+
+    ev = events(P["df"])
+    if len(ev):
+        st.markdown("**Volume events, last 60 sessions** (≥ 3× median volume, ≥ ₹5 cr) -- the highest-volume one is "
+                    "the anchor")
+        show = ev.assign(date=ev.date.dt.strftime("%d %b %Y"), anchor=np.where(ev.anchor, "⚓", ""),
+                         retention=ev.retention * 100).sort_values("date", ascending=False)
+        st.dataframe(show[["anchor", "date", "vol_ratio", "clv", "direction", "turnover_cr", "close", "low", "days",
+                           "retention", "state"]],
+                     column_config={"anchor": "", "date": "Date",
+                                    "vol_ratio": st.column_config.NumberColumn("Vol ×", format="%.1f×"),
+                                    "clv": st.column_config.NumberColumn("CLV", format="%.2f"),
+                                    "direction": "Dir",
+                                    "turnover_cr": st.column_config.NumberColumn("Turnover", format="₹%.0f cr"),
+                                    "close": st.column_config.NumberColumn("Close", format="₹%.2f"),
+                                    "low": st.column_config.NumberColumn("Low", format="₹%.2f"),
+                                    "days": st.column_config.NumberColumn("Days ago", format="%d"),
+                                    "retention": st.column_config.NumberColumn("Retention", format="%.0f%%"),
+                                    "state": "Graded as anchor"},
+                     hide_index=True, use_container_width=True)
+    with st.expander("🧾 Full v6 report (text)"):
+        st.code(report(h, name, P=P), language=None)
