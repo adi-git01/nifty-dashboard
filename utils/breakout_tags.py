@@ -16,7 +16,8 @@ and analysis/scanner_tags_study.csv):
 Engine side  hi52_breakout(df)   fresh 52-week-high breakout from daily bars
              (ATH breakouts: utils/ath.py)
 UI side      add_breakout_tags(df)  ind_score, bo_type, bo_days, bo_anchor,
-             breakout_label, vol_label, dist_ath, edge_3m / edge_6m / edge_years
+             breakout_label (with the breakout day's volume), dist_ath,
+             edge_3m / edge_6m / edge_years
 """
 from __future__ import annotations
 
@@ -35,6 +36,9 @@ BREAKOUT_OPTIONS = ["ATH breakout", "52W breakout"]
 BREAKOUT_HELP = ("Fresh = a new closing high in the last 2 weeks after >= 20 sessions without one. "
                  "ATH = all-time high (data/ath_levels.csv), 52W = 52-week high. In a leader industry these beat "
                  "the typical stock by ~+2 to +3 pp over 3 months and ~+4 pp over 6 months (2016-2026). "
+                 "The label ends with the breakout day's volume vs its 50-day median; 🔊 = a volume anchor "
+                 "(>= 3x, >= Rs 5 cr turnover, CLV >= 0.5), worth ~+1 pp more. A volume spike WITHOUT a breakout "
+                 "has no edge of its own, so it is not flagged. Blank = no fresh breakout. "
                  "Nothing selected = no breakout filter.")
 
 
@@ -45,9 +49,10 @@ def hi52_breakout(df: pd.DataFrame) -> dict:
     """
     Most recent 52-week closing-high breakout within FRESH_SESSIONS.
     Returns {'hi52_bo_days': sessions ago (0 = today) or NaN,
-             'hi52_bo_anchor': True/False (NaN if no fresh breakout)}.
+             'hi52_bo_anchor': True/False (NaN if no fresh breakout),
+             'hi52_bo_volx': breakout-day volume / prior 50-session median}.
     """
-    out = {"hi52_bo_days": np.nan, "hi52_bo_anchor": np.nan}
+    out = {"hi52_bo_days": np.nan, "hi52_bo_anchor": np.nan, "hi52_bo_volx": np.nan}
     if df is None or "Close" not in df or len(df) < MIN_HISTORY + 1:
         return out
     c = df["Close"].astype(float).values
@@ -59,20 +64,24 @@ def hi52_breakout(df: pd.DataFrame) -> dict:
     for i in range(n - 1, max(n - 1 - FRESH_SESSIONS, BASE_SESSIONS) - 1, -1):
         if new_high[i] and not new_high[i - BASE_SESSIONS:i].any() and ok[i - BASE_SESSIONS]:
             out["hi52_bo_days"] = n - 1 - i
-            out["hi52_bo_anchor"] = _anchor(df, i)
+            out["hi52_bo_anchor"], out["hi52_bo_volx"] = vol_stats(df, i)
             return out
     return out
 
 
-def _anchor(df: pd.DataFrame, i: int) -> bool:
-    """Volume anchor: volume >= 3x the prior 50-session median, turnover >= Rs 5 cr, CLV >= 0.5."""
+def vol_stats(df: pd.DataFrame, i: int) -> tuple[bool, float]:
+    """
+    (volume anchor?, volume multiple) for bar i. Anchor: volume >= 3x the prior
+    50-session median, turnover >= Rs 5 cr, CLV >= 0.5.
+    """
     if not {"Volume", "High", "Low"} <= set(df.columns) or i < 30:
-        return False
+        return False, np.nan
     v = df["Volume"].astype(float).values
     med = np.nanmedian(v[max(0, i - 50):i])
+    volx = v[i] / med if med > 0 else np.nan
     h, l, c = float(df["High"].iloc[i]), float(df["Low"].iloc[i]), float(df["Close"].iloc[i])
     clv = (c - l) / (h - l) if h > l else np.nan
-    return bool(med > 0 and v[i] >= 3 * med and c * v[i] >= 5e7 and clv >= 0.5)
+    return bool(med > 0 and v[i] >= 3 * med and c * v[i] >= 5e7 and clv >= 0.5), round(float(volx), 1)
 
 
 # ----------------------------------------------------------------------------
@@ -138,8 +147,12 @@ def add_breakout_tags(df: pd.DataFrame, scores: dict | None = None, sub_map: dic
     out["bo_type"] = np.select([fath, f52], ["ATH", "52W"], "")
     out["bo_days"] = np.where(fath, dath, np.where(f52, d52, np.nan))
     out["bo_anchor"] = (fath & col("ath_bo_anchor").eq(True)) | (~fath & f52 & col("hi52_bo_anchor").eq(True))
-    out["breakout_label"] = [f"⚡ {t} · {int(d)}d ago" if t else "" for t, d in zip(out.bo_type, out.bo_days)]
-    out["vol_label"] = np.where(out.bo_anchor, "🔊", "")
+    out["bo_volx"] = pd.to_numeric(np.where(fath, col("ath_bo_volx"), np.where(f52, col("hi52_bo_volx"), np.nan)),
+                                   errors="coerce")
+    out["breakout_label"] = [
+        "" if not t else f"⚡ {t} · {int(d)}d ago" + (
+            f" · 🔊 {x:.1f}× vol" if a else f" · {x:.1f}× vol" if pd.notna(x) else "")
+        for t, d, a, x in zip(out.bo_type, out.bo_days, out.bo_anchor, out.bo_volx)]
 
     # % from all-time high: engine value when present, else from the stored table
     price = pd.to_numeric(col("price").fillna(col("currentPrice")), errors="coerce")

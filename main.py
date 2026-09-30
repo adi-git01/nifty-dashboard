@@ -1975,7 +1975,7 @@ elif page == "🌊 Trend Scanner":
                                  help="Breakout day volume >= 3x its 50-day median, turnover >= Rs 5 cr, CLV >= 0.5 -- "
                                       "added ~+1 pp over 3-6 months. Implies a fresh breakout.")
     if 'hi52_bo_days' not in filtered_df.columns:
-        st.caption("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
+        st.info("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
                    "Industry and % from ATH already work.")
     _bo_mask = pd.Series(True, index=filtered_df.index)
     if _sel_bo:
@@ -2009,26 +2009,31 @@ elif page == "🌊 Trend Scanner":
         with _ps3:
             _maxpos = st.number_input("Max positions", min_value=1, max_value=50, value=15, step=1, key="et_maxpos")
         with _ps4:
-            _show = st.selectbox("Show", ["Best edge first", "Breakouts only", "All except ⚪ Weak"],
-                                 index=0, key="et_show")
+            _show = st.selectbox("Show", ["Top N by edge (N = max positions)", "Breakouts only", "All except ⚪ Weak"],
+                                 index=0, key="et_show",
+                                 help="Top N = the best-edge names that fit your max positions, with the totals to deploy")
 
         _et = add_position_sizing(filtered_df, capital=_cap, risk_pct=_riskpct, max_positions=int(_maxpos))
         _et = _et[_et['entry_label'] != '⚪ Weak']
         if _show == "Breakouts only":
             _et = _et[_et['bo_type'] != ""]
         _et = _et.sort_values('edge_3m', ascending=False, na_position='last').copy()
+        if _show.startswith("Top N"):
+            _et = _et.head(int(_maxpos))
+        _slot = _cap / int(_maxpos)
+        _et['sized_by'] = np.where(_et['suggested_value'] >= _slot - 1, "slot cap", "stop risk")
         _et['stop_price'] = (pd.to_numeric(_et['price'], errors='coerce') * (1 - _et['stop_pct'] / 100)).round(2)
         _et['risk_rs'] = (_et['suggested_shares'] * pd.to_numeric(_et['price'], errors='coerce') * _et['stop_pct'] / 100).round(0)
         _et['screener_link'] = "https://www.screener.in/company/" + _et['ticker'].str.replace('.NS', '', regex=False) + "/"
-        _etc = ['screener_link', 'entry_label', 'breakout_label', 'vol_label', 'ind_score', 'edge_3m', 'edge_6m',
-                'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs']
+        _etc = ['screener_link', 'entry_label', 'breakout_label', 'ind_score', 'edge_3m', 'edge_6m',
+                'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs',
+                'sized_by']
         st.dataframe(
             _et[_etc],
             column_config={
                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                 "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
                 "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
-                "vol_label": st.column_config.TextColumn("Vol", help="🔊 = breakout on a volume anchor"),
                 "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d"),
                 "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this tag x industry x breakout cell, 2016-26"),
                 "edge_6m": st.column_config.NumberColumn("Edge 6m", format="%+.1f pp"),
@@ -2039,16 +2044,35 @@ elif page == "🌊 Trend Scanner":
                 "suggested_shares": st.column_config.NumberColumn("Shares", format="%d"),
                 "suggested_value": st.column_config.NumberColumn("Buy ₹", format="₹ %.0f"),
                 "risk_rs": st.column_config.NumberColumn("Loss if stopped", format="₹ %.0f"),
+                "sized_by": st.column_config.TextColumn("Sized by", help="slot cap = capital / max positions was the "
+                                                        "smaller limit, so Risk / trade does not change this row; "
+                                                        "stop risk = sized so a stop-out loses your risk per trade"),
             },
             height=360, use_container_width=True, hide_index=True
         )
-        st.caption(f"Each row risks about **₹{_cap*_riskpct/100:,.0f}** (your risk per trade), capped at an "
-                   f"equal-weight slot of **₹{_cap/int(_maxpos):,.0f}**. The edge is a historical median, not a "
-                   "forecast; in the live-portfolio backtest, preferring breakouts did not beat the engine's "
-                   "6-month RS ranking, so use this to choose among names you already like.")
+        # Each row is the SMALLER of (risk / stop %) and the equal-weight slot. With typical stops of
+        # 6-10%, 1% risk sizes above a 1/15 slot, so most rows sit at the cap and the risk input is
+        # inert until it drops below ~stop% / max positions. Say so instead of looking broken.
+        if len(_et):
+            _ncap = int((_et['sized_by'] == "slot cap").sum())
+            _med_stop = float(_et['stop_pct'].median())
+            _bind = _med_stop / int(_maxpos)
+            st.caption(f"Each row buys the **smaller** of ₹{_cap*_riskpct/100:,.0f} ÷ stop % (your risk per trade) "
+                       f"and one slot of **₹{_slot:,.0f}** (capital ÷ max positions). **{_ncap} of {len(_et)}** rows "
+                       f"hit the slot cap, so Risk / trade does not change them -- with a median stop of "
+                       f"{_med_stop:.1f}%, risk only binds below ~{_bind:.2f}%. Capital and Max positions always "
+                       "change the size; the edge, stop and order never do (they come from the stock, not your "
+                       "inputs).")
+            if _show.startswith("Top N"):
+                st.caption(f"Top {len(_et)} together: buy **₹{_et['suggested_value'].sum():,.0f}** "
+                           f"({_et['suggested_value'].sum()/_cap:.0%} of capital), worst case if every stop hits "
+                           f"**₹{_et['risk_rs'].sum():,.0f}** ({_et['risk_rs'].sum()/_cap:.1%}).")
+        st.caption("The edge is a historical median, not a forecast; in the live-portfolio backtest, preferring "
+                   "breakouts did not beat the engine's 6-month RS ranking, so use this to choose among names "
+                   "you already like.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
-                    'entry_label', 'edge_3m', 'breakout_label', 'vol_label', 'ind_score',
+                    'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
                     'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
@@ -2073,7 +2097,6 @@ elif page == "🌊 Trend Scanner":
             "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
             "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this entry tag x industry band x breakout status, 2016-26 backtest"),
             "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
-            "vol_label": st.column_config.TextColumn("Vol", help="🔊 = the breakout day was a volume anchor (>= 3x median volume, >= Rs 5 cr, CLV >= 0.5)"),
             "dist_ath": st.column_config.NumberColumn("% from ATH", format="%.1f%%", help="Distance from the all-time closing high (data/ath_levels.csv)"),
             "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d", help="Sub-industry rotation score (0-100): >= 70 leader, < 40 laggard"),
             "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
