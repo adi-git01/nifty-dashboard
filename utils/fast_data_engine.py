@@ -453,6 +453,13 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 base_data.update(hi52_breakout(df))
             except Exception:
                 pass
+            # 2c. Structural forensics (Technicals tab; utils/forensics.py,
+            # evidence in analysis/FORENSICS_VERDICT.md)
+            try:
+                from utils.forensics import snapshot as _fx_snapshot
+                base_data.update(_fx_snapshot(df))
+            except Exception:
+                pass
             if ath_rows:
                 try:
                     _ath, _row = ath_breakout(df, ath_rows.get(ticker))
