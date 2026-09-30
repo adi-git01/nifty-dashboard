@@ -2009,19 +2009,25 @@ elif page == "🌊 Trend Scanner":
         with _ps3:
             _maxpos = st.number_input("Max positions", min_value=1, max_value=50, value=15, step=1, key="et_maxpos")
         with _ps4:
-            _show = st.selectbox("Show", ["Best edge first", "Breakouts only", "All except ⚪ Weak"],
-                                 index=0, key="et_show")
+            _show = st.selectbox("Show", ["Top N by edge (N = max positions)", "Breakouts only", "All except ⚪ Weak"],
+                                 index=0, key="et_show",
+                                 help="Top N = the best-edge names that fit your max positions, with the totals to deploy")
 
         _et = add_position_sizing(filtered_df, capital=_cap, risk_pct=_riskpct, max_positions=int(_maxpos))
         _et = _et[_et['entry_label'] != '⚪ Weak']
         if _show == "Breakouts only":
             _et = _et[_et['bo_type'] != ""]
         _et = _et.sort_values('edge_3m', ascending=False, na_position='last').copy()
+        if _show.startswith("Top N"):
+            _et = _et.head(int(_maxpos))
+        _slot = _cap / int(_maxpos)
+        _et['sized_by'] = np.where(_et['suggested_value'] >= _slot - 1, "slot cap", "stop risk")
         _et['stop_price'] = (pd.to_numeric(_et['price'], errors='coerce') * (1 - _et['stop_pct'] / 100)).round(2)
         _et['risk_rs'] = (_et['suggested_shares'] * pd.to_numeric(_et['price'], errors='coerce') * _et['stop_pct'] / 100).round(0)
         _et['screener_link'] = "https://www.screener.in/company/" + _et['ticker'].str.replace('.NS', '', regex=False) + "/"
         _etc = ['screener_link', 'entry_label', 'breakout_label', 'ind_score', 'edge_3m', 'edge_6m',
-                'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs']
+                'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs',
+                'sized_by']
         st.dataframe(
             _et[_etc],
             column_config={
@@ -2038,13 +2044,32 @@ elif page == "🌊 Trend Scanner":
                 "suggested_shares": st.column_config.NumberColumn("Shares", format="%d"),
                 "suggested_value": st.column_config.NumberColumn("Buy ₹", format="₹ %.0f"),
                 "risk_rs": st.column_config.NumberColumn("Loss if stopped", format="₹ %.0f"),
+                "sized_by": st.column_config.TextColumn("Sized by", help="slot cap = capital / max positions was the "
+                                                        "smaller limit, so Risk / trade does not change this row; "
+                                                        "stop risk = sized so a stop-out loses your risk per trade"),
             },
             height=360, use_container_width=True, hide_index=True
         )
-        st.caption(f"Each row risks about **₹{_cap*_riskpct/100:,.0f}** (your risk per trade), capped at an "
-                   f"equal-weight slot of **₹{_cap/int(_maxpos):,.0f}**. The edge is a historical median, not a "
-                   "forecast; in the live-portfolio backtest, preferring breakouts did not beat the engine's "
-                   "6-month RS ranking, so use this to choose among names you already like.")
+        # Each row is the SMALLER of (risk / stop %) and the equal-weight slot. With typical stops of
+        # 6-10%, 1% risk sizes above a 1/15 slot, so most rows sit at the cap and the risk input is
+        # inert until it drops below ~stop% / max positions. Say so instead of looking broken.
+        if len(_et):
+            _ncap = int((_et['sized_by'] == "slot cap").sum())
+            _med_stop = float(_et['stop_pct'].median())
+            _bind = _med_stop / int(_maxpos)
+            st.caption(f"Each row buys the **smaller** of ₹{_cap*_riskpct/100:,.0f} ÷ stop % (your risk per trade) "
+                       f"and one slot of **₹{_slot:,.0f}** (capital ÷ max positions). **{_ncap} of {len(_et)}** rows "
+                       f"hit the slot cap, so Risk / trade does not change them -- with a median stop of "
+                       f"{_med_stop:.1f}%, risk only binds below ~{_bind:.2f}%. Capital and Max positions always "
+                       "change the size; the edge, stop and order never do (they come from the stock, not your "
+                       "inputs).")
+            if _show.startswith("Top N"):
+                st.caption(f"Top {len(_et)} together: buy **₹{_et['suggested_value'].sum():,.0f}** "
+                           f"({_et['suggested_value'].sum()/_cap:.0%} of capital), worst case if every stop hits "
+                           f"**₹{_et['risk_rs'].sum():,.0f}** ({_et['risk_rs'].sum()/_cap:.1%}).")
+        st.caption("The edge is a historical median, not a forecast; in the live-portfolio backtest, preferring "
+                   "breakouts did not beat the engine's 6-month RS ranking, so use this to choose among names "
+                   "you already like.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
                     'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
