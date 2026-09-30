@@ -31,9 +31,10 @@ jobs:
           path: |
             analysis/breakout_sector_study.csv
             analysis/breakout_sector_recent.csv
+            analysis/scanner_tags_study.csv
             breakout_sector_output.txt
           retention-days: 30
       - name: Commit results
         if: success()
         run: |
-          bash scripts/commit_and_push.sh "Breakout and sub-industry study results" analysis/breakout_sector_study.csv analysis/breakout_sector_recent.csv breakout_sector_output.txt
+          bash scripts/commit_and_push.sh "Breakout and sub-industry study results" analysis/breakout_sector_study.csv analysis/breakout_sector_recent.csv analysis/scanner_tags_study.csv breakout_sector_output.txt
