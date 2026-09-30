@@ -1,67 +1,87 @@
 {
     "HBLENGINE.NS": {
         "tier": "ALERT",
-        "days_active": 6,
+        "days_active": 7,
         "ias": 100.0
     },
-    "KPIGREEN.NS": {
+    "ICICIGI.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 95.0
+        "days_active": 1,
+        "ias": 90.2
     },
-    "ELECON.NS": {
+    "VESUVIUS.NS": {
         "tier": "ALERT",
-        "days_active": 2,
-        "ias": 90.0
+        "days_active": 1,
+        "ias": 88.4
     },
-    "BSE.NS": {
+    "ITCHOTELS.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 85.0
+    },
+    "POWERINDIA.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 67.9
+        "ias": 72.9
+    },
+    "VBL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 71.8
+    },
+    "APOLLOTYRE.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 65.4
     },
     "ELECTCAST.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
-    "NATCOPHARM.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 63.4
-    },
-    "DAMCAPITAL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 60.0
-    },
     "IRFC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 53.5
-    },
-    "TTML.NS": {
-        "tier": "WATCH",
+        "tier": "READY",
         "days_active": 2,
-        "ias": 51.2
+        "ias": 61.6
     },
-    "APOLLOTYRE.NS": {
+    "RAILTEL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 61.6
+    },
+    "TRANSRAILL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 50.4
+        "ias": 57.0
     },
-    "TATAELXSI.NS": {
+    "KPIGREEN.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 57.0
+    },
+    "THERMAX.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 48.3
+        "ias": 55.1
     },
-    "THANGAMAYL.NS": {
+    "AVANTEL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 47.5
+        "ias": 54.0
     },
-    "KPITTECH.NS": {
+    "IRCON.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 36.2
+        "ias": 53.4
+    },
+    "JWL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 46.0
+    },
+    "BANKBARODA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 40.9
     }
 }
