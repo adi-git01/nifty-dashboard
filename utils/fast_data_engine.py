@@ -437,6 +437,14 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False):
             base_data['fiftyTwoWeekHigh'] = float(high_52)
             base_data['fiftyTwoWeekLow'] = float(low_52)
             base_data['dist_52w'] = ((current_price - high_52) / high_52) * 100
+
+            # 2b. Fresh 52-week-high breakout (Trend Scanner "Breakout" tag;
+            # definition and backtest in utils/breakout_tags.py)
+            try:
+                from utils.breakout_tags import hi52_breakout
+                base_data.update(hi52_breakout(df))
+            except Exception:
+                pass
             
             # 3. Volume Metrics (VPT + A/D)
             if 'Volume' in df.columns:
