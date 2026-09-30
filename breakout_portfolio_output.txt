@@ -1,0 +1,146 @@
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MIRCELECTR.NS"}}}
+$MIRCELECTR.NS: possibly delisted; no timezone found
+$GSPL.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-30)
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: EXCEL.NS"}}}
+$EXCEL.NS: possibly delisted; no timezone found
+$CIGNITITEC.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-30)
+$VISASTEEL.NS: possibly delisted; no timezone found
+$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-30)
+$LTIM.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-30)
+
+12 Failed downloads:
+['MIRCELECTR.NS', 'EXCEL.NS', 'VISASTEEL.NS', 'LTIM.NS', 'GUJGASLTD.NS', 'LYPSAGEMS.NS', 'SASTASUNDR.NS', 'AKZOINDIA.NS']: possibly delisted; no timezone found
+['GSPL.NS', 'CIGNITITEC.NS', 'JBCHEPHARM.NS', 'SANGHIIND.NS']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-09-30)
+[yf_safe] bulk download attempt 1/3: 99% coverage (2098/2110 tickers)
+[data] dropped 14 non-session row(s) not in the Nifty calendar
+[data] 2026-09-29 has closes for 733 of ~2025 -- using 2026-09-28 as the last day
+[data] 2025 tickers, 3031 sessions 2014-06-02 -> 2026-09-28
+   window 1y done
+   window 3y done
+   window 5y done
+   window 10y done
+   stagger 2016-09-30 done
+   stagger 2016-09-07 done
+   stagger 2016-08-11 done
+   stagger 2016-07-20 done
+   stagger 2016-06-27 done
+   stagger 2016-06-03 done
+   stagger 2016-05-12 done
+   stagger 2016-04-20 done
+   period 2016-09-30 -> 2019-12-31 done
+   period 2020-01-01 -> 2022-12-30 done
+   period 2023-01-02 -> 2026-09-28 done
+
+==============================================================================================================
+LAST 1/3/5/10 YEARS (nested -- not independent)
+==============================================================================================================
+
+total_return_pct:
+period                    1y    3y     5y    10y
+variant                                         
+BASE 6m RS              33.0  35.3  140.7  897.0
+P1 leader breakout 1st  16.1  -5.3  123.4  473.3
+P2 +vol anchor 1st      19.4  19.7  199.1  483.1
+P3 any breakout 1st     27.7  29.1  131.5  399.4
+L1 leader industry 1st  23.8  63.6  201.9  948.4
+X1 skip laggard ind.    35.8  46.1  147.4  842.0
+P1+X1                   17.7  -4.2  154.3  413.9
+
+sharpe:
+period                    1y    3y    5y   10y
+variant                                       
+BASE 6m RS              1.93  0.72  1.23  1.63
+P1 leader breakout 1st  1.07 -0.04  1.11  1.24
+P2 +vol anchor 1st      1.27  0.46  1.42  1.25
+P3 any breakout 1st     1.68  0.61  1.18  1.17
+L1 leader industry 1st  1.42  1.07  1.49  1.63
+X1 skip laggard ind.    2.01  0.88  1.27  1.57
+P1+X1                   1.17 -0.01  1.27  1.18
+
+max_drawdown_pct:
+period                    1y    3y    5y   10y
+variant                                       
+BASE 6m RS             -11.9 -26.4 -22.5 -34.6
+P1 leader breakout 1st -11.1 -36.7 -29.0 -31.0
+P2 +vol anchor 1st     -11.8 -24.3 -20.2 -32.7
+P3 any breakout 1st    -12.6 -29.1 -23.4 -35.5
+L1 leader industry 1st -11.9 -17.5 -19.7 -31.2
+X1 skip laggard ind.   -12.0 -22.9 -23.0 -34.5
+P1+X1                  -10.9 -38.5 -27.6 -33.3
+
+What each variant bought over 10 years:
+               variant  buys  % buys leader breakout  % buys any breakout  % buys laggard industry
+            BASE 6m RS   947                     6.9                 18.7                     12.7
+P1 leader breakout 1st   874                    62.8                 67.6                      7.0
+    P2 +vol anchor 1st   863                    53.3                 59.6                      7.4
+   P3 any breakout 1st   864                    32.5                 88.3                     11.2
+L1 leader industry 1st   859                    19.7                 20.7                      0.3
+  X1 skip laggard ind.   941                     7.9                 19.4                      0.0
+                 P1+X1   867                    63.7                 68.4                      0.0
+
+==============================================================================================================
+8 STAGGERED 10-YEAR STARTS  (d_ = variant minus BASE; d_maxdd > 0 = shallower drawdown)
+==============================================================================================================
+               variant beats_base  median_d_sharpe  median_d_cagr  median_d_maxdd beats_best_random  median_sharpe
+P1 leader breakout 1st        3/8            -0.06          -0.89             2.2               8/8           1.46
+    P2 +vol anchor 1st        2/8            -0.08          -1.10            -0.5               8/8           1.42
+   P3 any breakout 1st        0/8            -0.25          -4.72             0.7               6/8           1.19
+L1 leader industry 1st        5/8             0.04           0.91             3.3               8/8           1.52
+  X1 skip laggard ind.        1/8            -0.04          -0.54             0.2               8/8           1.44
+                 P1+X1        3/8            -0.04          -0.46             0.5               7/8           1.50
+            BASE 6m RS          -             0.00           0.00             0.0               8/8           1.48
+
+Sharpe by start/period:
+variant           BASE 6m RS  P1 leader breakout 1st  P2 +vol anchor 1st  P3 any breakout 1st  L1 leader industry 1st  X1 skip laggard ind.  P1+X1
+period                                                                                                                                            
+start 2016-04-20        1.39                    1.33                1.32                 1.19                    1.52                  1.42   1.32
+start 2016-05-12        1.46                    1.47                1.41                 1.17                    1.52                  1.41   1.51
+start 2016-06-03        1.52                    1.78                1.55                 1.43                    1.39                  1.49   1.74
+start 2016-06-27        1.46                    1.16                1.18                 1.20                    1.54                  1.37   1.07
+start 2016-07-20        1.51                    1.45                1.42                 1.27                    1.53                  1.45   1.49
+start 2016-08-11        1.40                    1.61                1.42                 1.16                    1.49                  1.40   1.56
+start 2016-09-07        1.77                    1.63                1.53                 1.45                    1.65                  1.76   1.61
+start 2016-09-30        1.63                    1.24                1.25                 1.17                    1.63                  1.57   1.18
+random-order Sharpe (min / median / max):
+                   min  median   max
+period                              
+start 2016-04-20  0.60    1.02  1.17
+start 2016-05-12  0.72    1.00  1.25
+start 2016-06-03  0.72    0.94  1.27
+start 2016-06-27  0.76    0.86  1.05
+start 2016-07-20  0.67    1.11  1.23
+start 2016-08-11  0.75    0.92  1.04
+start 2016-09-07  0.72    1.14  1.26
+start 2016-09-30  0.72    0.97  1.18
+
+==============================================================================================================
+3 SEPARATE PERIODS  (d_ = variant minus BASE; d_maxdd > 0 = shallower drawdown)
+==============================================================================================================
+               variant beats_base  median_d_sharpe  median_d_cagr  median_d_maxdd beats_best_random  median_sharpe
+P1 leader breakout 1st        1/3            -0.23          -3.62             1.7               2/3           1.22
+    P2 +vol anchor 1st        2/3             0.04           2.11             1.9               2/3           1.49
+   P3 any breakout 1st        0/3            -0.37          -7.41             1.4               2/3           1.05
+L1 leader industry 1st        1/3            -0.02          -0.68             4.5               3/3           1.79
+  X1 skip laggard ind.        2/3             0.08           2.19             0.1               2/3           1.57
+                 P1+X1        1/3            -0.10          -0.77            -0.2               2/3           1.35
+            BASE 6m RS          -             0.00           0.00             0.0               2/3           1.45
+
+Sharpe by start/period:
+variant                   BASE 6m RS  P1 leader breakout 1st  P2 +vol anchor 1st  P3 any breakout 1st  L1 leader industry 1st  X1 skip laggard ind.  P1+X1
+period                                                                                                                                                    
+2016-09-30 -> 2019-12-31        0.85                    1.02                1.07                 0.55                    0.83                  0.79   1.04
+2020-01-01 -> 2022-12-30        2.63                    2.35                2.12                 2.26                    2.50                  2.71   2.27
+2023-01-02 -> 2026-09-28        1.45                    1.22                1.49                 1.05                    1.79                  1.57   1.35
+random-order Sharpe (min / median / max):
+                           min  median   max
+period                                      
+2016-09-30 -> 2019-12-31 -0.25    0.30  0.54
+2020-01-01 -> 2022-12-30  1.58    1.77  2.06
+2023-01-02 -> 2026-09-28  0.34    0.86  1.59
+
+saved -> analysis/breakout_portfolio_backtest.csv
