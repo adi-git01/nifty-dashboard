@@ -177,13 +177,19 @@ def supply_at(c, turn, atr_i, i):
         if len(vis) and i - vis[-1] >= 21:
             trapped.append((L, sb, i - vis[-1]))
     if trapped:
-        L, sb, age = min(trapped)
-        top = sb
-        while top + 1 in sset:
-            top += 1
-        run = tb[sb - b0:top - b0 + 1].sum()
-        out.update(shelf_low=L, shelf_top=np.exp((top + 1) * BIN), shelf_age=int(age),
-                   shelf_share=float(run / tb.sum() * 100))
+        runs, seen = [], set()
+        for L_, sb_, age_ in sorted(trapped):          # contiguous runs of shelf bins, lowest first
+            if sb_ in seen:
+                continue
+            top = sb_
+            while top + 1 in sset:
+                top += 1
+                seen.add(top)
+            runs.append(dict(low=L_, top=np.exp((top + 1) * BIN), age=int(age_),
+                             share=float(tb[sb_ - b0:top - b0 + 1].sum() / tb.sum() * 100)))
+        L = runs[0]["low"]
+        out.update(shelf_low=L, shelf_top=runs[0]["top"], shelf_age=runs[0]["age"],
+                   shelf_share=runs[0]["share"], shelves_above=runs)
         if L <= c[i] + 1.5 * atr_i:
             out["supply"] = "NEAR OVERHANG"
         elif out["supply"] == "CLEAN AIR":
@@ -270,7 +276,18 @@ def analyse(df: pd.DataFrame) -> dict:
     r["half_size"] = bool(r["stop_pct"] > 10) if not np.isnan(r["stop_pct"]) else False
     risk = c[i] - stop
     r["t1"] = c[i] + 2 * risk if risk > 0 else np.nan
-    r["t2"] = r.get("shelf_low", np.nan)
+    # T2: next resistance beyond where the trade starts. With a near overhang the
+    # entry is the clean-air trigger (shelf top), so T2 is the next shelf above it
+    # or, if none, a measured move of one trigger-to-stop height; otherwise the
+    # nearest trapped shelf above the close.
+    runs = r.get("shelves_above", [])
+    if r["supply"] == "NEAR OVERHANG" and runs:
+        trig = runs[0]["top"]
+        r["t2"] = runs[1]["low"] if len(runs) > 1 else (2 * trig - stop if trig > stop else np.nan)
+        r["t2_kind"] = "next shelf" if len(runs) > 1 else "measured move"
+    else:
+        r["t2"] = runs[0]["low"] if runs else np.nan
+        r["t2_kind"] = "nearest shelf"
     r["action"] = action_for(r["gate1"], r["state"], r["supply"])
     # exit-rule context (prompt: 2 closes < MA50 or close < 0.85 x running peak)
     r["closes_below_ma50"] = int((c[-2:] < ma50[-2:]).sum())
@@ -313,72 +330,144 @@ def _d(x):
     return pd.Timestamp(x).strftime("%d-%b-%Y") if x is not None and not pd.isna(x) else "NOT COMPUTED"
 
 
-def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_date=None,
-           risk_rupees: float = 10000.0, source: str = "Yahoo Finance daily") -> str:
-    """Plain-text v6 report. held_price None = CANDIDATE mode."""
+def events(df: pd.DataFrame, look: int = LOOK) -> pd.DataFrame:
+    """
+    Every qualifying volume day of the last `look` sessions, each graded from
+    today as if it were the anchor (v6 rules). The one with the highest volume
+    is the anchor the tab uses.
+    """
+    d = df[["High", "Low", "Close", "Volume"]].astype(float).dropna(subset=["Close"])
+    c, h, l, v = (d[k].values for k in ("Close", "High", "Low", "Volume"))
+    i = len(c) - 1
+    ma50 = d.Close.rolling(50).mean().values
+    atr = indicators(d.Close, d.High, d.Low)[0].values
+    vmed = d.Volume.rolling(50, min_periods=30).median().shift(1).values
+    clv = np.where(h > l, (c - l) / np.where(h > l, h - l, 1), np.nan)
+    qual = qualifying(c, v, vmed)
+    lo = max(2, i - look + 1)
+    idx = [k for k in range(lo, i + 1) if qual[k]]
+    a6 = pick_anchors(qual, v, i)[0]
+    rows = []
+    for k in idx:
+        g, _ = grade(c, h, l, v, vmed, ma50, atr, clv, k, i)
+        dirn = "+1 bull" if clv[k] >= 0.5 else ("-1 bear" if clv[k] <= 0.3 else "0 mixed")
+        rows.append(dict(date=d.index[k], vol_ratio=v[k] / vmed[k], clv=clv[k], direction=dirn,
+                         close=c[k], low=l[k], high=h[k], turnover_cr=c[k] * v[k] / 1e7,
+                         days=i - k, retention=g.get("retention", np.nan), state=g["state"],
+                         anchor=(k == a6)))
+    return pd.DataFrame(rows)
+
+
+def plan(df: pd.DataFrame, held_price: float | None = None, held_date=None,
+         risk_rupees: float = 10000.0) -> dict:
+    """
+    Everything the report and the chart show, computed once: the v6 read (r),
+    the closed bars used, the action, triggers, size and exit-rule state.
+    """
     df, provisional = drop_provisional(df)
     if df is None or len(df) < 60:
-        return f"{ticker}: fewer than 60 closed sessions -- aborted (prompt rule)."
+        return {}
     r = analyse(df)
     c = df["Close"].astype(float)
     close = r["close"]
-    lag = (pd.Timestamp.now().normalize() - pd.Timestamp(r["date"]).normalize()).days
     held = held_price is not None
-    L = []
-    L.append(f"{ticker} | close {close:,.2f} on {_d(r['date'])} | {r['sessions']} sessions | source {source} | lag {lag}d"
-             + (" | today's candle PROVISIONAL, excluded" if provisional else ""))
-    L.append(f"MODE: {'HELD @ ' + _p(held_price) + ' since ' + _d(held_date) if held else 'CANDIDATE'}")
-
-    state, supply = r["state"], r["supply"]
-    stop, sp = r["stop"], r["stop_pct"]
+    state, supply, stop = r["state"], r["supply"], r["stop"]
     risk = close - stop if stop < close else np.nan
     shares = int(risk_rupees / risk) if risk and risk > 0 else 0
     if r["half_size"]:
         shares //= 2
-    # exit rule (prompt default): 2 closes < MA50, or close < 0.85 x running peak
     since = pd.Timestamp(held_date) if held and held_date is not None else c.index[-1]
     peak = float(c[c.index >= since].max()) if held else close
-    trail = 0.85 * peak
     fired = None
     if held:
         m50 = c.rolling(50).mean()
         cc, mm = c[c.index >= since], m50[c.index >= since]
         below = (cc < mm)
-        two = below & below.shift(1, fill_value=False)
-        pk = cc.cummax()
-        hit = two | (cc < 0.85 * pk)
+        hit = (below & below.shift(1, fill_value=False)) | (cc < 0.85 * cc.cummax())
         if hit.any():
             fired = hit[hit].index[0]
+    action = ("EXIT" if fired is not None else "HOLD") if held else r["action"]
 
-    if held:
-        action = "EXIT" if fired is not None else "HOLD"
-    else:
-        action = r["action"]
-    L.append(f"\nACTION: {action}")
-    trig_a = trig_b = "NOT COMPUTED"
+    trig_a = trig_b = None
     if state.startswith("WAIT") and "anchor_low" in r:
-        trig_a = f"stay above anchor low {_p(r['anchor_low'])} and reach >= 80% retention by day 5 (now day {r.get('days')})"
+        trig_a = (f"stay above anchor low {_p(r['anchor_low'])} and reach >= 80% retention by day 5 "
+                  f"(now day {r.get('days')})")
     if state == "GO":
-        trig_a = (f"pullback toward MA50 {_p(r['ma50'])} on < 0.8x median volume, holding anchor low "
-                  f"{_p(r.get('anchor_low'))}")
+        if close < r["ma50"]:
+            trig_a = (f"reclaim MA50: daily close > {_p(r['ma50'])}, while holding anchor low "
+                      f"{_p(r.get('anchor_low'))}")
+        else:
+            trig_a = (f"pullback toward MA50 {_p(r['ma50'])} on < 0.8x median volume, holding anchor low "
+                      f"{_p(r.get('anchor_low'))}")
     if "shelf_top" in r:
         trig_b = f"daily close > {_p(r['shelf_top'])} (top of the shelf starting {_p(r['shelf_low'])}) into clean air"
-    L.append(f"Trigger A: {trig_a}")
-    L.append(f"Trigger B: {trig_b}")
+    trigger = r.get("shelf_top") if supply == "NEAR OVERHANG" else None
+    rr_now = (r["t1"] - close) / risk if risk and risk > 0 else np.nan
+    rr_trig = ((r["t2"] - trigger) / (trigger - stop)
+               if trigger and not np.isnan(r["t2"]) and trigger > stop and r["t2"] > trigger else np.nan)
+    return dict(r=r, df=df, provisional=provisional, held=held, held_price=held_price, since=since,
+                peak=peak, trail=0.85 * peak, fired=fired, action=action, shares=shares, risk=risk,
+                risk_rupees=risk_rupees, trig_a=trig_a, trig_b=trig_b, trigger=trigger,
+                rr_now=rr_now, rr_trig=rr_trig)
+
+
+def levels(P: dict) -> list[dict]:
+    """Key price levels for the chart and the ladder: name, price, kind, note."""
+    r = P["r"]
+    out = [dict(name="Close", price=r["close"], kind="close", note=_d(r["date"]))]
+    add = lambda n, p, k, note="": out.append(dict(name=n, price=float(p), kind=k, note=note)) \
+        if p is not None and not pd.isna(p) else None
+    if r["stop"] < r["close"]:
+        add("Stop", r["stop"], "stop", f"{r['stop_pct']:.1f}% risk" + (" · half size" if r["half_size"] else ""))
+    add("MA50 (exit line)", r["ma50"], "ma", "2 closes below = exit (prompt)")
+    add("MA200", r["ma200"], "ma")
+    if "anchor_low" in r and r["state"] in UP_STATES:
+        add("Anchor low (VETO line)", r["anchor_low"], "veto", _d(r["anchor_date"]))
+    for k, run in enumerate(r.get("shelves_above", [])[:3]):
+        add(f"Shelf {k + 1} top" + (" = clean-air trigger" if k == 0 and P["trigger"] else ""), run["top"],
+            "trigger" if k == 0 and P["trigger"] else "shelf", f"{run['share']:.0f}% of turnover, {run['age']}d trapped")
+        add(f"Shelf {k + 1} low", run["low"], "shelf")
+    add("T1 = 2R (reference)", r["t1"], "target", "a 2R exit halved returns")
+    add(f"T2 ({r.get('t2_kind', '')})", r["t2"], "target")
+    add("52-week high close", r["hi252"], "high")
+    add("Trail 0.85 x peak", P["trail"], "trail", f"peak {_p(P['peak'])}")
+    # merge duplicates (e.g. T2 == shelf 2 low)
+    seen, uniq = set(), []
+    for x in sorted(out, key=lambda x: -x["price"]):
+        key = (round(x["price"], 2), x["kind"])
+        if key not in seen:
+            seen.add(key)
+            uniq.append(x)
+    return uniq
+
+
+def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_date=None,
+           risk_rupees: float = 10000.0, source: str = "Yahoo Finance daily", P: dict | None = None) -> str:
+    """Plain-text v6 report. held_price None = CANDIDATE mode."""
+    P = P or plan(df, held_price, held_date, risk_rupees)
+    if not P:
+        return f"{ticker}: fewer than 60 closed sessions -- aborted (prompt rule)."
+    r, close = P["r"], P["r"]["close"]
+    state, supply, stop, sp = r["state"], r["supply"], r["stop"], r["stop_pct"]
+    held, peak, trail, fired, since = P["held"], P["peak"], P["trail"], P["fired"], P["since"]
+    lag = (pd.Timestamp.now().normalize() - pd.Timestamp(r["date"]).normalize()).days
+    L = []
+    L.append(f"{ticker} | close {close:,.2f} on {_d(r['date'])} | {r['sessions']} sessions | source {source} | lag {lag}d"
+             + (" | today's candle PROVISIONAL, excluded" if P["provisional"] else ""))
+    L.append(f"MODE: {'HELD @ ' + _p(P['held_price']) + ' since ' + _d(P['since']) if held else 'CANDIDATE'}")
+    L.append(f"\nACTION: {P['action']}")
+    L.append(f"Trigger A: {P['trig_a'] or 'NOT COMPUTED'}")
+    L.append(f"Trigger B: {P['trig_b'] or 'NOT COMPUTED'}")
     if stop < close:
-        L.append(f"Stop: {_p(stop)} ({'MA50 - 0.5 ATR' if state == 'VETO' or 'anchor_low' not in r else 'max of anchor low, MA50 - 0.5 ATR'})"
-                 f" = {_p(sp, 1)}%   Size: {shares} shares for Rs {risk_rupees:,.0f} risk"
+        L.append(f"Stop: {_p(stop)} ({'max of anchor low, MA50 - 0.5 ATR' if state in UP_STATES else 'MA50 - 0.5 ATR'})"
+                 f" = {_p(sp, 1)}%   Size: {P['shares']} shares for Rs {P['risk_rupees']:,.0f} risk"
                  + (" (HALVED: stop > 10%)" if r["half_size"] else ""))
     else:
         L.append(f"Stop: NOT COMPUTED -- price is below the stop level {_p(stop)} (no long setup)   Size: 0")
     L.append(f"Targets: T1 {_p(r['t1'])} (2R, reference only -- a 2R exit halved per-trade returns in the backtest) | "
-             f"T2 {_p(r['t2'])} (nearest trapped shelf)")
-    rr_now = (r["t1"] - close) / risk if risk and risk > 0 else np.nan
-    L.append(f"R:R: from current {_p(rr_now, 1)} | from trigger "
-             + (_p((r['t2'] - r['shelf_top']) / (r['shelf_top'] - stop), 1) if 'shelf_top' in r and not np.isnan(r['t2'])
-                and r['shelf_top'] > stop and r['t2'] > r['shelf_top'] else "NOT COMPUTED"))
-    rev = "day 5 of the anchor" if r.get("days", 99) < 5 else "+10 sessions"
-    L.append(f"Review on: {rev}")
+             f"T2 {_p(r['t2'])} ({r.get('t2_kind', '')})")
+    L.append(f"R:R: from current {_p(P['rr_now'], 1)} | from trigger {_p(P['rr_trig'], 1)}")
+    L.append(f"Review on: {'day 5 of the anchor' if r.get('days', 99) < 5 else '+10 sessions'}")
 
     L.append("\nGATES")
     L.append(f"1 Trend    {'PASS' if r['gate1'] else 'FAIL'}  close {close:,.2f} vs MA50 {_p(r['ma50'])} "
@@ -423,6 +512,8 @@ def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_
         L.append("Microstructure Probe: none since the anchor")
     stance = {"ABSORPTION": "ABSORPTION (digestion)", "DISTRIBUTION": "DISTRIBUTION (liquidation) -- NOTE: did not "
               "underperform in the backtest", "NEUTRAL": "NEUTRAL"}.get(r.get("signature"), "NEUTRAL")
+    if state not in UP_STATES and r.get("signature"):
+        stance += " -- anchor is not a +1 event; the signature was only backtested on +1 anchors"
     L.append(f"Institutional Stance: {stance}   [INFER]")
 
     L.append(f"\nEXIT RULE ({'HELD' if held else 'if bought today'})")
@@ -435,7 +526,7 @@ def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_
     L.append("\nWHAT FLIPS THIS")
     bull = (f"daily close > {_p(r['shelf_top'])} (clean-air trigger)" if "shelf_top" in r and "OVERHANG" in supply
             else f"new volume anchor (>= 3x median, >= Rs 5 cr, CLV >= 0.5) above {_p(r['hi252'])}")
-    bear = (f"close < anchor low {_p(r['anchor_low'])} (VETO)" if "anchor_low" in r and state not in ("VETO",)
+    bear = (f"close < anchor low {_p(r['anchor_low'])} (VETO)" if "anchor_low" in r and state in UP_STATES
             else f"2 closes < MA50 {_p(r['ma50'])}")
     L.append(f"Bullish flip: {bull}")
     L.append(f"Bearish flip: {bear}")
