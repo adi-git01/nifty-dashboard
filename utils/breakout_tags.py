@@ -30,16 +30,19 @@ BASE_SESSIONS = 20           # sessions without a new high before a breakout
 MIN_HISTORY = 200
 LEADER, LAGGARD = 70, 40     # rotation heatmap bands (score_0_100)
 
-TAG_LEADER = "⚡ Leader Breakout"
+TAG_LEADER_ATH = "⚡ Leader ATH Breakout"
+TAG_LEADER = "⚡ Leader 52W Breakout"
+TAG_ATH = "⚡ ATH Breakout"
 TAG_MID = "⚡ 52W Breakout"
-TAG_WEAK = "🔸 52W Breakout · weak industry"
+TAG_WEAK = "🔸 Breakout · weak industry"
 TAG_LEADER_IND = "🟢 Leader Industry"
 TAG_NONE = "—"
-TAG_ORDER = [TAG_LEADER, TAG_MID, TAG_WEAK, TAG_LEADER_IND, TAG_NONE]
-TAG_HELP = ("⚡ Leader Breakout = new 52-week closing high in the last 2 weeks in a leader sub-industry "
-            "(score >= 70) -- beat the typical stock by ~+2 to +3 pp over 3 months in 2016-2026 · "
-            "⚡ 52W Breakout = same, mid-ranked industry · 🔸 = breakout in a laggard industry (little edge) · "
-            "🟢 Leader Industry = no fresh breakout, industry score >= 70")
+TAG_ORDER = [TAG_LEADER_ATH, TAG_LEADER, TAG_ATH, TAG_MID, TAG_WEAK, TAG_LEADER_IND, TAG_NONE]
+TAG_HELP = ("Fresh = in the last 2 weeks. ⚡ Leader ATH / 52W Breakout = new all-time / 52-week closing high "
+            "in a leader sub-industry (score >= 70): beat the typical stock by ~+3 pp over 3 months and ~+4 pp "
+            "over 6 months in 2016-2026 (more with a volume anchor) · ⚡ ATH / 52W Breakout = same, mid-ranked "
+            "industry · 🔸 = breakout in a laggard industry (little edge) · 🟢 Leader Industry = no fresh "
+            "breakout, industry score >= 70")
 
 
 def hi52_breakout(df: pd.DataFrame) -> dict:
@@ -96,13 +99,18 @@ def add_breakout_tags(df: pd.DataFrame, scores: dict | None = None, sub_map: dic
         from utils.nifty1000_list import SUB_INDUSTRY_MAP as sub_map
     ind = out["ticker"].map(sub_map) if "ticker" in out else pd.Series(np.nan, index=out.index)
     out["ind_score"] = pd.to_numeric(ind.map(scores), errors="coerce")
-    days = pd.to_numeric(out.get("hi52_bo_days", pd.Series(np.nan, index=out.index)), errors="coerce")
-    fresh = days.notna() & (days <= FRESH_SESSIONS)
+    col = lambda c: out[c] if c in out else pd.Series(np.nan, index=out.index)
+    d52 = pd.to_numeric(col("hi52_bo_days"), errors="coerce")
+    dath = pd.to_numeric(col("ath_bo_days"), errors="coerce")
+    f52 = d52.notna() & (d52 <= FRESH_SESSIONS)
+    fath = dath.notna() & (dath <= FRESH_SESSIONS)
+    fresh = f52 | fath
     s = out["ind_score"]
-    tag = np.select(
-        [fresh & (s >= LEADER), fresh & (s < LAGGARD), fresh, s >= LEADER],
-        [TAG_LEADER, TAG_WEAK, TAG_MID, TAG_LEADER_IND], TAG_NONE)
-    out["breakout_tag"] = tag
-    # True only for a fresh breakout on a volume anchor (engine writes True/False/NaN)
-    out["hi52_bo_anchor"] = out.get("hi52_bo_anchor", pd.Series(np.nan, index=out.index)).eq(True) & fresh
+    lead, weak = s >= LEADER, s < LAGGARD
+    out["breakout_tag"] = np.select(
+        [fresh & weak, fath & lead, f52 & lead, fath, f52, lead],
+        [TAG_WEAK, TAG_LEADER_ATH, TAG_LEADER, TAG_ATH, TAG_MID, TAG_LEADER_IND], TAG_NONE)
+    # one "days since breakout" and one volume-anchor flag across both kinds
+    out["bo_days"] = np.fmin(d52.where(f52), dath.where(fath))
+    out["bo_anchor"] = (fath & col("ath_bo_anchor").eq(True)) | (f52 & col("hi52_bo_anchor").eq(True))
     return out
