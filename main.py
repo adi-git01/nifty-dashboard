@@ -1943,48 +1943,64 @@ elif page == "🌊 Trend Scanner":
 
     # === ENTRY STATUS FILTER ===
     _ENTRY_ORDER = ['🔵 Pullback Buy', '🟢 Actionable', '🟡 Extended', '🔴 Late/Fading', '⚪ Weak']
+    # Backtest 2016-2026, median vs the typical stock over 3 / 6 months (analysis/scanner_tags_study.csv)
+    _ENTRY_HELP = ("Backtest 2016-26, vs the typical stock over 3 / 6 months: 🟢 Actionable +0.6 / +1.1 pp "
+                   "(most consistent, 11 of 13 years) · 🔵 Pullback +0.3 / +0.8 · 🟡 Extended +1.0 / +2.4 but weak "
+                   "in the first 2 weeks, so size smaller rather than skip · 🔴 Late/Fading +0.2 / +0.7 · "
+                   "⚪ Weak -0.9 / -1.9 (the only tag to avoid). All tags do better in a leader industry.")
     _present = [s for s in _ENTRY_ORDER if s in set(filtered_df['entry_label'])]
     if _present:
         _sel_entry = st.multiselect(
             "🎯 Filter by Entry Status",
             options=_present, default=_present,
-            help="🔵 Pullback Buy (near MA50, fresh) · 🟢 Actionable · 🟡 Extended (already run up — chase risk) · "
-                 "🔴 Late/Fading · ⚪ Weak. Deselect to hide, e.g. keep only 🔵 + 🟢 for fresh entries. "
-                 "Empty = show all.",
+            help=_ENTRY_HELP + " Deselect to hide; empty = show all.",
         )
         # Filter only when the user narrows the set (empty = show all, avoids a blank table).
         if _sel_entry and len(_sel_entry) < len(_present):
             filtered_df = filtered_df[filtered_df['entry_label'].isin(_sel_entry)]
             st.caption(f"Showing **{len(filtered_df)}** stocks with entry status: {' · '.join(_sel_entry)}")
 
-    # === BREAKOUT FILTER (52-week-high breakout x sub-industry strength) ===
-    from utils.breakout_tags import add_breakout_tags, TAG_ORDER, TAG_HELP
+    # === BREAKOUT / INDUSTRY FILTERS ===
+    from utils.breakout_tags import add_breakout_tags, BREAKOUT_OPTIONS, BREAKOUT_HELP
     filtered_df = add_breakout_tags(filtered_df)
+    _bf1, _bf2, _bf3 = st.columns([2, 1, 1])
+    with _bf1:
+        _sel_bo = st.multiselect("⚡ Fresh breakout", options=BREAKOUT_OPTIONS, default=[], help=BREAKOUT_HELP)
+    with _bf2:
+        _lead_only = st.toggle("🟢 Leader industries only", value=False,
+                               help="Sub-industry rotation score >= 70 (the heatmap's green band). Every entry tag "
+                                    "did better there; the same breakout in a laggard industry was worth ~1/3.")
+    with _bf3:
+        _anchor_only = st.toggle("🔊 Volume anchor only", value=False,
+                                 help="Breakout day volume >= 3x its 50-day median, turnover >= Rs 5 cr, CLV >= 0.5 -- "
+                                      "added ~+1 pp over 3-6 months. Implies a fresh breakout.")
     if 'hi52_bo_days' not in filtered_df.columns:
-        st.caption("⚡ Breakout tags appear after the next engine run (the cached data predates them); "
-                   "🟢 Leader Industry is already shown.")
-    elif 'ath_bo_days' not in filtered_df.columns:
-        st.caption("⚡ ATH tags appear once the all-time-high table is seeded (Actions → Seed All-Time Highs) "
-                   "and the engine has run; 52-week tags are live.")
-    _bo_present = [s for s in TAG_ORDER if s in set(filtered_df['breakout_tag'])]
-    if _bo_present:
-        _sel_bo = st.multiselect(
-            "⚡ Filter by Breakout", options=_bo_present, default=_bo_present,
-            help=TAG_HELP + ". Keep only ⚡ Leader Breakout for the best-tested setup. Empty = show all.",
-        )
-        if _sel_bo and len(_sel_bo) < len(_bo_present):
-            filtered_df = filtered_df[filtered_df['breakout_tag'].isin(_sel_bo)]
-            st.caption(f"Showing **{len(filtered_df)}** stocks with breakout tag: {' · '.join(_sel_bo)}")
+        st.caption("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
+                   "Industry and % from ATH already work.")
+    _bo_mask = pd.Series(True, index=filtered_df.index)
+    if _sel_bo:
+        _types = {"ATH breakout": "ATH", "52W breakout": "52W"}
+        _bo_mask &= filtered_df['bo_type'].isin([_types[x] for x in _sel_bo])
+    if _anchor_only:
+        _bo_mask &= filtered_df['bo_anchor']
+    if _lead_only:
+        _bo_mask &= filtered_df['ind_score'] >= 70
+    if _sel_bo or _anchor_only or _lead_only:
+        filtered_df = filtered_df[_bo_mask]
+        st.caption(f"Showing **{len(filtered_df)}** stocks")
 
-    # === ENTRY TIMING & POSITION SIZING PANEL ===
-    # Directly addresses the "this leader already ran up — what do I buy and
-    # how much?" hesitation. Ranks the current filtered names by freshness and
-    # sizes each by stop distance (wider stop -> smaller position).
-    with st.expander("🎯 **Entry Timing & Position Sizing** — beat the 'already run up' hesitation", expanded=False):
-        st.caption("Ranks your filtered names by **entry freshness** — 🔵 near MA50 with accelerating RS = a fresh "
-                   "pullback entry; 🟡 stretched far above MA50 = extended / chase risk. Each is sized so a stop-out "
-                   "costs a fixed % of capital, so a wider stop → smaller position. Own leaders without over-committing "
-                   "to a chase, and surface fresher replacements.")
+    # === TRADE PLAN: EDGE, STOP, SIZE ===
+    # The tag backtest overturned the old "fresh first / Extended = wait" advice
+    # (see _ENTRY_HELP). What this panel is for: ranking the filtered names by
+    # the historical edge of their tag x industry x breakout cell, and turning
+    # each into a concrete order -- a stop level and a share count such that
+    # being stopped out costs a fixed % of capital (risk control, not a return
+    # signal).
+    with st.expander("📋 **Trade Plan** — historical edge, stop level and position size for the names above", expanded=False):
+        st.caption("**Edge** = median 3-month return vs the typical stock for this entry tag, industry band and "
+                   "breakout status, 2016-26 (years = how often it was positive). **Stop** = the wider of 2.5 daily "
+                   "volatilities and just below the 50-day average. **Shares** are sized so a stop-out loses your "
+                   "risk per trade, capped at an equal-weight slot -- a wide stop means a smaller position, not a skip.")
         _ps1, _ps2, _ps3, _ps4 = st.columns(4)
         with _ps1:
             _cap = st.number_input("Capital (₹)", min_value=10000.0, value=1_000_000.0, step=50000.0, key="et_cap")
@@ -1993,43 +2009,47 @@ elif page == "🌊 Trend Scanner":
         with _ps3:
             _maxpos = st.number_input("Max positions", min_value=1, max_value=50, value=15, step=1, key="et_maxpos")
         with _ps4:
-            _show = st.selectbox("Show", ["Freshest first", "Pullback Buy only", "Actionable + Pullback", "All momentum"],
+            _show = st.selectbox("Show", ["Best edge first", "Breakouts only", "All except ⚪ Weak"],
                                  index=0, key="et_show")
 
         _et = add_position_sizing(filtered_df, capital=_cap, risk_pct=_riskpct, max_positions=int(_maxpos))
-        _et = _et[_et['entry_label'].isin(['🔵 Pullback Buy', '🟢 Actionable', '🟡 Extended', '🔴 Late/Fading'])]
-        if _show == "Pullback Buy only":
-            _et = _et[_et['entry_label'] == '🔵 Pullback Buy']
-        elif _show == "Actionable + Pullback":
-            _et = _et[_et['entry_label'].isin(['🔵 Pullback Buy', '🟢 Actionable'])]
-        _et = _et.sort_values('freshness', ascending=False).copy()
+        _et = _et[_et['entry_label'] != '⚪ Weak']
+        if _show == "Breakouts only":
+            _et = _et[_et['bo_type'] != ""]
+        _et = _et.sort_values('edge_3m', ascending=False, na_position='last').copy()
+        _et['stop_price'] = (pd.to_numeric(_et['price'], errors='coerce') * (1 - _et['stop_pct'] / 100)).round(2)
+        _et['risk_rs'] = (_et['suggested_shares'] * pd.to_numeric(_et['price'], errors='coerce') * _et['stop_pct'] / 100).round(0)
         _et['screener_link'] = "https://www.screener.in/company/" + _et['ticker'].str.replace('.NS', '', regex=False) + "/"
-        _etc = ['screener_link', 'entry_label', 'freshness', 'price', 'dist_ma50', 'rs_accel',
-                'comp_rs', 'stop_pct', 'suggested_value', 'suggested_shares']
+        _etc = ['screener_link', 'entry_label', 'breakout_label', 'vol_label', 'ind_score', 'edge_3m', 'edge_6m',
+                'edge_years', 'price', 'stop_price', 'stop_pct', 'suggested_shares', 'suggested_value', 'risk_rs']
         st.dataframe(
             _et[_etc],
             column_config={
                 "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
-                "entry_label": st.column_config.TextColumn("Entry", help="🔵 Pullback Buy · 🟢 Actionable · 🟡 Extended (wait) · 🔴 Late/Fading"),
-                "freshness": st.column_config.ProgressColumn("Fresh", min_value=0, max_value=100, format="%d"),
+                "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
+                "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
+                "vol_label": st.column_config.TextColumn("Vol", help="🔊 = breakout on a volume anchor"),
+                "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d"),
+                "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this tag x industry x breakout cell, 2016-26"),
+                "edge_6m": st.column_config.NumberColumn("Edge 6m", format="%+.1f pp"),
+                "edge_years": st.column_config.TextColumn("Years +", help="Calendar years in which the 3-month edge was positive"),
                 "price": st.column_config.NumberColumn("Price", format="₹ %.2f"),
-                "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above 50-day MA. High = extended."),
-                "rs_accel": st.column_config.NumberColumn("RS Accel", format="%+.1f", help="Recent weekly RS minus its monthly pace. + = speeding up, − = fading."),
-                "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%"),
-                "stop_pct": st.column_config.NumberColumn("Sugg. Stop", format="%.1f%%", help="Initial stop distance: max of a volatility swing-stop and 'just below MA50'."),
-                "suggested_value": st.column_config.NumberColumn("Size ₹", format="₹ %.0f", help="Position value sized so a stop-out ≈ your risk/trade, capped at equal-weight."),
+                "stop_price": st.column_config.NumberColumn("Stop at", format="₹ %.2f", help="Price - Stop %"),
+                "stop_pct": st.column_config.NumberColumn("Stop %", format="%.1f%%", help="Wider of 2.5 daily volatilities and just below the 50-day average (6-30%)"),
                 "suggested_shares": st.column_config.NumberColumn("Shares", format="%d"),
+                "suggested_value": st.column_config.NumberColumn("Buy ₹", format="₹ %.0f"),
+                "risk_rs": st.column_config.NumberColumn("Loss if stopped", format="₹ %.0f"),
             },
             height=360, use_container_width=True, hide_index=True
         )
-        st.caption(f"Risking **₹{_cap*_riskpct/100:,.0f}** per trade · equal-weight cap **₹{_cap/int(_maxpos):,.0f}**. "
-                   "🔵/🟢 = best fresh entries · 🟡 Extended = wait for a pullback · 🔴 = momentum fading.")
+        st.caption(f"Each row risks about **₹{_cap*_riskpct/100:,.0f}** (your risk per trade), capped at an "
+                   f"equal-weight slot of **₹{_cap/int(_maxpos):,.0f}**. The edge is a historical median, not a "
+                   "forecast; in the live-portfolio backtest, preferring breakouts did not beat the engine's "
+                   "6-month RS ranking, so use this to choose among names you already like.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
-                    'entry_label', 'breakout_tag', 'bo_days', 'bo_anchor', 'ind_score',
-                    'freshness', 'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
-    if 'dist_ath' not in filtered_df.columns:
-        filtered_df['dist_ath'] = np.nan
+                    'entry_label', 'edge_3m', 'breakout_label', 'vol_label', 'ind_score',
+                    'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
     display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
 
@@ -2050,11 +2070,10 @@ elif page == "🌊 Trend Scanner":
             "momentum": st.column_config.ProgressColumn("Momentum", min_value=0, max_value=10, format="%.1f"),
             "volume_signal_score": st.column_config.ProgressColumn("Volume", min_value=0, max_value=10, format="%.1f"),
             "comp_rs": st.column_config.NumberColumn("RS vs Nifty", format="%+.1f%%", help="Composite Relative Strength vs Nifty (1W+1M+3M)"),
-            "entry_label": st.column_config.TextColumn("Entry", help="🔵 Pullback Buy (near MA50) · 🟢 Actionable · 🟡 Extended (chase risk, wait for pullback) · 🔴 Late/Fading · ⚪ Weak"),
-            "freshness": st.column_config.ProgressColumn("Fresh", min_value=0, max_value=100, format="%d", help="Entry freshness 0–100: higher = closer to MA50 with accelerating RS = better risk-adjusted entry. Sort by this to find fresh replacements."),
-            "breakout_tag": st.column_config.TextColumn("Breakout", help=TAG_HELP),
-            "bo_days": st.column_config.NumberColumn("BO days ago", format="%d", help="Sessions since the 52-week / all-time-high breakout (0 = today)"),
-            "bo_anchor": st.column_config.CheckboxColumn("Vol anchor", help="Breakout day had volume >= 3x the 50-day median, turnover >= Rs 5 cr and CLV >= 0.5 -- added ~+1 pp over 3-6 months in the backtest"),
+            "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
+            "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this entry tag x industry band x breakout status, 2016-26 backtest"),
+            "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
+            "vol_label": st.column_config.TextColumn("Vol", help="🔊 = the breakout day was a volume anchor (>= 3x median volume, >= Rs 5 cr, CLV >= 0.5)"),
             "dist_ath": st.column_config.NumberColumn("% from ATH", format="%.1f%%", help="Distance from the all-time closing high (data/ath_levels.csv)"),
             "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d", help="Sub-industry rotation score (0-100): >= 70 leader, < 40 laggard"),
             "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
