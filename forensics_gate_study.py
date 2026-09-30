@@ -46,6 +46,12 @@ Gate 5 Lens       RSI14, ADX14 with +DI/-DI, Bollinger(20,2) width percentile
 The prompt's decision:  BUY NOW = Gate 1 + GO + no near overhang;
 BUY ON TRIGGER = Gate 1 + GO + near overhang.
 
+v5 vs v6 (section 7), same rows: v6 takes the HIGHEST-volume qualifying day
+of the last 60 sessions and measures retention / signature / CLV over every
+session since it, and adds the shakeout probe; v5 takes the MOST RECENT
+qualifying day and measures its first 15 sessions ("retention n/15"). Both
+veto on any close below the anchor low. Gates 1, 3, 4 are identical.
+
 Exits (paired, same entries): the prompt's rule (2 closes < MA50 or close
 < 0.85 x running peak), + its initial stop, + a 2R target, vs the live
 engine's rule (1 close < MA50 or 15% trail). Max hold 126 sessions.
@@ -104,68 +110,91 @@ def indicators(close, high, low):
 # ----------------------------------------------------------------------------
 # per-stock gate features at the sampled rows
 # ----------------------------------------------------------------------------
+def grade(c, h, l, v, vmed, ma50, atr, clv, a, i, window=None):
+    """
+    Gate 2 for one anchor day `a`, seen from day i. window=None measures
+    everything since the anchor (v6); window=15 only the first 15 sessions
+    after it (v5's 'retention n/15'). Returns (fields, stop).
+    """
+    f = {}
+    ca, la = c[a], l[a]
+    dirn = 1 if clv[a] >= 0.5 else (-1 if clv[a] <= 0.3 else 0)
+    dd = i - a
+    f["days"] = dd
+    f["gap"] = bool(la > h[a - 1])
+    e = i if window is None else min(i, a + window)
+    post = slice(a + 1, e + 1)
+    pc = c[a - 1] if not np.isnan(c[a - 1]) else c[a - 2]
+    cp = c[post]
+    ok = ~np.isnan(cp)
+    veto = False
+    if dirn == 1:
+        veto = bool((c[a + 1:i + 1][~np.isnan(c[a + 1:i + 1])] < la).any())   # invalidation: any close since
+        ret = float((cp[ok] >= pc).mean()) if ok.any() else np.nan
+        f["retention"] = ret
+        if veto:
+            f["state"] = "VETO"
+        elif dd < 5 or np.isnan(ret):
+            f["state"] = "WAIT (running)"
+        elif ret >= 0.8:
+            f["state"] = "GO"
+        elif ret >= 0.4:
+            f["state"] = "WAIT (40-80%)"
+        else:
+            f["state"] = "FADE"
+        stop = max(la, ma50[i] - 0.5 * atr[i])
+    else:
+        f["state"] = "BEAR anchor" if dirn == -1 else "MIXED anchor"
+        stop = ma50[i] - 0.5 * atr[i]
+    if e - a >= 3:
+        f["cum_clv"] = float(np.nanmean(clv[post]))
+        k = np.arange(a + 1, e + 1)
+        down = k[(c[k] < c[k - 1])]
+        if len(down) >= 2:
+            f["dn_vs_anchor"] = float(np.nanmean(v[down]) / v[a])
+            f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
+            dist = bool(((v[down] >= 1.5 * vmed[down]) & (c[down] < ca)).any())
+            f["signature"] = ("DISTRIBUTION" if dist else
+                              "ABSORPTION" if (f["dn_vs_med"] <= 0.8 and not veto) else "NEUTRAL")
+            f["literal_absorb"] = bool(0.15 <= f["dn_vs_anchor"] <= 0.40 and not veto)
+        lowv = v[k] < 0.8 * vmed[k]
+        strong = clv[k] >= 0.6
+        probe = np.zeros(len(k), dtype=bool)
+        for S in (ma50[k], np.full(len(k), la)):
+            probe |= (l[k] < S) & (c[k] > S)
+        f["shakeout"] = bool((probe & lowv & strong).any())
+    return f, stop
+
+
 def stock_features(c, h, l, v, vmed, ma50, atr, rows):
-    """c..atr: 1-d arrays for one stock; rows: sample indices (Gate 1 passes)."""
+    """
+    c..atr: 1-d arrays for one stock; rows: sample indices (Gate 1 passes).
+    v6 fields unprefixed (anchor = highest-volume qualifying day in 60
+    sessions, measured since); v5 fields prefixed v5_ (anchor = the most
+    recent qualifying day, retention over its first 15 sessions).
+    """
     clv = np.where(h > l, (c - l) / np.where(h > l, h - l, 1), np.nan)
     turn = c * v
     qual = (v >= 3 * vmed) & (turn >= 5e7) & ~np.isnan(c)
     out = []
     for i in rows:
         f = dict(i=i)
-        lo = max(1, i - LOOK + 1)
+        lo = max(2, i - LOOK + 1)
         q = qual[lo:i + 1]
         if not q.any():
-            f["state"] = "NO ANCHOR"
+            f["state"] = f["v5_state"] = "NO ANCHOR"
             stop = ma50[i] - 0.5 * atr[i]
         else:
-            vv = np.where(q, v[lo:i + 1], -1.0)
-            a = lo + int(np.argmax(vv))
-            ca, la = c[a], l[a]
-            dirn = 1 if clv[a] >= 0.5 else (-1 if clv[a] <= 0.3 else 0)
-            dd = i - a
-            f["days"] = dd
-            f["gap"] = bool(la > h[a - 1])
-            post = slice(a + 1, i + 1)
-            pc = c[a - 1] if not np.isnan(c[a - 1]) else c[a - 2]
-            cp = c[post]
-            ok = ~np.isnan(cp)
-            if dirn == 1:
-                veto = bool((cp[ok] < la).any())
-                ret = float((cp[ok] >= pc).mean()) if ok.any() else np.nan
-                f["retention"] = ret
-                if veto:
-                    f["state"] = "VETO"
-                elif dd < 5 or np.isnan(ret):
-                    f["state"] = "WAIT (running)"
-                elif ret >= 0.8:
-                    f["state"] = "GO"
-                elif ret >= 0.4:
-                    f["state"] = "WAIT (40-80%)"
-                else:
-                    f["state"] = "FADE"
-                stop = max(la, ma50[i] - 0.5 * atr[i])
-            else:
-                f["state"] = "BEAR anchor" if dirn == -1 else "MIXED anchor"
-                veto = False
-                stop = ma50[i] - 0.5 * atr[i]
-            if dd >= 3:
-                f["cum_clv"] = float(np.nanmean(clv[post]))
-                k = np.arange(a + 1, i + 1)
-                down = k[(c[k] < c[k - 1])]
-                if len(down) >= 2:
-                    f["dn_vs_anchor"] = float(np.nanmean(v[down]) / v[a])
-                    f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
-                    dist = bool(((v[down] >= 1.5 * vmed[down]) & (c[down] < ca)).any())
-                    f["signature"] = ("DISTRIBUTION" if dist else
-                                      "ABSORPTION" if (f["dn_vs_med"] <= 0.8 and not veto) else "NEUTRAL")
-                    f["literal_absorb"] = bool(0.15 <= f["dn_vs_anchor"] <= 0.40 and not veto)
-                lowv = v[k] < 0.8 * vmed[k]
-                strong = clv[k] >= 0.6
-                probe = np.zeros(len(k), dtype=bool)
-                for S in (ma50[k], np.full(len(k), la)):
-                    probe |= (l[k] < S) & (c[k] > S)
-                f["shakeout"] = bool((probe & lowv & strong).any())
+            a6 = lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
+            a5 = lo + int(np.where(q)[0][-1])
+            g6, stop = grade(c, h, l, v, vmed, ma50, atr, clv, a6, i)
+            g5, stop5 = grade(c, h, l, v, vmed, ma50, atr, clv, a5, i, window=15)
+            f.update(g6)
+            f.update({f"v5_{k}": x for k, x in g5.items()})
+            f["same_anchor"] = a5 == a6
+            f["v5_stop_pct"] = (c[i] - stop5) / c[i] * 100 if stop5 < c[i] else np.nan
         f["stop_pct"] = (c[i] - stop) / c[i] * 100 if stop < c[i] else np.nan
+        f.setdefault("v5_stop_pct", f["stop_pct"])
         # Gate 3: supply shelves from volume-by-price
         w0 = max(0, i - SHELF_WIN)
         cw, tw = c[w0:i], turn[w0:i]
@@ -393,6 +422,25 @@ def main():
              st(F2[buy_now & (F.industry == "leader")], "BUY NOW, leader industry", "6 decision"),
              st(F2[(F.industry == "leader")], "Gate 1 pass, leader industry", "6 decision"),
              st(F2[buy_now & (F.signature == "ABSORPTION")], "BUY NOW + absorption", "6 decision")]
+    # ---- v5 vs v6: same rows, only the anchor choice and measuring window differ
+    buy5 = (F.v5_state == "GO") & (F.supply != "NEAR OVERHANG")
+    up5 = F.v5_state.isin(["GO", "WAIT (40-80%)", "FADE", "WAIT (running)"])
+    for s in ["GO", "WAIT (40-80%)", "FADE", "VETO", "WAIT (running)"]:
+        rows.append(st(F2[F.state == s], f"v6 {s}", "7 v5 vs v6"))
+        rows.append(st(F2[F.v5_state == s], f"v5 {s}", "7 v5 vs v6"))
+    for s in ["ABSORPTION", "DISTRIBUTION"]:
+        rows.append(st(F2[up & (F.signature == s)], f"v6 {s}", "7 v5 vs v6"))
+        rows.append(st(F2[up5 & (F.v5_signature == s)], f"v5 {s}", "7 v5 vs v6"))
+    rows += [st(F2[buy_now], "v6 BUY NOW", "7 v5 vs v6"), st(F2[buy5], "v5 BUY NOW", "7 v5 vs v6"),
+             st(F2[buy_now & (F.industry == "leader")], "v6 BUY NOW, leader", "7 v5 vs v6"),
+             st(F2[buy5 & (F.industry == "leader")], "v5 BUY NOW, leader", "7 v5 vs v6"),
+             st(F2[buy_now & buy5], "GO in both", "7 v5 vs v6"),
+             st(F2[buy_now & ~buy5], "GO in v6 only", "7 v5 vs v6"),
+             st(F2[buy5 & ~buy_now], "GO in v5 only", "7 v5 vs v6"),
+             st(F2[up & F.shakeout.eq(True) & (F.state == "GO")], "v6 GO + shakeout (v6-only probe)", "7 v5 vs v6")]
+    has = F.same_anchor.notna()
+    print(f"[v5 vs v6] rows with an anchor {int(has.sum())}; same anchor day in {F.same_anchor[has].astype(bool).mean():.0%}; "
+          f"BUY NOW v6 {int(buy_now.sum())}, v5 {int(buy5.sum())}, both {int((buy_now & buy5).sum())}")
     T = pd.DataFrame(rows)
     os.makedirs(OUT, exist_ok=True)
     T.to_csv(f"{OUT}/forensics_gate_study{tag}.csv", index=False)
@@ -407,13 +455,16 @@ def main():
     er = []
     for era in ("2016-20", "2021-26"):
         e = F.era == era
-        for lab, m in [("Gate 1 pass, any", e), ("GO", e & (F.state == "GO")), ("VETO", e & (F.state == "VETO")),
+        for lab, m in [("Gate 1 pass, any", e), ("v6 GO", e & (F.state == "GO")), ("v6 VETO", e & (F.state == "VETO")),
                        ("NO ANCHOR", e & (F.state == "NO ANCHOR")),
                        ("ABSORPTION", e & up & (F.signature == "ABSORPTION")),
                        ("DISTRIBUTION", e & up & (F.signature == "DISTRIBUTION")),
                        ("shakeout", e & up & F.shakeout.eq(True)),
                        ("CLEAN AIR", e & (F.supply == "CLEAN AIR")), ("NEAR OVERHANG", e & (F.supply == "NEAR OVERHANG")),
-                       ("BUY NOW", e & buy_now)]:
+                       ("v6 BUY NOW", e & buy_now), ("v5 GO", e & (F.v5_state == "GO")),
+                       ("v5 VETO", e & (F.v5_state == "VETO")), ("v5 BUY NOW", e & buy5),
+                       ("v5 ABSORPTION", e & up5 & (F.v5_signature == "ABSORPTION")),
+                       ("v5 DISTRIBUTION", e & up5 & (F.v5_signature == "DISTRIBUTION"))]:
             er.append(dict(era=era, **st(F2[m], lab, "era")))
     E = pd.DataFrame(er).drop(columns="group")
     E.to_csv(f"{OUT}/forensics_gate_era{tag}.csv", index=False)
@@ -421,10 +472,10 @@ def main():
 
     # paired exits
     g1s = F.sample(min(len(F), 25000), random_state=1)
-    bn = F[buy_now]
     ex = []
-    for lab, ent in (("Gate 1 pass (sample)", g1s), ("BUY NOW", bn)):
-        R = simulate_exits(ent, close, ma50, nifty, ent.stop_pct.values)
+    for lab, ent, sp in (("Gate 1 pass (sample)", g1s, "stop_pct"), ("v6 BUY NOW", F[buy_now], "stop_pct"),
+                         ("v5 BUY NOW", F[buy5], "v5_stop_pct")):
+        R = simulate_exits(ent, close, ma50, nifty, ent[sp].values)
         if len(R):
             ex += exit_table(R, close.index, lab)
     X = pd.DataFrame(ex)
