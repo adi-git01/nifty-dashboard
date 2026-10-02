@@ -1,97 +1,97 @@
 {
     "IDBI.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 100.0
     },
     "TRANSRAILL.NS": {
         "tier": "ALERT",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 100.0
     },
     "LEMONTREE.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 83.1
     },
     "HDFCLIFE.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 77.1
     },
     "TARIL.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 70.8
     },
     "BAJAJHFL.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 70.7
     },
     "ADANIGREEN.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 67.2
     },
     "HCLTECH.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
     "FSL.NS": {
         "tier": "READY",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 65.0
     },
     "JWL.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 56.2
     },
     "PREMIERENE.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 54.9
     },
     "INFY.NS": {
         "tier": "WATCH",
-        "days_active": 1,
-        "ias": 53.9
+        "days_active": 2,
+        "ias": 54.0
     },
     "ADANIENSOL.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 52.4
     },
     "BANKBARODA.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 49.1
     },
     "IRCON.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 48.1
     },
     "ZENSARTECH.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 46.5
     },
     "VESUVIUS.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 45.9
     },
     "SRF.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 45.5
     },
     "GODIGIT.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 44.0
     }
 }
