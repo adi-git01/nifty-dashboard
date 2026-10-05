@@ -1,97 +1,117 @@
 {
-    "IDBI.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
+    "CONTROLPR.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 70.0
     },
-    "TRANSRAILL.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
+    "BTML.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 70.0
     },
-    "LEMONTREE.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 83.1
+    "AARON.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 67.4
+    },
+    "ARSSBL.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 65.0
+    },
+    "GANGESSECU.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 62.6
+    },
+    "5PAISA.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "AMRUTANJAN.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 57.6
     },
     "HDFCLIFE.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 77.1
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 55.2
     },
-    "TARIL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 70.8
+    "AVG.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
     },
     "BAJAJHFL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 70.7
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 53.8
+    },
+    "LEMONTREE.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 53.1
+    },
+    "EUROBOND.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 51.3
+    },
+    "BRIGHOTEL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 48.4
+    },
+    "BVCL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 47.4
+    },
+    "EIHAHOTELS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.2
+    },
+    "BOROLTD.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.0
+    },
+    "ARIS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.0
+    },
+    "VAIBHAVGBL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 38.9
+    },
+    "BETA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 37.7
     },
     "ADANIGREEN.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 67.2
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 37.2
+    },
+    "JKCEMENT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.6
+    },
+    "CCHHL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 35.0
     },
     "HCLTECH.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
-    },
-    "FSL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
-    },
-    "JWL.NS": {
         "tier": "WATCH",
         "days_active": 3,
-        "ias": 56.2
-    },
-    "PREMIERENE.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 54.9
-    },
-    "INFY.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 54.0
-    },
-    "ADANIENSOL.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 52.4
-    },
-    "BANKBARODA.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 49.1
-    },
-    "IRCON.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 48.1
-    },
-    "ZENSARTECH.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 46.5
-    },
-    "VESUVIUS.NS": {
-        "tier": "WATCH",
-        "days_active": 3,
-        "ias": 45.9
-    },
-    "SRF.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 45.5
-    },
-    "GODIGIT.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 44.0
+        "ias": 35.0
     }
 }
