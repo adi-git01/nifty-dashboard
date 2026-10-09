@@ -1,72 +1,77 @@
 {
-    "CELLO.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
     "FSL.NS": {
         "tier": "ALERT",
-        "days_active": 3,
+        "days_active": 4,
         "ias": 100.0
     },
-    "ICICIGI.NS": {
+    "HEXT.NS": {
         "tier": "ALERT",
         "days_active": 1,
-        "ias": 93.3
+        "ias": 100.0
+    },
+    "TCS.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 92.5
     },
     "ALOKINDS.NS": {
         "tier": "ALERT",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 85.0
     },
-    "BBOX.NS": {
+    "BSOFT.NS": {
+        "tier": "ALERT",
+        "days_active": 1,
+        "ias": 80.2
+    },
+    "BLUESTARCO.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 74.7
+        "ias": 79.2
     },
     "BANKINDIA.NS": {
         "tier": "READY",
-        "days_active": 3,
-        "ias": 70.3
+        "days_active": 4,
+        "ias": 74.0
     },
-    "EPACKPEB.NS": {
+    "TRENT.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 65.0
-    },
-    "CHEMPLASTS.NS": {
-        "tier": "READY",
-        "days_active": 2,
         "ias": 60.0
     },
-    "FINOPB.NS": {
+    "DABUR.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 57.0
+        "ias": 58.8
     },
     "IFCI.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 57.0
-    },
-    "BHARTIHEXA.NS": {
         "tier": "WATCH",
         "days_active": 2,
         "ias": 55.0
     },
-    "BSE.NS": {
+    "FINOPB.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 53.2
+        "ias": 53.9
+    },
+    "ZENSARTECH.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 51.4
+    },
+    "SRF.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.3
+    },
+    "KEC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 37.7
     },
     "HDFCLIFE.NS": {
         "tier": "WATCH",
-        "days_active": 6,
-        "ias": 51.0
-    },
-    "PFC.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 37.4
+        "days_active": 7,
+        "ias": 36.2
     }
 }
