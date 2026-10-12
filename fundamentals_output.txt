@@ -1,0 +1,123 @@
+[screener] 100/1174  failed 1  HTTP {200: 116, 404: 2}
+[screener] 200/1174  failed 1  HTTP {200: 234, 404: 2}
+[screener] 300/1174  failed 1  HTTP {200: 357, 404: 2}
+[screener] 400/1174  failed 1  HTTP {200: 477, 404: 2}
+[screener] 500/1174  failed 1  HTTP {200: 597, 404: 2}
+[screener] 600/1174  failed 1  HTTP {200: 714, 404: 2}
+[screener] 700/1174  failed 3  HTTP {200: 824, 404: 6}
+[screener] 800/1174  failed 3  HTTP {200: 932, 404: 6}
+[screener] 900/1174  failed 4  HTTP {200: 1037, 404: 8}
+[screener] 1000/1174  failed 4  HTTP {200: 1145, 404: 8}
+[screener] 1100/1174  failed 4  HTTP {200: 1252, 404: 8}
+[screener] done: 1170 parsed, 4 failed; HTTP {200: 1334, 404: 8}
+   failed: AKZOINDIA GUJGASLTD HEG LTIM
+[annual] 1170 stocks; years of net profit: median 12, >= 5 years for 1097; fields: {'total_liab': 11944, 'fixed_assets': 11944, 'investments': 11944, 'cwip': 11944, 'reserves': 11944, 'eq_cap': 11944, 'sales': 11872, 'op': 11872, 'dep': 11872, 'interest': 11872, 'pbt': 11872, 'np': 11872, 'payout': 11860, 'cfi': 11831, 'cff': 11831, 'cfo': 11831, 'opm': 11818, 'eps': 11696, 'borrowings': 11070, 'roce': 10447, 'mcap_cr': 1170, 'price_scr': 1170, 'roe': 871, 'deposits': 391}
+[quarterly] 1170 stocks; fields: {'sales': 14549, 'np': 14549, 'holders': 13415, 'public': 13415, 'promoters': 13043, 'fii': 13019, 'dii': 12587}
+[basis] {'consolidated': 1009, 'standalone': 161}
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 60/1174
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: AKZOINDIA.NS"}}}
+$AKZOINDIA.NS: No data found, symbol may be delisted
+
+1 Failed download:
+['AKZOINDIA.NS']: No data found, symbol may be delisted
+[yf_safe] bulk download attempt 1/3: 98% coverage (59/60 tickers)
+[prices] 120/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 180/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 240/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 300/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 360/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 420/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 480/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 540/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 600/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 660/1174
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: GUJGASLTD.NS"}}}
+$GUJGASLTD.NS: No data found, symbol may be delisted
+
+1 Failed download:
+['GUJGASLTD.NS']: No data found, symbol may be delisted
+[yf_safe] bulk download attempt 1/3: 98% coverage (59/60 tickers)
+[prices] 720/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 780/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 840/1174
+$LTIM.NS: No data found, symbol may be delisted
+
+1 Failed download:
+['LTIM.NS']: No data found, symbol may be delisted
+[yf_safe] bulk download attempt 1/3: 98% coverage (59/60 tickers)
+[prices] 900/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 960/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 1020/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 1080/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (60/60 tickers)
+[prices] 1140/1174
+[yf_safe] bulk download attempt 1/3: 100% coverage (34/34 tickers)
+[prices] 1174/1174
+[prices] 1171 stocks, 75 months -> data/monthly_prices.csv.gz
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+[valuation] 200/1167 (19s)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+[valuation] 400/1167 (24s)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+[valuation] 600/1167 (29s)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+[valuation] 800/1167 (34s)
+/opt/hostedtoolcache/Python/3.10.22/x64/lib/python3.10/site-packages/pandas/core/nanops.py:1016: RuntimeWarning: invalid value encountered in subtract
+  sqr = _ensure_numeric((avg - values) ** 2)
+[valuation] 1000/1167 (39s)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/valuation.py:395: RuntimeWarning: divide by zero encountered in divide
+  yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+[valuation] 1167 stocks in 44s -> data/valuation_snapshot.csv
+   status: {'OK': 993, 'OUT OF SCOPE': 154, 'ERROR': 20}
+   ratings: {'UNRATED (gate fail)': 573, 'HOLD': 163, 'INDETERMINATE (multiple)': 124, 'REDUCE': 49, 'ACCUMULATE': 34, 'STRONG SELL/AVOID': 26, 'SELL/AVOID': 14, 'STRONG SELL/AVOID · INDICATIVE': 3, 'ACCUMULATE · INDICATIVE': 2, 'BUY': 2, 'HOLD · INDICATIVE': 1, 'REDUCE · INDICATIVE': 1, 'INDETERMINATE (multiple) · INDICATIVE': 1}
+   identity: {'INDUSTRIAL': 838, 'BFSI': 83, 'COMMODITY': 72}; median CMP percentile 62
+   errors:     ticker                                  reason
+    ALIVUS 'Index' object has no attribute 'month'
+AMRUTANJAN 'Index' object has no attribute 'month'
+   ARCHIES 'Index' object has no attribute 'month'
+    AUBANK 'Index' object has no attribute 'month'
+    COLPAL 'Index' object has no attribute 'month'
+       DCW 'Index' object has no attribute 'month'
+    DICIND 'Index' object has no attribute 'month'
+EIHAHOTELS 'Index' object has no attribute 'month'
+ ESABINDIA 'Index' object has no attribute 'month'
+  FIVESTAR 'Index' object has no attribute 'month'
