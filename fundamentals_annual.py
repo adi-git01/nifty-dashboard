@@ -4,6 +4,7 @@ Annual + quarterly fundamentals and monthly prices for the valuation engine.
 
 Scrapes each universe stock's Screener.in page (consolidated first, then
 standalone) for:
+  headline Market Cap and Current Price (same moment -> exact share count)
   annual   profit & loss (sales, operating profit, OPM, interest, depreciation,
            PBT, net profit, EPS, dividend payout), balance sheet (equity
            capital, reserves, borrowings, deposits, fixed assets, CWIP,
@@ -60,10 +61,25 @@ def _section(html: str, sid: str) -> str:
     return m.group(0) if m else ""
 
 
+def top_ratios(html: str) -> dict:
+    """Screener's headline Market Cap (Rs cr) and Current Price, same moment -> share count."""
+    out = {}
+    for lab, fld in (("Market Cap", "mcap_cr"), ("Current Price", "price_scr")):
+        m = re.search(rf'class="name">\s*{lab}\s*</span>.*?class="number">([\d,\.]+)<', html, re.S)
+        if m:
+            try:
+                out[fld] = float(m.group(1).replace(",", ""))
+            except ValueError:
+                pass
+    return out
+
+
 def parse_annual(html: str) -> dict:
     out = {}
     for sid, rows in (("profit-loss", PL), ("balance-sheet", BS), ("cash-flow", CF), ("ratios", RT)):
         out.update(_records(_table(_section(html, sid)), rows))
+    today = pd.Timestamp.today().normalize()
+    out.update({(f, today): v for f, v in top_ratios(html).items()})
     return out
 
 
