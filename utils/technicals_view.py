@@ -69,8 +69,8 @@ def _history(ticker: str) -> pd.DataFrame:
 
 def render(df: pd.DataFrame):
     from utils.ui_components import page_header
-    st.markdown(page_header("🔬 Technicals", "Structural forensics: volume anchors, absorption, shakeouts, supply "
-                            "shelves, stops -- the chart-prompt v6 gates, backtested"), unsafe_allow_html=True)
+    st.markdown(page_header("🔬 Technicals + Valuation", "Structural forensics (chart-prompt v6, backtested) followed "
+                            "by a mechanical v4.1 Monte Carlo valuation -- no LLM calls"), unsafe_allow_html=True)
     with st.expander("ℹ️ What each flag is worth (backtest)", expanded=False):
         st.markdown(HELP)
 
@@ -81,6 +81,8 @@ def render(df: pd.DataFrame):
         _table(df)
     st.divider()
     _deep_dive(df)
+    from utils.valuation_view import render_reference
+    render_reference(df)
 
 
 def _table(df: pd.DataFrame):
@@ -94,6 +96,8 @@ def _table(df: pd.DataFrame):
         d[c] = d[c].map(lambda x: True if x is True or x == "True" or x == 1 else False) if c in d else False
     price = pd.to_numeric(d.get("price", d.get("currentPrice")), errors="coerce")
     d["price"] = price
+    from utils.valuation_view import RATING_ORDER, snapshot_date, table_columns
+    d = table_columns(d)
 
     g1 = d[d.fx_gate1]
     go = g1[g1.fx_state == "GO"]
@@ -114,7 +118,15 @@ def _table(df: pd.DataFrame):
     with f4:
         lead = st.toggle("🟢 Leader industries", value=False, key="tx_lead",
                          help="Sub-industry rotation score >= 70. BUY NOW in a leader industry: +2.2 / +3.7 pp, 12/12 years")
+    vals = st.multiselect("💰 Valuation (v4.1 mechanical)", RATING_ORDER + ["UNRATED", "NOT VALUED"], default=[],
+                          key="tx_val", help="Verdict from the CMP percentile of the stock's own fair-value "
+                          "distribution, at today's price. UNRATED = a v4.1 gate failed or the multiple is structurally "
+                          "indeterminate (the provisional verdict is shown in brackets). Nothing selected = no filter."
+                          + (f" Distribution as of {snapshot_date()}." if snapshot_date() else
+                             " Not built yet -- run the workflow with script = fundamentals."))
     v = d
+    if vals:
+        v = v[v.val_bucket.isin(vals)]
     if acts:
         v = v[v.fx_action.isin(acts)]
     if absorb:
@@ -161,6 +173,7 @@ def _table(df: pd.DataFrame):
             "fx_anchor_volx", "fx_days", "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
             "shares", "buy_value", "sized_by", "fx_t1", "fx_t2", "edge_3m", "edge_6m", "edge_years",
             "fx_adx", "fx_bbp", "fx_rsi"]
+    cols[6:6] = ["val_rating", "val_pct", "val_cagr_base"]
     st.caption(f"Showing **{len(v)}** stocks. Sorted by action, then the backtested 6-month edge of the row's cell.")
     st.dataframe(
         v[cols],
@@ -196,6 +209,15 @@ def _table(df: pd.DataFrame):
             "fx_bbp": st.column_config.NumberColumn("BB width pct", format="%.0f",
                                                     help="Bollinger width percentile vs the stock's last year (< 20 = squeeze)"),
             "fx_rsi": st.column_config.NumberColumn("RSI", format="%.0f"),
+            "val_rating": st.column_config.TextColumn("Valuation", help="Mechanical v4.1 verdict at today's price; "
+                                                      "(brackets) = provisional, a gate failed"),
+            "val_pct": st.column_config.NumberColumn("Val pct", format="P%.0f",
+                                                     help="Where today's price sits in the stock's own fair-value "
+                                                          "distribution (P50 = fair, <P20 BUY zone, >P88 SELL zone)"),
+            "val_cagr_base": st.column_config.NumberColumn("3y CAGR (base)", format="%+.0f%%",
+                                                           help="Implied 3-year return at today's price if the base "
+                                                                "scenario plays out, incl. dividend yield; compare with "
+                                                                "the 12% hurdle"),
         },
         height=520, use_container_width=True, hide_index=True,
     )
@@ -326,3 +348,7 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
                      hide_index=True, use_container_width=True)
     with st.expander("🧾 Full v6 report (text)"):
         st.code(report(h, name, P=P), language=None)
+    st.divider()
+    from utils.valuation_view import render_stock
+    hh = h.tail(252)
+    render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))

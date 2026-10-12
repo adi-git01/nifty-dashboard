@@ -16,11 +16,11 @@ on:
         required: true
         default: "1000"
       script:
-        description: "main = 1/3/5/10y ranking variants; robustness = staggered starts/periods/random control; breadth = MA50 and TS>=60 breadth gates; breakout = live-portfolio test of preferring 52w/ATH breakouts in leader sub-industries; seed_ath = one-off all-time-high table for the scanner (same as the Seed All-Time Highs workflow); forensics = do the chart-prompt gates (anchor GO/VETO, pullback signature, shakeout, supply shelves, stops, exits) add to the trend filter; oversold = oversold bounce then a close back above the 50dma"
+        description: "main = 1/3/5/10y ranking variants; robustness = staggered starts/periods/random control; breadth = MA50 and TS>=60 breadth gates; breakout = live-portfolio test of preferring 52w/ATH breakouts in leader sub-industries; seed_ath = one-off all-time-high table for the scanner (same as the Seed All-Time Highs workflow); forensics = do the chart-prompt gates (anchor GO/VETO, pullback signature, shakeout, supply shelves, stops, exits) add to the trend filter; oversold = oversold bounce then a close back above the 50dma; fundamentals = scrape 10y annual + quarterly fundamentals and 6y monthly prices for the valuation engine (~40 min)"
         required: true
         default: "main"
         type: choice
-        options: [main, robustness, breadth, breakout, seed_ath, forensics, oversold]
+        options: [main, robustness, breadth, breakout, seed_ath, forensics, oversold, fundamentals]
 
 jobs:
   ranking-rotation:
@@ -98,6 +98,16 @@ jobs:
         if: success() && github.event.inputs.script == 'oversold'
         run: |
           bash scripts/commit_and_push.sh "Oversold bounce to MA50 study results" analysis/oversold_reclaim_study.csv analysis/oversold_reclaim_era.csv analysis/oversold_reclaim_exits.csv oversold_output.txt
+      - name: Scrape annual fundamentals + monthly prices (valuation inputs)
+        if: github.event.inputs.script == 'fundamentals'
+        run: |
+          set -o pipefail
+          python fundamentals_annual.py --max-tickers "${{ github.event.inputs.max_tickers }}" 2>&1 | tee fundamentals_output.txt
+          if [ -f valuation_run.py ]; then python valuation_run.py 2>&1 | tee -a fundamentals_output.txt; fi
+      - name: Commit valuation inputs
+        if: success() && github.event.inputs.script == 'fundamentals'
+        run: |
+          bash scripts/commit_and_push.sh "Valuation inputs: annual + quarterly fundamentals, monthly prices" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz 'analysis/screener_samples/*.html' 'data/valuation_snapshot.csv' fundamentals_output.txt
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
