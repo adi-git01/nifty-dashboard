@@ -751,3 +751,41 @@ def rating_from_grid(grid, price, gates_ok, confidence, identity, label_if_unrat
         return pct, label_if_unrated
     v = _verdict(pct, confidence, gates_ok)
     return pct, v + (" · INDICATIVE" if identity == "COMMODITY" else "")
+
+
+# ----------------------------------------------------------------------------
+# five-way valuation verdict and the combined technical x valuation signal
+# ----------------------------------------------------------------------------
+VAL_BUCKETS = ["BUY", "ACCUMULATE", "HOLD", "REDUCE", "SELL"]
+
+
+def val_bucket(pct: float) -> str:
+    """v4.1 ladder on the CMP percentile, always one of five (gate status is reported separately)."""
+    if not np.isfinite(pct):
+        return ""
+    return "BUY" if pct < 20 else "ACCUMULATE" if pct < 40 else "HOLD" if pct < 70 else "REDUCE" if pct < 88 else "SELL"
+
+
+def combined_signal(tech_buy: bool, below_both: bool, vb: str) -> tuple[str, str]:
+    """
+    BUY / HOLD / SELL from technicals x valuation.
+      technical +  : forensics action BUY NOW (Gate 1 trend + GO volume anchor, no near overhang)
+      technical -  : close below both the 50- and 200-day averages (backtested negative)
+      cheap = BUY/ACCUMULATE, fair = HOLD, expensive = REDUCE/SELL
+    The technical side carries the 10-year evidence, so an expensive valuation can downgrade a
+    technical BUY to HOLD but never flip it to SELL, and a cheap stock in a broken trend is HOLD,
+    not BUY (no falling knives). Without a valuation the signal is technical-only.
+    """
+    tech = "+" if tech_buy else "-" if below_both else "0"
+    if vb not in VAL_BUCKETS:
+        return {"+": "BUY", "-": "SELL", "0": "HOLD"}[tech], "technicals only (no valuation)"
+    cheap, fair = vb in ("BUY", "ACCUMULATE"), vb == "HOLD"
+    if tech == "+":
+        sig = "BUY" if (cheap or fair) else "HOLD"
+    elif tech == "-":
+        sig = "HOLD" if cheap else "SELL"
+    else:
+        sig = "SELL" if vb == "SELL" else "HOLD"
+    why = {"+": "technical BUY NOW", "0": "technical neutral", "-": "below 50 & 200 DMA"}[tech]
+    return sig, f"{why} x valuation {vb}"
+
