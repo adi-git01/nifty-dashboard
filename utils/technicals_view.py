@@ -22,6 +22,13 @@ STATE_LABEL = {"GO": "🟢 GO", "WAIT (running)": "⏳ WAIT (<5d)", "WAIT (40-80
                "FADE": "🟠 FADE", "VETO": "🔴 VETO", "NO ANCHOR": "⚪ No anchor",
                "MIXED anchor": "🟤 Mixed anchor", "BEAR anchor": "🟤 Bear anchor"}
 
+SIGNAL_HELP = ("Technicals × valuation. Technical + = forensics BUY NOW (trend + GO volume anchor, no near overhang); "
+               "technical − = below both the 50- and 200-day averages. BUY = technical + and valuation BUY/ACCUMULATE/"
+               "HOLD. SELL = technical − and valuation HOLD/REDUCE/SELL, or valuation SELL with neutral technicals. "
+               "Everything else HOLD: an expensive valuation downgrades a technical BUY to HOLD (momentum winners "
+               "usually look expensive) and a cheap stock in a broken trend stays HOLD (no falling knives). Only the "
+               "technical side is backtested; the valuation side is untested so far.")
+
 HELP = """**How to read this (2016-26 backtest, median vs the typical stock, 3m / 6m):**
 - **Gate 1** (above MA50 & MA200, within 15% of the 52w high) is the core: **+1.4 / +2.5 pp**.
 - **🟢 GO** (biggest volume day of 60 sessions, held >= 80% of closes for 5+ days): +1.7 / +3.4.
@@ -96,7 +103,7 @@ def _table(df: pd.DataFrame):
         d[c] = d[c].map(lambda x: True if x is True or x == "True" or x == 1 else False) if c in d else False
     price = pd.to_numeric(d.get("price", d.get("currentPrice")), errors="coerce")
     d["price"] = price
-    from utils.valuation_view import RATING_ORDER, snapshot_date, table_columns
+    from utils.valuation_view import VAL_BUCKETS, snapshot_date, table_columns
     d = table_columns(d)
 
     g1 = d[d.fx_gate1]
@@ -118,13 +125,21 @@ def _table(df: pd.DataFrame):
     with f4:
         lead = st.toggle("🟢 Leader industries", value=False, key="tx_lead",
                          help="Sub-industry rotation score >= 70. BUY NOW in a leader industry: +2.2 / +3.7 pp, 12/12 years")
-    vals = st.multiselect("💰 Valuation (v4.1 mechanical)", RATING_ORDER + ["UNRATED", "NOT VALUED"], default=[],
-                          key="tx_val", help="Verdict from the CMP percentile of the stock's own fair-value "
-                          "distribution, at today's price. UNRATED = a v4.1 gate failed or the multiple is structurally "
-                          "indeterminate (the provisional verdict is shown in brackets). Nothing selected = no filter."
-                          + (f" Distribution as of {snapshot_date()}." if snapshot_date() else
-                             " Not built yet -- run the workflow with script = fundamentals."))
+    g1c, g2c = st.columns(2)
+    with g1c:
+        sigs = st.multiselect("🎯 Signal (technicals × valuation)", ["BUY", "HOLD", "SELL"], default=[], key="tx_sig",
+                              help=SIGNAL_HELP)
+    with g2c:
+        vals = st.multiselect("💰 Valuation (v4.1 mechanical)", VAL_BUCKETS + ["NOT VALUED"], default=[],
+                              key="tx_val", help="Where today's price sits in the stock's own fair-value distribution: "
+                              "<P20 BUY · P20-40 ACCUMULATE · P40-70 HOLD · P70-88 REDUCE · >P88 SELL. ⚠ = a v4.1 gate "
+                              "failed or the multiple is structurally indeterminate (reason in Val note). "
+                              "Nothing selected = no filter."
+                              + (f" Distribution as of {snapshot_date()}." if snapshot_date() else
+                                 " Not built yet -- run the workflow with script = fundamentals."))
     v = d
+    if sigs:
+        v = v[v.signal_raw.isin(sigs)]
     if vals:
         v = v[v.val_bucket.isin(vals)]
     if acts:
@@ -173,7 +188,8 @@ def _table(df: pd.DataFrame):
             "fx_anchor_volx", "fx_days", "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
             "shares", "buy_value", "sized_by", "fx_t1", "fx_t2", "edge_3m", "edge_6m", "edge_years",
             "fx_adx", "fx_bbp", "fx_rsi"]
-    cols[6:6] = ["val_rating", "val_pct", "val_cagr_base"]
+    cols[5:5] = ["signal"]
+    cols[7:7] = ["val_rating", "val_pct", "val_cagr_base", "val_note"]
     st.caption(f"Showing **{len(v)}** stocks. Sorted by action, then the backtested 6-month edge of the row's cell.")
     st.dataframe(
         v[cols],
@@ -209,8 +225,10 @@ def _table(df: pd.DataFrame):
             "fx_bbp": st.column_config.NumberColumn("BB width pct", format="%.0f",
                                                     help="Bollinger width percentile vs the stock's last year (< 20 = squeeze)"),
             "fx_rsi": st.column_config.NumberColumn("RSI", format="%.0f"),
-            "val_rating": st.column_config.TextColumn("Valuation", help="Mechanical v4.1 verdict at today's price; "
-                                                      "(brackets) = provisional, a gate failed"),
+            "signal": st.column_config.TextColumn("Signal", help=SIGNAL_HELP),
+            "val_rating": st.column_config.TextColumn("Valuation", help="Mechanical v4.1 verdict at today's price "
+                                                      "(BUY / ACCUMULATE / HOLD / REDUCE / SELL); ⚠ = a gate failed"),
+            "val_note": st.column_config.TextColumn("Val note", help="Why ⚠, or why the stock is not valued"),
             "val_pct": st.column_config.NumberColumn("Val pct", format="P%.0f",
                                                      help="Where today's price sits in the stock's own fair-value "
                                                           "distribution (P50 = fair, <P20 BUY zone, >P88 SELL zone)"),
@@ -351,4 +369,6 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     st.divider()
     from utils.valuation_view import render_stock
     hh = h.tail(252)
-    render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))
+    render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
+                 tech_buy=P["r"]["action"] == "BUY NOW" and not P["held"],
+                 below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]))
