@@ -123,7 +123,7 @@ def _series(df, ticker, fld):
         _GROUPS.clear() if len(_GROUPS) > 8 else None
         _GROUPS[key] = {k: g.set_index("period")["value"].sort_index()
                         for k, g in df.groupby(["ticker", "field"])} if not df.empty else {}
-    s = _GROUPS[key].get((ticker, fld), pd.Series(dtype=float))
+    s = _GROUPS[key].get((ticker, fld), pd.Series(dtype=float, index=pd.DatetimeIndex([])))
     return s[~s.index.duplicated(keep="last")]
 
 
@@ -240,6 +240,9 @@ def _cagr(s, years):
 
 
 def _verdict(pct, conf, gates_ok, severe_ok=True):
+    if pct is None or not np.isfinite(pct):
+        return "NOT VALUED"
+    v = LADDER[-1][1]
     for cut, lab in LADDER:
         if pct < cut:
             v = lab
@@ -432,7 +435,10 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     parts = [(wt, v) for wt, v in parts if np.isfinite(v)]
     base_g = sum(wt * v for wt, v in parts) / sum(wt for wt, _ in parts) if parts else 0.08
     base_g = float(np.clip(base_g, -0.05, 0.35))
-    sd_g = float(max(g_hist.std(), 0.04)) if len(g_hist) >= 3 else 0.08
+    # robust spread of annual growth (IQR/1.35, not the std a single boom/bust year inflates), 4-15pp
+    sd_g = float(np.clip((g_hist.quantile(0.75) - g_hist.quantile(0.25)) / 1.35, 0.04, 0.15)) if len(g_hist) >= 3 else 0.08
+    # scenarios are 3-YEAR growth paths: the spread of a 3-year average is the annual spread / sqrt(3)
+    sd_g = sd_g / np.sqrt(3)
     g = {"bear": float(np.clip(base_g - sd_g, -0.15, base_g - 0.02)), "base": base_g,
          "bull": float(np.clip(base_g + sd_g, base_g + 0.02, 0.50))}
     for s in g:
@@ -440,7 +446,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     q_marg = (q_np.rolling(4).sum() / q_sales.rolling(4).sum()).dropna() if len(q_sales) >= 4 else pd.Series(dtype=float)
     m_ttm = ttm_np / ttm_sales if ttm_sales and ttm_sales > 0 else np.nan
     hist_m = margins.iloc[-6:]
-    all_m = pd.concat([margins, q_marg])
+    # F2: the worst demonstrated run-rate of the LAST stress -- last 5 fiscal years and the quarterly
+    # rolling-4Q record -- not the worst year in a decade-plus of history
+    all_m = pd.concat([hist_m, q_marg])
     worst = float(all_m.min()) if len(all_m) else np.nan
     lever, path_note = {}, ""
     if ident == "BFSI":
@@ -572,6 +580,16 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     bear_m = min(bear_anchor, 0.9 * base_m_)
     mult = {"bear": _ov(ov, "mult_bear", bear_m), "base": _ov(ov, "mult_base", base_m_),
             "bull": _ov(ov, "mult_bull", bull_m)}
+    # Book floor for a bear branch that reaches (near-)losses: EPS x PE says ~0 there, which is
+    # meaningless for a going concern; v4.1 floors that branch with book logic -> bear value >= 0.8 x BVPS
+    if ident != "BFSI" and np.isfinite(bvps) and bvps > 0:
+        floor_eps = 0.8 * bvps / mult["bear"]
+        if any(x < floor_eps for x in lever["bear"]):
+            lever["bear"] = [max(x, floor_eps) for x in lever["bear"]]
+            lever["base"] = [max(b_, x * 1.02) for b_, x in zip(lever["base"], lever["bear"])]
+            out["lever"] = {s_: [float(x) for x in v_] for s_, v_ in lever.items()}
+            note(f"bear branch floored at 0.8x book (BVPS {bvps:.1f}): its earnings path reaches near-losses, "
+                 "where EPS x PE is meaningless")
     mult_floor = max(0.8, 0.9 * own_min) if ident == "BFSI" and np.isfinite(own_min) else None
     out["multiple"] = dict(kind="P/B" if ident == "BFSI" else "PE", own_5y_median=own_med, own_5y_p10=own_p10,
                            own_5y_min=own_min, own_months=int(len(own)), peer_median=peer_med,

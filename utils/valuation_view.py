@@ -80,9 +80,16 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
             note.append(str(r.reason) if pd.notna(r.reason) and str(r.reason) else str(r.status).lower())
             pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan)
             continue
-        q, _ = rating_from_grid(json.loads(r.grid), p if np.isfinite(p) else r.price, bool(r.gates_ok),
-                                r.confidence, r.identity)
+        try:
+            px_ = p if np.isfinite(p) else float(r.price)
+            q, _ = rating_from_grid(json.loads(r.grid), px_, bool(r.gates_ok), r.confidence, r.identity)
+        except Exception:                      # one malformed row must never take the page down
+            q = np.nan
         vb = val_bucket(q)
+        if not vb:
+            rat.append("—"); buck.append("NOT VALUED"); note.append("no price or distribution")
+            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan)
+            continue
         issue = ("multiple indeterminate" if str(r.rating).startswith("INDETERMINATE") else
                  str(r.rating).replace("UNRATED (", "").rstrip(")") if str(r.rating).startswith("UNRATED") else "")
         extra = "commodity: indicative" if r.identity == "COMMODITY" else ""
