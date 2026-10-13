@@ -246,6 +246,12 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
             flags.append("STRUCTURALLY INDETERMINATE")
         flags.append(f"durable re-rating test {'PASS' if m['rerating_test'] else 'fail'}")
         st.caption(" · ".join(flags))
+        if m.get("peer_names"):
+            fit = res.get("peer_fit", np.nan)
+            fit_txt = ("good" if fit <= 0.17 else "fair" if fit <= 0.22 else "weak -- own history weighted 75%") if np.isfinite(fit) else "n/a"
+            st.caption(f"Business-model peers (nearest on margin, ROCE, capital intensity, growth and the multiple the "
+                       f"market has paid): {', '.join(m['peer_names'])} · match {fit_txt}"
+                       + (f" ({fit:.2f})" if np.isfinite(fit) else ""))
     with c2:
         st.markdown("**1C probability scorecard**")
         scd = pd.DataFrame([(k_, v["score"], v["evidence"]) for k_, v in res["scorecard"].items()],

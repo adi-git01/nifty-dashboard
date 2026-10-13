@@ -99,6 +99,8 @@ def _table(df: pd.DataFrame):
     d = df.copy()
     d["sub_industry"] = d["ticker"].map(SUB_INDUSTRY_MAP)
     d["ind_score"] = pd.to_numeric(d["sub_industry"].map(load_industry_scores()), errors="coerce")
+    if "fx_dist_hi" not in d:
+        d["fx_dist_hi"] = np.nan
     for c in ("fx_gate1", "fx_shakeout", "fx_half_size", "fx_gap"):
         d[c] = d[c].map(lambda x: True if x is True or x == "True" or x == 1 else False) if c in d else False
     price = pd.to_numeric(d.get("price", d.get("currentPrice")), errors="coerce")
@@ -177,8 +179,13 @@ def _table(df: pd.DataFrame):
     slot = cap / int(maxpos)
     by_risk = np.floor(risk_rs / risk_ps)
     by_slot = np.floor(slot / v.price)
-    v["shares"] = np.fmin(by_risk, by_slot).fillna(0).astype(int)
-    v["sized_by"] = np.where(by_risk <= by_slot, "stop risk" + np.where(v.fx_half_size, " (½)", ""), "slot cap")
+    # no valid stop (price at or below it) -> no position; np.fmin would otherwise ignore the NaN risk
+    # and hand out a full slot
+    valid = risk_ps.notna()
+    v["shares"] = np.where(valid, np.fmin(by_risk, by_slot), 0)
+    v["shares"] = pd.to_numeric(v["shares"], errors="coerce").fillna(0).astype(int)
+    v["sized_by"] = np.where(~valid, "no valid stop",
+                             np.where(by_risk <= by_slot, "stop risk" + np.where(v.fx_half_size, " (½)", ""), "slot cap"))
     v["buy_value"] = (v.shares * v.price).round(0)
     v["fx_retention"] = pd.to_numeric(v.fx_retention, errors="coerce") * 100
     v["trigger"] = np.where(v.fx_supply == "NEAR OVERHANG", pd.to_numeric(v.fx_shelf_top, errors="coerce"), np.nan)
@@ -193,7 +200,7 @@ def _table(df: pd.DataFrame):
     cols = ["link", "name", "sub_industry", "ind_score", "price", "fx_action", "state_l", "flags", "fx_anchor_date",
             "fx_anchor_volx", "fx_days", "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
             "shares", "buy_value", "sized_by", "fx_t1", "fx_t2", "edge_3m", "edge_6m", "edge_years",
-            "fx_adx", "fx_bbp", "fx_rsi"]
+            "fx_dist_hi", "fx_adx", "fx_bbp", "fx_rsi"]
     cols[5:5] = ["signal"]
     cols[7:7] = ["val_rating", "val_pct", "val_cagr_base", "val_note"]
     st.caption(f"Showing **{len(v)}** stocks. Sorted by action, then the backtested 6-month edge of the row's cell.")
@@ -231,6 +238,10 @@ def _table(df: pd.DataFrame):
             "fx_bbp": st.column_config.NumberColumn("BB width pct", format="%.0f",
                                                     help="Bollinger width percentile vs the stock's last year (< 20 = squeeze)"),
             "fx_rsi": st.column_config.NumberColumn("RSI", format="%.0f"),
+            "fx_dist_hi": st.column_config.NumberColumn("From high", format="%+.1f%%",
+                                                        help="Distance from the 252-day CLOSING high -- the number Gate 1 "
+                                                             "tests (within 15%). The scanner's '% from 52W High' uses "
+                                                             "intraday highs, so the two can differ by a point or two."),
             "signal": st.column_config.TextColumn("Signal", help=SIGNAL_HELP),
             "val_rating": st.column_config.TextColumn("Valuation", help="Mechanical v4.1 verdict at today's price "
                                                       "(BUY / ACCUMULATE / HOLD / REDUCE / SELL) + quality: ✅ clean · "

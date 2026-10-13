@@ -294,7 +294,7 @@ def analyse(df: pd.DataFrame) -> dict:
     return r
 
 
-FIELDS = ["gate1", "state", "anchor_date", "anchor_volx", "days", "retention", "signature", "shakeout",
+FIELDS = ["gate1", "dist_hi", "state", "anchor_date", "anchor_volx", "days", "retention", "signature", "shakeout",
           "gap", "supply", "shelf_low", "shelf_top", "stop", "stop_pct", "half_size", "t1", "t2",
           "adx", "pdi", "ndi", "bbp", "rsi", "action"]
 
@@ -402,7 +402,10 @@ def plan(df: pd.DataFrame, held_price: float | None = None, held_date=None,
     if "shelf_top" in r:
         trig_b = f"daily close > {_p(r['shelf_top'])} (top of the shelf starting {_p(r['shelf_low'])}) into clean air"
     trigger = r.get("shelf_top") if supply == "NEAR OVERHANG" else None
-    rr_now = (r["t1"] - close) / risk if risk and risk > 0 else np.nan
+    # R:R from here: reward to the nearest real resistance (T2) over risk to the stop. (Against T1 it
+    # would be 2.0 by construction -- T1 is defined as 2R.) Clean air above -> no resistance -> blank.
+    rr_now = ((r["t2"] - close) / risk if risk and risk > 0 and np.isfinite(r["t2"]) and r["t2"] > close
+              else np.nan)
     rr_trig = ((r["t2"] - trigger) / (trigger - stop)
                if trigger and not np.isnan(r["t2"]) and trigger > stop and r["t2"] > trigger else np.nan)
     return dict(r=r, df=df, provisional=provisional, held=held, held_price=held_price, since=since,
@@ -466,7 +469,7 @@ def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_
         L.append(f"Stop: NOT COMPUTED -- price is below the stop level {_p(stop)} (no long setup)   Size: 0")
     L.append(f"Targets: T1 {_p(r['t1'])} (2R, reference only -- a 2R exit halved per-trade returns in the backtest) | "
              f"T2 {_p(r['t2'])} ({r.get('t2_kind', '')})")
-    L.append(f"R:R: from current {_p(P['rr_now'], 1)} | from trigger {_p(P['rr_trig'], 1)}")
+    L.append(f"R:R: from current {_p(P['rr_now'], 1)} (to T2) | from trigger {_p(P['rr_trig'], 1)}")
     L.append(f"Review on: {'day 5 of the anchor' if r.get('days', 99) < 5 else '+10 sessions'}")
 
     L.append("\nGATES")
