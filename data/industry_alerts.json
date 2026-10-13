@@ -1,0 +1,78 @@
+[
+  {
+    "id": "20261013061558006174",
+    "name": "Hotels",
+    "sub_industry": null,
+    "tickers": [
+      "INDHOTEL.NS",
+      "EIHOTEL.NS",
+      "EIHAHOTELS.NS",
+      "CHALET.NS",
+      "LEMONTREE.NS",
+      "ITCHOTELS.NS",
+      "VENTIVE.NS",
+      "SAMHI.NS",
+      "THELEELA.NS",
+      "PARKHOTELS.NS",
+      "ADVANIHOTR.NS",
+      "ASIANHOTNR.NS",
+      "AHLEAST.NS",
+      "BRIGHOTEL.NS",
+      "ADVENTHTL.NS"
+    ],
+    "on_status": true,
+    "notify": "all",
+    "score_threshold": null,
+    "direction": "above",
+    "notes": "Waiting for a turnaround from the bottom",
+    "created": "2026-10-13T06:15:58.006306",
+    "last_status": "DOWNTREND",
+    "pending_status": null,
+    "pending_days": 0,
+    "last_score": 26.9,
+    "last_date": "2026-10-12",
+    "score_side": null,
+    "recent": [
+      {
+        "date": "2026-10-06",
+        "a50": 20.0,
+        "a200": 20.0,
+        "rs": 1.01
+      },
+      {
+        "date": "2026-10-07",
+        "a50": 20.0,
+        "a200": 26.7,
+        "rs": 1.0
+      },
+      {
+        "date": "2026-10-08",
+        "a50": 13.3,
+        "a200": 26.7,
+        "rs": 1.13
+      },
+      {
+        "date": "2026-10-09",
+        "a50": 13.3,
+        "a200": 26.7,
+        "rs": -0.59
+      },
+      {
+        "date": "2026-10-12",
+        "a50": 13.3,
+        "a200": 26.7,
+        "rs": -0.59
+      }
+    ],
+    "history": [],
+    "last_reading": {
+      "status": "DOWNTREND",
+      "score": 26.9,
+      "above_50": 16.0,
+      "above_200": 25.4,
+      "med_rs": 0.39,
+      "n_valid": 15,
+      "n_members": 15
+    }
+  }
+]
