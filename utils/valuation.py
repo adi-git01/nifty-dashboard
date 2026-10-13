@@ -123,7 +123,7 @@ def _series(df, ticker, fld):
         _GROUPS.clear() if len(_GROUPS) > 8 else None
         _GROUPS[key] = {k: g.set_index("period")["value"].sort_index()
                         for k, g in df.groupby(["ticker", "field"])} if not df.empty else {}
-    s = _GROUPS[key].get((ticker, fld), pd.Series(dtype=float))
+    s = _GROUPS[key].get((ticker, fld), pd.Series(dtype=float, index=pd.DatetimeIndex([])))
     return s[~s.index.duplicated(keep="last")]
 
 
@@ -240,6 +240,9 @@ def _cagr(s, years):
 
 
 def _verdict(pct, conf, gates_ok, severe_ok=True):
+    if pct is None or not np.isfinite(pct):
+        return "NOT VALUED"
+    v = LADDER[-1][1]
     for cut, lab in LADDER:
         if pct < cut:
             v = lab
@@ -432,7 +435,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     parts = [(wt, v) for wt, v in parts if np.isfinite(v)]
     base_g = sum(wt * v for wt, v in parts) / sum(wt for wt, _ in parts) if parts else 0.08
     base_g = float(np.clip(base_g, -0.05, 0.35))
-    sd_g = float(max(g_hist.std(), 0.04)) if len(g_hist) >= 3 else 0.08
+    # robust spread of annual growth (IQR/1.35, not the std a single boom/bust year inflates), 4-15pp
+    sd_g = float(np.clip((g_hist.quantile(0.75) - g_hist.quantile(0.25)) / 1.35, 0.04, 0.15)) if len(g_hist) >= 3 else 0.08
     g = {"bear": float(np.clip(base_g - sd_g, -0.15, base_g - 0.02)), "base": base_g,
          "bull": float(np.clip(base_g + sd_g, base_g + 0.02, 0.50))}
     for s in g:
@@ -440,7 +444,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     q_marg = (q_np.rolling(4).sum() / q_sales.rolling(4).sum()).dropna() if len(q_sales) >= 4 else pd.Series(dtype=float)
     m_ttm = ttm_np / ttm_sales if ttm_sales and ttm_sales > 0 else np.nan
     hist_m = margins.iloc[-6:]
-    all_m = pd.concat([margins, q_marg])
+    # F2: the worst demonstrated run-rate of the LAST stress -- last 5 fiscal years and the quarterly
+    # rolling-4Q record -- not the worst year in a decade-plus of history
+    all_m = pd.concat([hist_m, q_marg])
     worst = float(all_m.min()) if len(all_m) else np.nan
     lever, path_note = {}, ""
     if ident == "BFSI":
