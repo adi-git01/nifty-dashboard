@@ -83,6 +83,7 @@ class Context:
     funda: pd.DataFrame             # fundamentals_cache, indexed by ticker
     overrides: dict = field(default_factory=dict)
     peer_cagr3: dict = field(default_factory=dict)
+    features: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
 def _read(path):
@@ -110,7 +111,120 @@ def load_context(root: str = ".") -> Context:
         ov.setdefault(str(r["ticker"]).strip(), {})[str(r["key"]).strip()] = r["value"]
     ctx = Context(A, Q, M, F, ov)
     ctx.peer_cagr3 = _all_cagr3(A)
+    ctx.features = _features(A, F, M, Q)
     return ctx
+
+
+PEER_FIT_WEAK = 0.22          # mean rank distance of the chosen peers above which they are a poor match
+FAMILY = {"Chemicals": "chem-pharma", "Pharma & Healthcare": "chem-pharma", "Capital Goods": "industrial",
+          "Aerospace & Defense": "industrial", "Infrastructure": "industrial", "Power & Utilities": "utilities",
+          "Oil & Gas": "energy", "Metals & Mining": "materials", "Cement & Materials": "materials",
+          "Consumer Goods": "consumer-staples", "Consumer Durables": "consumer-discretionary",
+          "Retail": "consumer-discretionary", "Textiles": "consumer-discretionary", "Hospitality": "services",
+          "Media": "services", "Telecom": "services", "IT & Technology": "tech", "Auto": "auto",
+          "Banking": "fin", "Financial Services": "fin", "Real Estate": "realty", "Insurance": "insurance",
+          "Diversified": "diversified"}
+
+
+def _features(A, F, M=None, Q=None) -> pd.DataFrame:
+    """Business-model fingerprint per stock: 5Y median operating margin, 5Y median ROCE, capital
+    intensity (fixed assets / sales), 3Y sales CAGR, 5Y median ROE (lenders), the multiple the market has
+    paid over 5 years (separates branded from commodity businesses that look alike on margins), promoter
+    holding (separates PSU from private lenders), and margin volatility (commodity test)."""
+    if A.empty or F is None or len(F) == 0:
+        return pd.DataFrame()
+    rows = {}
+    for t, g in A.groupby("ticker"):
+        piv = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+        if "np" not in piv:
+            continue
+        m = piv.index.month.value_counts().idxmax()
+        piv = piv[piv.index.month == m].iloc[-6:]
+        book = piv.get("eq_cap", np.nan) + piv.get("reserves", np.nan)
+        sales = piv.get("sales", pd.Series(np.nan, index=piv.index))
+        attr = np.nan
+        if "eps" in piv and t in getattr(F, "index", []) and pd.notna(piv["np"].iloc[-1]) and piv["np"].iloc[-1] > 0:
+            mc_, px_ = g[g.field == "mcap_cr"].value, g[g.field == "price_scr"].value
+            if len(mc_) and len(px_) and px_.iloc[-1] > 0:
+                attr = float(piv["eps"].iloc[-1] * mc_.iloc[-1] / px_.iloc[-1] / piv["np"].iloc[-1])
+        own_m = np.nan
+        mc_, px_ = g[g.field == "mcap_cr"].value, g[g.field == "price_scr"].value
+        if M is not None and len(M) and t in M.columns and len(mc_) and len(px_) and px_.iloc[-1] > 0:
+            sh = mc_.iloc[-1] / px_.iloc[-1]
+            pxm = M[t].dropna()
+            pxm = pxm[pxm.index >= pxm.index.max() - pd.DateOffset(years=5)]
+            t_ = (BFSI_GRAN & {str(F.at[t, "sector_granular"]) if t in F.index else ""})
+            src = (book if t_ else piv["np"] * (attr if np.isfinite(attr) and 0.6 <= attr < 0.95 else 1.0)).dropna()
+            if len(src) and len(pxm):
+                lev = pd.Series(src.values, index=src.index + pd.Timedelta(days=60)).sort_index().reindex(pxm.index, method="ffill") / sh
+                mm = (pxm / lev)[lev > 0]
+                mm = mm[mm < (15 if t_ else 150)]
+                own_m = float(mm.median()) if len(mm) >= 12 else np.nan
+        prom = np.nan
+        if Q is not None and len(Q):
+            pq = Q[(Q.ticker == t) & (Q.field == "promoters")] if "ticker" in Q else pd.DataFrame()
+            prom = float(pq.sort_values("period").value.iloc[-1]) if len(pq) else np.nan
+        opm_s = piv["opm"].dropna() if "opm" in piv else pd.Series(dtype=float)
+        npy = piv["np"].dropna()
+        rows[t] = dict(attr=attr, own_mult=own_m, promoters=prom,
+                       opm_range=float(opm_s.max() - opm_s.min()) if len(opm_s) >= 3 else np.nan,
+                       np_drop=float((npy.pct_change().min())) if len(npy) >= 3 else np.nan,
+                       opm=np.nanmedian(piv["opm"]) if "opm" in piv else np.nan,
+                       roce=np.nanmedian(piv["roce"]) if "roce" in piv else np.nan,
+                       fa_int=float(piv["fixed_assets"].iloc[-1] / sales.iloc[-1]) if "fixed_assets" in piv and sales.iloc[-1] > 0 else np.nan,
+                       g3=_cagr(sales, 3), roe=float(np.nanmedian(piv["np"] / book)) if isinstance(book, pd.Series) else np.nan)
+    X = pd.DataFrame(rows).T
+    X = X.join(F[["sector", "sector_granular", "pe", "pb", "marketCap"]], how="left")
+    X["family"] = X["sector"].map(FAMILY).fillna("other")
+    # service businesses inside a manufacturing sector get their own family (hospitals are not API makers)
+    X.loc[X.sector_granular.isin(["Healthcare Services", "Healthcare Equipment & Supplies"]), "family"] = "healthcare-services"
+    return X
+
+
+def business_peers(ctx: "Context", t: str, ident: str, k: int = 8, with_fit: bool = False):
+    """
+    Same-business-model peers (v4.1 Phase 2C): nearest neighbours on the business fingerprint within the
+    sector family (chemicals and pharma share one, so a pharma-intermediates maker can match CDMO/API names).
+    Distance on within-family percentile ranks; same sub-industry gets a mild preference.
+    """
+    X = ctx.features
+    empty = ([], np.nan) if with_fit else []
+    if X.empty or t not in X.index:
+        return empty
+    me = X.loc[t]
+    col = "pb" if ident == "BFSI" else "pe"
+    ok = (X.index != t) & (pd.to_numeric(X[col], errors="coerce") > 0) & ~X.attr.between(0.3, 0.6)  # no holdcos
+    if ident == "COMMODITY":
+        # commodity producers value against other producers, whatever their sector label
+        pool = X[ok & X.sector_granular.isin(COMMODITY_GRAN)]
+        feats = {"opm": 1.0, "roce": 1.0, "fa_int": 0.8, "own_mult": 1.0}
+    elif ident == "BFSI":
+        pool = X[ok & (X.family == me.family)]
+        # banks with banks, NBFCs with NBFCs (deposit franchise vs wholesale funding); promoter holding
+        # separates PSU from private franchises
+        same = pool[pool.sector_granular == me.sector_granular]
+        pool = same if len(same) >= 5 else pool[pool.sector_granular.isin(BFSI_GRAN)]
+        feats = {"roe": 1.0, "g3": 0.7, "own_mult": 1.0, "promoters": 1.0}
+    else:
+        pool = X[ok & (X.family == me.family) & ~X.sector_granular.isin(BFSI_GRAN)]
+        feats = {"opm": 1.0, "roce": 1.0, "fa_int": 0.8, "g3": 0.5, "own_mult": 1.0}
+    if len(pool) < 3:
+        return empty
+    allx = pd.concat([pool, X.loc[[t]]])
+    d = pd.Series(0.0, index=pool.index)
+    wsum = 0.0
+    for f_, w_ in feats.items():
+        r = pd.to_numeric(allx[f_], errors="coerce").rank(pct=True)
+        if pd.isna(r.get(t)):
+            continue
+        d += w_ * (r.loc[pool.index].fillna(0.5) - r.loc[t]) ** 2
+        wsum += w_
+    if not wsum:
+        return empty
+    d = np.sqrt(d / wsum) * np.where(pool.sector_granular == me.sector_granular, 0.85, 1.0)
+    d = d.sort_values()
+    peers = list(d.index[:k])
+    return (peers, float(d.iloc[:k].mean())) if with_fit else peers
 
 
 _GROUPS: dict = {}
@@ -304,6 +418,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     q_sales = q_sales[q_sales.index.month.isin([3, 6, 9, 12])]
     if len(q_np) < 4:
         return {**out, "status": "OUT OF SCOPE", "reason": "fewer than 4 reported quarters"}
+    if q_np.index.max() < pd.Timestamp.today() - pd.Timedelta(days=270):
+        return {**out, "status": "NO DATA", "reason": f"latest reported quarter is {q_np.index.max():%b %Y} -- stale"}
     ttm_np = float(q_np.iloc[-4:].sum())
     ttm_sales = float(q_sales.iloc[-4:].sum()) if len(q_sales) >= 4 else np.nan
     if ttm_np <= 0:
@@ -318,9 +434,24 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         shares = mcap / 1e7 / price                              # fallback: cache market cap / live price
         note("share count from the cached market cap and today's price (Screener headline missing) -- "
              "off by the price move since the cache date")
-    ttm_eps = ttm_np / shares
-
     A = lambda fld: _fy(_series(ctx.annual, t, fld))
+    # Attributable share of consolidated profit: Screener's consolidated "Net Profit" includes minority
+    # interests; reported EPS does not. attr = latest FY EPS x shares / FY net profit (a split or bonus
+    # since the FY pushes it above 1 -> ignored). < 60% = holding company -> out of scope (SOTP problem).
+    attr = 1.0
+    basis = ctx.annual[ctx.annual.ticker == t].basis.iloc[0] if "basis" in ctx.annual else ""
+    _np, _eps = A("np"), A("eps")
+    if basis == "consolidated" and len(_np) and len(_eps) and _np.iloc[-1] > 0:
+        ratio = float(_eps.iloc[-1] * shares / _np.iloc[-1])
+        if 0.3 < ratio < 0.6 and "identity" not in ov:
+            return {**out, "status": "OUT OF SCOPE", "reason": f"holding company / large minority interests: owners "
+                    f"get ~{ratio:.0%} of consolidated profit -- a sum-of-parts problem, not a multiple problem"}
+        if 0.6 <= ratio < 0.95:
+            attr = ratio
+            note(f"minority interests: owners get {ratio:.0%} of consolidated profit -- EPS and the own-multiple "
+                 "history use the attributable share")
+    out["attributable"] = attr
+    ttm_eps = ttm_np * attr / shares
     a_sales, a_np = A("sales"), A("np")
     a_book = (A("eq_cap") + A("reserves")).dropna()
     a_cfo, a_cfi, a_roce, a_pay = A("cfo"), A("cfi"), A("roce"), A("payout")
@@ -328,6 +459,14 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     years = int(a_np.dropna().shape[0])
     if ident is None:
         ident = ("BFSI" if gran in BFSI_GRAN else "COMMODITY" if gran in COMMODITY_GRAN else "INDUSTRIAL")
+        # a commodity sub-industry is not enough: a price-taker shows it in its margins. Stable margins
+        # (5Y operating-margin range < 6pp and no year with profit down > 40%) mean a converter / brand.
+        if ident == "COMMODITY" and t in ctx.features.index:
+            fx_ = ctx.features.loc[t]
+            if pd.notna(fx_.opm_range) and fx_.opm_range < 6 and (pd.isna(fx_.np_drop) or fx_.np_drop > -0.4):
+                ident = "INDUSTRIAL"
+                note(f"commodity sub-industry but stable margins (5Y range {fx_.opm_range:.0f}pp) -- valued as an "
+                     "operating business (converter / brand), not a commodity price-taker")
     if gran in MIXED_GRAN and "identity" not in ov:
         note("Diversified group: may need a mini-SOTP (>10% PAT from a different multiple class) -- "
              "set it via overrides; run as INDUSTRIAL")
@@ -343,7 +482,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     book = float(a_book.iloc[-1]) if len(a_book) else np.nan
     bvps = book / shares if np.isfinite(book) else (price / float(f["pb"]) if f is not None and f.get("pb") else np.nan)
     margins = (a_np / a_sales).replace([np.inf, -np.inf], np.nan).dropna()
-    roe_hist = (a_np / ((a_book + a_book.shift(1)) / 2)).dropna()
+    roe_hist = (a_np * attr / ((a_book + a_book.shift(1)) / 2)).dropna()
     roce_now = float(a_roce.dropna().iloc[-1]) / 100 if len(a_roce.dropna()) else np.nan
     cfo_pat = float(a_cfo.iloc[-3:].sum() / a_np.iloc[-3:].sum()) if len(a_cfo) >= 3 and a_np.iloc[-3:].sum() > 0 else np.nan
     fcf_pat = (float((a_cfo + a_cfi).dropna().iloc[-3:].sum() / a_np.iloc[-3:].sum())
@@ -370,19 +509,32 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         else:
             src = a_np
         avail = pd.Series(src.values, index=src.index + pd.Timedelta(days=60)).sort_index()
-        lever_m = avail.reindex(px.index, method="ffill") / shares
+        lever_m = avail.reindex(px.index, method="ffill") * (1.0 if ident == "BFSI" else attr) / shares
         own = (px / lever_m)[lever_m > 0].dropna()
-    # ---- peers (same sub-industry) -----------------------------------------------
+    # ---- peers: same BUSINESS MODEL (nearest neighbours on margin, ROCE, capital intensity, growth) --------
     col = "pb" if ident == "BFSI" else "pe"
-    pool = ctx.funda[(ctx.funda.sector_granular == gran) & (ctx.funda.index != t)] if gran else ctx.funda.iloc[:0]
+    cap_ = 60 if col == "pb" else 400
+    peer_list, peer_fit = business_peers(ctx, t, ident, with_fit=True)
+    out["peer_fit"] = peer_fit
+    if peer_list:
+        pool = ctx.funda.loc[[x for x in peer_list if x in ctx.funda.index]]
+    else:
+        pool = ctx.funda[(ctx.funda.sector_granular == gran) & (ctx.funda.index != t)] if gran else ctx.funda.iloc[:0]
+        note("business-model peers unavailable -- peer anchor falls back to the sub-industry")
     peer_vals = pd.to_numeric(pool[col], errors="coerce")
-    peer_vals = peer_vals[(peer_vals > 0) & (peer_vals < (60 if col == "pb" else 400))]
+    peer_vals = peer_vals[(peer_vals > 0) & (peer_vals < cap_)]
     sec_vals = pd.to_numeric(ctx.funda[ctx.funda.sector == out["sector"]][col], errors="coerce")
-    sec_vals = sec_vals[(sec_vals > 0) & (sec_vals < (60 if col == "pb" else 400))]
+    sec_vals = sec_vals[(sec_vals > 0) & (sec_vals < cap_)]
     peer_med = float(peer_vals.median()) if len(peer_vals) >= 3 else (float(sec_vals.median()) if len(sec_vals) >= 3 else np.nan)
-    sector_med = float(sec_vals.median()) if len(sec_vals) >= 3 else peer_med
+    # v4.1 cap uses the "applicable-sector median" -- the business-model peer set, not the broad sector
+    sector_med = peer_med if np.isfinite(peer_med) else (float(sec_vals.median()) if len(sec_vals) >= 3 else np.nan)
+    out["peers"] = [x.replace(".NS", "") for x in pool.index[:8]]
     if len(peer_vals) < 3:
-        note(f"fewer than 3 sub-industry peers -- peer anchor uses the {out['sector']} sector median")
+        note(f"fewer than 3 usable peers -- peer anchor uses the {out['sector']} sector median")
+    # own history: drop multiples on near-zero earnings (they are not "positive-earnings periods" in any
+    # useful sense and fake a high own median) -- above max(150x, 4x peers) for PE, max(15x, 4x) for P/B
+    if len(own) and np.isfinite(peer_med):
+        own = own[own <= max(15.0 if col == "pb" else 150.0, 4 * peer_med)]
     own_med = float(own.median()) if len(own) >= 12 else np.nan
     own_p10 = float(own.quantile(0.10)) if len(own) >= 12 else np.nan
     own_min = float(own.min()) if len(own) >= 12 else np.nan
@@ -461,7 +613,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     worst = float(all_m.min()) if len(all_m) else np.nan
     lever, path_note = {}, ""
     if ident == "BFSI":
-        roe_ttm = ttm_np / book if np.isfinite(book) and book > 0 else np.nan
+        roe_ttm = ttm_np * attr / book if np.isfinite(book) and book > 0 else np.nan
         rh = roe_hist.iloc[-5:]
         base_roe = float(np.nanmedian(list(rh) + [roe_ttm])) if len(rh) else roe_ttm
         bear_roe = float(min(rh.min() if len(rh) else roe_ttm, roe_ttm) * 0.85)
@@ -488,9 +640,12 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
                       "bull": float(margins.quantile(0.75)) if len(margins) >= 4 else 1.3 * mid}
             g = {k: float(np.clip(v, -0.10, 0.10)) for k, v in g.items()}
             out["cycle"] = dict(mid_margin=mid, ttm_margin=m_ttm,
-                                mid_eps=ttm_sales * mid / shares if ttm_sales else np.nan)
+                                mid_eps=ttm_sales * mid * attr / shares if ttm_sales else np.nan)
         else:
             base_m = float(hist_m.median()) if len(hist_m) else m_ttm
+            if len(hist_m) >= 4 and (hist_m <= 0).any() and (hist_m.iloc[-3:] > 0).all():
+                base_m = float(hist_m.iloc[-3:].median())
+                note("loss years in the 5Y record: base margin normalized on the last 3 (post-stress) years")
             if len(q_marg) >= 4 and np.isfinite(m_ttm) and m_ttm > base_m and (q_marg.iloc[-4:] > base_m).all():
                 base_m = (base_m + m_ttm) / 2
                 note("structural-improvement override: 4 straight quarters of TTM margin above the 5Y median -- "
@@ -511,7 +666,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
             for h in H:
                 sales_h = ttm_sales * (1 + g[s]) ** h
                 mh = m_term[s] if ident == "COMMODITY" else m_ttm + (m_term[s] - m_ttm) * h / 3
-                path.append(sales_h * mh / shares)
+                path.append(sales_h * mh * attr / shares)
             lever[s] = path
         out["scenario_inputs"] = {"growth": g, "terminal_margin": m_term, "margin_ttm": m_ttm, "worst_margin": worst}
         path_note = ("EPS_h = TTM sales x (1+g)^h x margin_h / shares; margin moves linearly from TTM to the "
@@ -545,7 +700,13 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
                             flag=bool(1.5 <= ratio < 2.5) if np.isfinite(ratio) else False)
 
     # ---- Phase 2C multiple model ---------------------------------------------------------
-    anchors = [(v, w_) for v, w_ in ((own_med, 0.5), (peer_med, 0.5)) if np.isfinite(v)]
+    # v4.1 default 50/50; when even the nearest peers are a poor match (no listed company runs this
+    # business model), own history carries 75% -- the deviation gets its one line
+    w_own = 0.5
+    if np.isfinite(out.get("peer_fit", np.nan)) and out["peer_fit"] > PEER_FIT_WEAK and np.isfinite(own_med):
+        w_own = 0.75
+        note(f"weak peer match (mean distance {out['peer_fit']:.2f}): anchor weighted 75/25 own history / peers")
+    anchors = [(v, w_) for v, w_ in ((own_med, w_own), (peer_med, 1 - w_own)) if np.isfinite(v)]
     if not anchors:
         return {**out, "status": "NO DATA", "reason": "no own multiple history and no peers"}
     neutral = sum(v * w_ for v, w_ in anchors) / sum(w_ for _, w_ in anchors)
@@ -617,7 +778,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     mult_floor = max(0.8, 0.9 * own_min) if ident == "BFSI" and np.isfinite(own_min) else None
     out["multiple"] = dict(kind="P/B" if ident == "BFSI" else "PE", own_5y_median=own_med, own_5y_p10=own_p10,
                            own_5y_min=own_min, own_months=int(len(own)), peer_median=peer_med,
-                           peers=int(len(peer_vals)), sector_median=sector_med, neutral=neutral,
+                           peers=int(len(peer_vals)), peer_names=out.get("peers", []), sector_median=sector_med, neutral=neutral,
                            modifiers=mods, modifiers_sum=mods_sum, ceiling=ceiling, capped=capped,
                            spot=spot_mult, rerating_test=rerate, share_gain=share_gain,
                            precedence=precedence, indeterminate=indeterminate, anchor_divergence=diverge, **mult)
