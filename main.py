@@ -44,6 +44,7 @@ from utils.rs_alerts import (
     describe_arm_state,
 )
 from utils import repo_store
+from utils import industry_alerts as ind_alerts
 from utils.trend_engine import calculate_sector_history, calculate_stock_trend_history
 from utils.market_mood import calculate_mood_metrics, save_mood_snapshot, load_mood_history, chart_market_mood
 from utils.market_breadth import render_breadth_widget
@@ -2645,6 +2646,127 @@ elif page == "📊 Return Tracker":
                                 st.rerun()
                     st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>",
                                 unsafe_allow_html=True)
+
+        # ============================================================
+        # INDUSTRY / BASKET STATUS ALERTS
+        # ============================================================
+        st.markdown("---")
+        st.markdown("### 🏭 Industry Alerts")
+        st.caption(
+            "Telegram after the close when an industry (or your own basket, e.g. Hotels) changes "
+            "status, or its trend score crosses your level. Status from member breadth: 🔴 DOWNTREND → "
+            "🟠 BASING → 🟡 TURNING UP → 🟢 UPTREND (🟣 WEAKENING = long trend intact, short-term lost). "
+            "Trend score 0-100 = 40% share above 50-day + 40% share above 200-day + 20% median RS; "
+            "< 30 downtrend, 30-50 basing, 50-70 improving, > 70 strong. Readings are 5-day averages and a "
+            "new status must hold 3 days. Tested 2021-26: an early TURNING UP was not a buy on its own; "
+            "UPTREND was the better-evidenced step — treat these as a watch tool.")
+
+        _ind_c1, _ind_c2 = st.columns([2, 1])
+        with _ind_c2:
+            st.markdown("#### ➕ New Industry Alert")
+            _ind_kind = st.radio("Watch", ["Preset basket", "Sub-industry", "Custom tickers"],
+                                 horizontal=True, key="ind_kind")
+            with st.form("new_ind_alert_form", clear_on_submit=False):
+                _ind_sub, _ind_tk, _ind_name = None, None, ""
+                if _ind_kind == "Preset basket":
+                    _ind_name = st.selectbox("Basket", list(ind_alerts.PRESET_BASKETS), key="ind_preset")
+                    _ind_tk = ind_alerts.PRESET_BASKETS[_ind_name]
+                    st.caption(", ".join(_ind_tk))
+                elif _ind_kind == "Sub-industry":
+                    from utils.nifty1000_list import SUB_INDUSTRY_MAP as _SIM
+                    _ind_sub = st.selectbox("Sub-industry", sorted({g for g in _SIM.values()
+                                                                     if g and g != "Unknown"}),
+                                            key="ind_sub")
+                    _ind_name = _ind_sub
+                else:
+                    _ind_name = st.text_input("Basket name", placeholder="Hotels", key="ind_name")
+                    _ind_raw = st.text_area("Tickers (comma or space separated)",
+                                            placeholder="INDHOTEL, CHALET, LEMONTREE", key="ind_tickers")
+                    _ind_tk = [t for t in _ind_raw.replace(",", " ").split() if t]
+                _ind_status = st.checkbox("Alert on status changes", value=True, key="ind_on_status")
+                _ind_notify = st.selectbox("Which changes", list(ind_alerts.NOTIFY),
+                                           format_func=lambda k: ind_alerts.NOTIFY[k], key="ind_notify")
+                _ind_use_score = st.checkbox("Also alert on a trend-score level", value=True,
+                                             key="ind_use_score")
+                _ind_dir = st.selectbox("Trigger when the score", list(ind_alerts.DIRECTIONS),
+                                        format_func=lambda k: ind_alerts.DIRECTIONS[k], key="ind_dir")
+                _ind_thr = st.slider("Trend score level", 0, 100, 50, 5, key="ind_thr",
+                                     help="Fires when the 5-day score moves from 2+ points one side "
+                                          "of the level to 2+ points the other side.")
+                _ind_notes = st.text_input("Notes", placeholder="Why I'm watching...", key="ind_notes")
+                if st.form_submit_button("🔔 Create Industry Alert", use_container_width=True,
+                                         type="primary"):
+                    _mem = ([ind_alerts.normalize_ticker(t) for t in _ind_tk] if _ind_tk
+                            else ind_alerts.basket_members({"sub_industry": _ind_sub}))
+                    _rd = ind_alerts.basket_reading(df, _mem)
+                    if not _ind_name:
+                        st.error("Give the basket a name.")
+                    elif _rd is None:
+                        st.error(f"Fewer than {ind_alerts.MIN_VALID} of these stocks have data "
+                                 f"in the loaded universe — check the symbols.")
+                    else:
+                        ind_alerts.add_industry_alert(
+                            _ind_name, sub_industry=_ind_sub, tickers=_ind_tk,
+                            on_status=_ind_status, notify=_ind_notify,
+                            score_threshold=float(_ind_thr) if _ind_use_score else None,
+                            direction=_ind_dir, notes=_ind_notes, df=df)
+                        st.success(f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
+                                   f"{_rd['status']}, score {_rd['score']:.0f}")
+
+        with _ind_c1:
+            st.markdown("#### Active Industry Alerts")
+            _ind_all = ind_alerts.load_industry_alerts()
+            if not _ind_all:
+                st.info("No industry alerts yet. Create one →")
+            for _a in _ind_all:
+                _rd = ind_alerts.basket_reading(df, ind_alerts.basket_members(_a))
+                _stat = _a.get("last_status") or (_rd or {}).get("status")
+                _c_info, _c_act = st.columns([6, 1])
+                with _c_info:
+                    _line = f"**{_a['name']}** · {ind_alerts.ICONS.get(_stat, '')} {_stat}"
+                    if _a.get("pending_status"):
+                        _line += (f" · :orange[→ {_a['pending_status']} pending "
+                                  f"{_a.get('pending_days', 0)}/{ind_alerts.CONFIRM_DAYS}d]")
+                    if _rd:
+                        _line += (f" · score today **{_rd['score']:.0f}** "
+                                  f"({_rd['above_50']:.0f}% > 50d, {_rd['above_200']:.0f}% > 200d)")
+                    st.write(_line)
+                    _bits = []
+                    if _a.get("on_status", True):
+                        _bits.append("status: " + ("upgrades" if _a.get("notify") == "up" else "all changes"))
+                    if _a.get("score_threshold") is not None:
+                        _bits.append(f"score {ind_alerts.DIRECTIONS[_a.get('direction', 'above')].lower()} "
+                                     f"{_a['score_threshold']:.0f}")
+                    _hist = _a.get("history") or []
+                    if _hist:
+                        _h = _hist[-1]
+                        _bits.append(f"last change {_h['from']} → {_h['to']} on {_h['date']}")
+                    if _a.get("notes"):
+                        _bits.append(f"📝 {_a['notes'][:60]}")
+                    st.caption(" · ".join(_bits))
+                with _c_act:
+                    if st.button("🗑️", key=f"del_ind_{_a['id']}", help="Delete this industry alert"):
+                        ind_alerts.remove_industry_alert(_a["id"])
+                        st.rerun()
+                st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+
+            with st.expander("All sub-industries — status and trend score today"):
+                _ov = ind_alerts.all_sub_industry_readings(df)
+                if _ov.empty:
+                    st.caption("No data.")
+                else:
+                    _ov["status"] = _ov["status"].map(lambda x: f"{ind_alerts.ICONS.get(x, '')} {x}")
+                    st.dataframe(
+                        _ov.sort_values("score", ascending=False)[
+                            ["industry", "status", "score", "above_50", "above_200", "med_rs", "n_valid"]],
+                        hide_index=True, use_container_width=True,
+                        column_config={"score": st.column_config.ProgressColumn(
+                                           "Trend score", min_value=0, max_value=100, format="%.0f"),
+                                       "above_50": st.column_config.NumberColumn("% > 50d", format="%.0f"),
+                                       "above_200": st.column_config.NumberColumn("% > 200d", format="%.0f"),
+                                       "med_rs": st.column_config.NumberColumn("Median RS", format="%+.1f"),
+                                       "n_valid": "Stocks"})
+                    st.caption("Today's single-day reading; alerts use the 5-day average.")
 
     # ========================================
     # TAB 3: ADD NEW POSITION

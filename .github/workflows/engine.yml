@@ -105,6 +105,15 @@ jobs:
         python rs_alert_daemon.py
       continue-on-error: true
 
+    - name: "Industry / basket status alerts (Telegram)"
+      # Same snapshot as the RS alerts; status changes need two consecutive
+      # snapshot dates, so a re-run on the same day cannot fire twice.
+      env:
+        REPO_STORE_DISABLED: "1"
+      run: |
+        python industry_alert_daemon.py
+      continue-on-error: true
+
     - name: Commit State Changes (All Data Files)
       continue-on-error: true  # a failed push must not trigger the crash alert; the step log shows it
       # Rebase-and-retry instead of a force push, which overwrote commits that

@@ -19,3 +19,11 @@ was the worst time to buy an industry; no turn definition tested had an edge. No
 
 Hotels basket (15 stocks) on 12 Oct 2026: 13% above 50d, 27% above 200d, median CompRS -0.6
 (from -3.9 in Aug) -- still DOWNTREND; only relative strength is improving.
+
+## Built anyway as a watch tool (utils/industry_alerts.py, industry_alert_daemon.py)
+Status changes and a user-chosen trend-score level (0-100 = 40% share above 50d + 40% above 200d +
+20% median RS), Telegram from the EOD workflow. Replayed over 162 daily snapshots (Feb-Oct 2026) with
+6 alerts: raw daily readings fired 161 messages; 5-day smoothing + 3-day confirmation 90; adding a
+5-point hysteresis on the status lines (RS 1 pp) and a +/-2 buffer on the score level 57 (~1.3 per
+alert per month). Hotels replay: DOWNTREND -> BASING -> TURNING UP (Apr), back to DOWNTREND (Jun),
+TURNING UP (Jun), BASING (Jul), DOWNTREND (Aug) -- a real round trip, not noise.
