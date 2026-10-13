@@ -255,6 +255,15 @@ def _verdict(pct, conf, gates_ok, severe_ok=True):
     return v
 
 
+def _order(lever: dict) -> dict:
+    """bear <= 0.98 base <= bull / 1.02 at every horizon, bear >= 5% of base (bands must never invert)."""
+    for j in range(3):
+        b = lever["base"][j]
+        lever["bear"][j] = float(min(max(lever["bear"][j], 0.05 * b), 0.98 * b))
+        lever["bull"][j] = float(max(lever["bull"][j], 1.02 * b))
+    return lever
+
+
 def _ov(ov, key, default=np.nan, cast=float):
     if key not in ov:
         return default
@@ -519,6 +528,14 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         if lever[s][0] > lever[s][-1] * 1.0001 or (lever[s][1] < min(lever[s][0], lever[s][2]) - 1e-9):
             note(f"{s} path is non-monotonic ({', '.join(f'{x:.1f}' for x in lever[s])}) -- the Y3 figure is not a run-rate")
             break
+    if not all(np.isfinite(lever["base"])):
+        return {**out, "status": "NO DATA", "reason": "base earnings path not computable (missing sales or margins)"}
+    if not (all(np.isfinite(lever["bear"])) and all(np.isfinite(lever["bull"]))):
+        lever["bear"] = [0.7 * b for b in lever["base"]]
+        lever["bull"] = [1.3 * b for b in lever["base"]]
+        note("bear/bull margins missing in the source data -- scenarios set at +/-30% of base (DATA caution)")
+        out["data_fallback"] = True
+    lever = _order(lever)
     out["lever"] = {s: [float(x) for x in v] for s, v in lever.items()}
     out["path_note"] = path_note
     # 1F sanity
@@ -565,7 +582,12 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     rerate = bool(share_gain and np.isfinite(roce_now) and roce_now >= 0.20 and np.isfinite(cfo_pat) and cfo_pat >= 0.8)
     rerate = bool(_ov(ov, "rerating_pass", float(rerate)))
     precedence, indeterminate = False, False
-    if not rerate and np.isfinite(spot_mult) and bull_m >= spot_mult:
+    # Spot ceiling (durable re-rating branch). Mechanical reading: it binds only when the market already
+    # pays at least the anchor-based BASE -- then a bull above today's multiple claims a RE-RATING and needs
+    # the evidence test. Below BASE, a bull above spot is reversion toward the stock's own / peer anchor,
+    # not a re-rating, so the ceiling does not apply (a judgment run decides this case by case).
+    out["ceiling_applies"] = bool(np.isfinite(spot_mult) and spot_mult >= base_m_)
+    if not rerate and out["ceiling_applies"] and bull_m >= spot_mult:
         bull_m = 0.98 * spot_mult                       # spot ceiling wins
         if 1.15 * base_m_ > bull_m:
             base_m_ = bull_m / 1.15                     # re-examine BASE
@@ -585,8 +607,10 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     if ident != "BFSI" and np.isfinite(bvps) and bvps > 0:
         floor_eps = 0.8 * bvps / mult["bear"]
         if any(x < floor_eps for x in lever["bear"]):
-            lever["bear"] = [max(x, floor_eps) for x in lever["bear"]]
-            lever["base"] = [max(b_, x * 1.02) for b_, x in zip(lever["base"], lever["bear"])]
+            # the floor lifts the bear branch only -- never to or above base (a book floor above the base case
+            # means EPS x PE undervalues the book for this company; that is disclosed, not forced into base)
+            lever["bear"] = [max(x, min(floor_eps, 0.95 * b_)) for x, b_ in zip(lever["bear"], lever["base"])]
+            lever = _order(lever)
             out["lever"] = {s_: [float(x) for x in v_] for s_, v_ in lever.items()}
             note(f"bear branch floored at 0.8x book (BVPS {bvps:.1f}): its earnings path reaches near-losses, "
                  "where EPS x PE is meaningless")
@@ -623,6 +647,32 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     w = WEIGHTS[wkey]
     out.update(rho=rho, hurdle=r, weights=wkey)
 
+    # ---- Gate E as a FLOOR (mechanical runs) -----------------------------------------------------
+    # v4.1 Gate E is "dispersion & floors": the fair-value range may not be narrower than 0.8x the
+    # stock's own 52-week price range. A judgment run would revisit its bands; the mechanical run
+    # widens bear/bull spreads around the unchanged base (levers and multiples alike) up to the floor,
+    # at most 2x, and says so. Base case, probabilities and the CMP are untouched.
+    out["e_widened"] = 1.0
+    if np.isfinite(hl_mid) and hl_mid > 0:
+        V_, _ = simulate(lever, mult, probs, rho, w, r, n=4000, mult_floor=mult_floor)
+        q10, q50, q90 = np.percentile(V_, [10, 50, 90])
+        disp0 = (q90 - q10) / q50 if q50 > 0 else np.nan
+        if np.isfinite(disp0) and 0 < disp0 < 0.8 * hl_mid:
+            k = float(min(2.0, 0.8 * hl_mid / disp0 * 1.05))
+            for j in range(3):
+                b = lever["base"][j]
+                lever["bear"][j] = max(b - k * (b - lever["bear"][j]), 0.05 * b)
+                lever["bull"][j] = b + k * (lever["bull"][j] - b)
+            mb_ = mult["base"]
+            mult = {"bear": max(mb_ - k * (mb_ - mult["bear"]), 0.3 * mb_), "base": mb_,
+                    "bull": mb_ + k * (mult["bull"] - mb_)}
+            lever = _order(lever)
+            out["lever"] = {s_: [float(x) for x in v_] for s_, v_ in lever.items()}
+            out["multiple"].update(mult)
+            out["e_widened"] = k
+            note(f"fair-value range widened x{k:.2f} around the unchanged base case to the price-volatility floor "
+                 f"(Gate E: range {disp0:.2f} vs 0.8 x 52-week range {0.8 * hl_mid:.2f})")
+
     # ---- Phase 2D simulation --------------------------------------------------------------------
     V, reg = simulate(lever, mult, probs, rho, w, r, n=n, mult_floor=mult_floor)
     pct = float((V < price).mean() * 100)
@@ -658,8 +708,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     V0, _ = simulate(lever, mult, probs, 0.0, w, r, n=n, mult_floor=mult_floor, link=False, rho_regime=0.0)
     impl = V0.mean() / am - 1
     cov = V.mean() / V0.mean() - 1
-    gates["C"] = dict(ok=bool(abs(impl) <= 0.01), detail=f"engine mean (independent multiple draw) {V0.mean():.0f} vs "
-                      f"analytic mixture mean {am:.0f} ({impl:+.2%}); rho-covariance residual {cov:+.2%} "
+    se = float(V0.std() / np.sqrt(n) / am) if am else 0.0      # Monte Carlo standard error of the mean
+    gates["C"] = dict(ok=bool(abs(impl) <= max(0.01, 3 * se)), detail=f"engine mean (independent multiple draw) {V0.mean():.0f} vs "
+                      f"analytic mixture mean {am:.0f} ({impl:+.2%}, tolerance max(1%, 3 x MC s.e. {se:.2%})); rho-covariance residual {cov:+.2%} "
                       f"(disclosed); scenario-asymmetry drift {drift:+.1%} (information, not a fail)")
     trig = np.isfinite(spot_mult) and spot_mult > mult["bull"]
     near = np.isfinite(spot_mult) and not trig and spot_mult >= 0.9 * mult["bull"]
@@ -706,6 +757,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     else:
         out["rating"] = v + (" · INDICATIVE" if ident == "COMMODITY" else "")
     out["verdict_raw"] = v
+    out["quality"] = quality_profile(out, gates, Q, bl, mass, target, indeterminate, conf, ident)
     out["ladder"] = dict(deep_add=Q["P10"], accumulate=Q["P25"], fair_lo=Q["P25"], fair_hi=Q["P75"], trim=Q["P90"])
     pivot = "multiple" if ident != "BFSI" and np.std([mult[s] for s in mult]) / mult["base"] > np.std(
         [lever[s][2] for s in lever]) / lever["base"][2] else ("ROE / book path" if ident == "BFSI" else "margin path")
@@ -744,6 +796,96 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     return out
 
 
+QUALITY = {0: ("✅", "Clean"), 1: ("🟡", "Caution"), 2: ("🟠", "Weak"), 3: ("🔴", "Unreliable")}
+
+
+def quality_profile(out, gates, Q, bl, mass, target, indeterminate, conf, ident) -> dict:
+    """
+    Translate gate results into plain-language reasons, each with a severity and the DIRECTION it bends
+    the verdict. Severity: 1 caution (read the reason), 2 weak (valuation counts one notch less in the
+    combined signal), 3 unreliable (valuation ignored in the combined signal).
+    """
+    iss = []
+    add = lambda sev, code, title, plain, lean="": iss.append(dict(sev=sev, code=code, title=title, plain=plain, lean=lean))
+    if not gates["C"]["ok"]:
+        add(3, "C", "Engine check failed", "The simulation did not reproduce its own closed-form mean -- treat the "
+            "numbers as broken for this stock.")
+    if not out["sanity_1f"]["ok"]:
+        add(3, "1F", "Earnings jump looks like a data issue", "Year-1 base EPS is 2.5x or more of trailing EPS -- "
+            "usually a one-off, a restatement or a units problem in the source data.", "optimistic")
+    a_low = Q["P10"] > 1.10 * bl["bear"]
+    a_high = Q["P90"] < 0.90 * bl["bull"]
+    if a_low:
+        add(2, "A", "Downside under-represented", "The low end of the fair-value range sits above the bear scenario, "
+            "so the bear case barely shows up -- 'cheap' may be flattered.", "optimistic")
+    if a_high:
+        add(2, "A", "Upside under-represented", "The top of the range sits below the bull scenario -- 'expensive' "
+            "may be overstated.", "pessimistic")
+    if not gates["B"]["ok"]:
+        if mass < target:
+            add(1, "B", "Upside case much bigger than downside", "The bull scenario sits far further above base than "
+                "the bear sits below, so part of the value comes from the bull case.", "optimistic")
+        else:
+            add(1, "B", "Downside case dominates", "The bear scenario sits far further below base than the bull sits "
+                "above, so the verdict leans on the bear case.", "pessimistic")
+    if not gates["E"]["ok"]:
+        add(2, "E", "Range narrower than the stock's own price swings", "Even after widening to the floor, the "
+            "fair-value range is narrower than the stock moves in a year -- percentiles near the ends overstate "
+            "how cheap or expensive it is.")
+    if out.get("e_widened", 1.0) > 1.0:
+        add(0, "E+", f"Range widened x{out['e_widened']:.2f} to the price-volatility floor",
+            "Mechanical floor rule; base case and probabilities unchanged.")
+    if indeterminate:
+        add(2, "MULT", "Price above anything its history supports", "Today's multiple is above any level in the "
+            "stock's own 5-year record and the durable re-rating test failed (share gains + ROCE >= 20% + cash "
+            "conversion). If the re-rating is real, this verdict is too harsh.", "pessimistic")
+    elif gates["D"]["triggered"] and out["multiple"].get("precedence"):
+        add(0, "D", "Bull case capped just below today's multiple", "The stock trades at or above its fair multiple "
+            "and the durable re-rating test failed, so the model does not pay more than today's multiple -- value "
+            "has to come from earnings growth.")
+    elif gates["D"]["triggered"]:
+        add(1, "D", "De-rating call", "Today's multiple is above even the bull case: the verdict needs the multiple "
+            "to fall. If the market keeps paying it, the verdict is too harsh.", "pessimistic")
+    if out.get("knob_dependent"):
+        add(1, "P4", "Close to a verdict boundary", "A reasonable change in one assumption (hurdle, correlation or "
+            "anchor weight) moves it into the next verdict.")
+    if ident == "COMMODITY":
+        add(1, "CYC", "Commodity: indicative only", "Valued on mid-cycle (normalized) earnings; v4.1 keeps this "
+            "track indicative until it is validated.")
+    if out.get("f2_deviation"):
+        add(1, "F2", "Recent losses: bear case floored", "The worst recent run-rate was a loss; the bear branch stops "
+            "at a small profit / book value because EPS x PE is meaningless below zero.", "optimistic")
+    m_ = out["multiple"]
+    if np.isfinite(m_.get("spot", np.nan)) and m_["spot"] < 0.8 * m_["base"]:
+        add(1, "REV", "Cheap mainly on multiple recovery", f"Today's {m_['kind']} of {m_['spot']:.1f}x is well below "
+            f"the {m_['base']:.1f}x fair multiple (own 5-year / peer anchor). The verdict assumes it recovers -- if the "
+            "5-year norm came from a re-rated era that is over, it won't.", "optimistic")
+    if out.get("data_fallback"):
+        add(2, "DATA", "Scenario data missing", "Bear/bull margins were not in the source data; scenarios fell back "
+            "to +/-30% of base.")
+    if conf == "LOW":
+        add(1, "DATA", "Limited history", "Fewer than 5 annual years, 3 years of multiple history, 5 peers or "
+            "8 quarters -- bands are wider and less certain.")
+    sev = max([i["sev"] for i in iss], default=0)
+    leans = [i["lean"] for i in iss if i["sev"] >= 1 and i["lean"]]
+    opt, pes = leans.count("optimistic"), leans.count("pessimistic")
+    lean = ("may be too optimistic" if opt > pes else "may be too harsh" if pes > opt else
+            "mixed" if opt else "")
+    main = sorted([i for i in iss if i["sev"] >= 1], key=lambda i: -i["sev"])
+    icon, grade = QUALITY[sev]
+    return dict(sev=sev, icon=icon, grade=grade, lean=lean, issues=iss,
+                note=(main[0]["title"] + (f" (+{len(main) - 1} more)" if len(main) > 1 else "")) if main else "")
+
+
+def signal_bucket(vb: str, sev: int) -> str:
+    """Valuation bucket as used by the combined signal: weak -> one notch toward HOLD, unreliable -> ignored."""
+    if sev >= 3 or vb not in VAL_BUCKETS:
+        return "NOT VALUED"
+    if sev == 2:
+        return {"BUY": "ACCUMULATE", "ACCUMULATE": "HOLD", "HOLD": "HOLD", "REDUCE": "HOLD", "SELL": "REDUCE"}[vb]
+    return vb
+
+
 def summary_row(res: dict) -> dict:
     """Flat row for the snapshot table."""
     row = dict(ticker=res.get("ticker"), status=res.get("status"), reason=res.get("reason", ""),
@@ -757,6 +899,10 @@ def summary_row(res: dict) -> dict:
                knob_dependent=res.get("knob_dependent", False), cagr_bear=res["cagr"]["bear"],
                cagr_base=res["cagr"]["base"], cagr_bull=res["cagr"]["bull"], hurdle=res["hurdle"],
                spot_mult=m["spot"], base_mult=m["base"], mult_kind=m["kind"],
+               q_sev=res["quality"]["sev"], q_icon=res["quality"]["icon"], q_grade=res["quality"]["grade"],
+               q_note=res["quality"]["note"], q_lean=res["quality"]["lean"],
+               q_issues=json.dumps([[i["sev"], i["title"], i["lean"]] for i in res["quality"]["issues"]]),
+               e_widened=round(res.get("e_widened", 1.0), 2),
                grid=json.dumps([round(x, 2) for x in res["grid"]]))
     return row
 

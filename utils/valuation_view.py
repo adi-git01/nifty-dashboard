@@ -20,10 +20,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from utils.valuation import (KNOWN_LIMITS, REFERENCE, VAL_BUCKETS, combined_signal, load_context,
-                             rating_from_grid, val_bucket, value_stock)
+from utils.valuation import (KNOWN_LIMITS, QUALITY, REFERENCE, VAL_BUCKETS, combined_signal, load_context,
+                             rating_from_grid, signal_bucket, val_bucket, value_stock)
 
-__all__ = ["VAL_BUCKETS", "table_columns", "snapshot_date", "render_stock", "render_reference"]
+QUALITY_LEVELS = [f"{i} {g}" for i, g in QUALITY.values()]
+__all__ = ["VAL_BUCKETS", "QUALITY_LEVELS", "table_columns", "snapshot_date", "render_stock", "render_reference"]
 SNAPSHOT = "data/valuation_snapshot.csv"
 RATING_ORDER = ["STRONG BUY", "BUY", "ACCUMULATE", "HOLD", "REDUCE", "SELL/AVOID", "STRONG SELL/AVOID"]
 RATING_ICON = {"STRONG BUY": "🟢🟢", "BUY": "🟢", "ACCUMULATE": "🟩", "HOLD": "⚪", "REDUCE": "🟧",
@@ -62,8 +63,9 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
     val_fv_p50, and the combined signal (signal, signal_basis) using the forensics fields.
     """
     out = df.copy()
-    for c in ("val_rating", "val_bucket", "val_note"):
+    for c in ("val_rating", "val_bucket", "val_note", "val_quality"):
         out[c] = ""
+    sevs = []
     out["val_pct"] = out["val_cagr_base"] = out["val_fv_p50"] = np.nan
     S = _snapshot(os.path.getmtime(SNAPSHOT)).set_index("ticker") if os.path.exists(SNAPSHOT) else pd.DataFrame()
     tick = out["ticker"].str.replace(".NS", "", regex=False)
@@ -72,13 +74,13 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
     for t, p in zip(tick, price):
         if S.empty or t not in S.index:
             rat.append(""); buck.append("NOT VALUED"); note.append("no valuation data")
-            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan)
+            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan); sevs.append(np.nan)
             continue
         r = S.loc[t]
         if r.status != "OK":
             rat.append("—"); buck.append("NOT VALUED")
             note.append(str(r.reason) if pd.notna(r.reason) and str(r.reason) else str(r.status).lower())
-            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan)
+            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan); sevs.append(np.nan)
             continue
         try:
             px_ = p if np.isfinite(p) else float(r.price)
@@ -88,23 +90,29 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
         vb = val_bucket(q)
         if not vb:
             rat.append("—"); buck.append("NOT VALUED"); note.append("no price or distribution")
-            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan)
+            pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan); sevs.append(np.nan)
             continue
-        issue = ("multiple indeterminate" if str(r.rating).startswith("INDETERMINATE") else
-                 str(r.rating).replace("UNRATED (", "").rstrip(")") if str(r.rating).startswith("UNRATED") else "")
-        extra = "commodity: indicative" if r.identity == "COMMODITY" else ""
-        rat.append(f"{RATING_ICON[vb]} {vb}" + (" ⚠" if issue else ""))
+        sev = int(r.q_sev) if "q_sev" in r and pd.notna(r.q_sev) else (0 if bool(r.gates_ok) else 2)
+        icon = QUALITY[sev][0]
+        lean = str(r.q_lean) if "q_lean" in r and pd.notna(r.q_lean) and str(r.q_lean) else ""
+        why = str(r.q_note) if "q_note" in r and pd.notna(r.q_note) else ""
+        rat.append(f"{RATING_ICON[vb]} {vb} {icon}")
         buck.append(vb)
-        note.append(" · ".join(x for x in (issue, extra) if x))
+        note.append(" · ".join(x for x in (why, lean) if x))
+        sevs.append(sev)
         pct.append(q); cagr.append(r.cagr_base * 100 if pd.notna(r.cagr_base) else np.nan); p50.append(r.p50)
     out["val_rating"], out["val_bucket"], out["val_note"], out["val_pct"] = rat, buck, note, pct
+    out["val_sev"] = sevs
+    out["val_quality"] = [f"{QUALITY[int(x)][0]} {QUALITY[int(x)][1]}" if pd.notna(x) else "" for x in sevs]
     out["val_cagr_base"], out["val_fv_p50"] = cagr, p50
     # combined signal
     ma50 = pd.to_numeric(out.get("fiftyDayAverage"), errors="coerce")
     d200 = pd.to_numeric(out.get("dist_200dma"), errors="coerce")
     below = ((price < ma50) & (d200 < 0)).fillna(False)
     act = out["fx_action"] if "fx_action" in out else pd.Series("", index=out.index)
-    sig = [combined_signal(a == "BUY NOW", bool(b), vb) for a, b, vb in zip(act, below, out.val_bucket)]
+    # weak valuations count one notch less, unreliable ones not at all (utils.valuation.signal_bucket)
+    sig = [combined_signal(a == "BUY NOW", bool(b), signal_bucket(vb, int(sv) if pd.notna(sv) else 3))
+           for a, b, vb, sv in zip(act, below, out.val_bucket, out.val_sev)]
     out["signal"] = [SIGNAL_ICON[s_] for s_, _ in sig]
     out["signal_raw"] = [s_ for s_, _ in sig]
     out["signal_basis"] = [w_ for _, w_ in sig]
@@ -164,17 +172,17 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
         return
     d, snap, m = res["dist"], res["snapshot"], res["multiple"]
     vb = val_bucket(d["cmp_pct"])
-    issue = ("multiple indeterminate" if res["rating"].startswith("INDETERMINATE") else
-             res["rating"].replace("UNRATED (", "").rstrip(")") if res["rating"].startswith("UNRATED") else "")
+    qa = res["quality"]
     if tech_buy is not None:
-        sig, basis = combined_signal(bool(tech_buy), bool(below_both), vb)
+        sig, basis = combined_signal(bool(tech_buy), bool(below_both), signal_bucket(vb, qa["sev"]))
         st.markdown(f"### Combined signal: {SIGNAL_ICON[sig]}  \n<span style='color:gray'>{basis}</span>",
                     unsafe_allow_html=True)
     k = st.columns(6)
-    k[0].metric("Valuation", f"{RATING_ICON[vb]} {vb}" + (" ⚠" if issue else ""),
-                (f"⚠ {issue}" if issue else "all gates pass"), delta_color="off",
+    k[0].metric("Valuation", f"{RATING_ICON[vb]} {vb}", f"{qa['icon']} {qa['grade']}" + (f" · {qa['lean']}" if qa["lean"] else ""),
+                delta_color="off",
                 help="v4.1 ladder on the CMP percentile: <P20 BUY · P20-40 ACCUMULATE · P40-70 HOLD · P70-88 REDUCE "
-                     "· >P88 SELL. ⚠ = a v4.1 gate failed (strict v4.1 would print UNRATED) -- read with care.")
+                     "· >P88 SELL. Quality: ✅ clean · 🟡 caution (read the reason) · 🟠 weak (counts one notch less in "
+                     "the signal) · 🔴 unreliable (ignored in the signal). Reasons below.")
     k[1].metric("CMP percentile", f"P{d['cmp_pct']:.0f}", res["label"], delta_color="off")
     k[2].metric("Fair value P50", f"₹{d['P50']:,.0f}", f"P10 ₹{d['P10']:,.0f} · P90 ₹{d['P90']:,.0f}", delta_color="off")
     k[3].metric("3y CAGR at CMP (base)", f"{res['cagr']['base']:+.1%}",
@@ -183,6 +191,17 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
     k[4].metric("Identity", res["identity"], f"confidence {res['confidence']}", delta_color="off")
     k[5].metric(f"Multiple ({m['kind']})", f"{m['spot']:.1f}× spot", f"bear {m['bear']:.1f} · base {m['base']:.1f} · "
                 f"bull {m['bull']:.1f}", delta_color="off")
+    shown = [i for i in qa["issues"] if i["sev"] >= 0]
+    if shown:
+        lines = []
+        for i in sorted(shown, key=lambda i: -i["sev"]):
+            arrow = {"optimistic": " → *may flatter the verdict*", "pessimistic": " → *may make it too harsh*"}.get(i["lean"], "")
+            lines.append(f"- {QUALITY[max(i['sev'], 0)][0] if i['sev'] > 0 else 'ℹ️'} **{i['title']}** — {i['plain']}{arrow}")
+        box = st.warning if qa["sev"] >= 2 else st.info
+        box(f"**Valuation reliability: {qa['icon']} {qa['grade']}**" + (f" — overall the verdict {qa['lean']}" if qa["lean"] else "")
+            + "\n\n" + "\n".join(lines))
+    else:
+        st.success("**Valuation reliability: ✅ Clean** — every v4.1 gate passes.")
     if res["gates"]["D"]["triggered"]:
         st.warning(f"**This is a multiple-de-rating call.** {res['gates']['D']['detail']}")
     elif res["gates"]["D"]["near"]:

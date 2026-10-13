@@ -25,7 +25,7 @@ STATE_LABEL = {"GO": "🟢 GO", "WAIT (running)": "⏳ WAIT (<5d)", "WAIT (40-80
 SIGNAL_HELP = ("Technicals × valuation. Technical + = forensics BUY NOW (trend + GO volume anchor, no near overhang); "
                "technical − = below both the 50- and 200-day averages. BUY = technical + and valuation BUY/ACCUMULATE/"
                "HOLD. SELL = technical − and valuation HOLD/REDUCE/SELL, or valuation SELL with neutral technicals. "
-               "Everything else HOLD: an expensive valuation downgrades a technical BUY to HOLD (momentum winners "
+               "A 🟠 weak valuation counts one notch less and a 🔴 unreliable one is ignored. Everything else HOLD: an expensive valuation downgrades a technical BUY to HOLD (momentum winners "
                "usually look expensive) and a cheap stock in a broken trend stays HOLD (no falling knives). Only the "
                "technical side is backtested; the valuation side is untested so far.")
 
@@ -103,7 +103,7 @@ def _table(df: pd.DataFrame):
         d[c] = d[c].map(lambda x: True if x is True or x == "True" or x == 1 else False) if c in d else False
     price = pd.to_numeric(d.get("price", d.get("currentPrice")), errors="coerce")
     d["price"] = price
-    from utils.valuation_view import VAL_BUCKETS, snapshot_date, table_columns
+    from utils.valuation_view import QUALITY_LEVELS, VAL_BUCKETS, snapshot_date, table_columns
     d = table_columns(d)
 
     g1 = d[d.fx_gate1]
@@ -125,19 +125,25 @@ def _table(df: pd.DataFrame):
     with f4:
         lead = st.toggle("🟢 Leader industries", value=False, key="tx_lead",
                          help="Sub-industry rotation score >= 70. BUY NOW in a leader industry: +2.2 / +3.7 pp, 12/12 years")
-    g1c, g2c = st.columns(2)
+    g1c, g2c, g3c = st.columns(3)
     with g1c:
         sigs = st.multiselect("🎯 Signal (technicals × valuation)", ["BUY", "HOLD", "SELL"], default=[], key="tx_sig",
                               help=SIGNAL_HELP)
     with g2c:
         vals = st.multiselect("💰 Valuation (v4.1 mechanical)", VAL_BUCKETS + ["NOT VALUED"], default=[],
                               key="tx_val", help="Where today's price sits in the stock's own fair-value distribution: "
-                              "<P20 BUY · P20-40 ACCUMULATE · P40-70 HOLD · P70-88 REDUCE · >P88 SELL. ⚠ = a v4.1 gate "
-                              "failed or the multiple is structurally indeterminate (reason in Val note). "
+                              "<P20 BUY · P20-40 ACCUMULATE · P40-70 HOLD · P70-88 REDUCE · >P88 SELL. The icon after "
+                              "it is the quality grade; the reason and which way it bends the verdict are in Val note. "
                               "Nothing selected = no filter."
                               + (f" Distribution as of {snapshot_date()}." if snapshot_date() else
                                  " Not built yet -- run the workflow with script = fundamentals."))
+    with g3c:
+        quals = st.multiselect("🧭 Valuation quality", QUALITY_LEVELS, default=[], key="tx_vq",
+                               help="✅ clean: all v4.1 gates pass · 🟡 caution: read the reason · 🟠 weak: counts one "
+                                    "notch less in the signal · 🔴 unreliable: ignored in the signal")
     v = d
+    if quals:
+        v = v[v.val_quality.isin(quals)]
     if sigs:
         v = v[v.signal_raw.isin(sigs)]
     if vals:
@@ -227,8 +233,11 @@ def _table(df: pd.DataFrame):
             "fx_rsi": st.column_config.NumberColumn("RSI", format="%.0f"),
             "signal": st.column_config.TextColumn("Signal", help=SIGNAL_HELP),
             "val_rating": st.column_config.TextColumn("Valuation", help="Mechanical v4.1 verdict at today's price "
-                                                      "(BUY / ACCUMULATE / HOLD / REDUCE / SELL); ⚠ = a gate failed"),
-            "val_note": st.column_config.TextColumn("Val note", help="Why ⚠, or why the stock is not valued"),
+                                                      "(BUY / ACCUMULATE / HOLD / REDUCE / SELL) + quality: ✅ clean · "
+                                                      "🟡 caution · 🟠 weak · 🔴 unreliable"),
+            "val_note": st.column_config.TextColumn("Val note", help="Main reason behind the quality grade and which "
+                                                    "way it bends the verdict (may be too optimistic / too harsh), "
+                                                    "or why the stock is not valued"),
             "val_pct": st.column_config.NumberColumn("Val pct", format="P%.0f",
                                                      help="Where today's price sits in the stock's own fair-value "
                                                           "distribution (P50 = fair, <P20 BUY zone, >P88 SELL zone)"),
