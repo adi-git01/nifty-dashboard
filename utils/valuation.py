@@ -757,7 +757,6 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     else:
         out["rating"] = v + (" · INDICATIVE" if ident == "COMMODITY" else "")
     out["verdict_raw"] = v
-    out["quality"] = quality_profile(out, gates, Q, bl, mass, target, indeterminate, conf, ident)
     out["ladder"] = dict(deep_add=Q["P10"], accumulate=Q["P25"], fair_lo=Q["P25"], fair_hi=Q["P75"], trim=Q["P90"])
     pivot = "multiple" if ident != "BFSI" and np.std([mult[s] for s in mult]) / mult["base"] > np.std(
         [lever[s][2] for s in lever]) / lever["base"][2] else ("ROE / book path" if ident == "BFSI" else "margin path")
@@ -789,6 +788,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         out["knob_dependent"] = any(band(x) != band(pct) for x in sens.values())
         if out["knob_dependent"]:
             note("verdict is KNOB-DEPENDENT: a plausible knob setting moves CMP across a verdict boundary (P4)")
+    out["quality"] = quality_profile(out, gates, Q, bl, mass, target, indeterminate, conf, ident)
     out["status"] = "OK"
     out["engine_line"] = (f"{ENGINE}, rho={rho:.2f}, hurdle={r:.0%}, N={n}, seed={SEED}"
                           + ("; track=normalized-earnings (INDICATIVE)" if ident == "COMMODITY" else ""))
