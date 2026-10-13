@@ -181,7 +181,34 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
     return X
 
 
-def business_peers(ctx: "Context", t: str, ident: str, k: int = 8, with_fit: bool = False):
+SUB_TIGHT, SUB_MIN, SUB_BAND = 0.65, 6, 1.5    # hybrid rule (pre-registered, analysis/VALUATION_AUDIT.md)
+
+
+def _sub_pool(ctx: "Context", t: str, ident: str):
+    """
+    The sub-industry is the peer pool when it is a coherent business model AND the stock is priced like a
+    member: P/E (P/B for lenders) spread IQR/median <= 0.65, >= 6 members, and the stock's own 5Y multiple
+    within [P25 / 1.5, P75 x 1.5] of the members' multiples. Otherwise None (match across the family).
+    """
+    X, F = ctx.features, ctx.funda
+    if X.empty or t not in X.index:
+        return None
+    g = X.at[t, "sector_granular"]
+    col, cap_ = ("pb", 60) if ident == "BFSI" else ("pe", 400)
+    mem = F.index[(F.sector_granular == g) & (F.index != t)]
+    mem = [x for x in mem if not (x in X.index and 0.3 < X.at[x, "attr"] < 0.6)]       # no holdcos
+    v = pd.to_numeric(F.loc[mem, col], errors="coerce")
+    v = v[(v > 0) & (v < cap_)]
+    if len(v) < SUB_MIN:
+        return None
+    q25, q50, q75 = v.quantile([.25, .5, .75])
+    own = X.at[t, "own_mult"]
+    if (q75 - q25) / q50 > SUB_TIGHT or not np.isfinite(own) or not (q25 / SUB_BAND <= own <= q75 * SUB_BAND):
+        return None
+    return list(v.index)
+
+
+def business_peers(ctx: "Context", t: str, ident: str, k: int = 8, with_fit: bool = False, hybrid: bool = True):
     """
     Same-business-model peers (v4.1 Phase 2C): nearest neighbours on the business fingerprint within the
     sector family (chemicals and pharma share one, so a pharma-intermediates maker can match CDMO/API names).
@@ -194,7 +221,13 @@ def business_peers(ctx: "Context", t: str, ident: str, k: int = 8, with_fit: boo
     me = X.loc[t]
     col = "pb" if ident == "BFSI" else "pe"
     ok = (X.index != t) & (pd.to_numeric(X[col], errors="coerce") > 0) & ~X.attr.between(0.3, 0.6)  # no holdcos
-    if ident == "COMMODITY":
+    sub = _sub_pool(ctx, t, ident) if hybrid else None
+    if sub is not None:
+        # coherent sub-industry and the stock is priced like a member: nearest members of it
+        pool = X[X.index.isin(sub) & ok]
+        feats = ({"roe": 1.0, "g3": 0.7, "own_mult": 1.0, "promoters": 1.0} if ident == "BFSI" else
+                 {"opm": 1.0, "roce": 1.0, "fa_int": 0.8, "g3": 0.5, "own_mult": 1.0})
+    elif ident == "COMMODITY":
         # commodity producers value against other producers, whatever their sector label
         pool = X[ok & X.sector_granular.isin(COMMODITY_GRAN)]
         feats = {"opm": 1.0, "roce": 1.0, "fa_int": 0.8, "own_mult": 1.0}
