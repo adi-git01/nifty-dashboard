@@ -80,7 +80,7 @@ MAX_HOLD = 126
 
 # indicators, Gate 2 grading and Gate 3 shelves live in utils/forensics.py,
 # shared with the Technicals tab so the tab shows exactly what was tested.
-from utils.forensics import grade, indicators, pick_anchors, qualifying, supply_at  # noqa: E402
+from utils.forensics import grade, indicators, pick_anchors, pick_clean, qualifying, supply_at  # noqa: E402
 
 
 # ----------------------------------------------------------------------------
@@ -114,6 +114,14 @@ def stock_features(c, h, l, v, vmed, ma50, atr, rows):
             f["v5_stop_pct"] = (c[i] - stop5) / c[i] * 100 if stop5 < c[i] else np.nan
         f["stop_pct"] = (c[i] - stop) / c[i] * 100 if stop < c[i] else np.nan
         f.setdefault("v5_stop_pct", f["stop_pct"])
+        ac = pick_clean(qual, v, clv, i)
+        if ac is None:
+            f["v6c_state"] = "NO ANCHOR"
+        else:
+            gc, _ = grade(c, h, l, v, vmed, ma50, atr, clv, ac, i)
+            f["v6c_state"] = gc["state"]
+            f["v6c_signature"] = gc.get("signature")
+            f["v6c_same"] = ac == a6
         sup = supply_at(c, turn, atr[i], i)
         if sup:
             f["supply"] = sup["supply"]
@@ -329,6 +337,33 @@ def main():
              st(F2[buy_now & ~buy5], "GO in v6 only", "7 v5 vs v6"),
              st(F2[buy5 & ~buy_now], "GO in v5 only", "7 v5 vs v6"),
              st(F2[up & F.shakeout.eq(True) & (F.state == "GO")], "v6 GO + shakeout (v6-only probe)", "7 v5 vs v6")]
+    # ---- v6 vs v6-clean: the anchor must have closed strong (CLV >= 0.5) to be picked.
+    # Pre-registered: adopt v6-clean only if (a) its BUY NOW beats v6 BUY NOW at 3m and 6m
+    # vsTypical in BOTH eras, and (b) "GO in v6-clean only" (the names it newly admits --
+    # today's MIXED-anchor cases) beats "Gate 1 pass, any" at 3m and 6m in BOTH eras.
+    buyc = (F.v6c_state == "GO") & (F.supply != "NEAR OVERHANG")
+    for s_ in ["GO", "WAIT (40-80%)", "FADE", "VETO", "WAIT (running)", "NO ANCHOR"]:
+        rows.append(st(F2[F.v6c_state == s_], f"v6-clean {s_}", "8 v6 vs v6-clean"))
+    rows += [st(F2[buyc], "v6-clean BUY NOW", "8 v6 vs v6-clean"),
+             st(F2[buy_now & buyc], "BUY NOW in both", "8 v6 vs v6-clean"),
+             st(F2[buyc & ~buy_now], "BUY NOW in v6-clean only", "8 v6 vs v6-clean"),
+             st(F2[buy_now & ~buyc], "BUY NOW in v6 only", "8 v6 vs v6-clean"),
+             st(F2[buyc & (F.state == "MIXED anchor")], "v6-clean BUY NOW where v6 said MIXED", "8 v6 vs v6-clean")]
+    print(f"[v6 vs v6-clean] same anchor day in {F.v6c_same.dropna().astype(bool).mean():.0%}; BUY NOW v6 "
+          f"{int(buy_now.sum())}, v6-clean {int(buyc.sum())}, both {int((buy_now & buyc).sum())}")
+    verdict = {}
+    for era in ("2016-20", "2021-26"):
+        e = F.era == era
+        a, b = st(F2[e & buyc], "c", ""), st(F2[e & buy_now], "6", "")
+        n_, g_ = st(F2[e & buyc & ~buy_now], "new", ""), st(F2[e], "g1", "")
+        for hz in ("3mo", "6mo"):
+            k = f"{hz} vsTypical"
+            verdict[f"{era} {hz} BUY NOW v6-clean > v6"] = a.get(k, -99) > b.get(k, 99)
+            verdict[f"{era} {hz} newly admitted > Gate 1"] = n_.get(k, -99) > g_.get(k, 99)
+            print(f"   {era} {hz}: v6-clean BUY NOW {a.get(k)} vs v6 {b.get(k)}; newly admitted "
+                  f"{n_.get(k)} (n={n_['n']}) vs Gate 1 {g_.get(k)}")
+    print(f"[v6-clean verdict] {'ADOPT' if all(verdict.values()) else 'KEEP v6'} -- " +
+          ", ".join(f"{k}: {'pass' if x else 'fail'}" for k, x in verdict.items()))
     has = F.same_anchor.notna()
     print(f"[v5 vs v6] rows with an anchor {int(has.sum())}; same anchor day in {F.same_anchor[has].astype(bool).mean():.0%}; "
           f"BUY NOW v6 {int(buy_now.sum())}, v5 {int(buy5.sum())}, both {int((buy_now & buy5).sum())}")

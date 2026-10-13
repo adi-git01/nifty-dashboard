@@ -15,7 +15,8 @@ and analysis/scanner_tags_study.csv):
 
 Engine side  hi52_breakout(df)   fresh 52-week-high breakout from daily bars
              (ATH breakouts: utils/ath.py)
-UI side      add_breakout_tags(df)  ind_score, bo_type, bo_days, bo_anchor,
+UI side      add_breakout_tags(df)  ind_score, bo_type, bo_days, bo_anchor (volume anchor
+             AND held: no close since below the breakout day's low), bo_held,
              breakout_label (with the breakout day's volume), dist_ath,
              edge_3m / edge_6m / edge_years
 """
@@ -50,10 +51,14 @@ def hi52_breakout(df: pd.DataFrame) -> dict:
     Most recent 52-week closing-high breakout within FRESH_SESSIONS.
     Returns {'hi52_bo_days': sessions ago (0 = today) or NaN,
              'hi52_bo_anchor': True/False (NaN if no fresh breakout),
-             'hi52_bo_volx': breakout-day volume / prior 50-session median}.
+             'hi52_bo_volx': breakout-day volume / prior 50-session median,
+             'hi52_bo_held': no close since below the breakout day's low}.
     """
-    out = {"hi52_bo_days": np.nan, "hi52_bo_anchor": np.nan, "hi52_bo_volx": np.nan}
-    if df is None or "Close" not in df or len(df) < MIN_HISTORY + 1:
+    out = {"hi52_bo_days": np.nan, "hi52_bo_anchor": np.nan, "hi52_bo_volx": np.nan, "hi52_bo_held": np.nan}
+    if df is None or "Close" not in df:
+        return out
+    df = clean_bars(df)
+    if len(df) < MIN_HISTORY + 1:
         return out
     c = df["Close"].astype(float).values
     n = len(c)
@@ -65,8 +70,24 @@ def hi52_breakout(df: pd.DataFrame) -> dict:
         if new_high[i] and not new_high[i - BASE_SESSIONS:i].any() and ok[i - BASE_SESSIONS]:
             out["hi52_bo_days"] = n - 1 - i
             out["hi52_bo_anchor"], out["hi52_bo_volx"] = vol_stats(df, i)
+            out["hi52_bo_held"] = held_since(df, i)
             return out
     return out
+
+
+def clean_bars(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop rows without a close, so 'sessions ago' counts real sessions -- the same
+    bars the Technicals tab (utils/forensics.py) reads."""
+    return df[df["Close"].notna()] if "Close" in df else df
+
+
+def held_since(df: pd.DataFrame, i: int) -> bool:
+    """True when no close after bar i is below bar i's low (the Technicals tab's VETO line)."""
+    if "Low" not in df.columns:
+        return True
+    low = float(df["Low"].iloc[i])
+    after = df["Close"].astype(float).values[i + 1:]
+    return bool(not (after[~np.isnan(after)] < low).any()) if np.isfinite(low) else True
 
 
 def vol_stats(df: pd.DataFrame, i: int) -> tuple[bool, float]:
@@ -146,13 +167,18 @@ def add_breakout_tags(df: pd.DataFrame, scores: dict | None = None, sub_map: dic
     fath = dath.notna() & (dath <= FRESH_SESSIONS)
     out["bo_type"] = np.select([fath, f52], ["ATH", "52W"], "")
     out["bo_days"] = np.where(fath, dath, np.where(f52, d52, np.nan))
-    out["bo_anchor"] = (fath & col("ath_bo_anchor").eq(True)) | (~fath & f52 & col("hi52_bo_anchor").eq(True))
+    # held = no close since below the breakout day's low; unknown (older cache) counts as held
+    held = np.where(fath, col("ath_bo_held"), np.where(f52, col("hi52_bo_held"), np.nan))
+    out["bo_held"] = pd.Series(held, index=out.index).map(lambda x: not (isinstance(x, (bool, np.bool_)) and not x))
+    out["bo_anchor"] = ((fath & col("ath_bo_anchor").eq(True)) | (~fath & f52 & col("hi52_bo_anchor").eq(True))) \
+        & out["bo_held"]
     out["bo_volx"] = pd.to_numeric(np.where(fath, col("ath_bo_volx"), np.where(f52, col("hi52_bo_volx"), np.nan)),
                                    errors="coerce")
     out["breakout_label"] = [
         "" if not t else f"⚡ {t} · {int(d)}d ago" + (
-            f" · 🔊 {x:.1f}× vol" if a else f" · {x:.1f}× vol" if pd.notna(x) else "")
-        for t, d, a, x in zip(out.bo_type, out.bo_days, out.bo_anchor, out.bo_volx)]
+            f" · 🔊 {x:.1f}× vol" if a else f" · {x:.1f}× vol" if pd.notna(x) else "") + (
+            "" if hd else " · ❌ failed (closed below breakout-day low)")
+        for t, d, a, x, hd in zip(out.bo_type, out.bo_days, out.bo_anchor, out.bo_volx, out.bo_held)]
 
     # % from all-time high: engine value when present, else from the stored table
     price = pd.to_numeric(col("price").fillna(col("currentPrice")), errors="coerce")

@@ -69,10 +69,16 @@ def ath_breakout(df: pd.DataFrame, row: dict | None) -> tuple[dict, dict | None]
     """
     Fresh ATH breakout from the engine's 1-year df and the stored row.
     Returns (fields for the scanner, updated row to store or None to keep).
-    Fields: ath_bo_days (sessions ago, NaN if none), ath_bo_anchor, ath_bo_volx, dist_ath (%).
+    Fields: ath_bo_days (sessions ago, NaN if none), ath_bo_anchor, ath_bo_volx, ath_bo_held,
+    dist_ath (%).
     """
-    out = {"ath_bo_days": np.nan, "ath_bo_anchor": np.nan, "ath_bo_volx": np.nan, "dist_ath": np.nan}
-    if row is None or df is None or "Close" not in df or len(df) <= BASE_LAG:
+    out = {"ath_bo_days": np.nan, "ath_bo_anchor": np.nan, "ath_bo_volx": np.nan, "ath_bo_held": np.nan,
+           "dist_ath": np.nan}
+    if row is None or df is None or "Close" not in df:
+        return out, None
+    from utils.breakout_tags import clean_bars, held_since, vol_stats
+    df = clean_bars(df)          # a blank close made the running max NaN and hid every later breakout
+    if len(df) <= BASE_LAG:
         return out, None
     c = df["Close"].astype(float)
     base_asof = pd.Timestamp(row["base_asof"])
@@ -92,8 +98,8 @@ def ath_breakout(df: pd.DataFrame, row: dict | None) -> tuple[dict, dict | None]
         for k in range(n - 1, max(n - 1 - FRESH_SESSIONS, BASE_SESSIONS) - 1, -1):
             if new[k] and not new[k - BASE_SESSIONS:k].any():
                 out["ath_bo_days"] = n - 1 - k
-                from utils.breakout_tags import vol_stats
                 out["ath_bo_anchor"], out["ath_bo_volx"] = vol_stats(df, len(c) - n + k)
+                out["ath_bo_held"] = held_since(df, len(c) - n + k)
                 break
 
     # roll the base forward to BASE_LAG sessions back
