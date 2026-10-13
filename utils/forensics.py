@@ -83,6 +83,17 @@ def pick_anchors(qual, v, i):
     return a6, a5
 
 
+def pick_clean(qual, v, clv, i):
+    """v6-clean candidate: highest-volume qualifying day of the last LOOK sessions that
+    CLOSED STRONG (CLV >= 0.5). Tested against v6 in forensics_gate_study.py section 8;
+    not used by the live tab unless that test passes."""
+    lo = max(2, i - LOOK + 1)
+    q = qual[lo:i + 1] & (clv[lo:i + 1] >= 0.5)
+    if not q.any():
+        return None
+    return lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
+
+
 def grade(c, h, l, v, vmed, ma50, atr, clv, a, i, window=None):
     """
     Gate 2 for one anchor day `a`, seen from day i. window=None measures

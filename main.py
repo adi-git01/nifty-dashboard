@@ -1973,8 +1973,11 @@ elif page == "🌊 Trend Scanner":
                                     "did better there; the same breakout in a laggard industry was worth ~1/3.")
     with _bf3:
         _anchor_only = st.toggle("🔊 Volume anchor only", value=False,
-                                 help="Breakout day volume >= 3x its 50-day median, turnover >= Rs 5 cr, CLV >= 0.5 -- "
-                                      "added ~+1 pp over 3-6 months. Implies a fresh breakout.")
+                                 help="Breakout day volume >= 3x its 50-day median, turnover >= Rs 5 cr, CLV >= 0.5, "
+                                      "and no close since below that day's low -- added ~+1 pp over 3-6 months. "
+                                      "Implies a fresh breakout. Not the same as the Technicals tab's anchor, which is "
+                                      "the biggest-volume day of the last 60 sessions (it can be an older spike that "
+                                      "closed mid-range -> 'MIXED anchor', or one whose low has broken -> VETO).")
     if 'hi52_bo_days' not in filtered_df.columns:
         st.info("⚡ Breakout data arrives with the next daily engine run -- the loaded snapshot predates it. "
                    "Industry and % from ATH already work.")
@@ -2452,7 +2455,7 @@ elif page == "📊 Return Tracker":
             st.markdown("#### Active Alerts")
             
             # Fetch alerts using the utility function from alerts.py
-            from utils.alerts import get_alerts_with_pnl
+            from utils.alerts import get_alerts_with_pnl, remove_alert, add_price_alert
             all_alerts = get_alerts_with_pnl(df)
             
             if all_alerts:

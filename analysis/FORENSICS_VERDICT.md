@@ -100,3 +100,16 @@ real and consistent, not large.
 - These are event-study medians, not a portfolio. The live-portfolio test of
   breakouts (BREAKOUT_SECTOR_VERDICT.md) did not beat the engine's 6-month RS
   ranking; this tab is for discretionary picks and timing, not an engine rule.
+
+## Scanner "volume anchor" vs Technicals anchor (13 Oct 2026)
+13 names passed the scanner's 🔊 filter; only 5 were GO on the Technicals tab. Not a data error -- two definitions:
+scanner = the fresh breakout day itself (>= 3x vol, >= Rs 5 cr, CLV >= 0.5); Technicals = the biggest-volume
+day of 60 sessions, CLV not required to be picked, then VETO if its low breaks. 4 were MIXED (an older/bigger
+spike that closed mid-range outranked the clean breakout: AZAD, FINEORG, SKYGOLD, ARFIN), 3 VETO (SOUTHBANK's
+own breakout day low broke -- a failed breakout the scanner still showed), 1 too new (OPTIEMUS).
+Fixed: the scanner anchor now also requires no close below the breakout-day low (failed breakouts are labelled
+❌); breakout detection drops blank-close rows (sessions-ago miscount; and in the ATH detector one blank close
+made the running max NaN and hid every later ATH breakout).
+Pending test (section 8 of forensics_gate_study.py, run script=forensics): v6-clean = pick the biggest-volume
+day that CLOSED STRONG. Adopt only if its BUY NOW beats v6 at 3m and 6m in both eras and the newly admitted
+names beat Gate 1 in both eras.
