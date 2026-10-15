@@ -30,15 +30,9 @@
     "pending_status": null,
     "pending_days": 0,
     "last_score": 25.6,
-    "last_date": "2026-10-14",
+    "last_date": "2026-10-15",
     "score_side": null,
     "recent": [
-      {
-        "date": "2026-10-08",
-        "a50": 13.3,
-        "a200": 26.7,
-        "rs": 1.13
-      },
       {
         "date": "2026-10-09",
         "a50": 13.3,
@@ -62,15 +56,21 @@
         "a50": 20.0,
         "a200": 26.7,
         "rs": -0.52
+      },
+      {
+        "date": "2026-10-15",
+        "a50": 20.0,
+        "a200": 26.7,
+        "rs": -1.31
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
       "score": 25.6,
-      "above_50": 14.6,
+      "above_50": 16.0,
       "above_200": 25.4,
-      "med_rs": -0.42,
+      "med_rs": -0.91,
       "n_valid": 15,
       "n_members": 15
     }
