@@ -42,7 +42,10 @@ Valuation, point in time (annual results; quarterly only exist from 2023)
                  the same sub-industry that week (>= 4 peers).
   Zone         RICH  own %ile >= 80 and >= 1.25x peers
                CHEAP own %ile <= 30 and <= 0.9x peers
-               LOSS  latest year's profit <= 0;  FAIR otherwise.
+               LOSS  latest year's profit <= 0, or P/E >= 200 (earnings ~0:
+                     M&M 2020 read RICH at a capped P/E of 500 off one bad
+                     year -- run 2 change, made for that bug, not for results)
+               FAIR otherwise.
   This is the engine's evidence (own history, peers, growth), not its
   Monte Carlo verdict: the verdict uses today's peer set and data snapshot and
   cannot be rebuilt honestly for 2017.
@@ -114,8 +117,7 @@ def load_prices(max_tickers):
     from datetime import datetime
     from exit_rule_backtest import align_to_sessions
     from momentum_factor_backtest import build_pit_universe, load_candidates
-    from transfer_backtest import cut_partial_last_day, group_panels
-    from utils.nifty1000_list import SUB_INDUSTRY_MAP
+    from transfer_backtest import cut_partial_last_day
     from utils.yf_safe import safe_download, safe_history
 
     tickers = load_candidates("all", max_tickers)
@@ -151,13 +153,64 @@ def load_prices(max_tickers):
     high, low, raw = (P[k].reindex(index=close.index, columns=close.columns) for k in ("High", "Low", "Raw"))
     nifty = nifty["Close"].reindex(close.index).ffill()
     print(f"[data] {close.shape[1]} tickers, {len(close)} sessions {close.index[0].date()} -> {close.index[-1].date()}")
+    # NOT "& has an industry": the industry map only covers today's list, so that filter (used by the
+    # earlier studies) silently turned the point-in-time universe back into today's survivors
     pit = build_pit_universe(close, vol, 1000)
-    _, keys, _ = group_panels(close, pit, SUB_INDUSTRY_MAP, nifty, [(5, .10), (21, .50), (63, .40)], india_live=True)
+    return close, high, low, vol, raw, nifty, pit
+
+
+def industry_scores(close, pit, groups, nifty):
+    """The live sub-industry rotation score (0-100) for every stock with a known industry."""
+    from transfer_backtest import group_panels
+    _, keys, _ = group_panels(close, pit, groups, nifty, [(5, .10), (21, .50), (63, .40)], india_live=True)
     score = keys["live"].rank(axis=1, pct=True) * 100
     score = score.where(score.notna().sum(axis=1) >= 20)
-    gscore = pd.DataFrame({t: score[g] if (g := SUB_INDUSTRY_MAP.get(t)) in score.columns else np.nan
-                           for t in close.columns}, index=close.index)
-    return close, high, low, vol, raw, nifty, pit & gscore.notna(), gscore
+    return pd.DataFrame({t: score[g] if (g := groups.get(t)) in score.columns else np.nan
+                         for t in close.columns}, index=close.index)
+
+
+BONUS_SPLIT = [1 / 2, 1 / 3, 2 / 3, 1 / 4, 3 / 4, 1 / 5, 1 / 6, 1 / 10, 2 / 5, 3 / 5, 4 / 7]
+
+
+def fix_corporate_actions(close, high, low, vol, raw, A):
+    """
+    Yahoo sometimes misses an Indian bonus or split (SHARDAMOTR 1:1 bonus, Jan 2025: 1790 -> 861 in a
+    day, recorded as a -52% crash). A one-day fall within 2% of a bonus/split ratio is treated as one
+    when confirmed by EITHER equity capital rising by ~1/ratio across that year (a bonus) OR volume
+    stepping up by >= 0.7/ratio for the next 20 sessions (a split). Earlier bars are rescaled.
+    """
+    eq = A[A.field == "eq_cap"].pivot_table(index="period", columns="ticker", values="value").sort_index()
+    r1 = raw / raw.ffill().shift(1)
+    r2 = raw.bfill().shift(-1) / raw
+    rc = close / close.ffill().shift(1)
+    cand = (r1 < 0.8) & (r2 > 0.8) & ((rc / r1 - 1).abs() < 0.02)   # missing in BOTH series, not just one
+    vb = vol.rolling(20, min_periods=10).median()
+    va = vol[::-1].rolling(20, min_periods=10).median()[::-1]
+    fixed = []
+    for dt, t in cand.stack()[lambda x: x].index:
+        f_obs = r1.at[dt, t]
+        f = min(BONUS_SPLIT, key=lambda x: abs(x / f_obs - 1))
+        if abs(f / f_obs - 1) > 0.02:
+            continue
+        i = close.index.get_loc(dt)
+        ok_bonus = False
+        if t in eq.columns:
+            e = eq[t].dropna()
+            before, after = e[e.index < dt], e[e.index >= dt]
+            if len(before) and len(after) and before.iloc[-1] > 0:
+                ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.15
+        vbefore, vafter = vb.iat[i - 1, close.columns.get_loc(t)] if i else np.nan, va.at[dt, t]
+        ok_split = bool(vbefore > 0 and vafter / vbefore >= 0.7 / f)
+        if not (ok_bonus or ok_split):
+            continue
+        before = close.index < dt
+        for P in (close, high, low, raw):
+            P.loc[before, t] *= f
+        vol.loc[before, t] /= f
+        fixed.append(f"{t[:-3]} {dt:%Y-%m-%d} x{f:.2f} ({'bonus' if ok_bonus else 'split'})")
+    print(f"[clean] repaired {len(fixed)} unadjusted bonus/split day(s): " + ", ".join(fixed[:40])
+          + (" ..." if len(fixed) > 40 else ""))
+    return close, high, low, vol, raw
 
 
 def clean_spikes(close, high, low, vol, raw):
@@ -180,7 +233,11 @@ def clean_spikes(close, high, low, vol, raw):
     return (close.mask(spike), high.mask(spike), low.mask(spike), vol.mask(spike), raw.mask(spike))
 
 
+EXTRA_IND = "data/industry_extra.csv"
+
+
 def load_annual(tickers_needed, scrape_missing, delay):
+    """Fundamentals (+ Screener broad industry for names outside today's map) for every PIT name."""
     A = pd.read_csv("data/fundamentals_annual.csv.gz", parse_dates=["period"])
     if os.path.exists(EXTRA_FUNDA):
         A = pd.concat([A, pd.read_csv(EXTRA_FUNDA, parse_dates=["period"])])
@@ -191,8 +248,9 @@ def load_annual(tickers_needed, scrape_missing, delay):
         from fundamentals_annual import scrape
         missing = missing[:scrape_missing]
         print(f"[funda] scraping {len(missing)} of them from Screener (fixes survivorship in the valuation data)")
+        ind = {}
         try:
-            X, _ = scrape(missing, delay)
+            X, _ = scrape(missing, delay, industries=ind)
         except SystemExit as e:                     # Screener blocked: carry on, say so
             print(f"[funda] scrape aborted ({e}); valuation limited to names already on file")
             X = pd.DataFrame()
@@ -202,6 +260,10 @@ def load_annual(tickers_needed, scrape_missing, delay):
             X = pd.concat([old, X]) if old is not None else X
             X.drop_duplicates(["ticker", "field", "period"], keep="last").to_csv(EXTRA_FUNDA, index=False)
             A = pd.concat([A, X])
+        if ind:
+            old = pd.read_csv(EXTRA_IND) if os.path.exists(EXTRA_IND) else pd.DataFrame(columns=["ticker", "industry"])
+            new = pd.DataFrame(list(ind.items()), columns=["ticker", "industry"])
+            pd.concat([old, new]).drop_duplicates("ticker", keep="last").to_csv(EXTRA_IND, index=False)
     return A.drop_duplicates(["ticker", "field", "period"], keep="last")
 
 
@@ -302,7 +364,8 @@ def valuation(raw_w, pit_w, fy, groups):
         med = pe_u[m].median(axis=1).where(pe_u[m].notna().sum(axis=1) >= 4)
         rel[m] = pe[m].div(med, axis=0)
     zone = pd.DataFrame(np.select(
-        [npa.le(0), (own >= 80) & (rel >= 1.25), (own <= 30) & (rel <= 0.9), pe.notna() & own.notna() & rel.notna()],
+        [npa.le(0) | (pe >= 200), (own >= 80) & (rel >= 1.25), (own <= 30) & (rel <= 0.9),
+         pe.notna() & own.notna() & rel.notna()],
         ["LOSS", "RICH", "CHEAP", "FAIR"], ""), index=dates, columns=tickers)
     return dict(pe=pe, own=own, rel=rel, g1=g1, g3=g3, zone=zone, mcap=mcap)
 
@@ -625,11 +688,18 @@ def main():
         raw = close.copy()
     else:
         from utils.nifty1000_list import SUB_INDUSTRY_MAP
-        close, high, low, vol, raw, nifty, pit, gscore = load_prices(args.max_tickers)
-        groups = {t: g for t, g in SUB_INDUSTRY_MAP.items() if g and g != "Unknown"}
+        close, high, low, vol, raw, nifty, pit = load_prices(args.max_tickers)
         ever = pit.iloc[260::5]
         ever = list(ever.columns[ever.loc[ever.index >= "2015-06-01"].any()])
         A = load_annual(ever, args.scrape_missing, args.delay)
+        groups = {t: g for t, g in SUB_INDUSTRY_MAP.items() if g and g != "Unknown"}
+        if os.path.exists(EXTRA_IND):
+            extra = pd.read_csv(EXTRA_IND).dropna()
+            groups.update({t: g for t, g in zip(extra.ticker, extra.industry) if t not in groups and g})
+        print(f"[universe] {len(ever)} names ever in the PIT top 1000 since mid-2015; industry known for "
+              f"{sum(t in groups for t in ever)}; fundamentals for {A[A.ticker.isin(ever)].ticker.nunique()}")
+        close, high, low, vol, raw = fix_corporate_actions(close, high, low, vol, raw, A)
+        gscore = industry_scores(close, pit, groups, nifty)
     close, high, low, vol, raw = clean_spikes(close, high, low, vol, raw)
     fy = fy_table(A)
     R, P = build_rows(close, high, low, vol, raw, nifty, pit, gscore, fy, groups)
@@ -691,6 +761,38 @@ def main():
 
     _, E1 = episodes(R, R.win80 == 1, 28)
     E1 = E1.assign(gain=E1.fmax)
+    # how much of each winner's run was still ahead at its first chart trigger?
+    C = P["cf"].values
+    trig_rows = R[R.fresh_bo_anchor | R.buy_now][["ticker", "date", "i", "fresh_bo_anchor"]]
+    by_t = {t: g for t, g in trig_rows.groupby("ticker")}
+    tl = []
+    for _, e in E1.iterrows():
+        g = by_t.get(e.ticker)
+        end = min(int(e.i) + H, len(C) - 1)
+        peak = np.nanmax(C[int(e.i):end + 1, int(e.j)])
+        x = g[(g.i >= e.i) & (g.i <= end)] if g is not None else None
+        blind = {w: (np.nanmax(C[int(e.i) + 5 * w:end + 1, int(e.j)]) / C[int(e.i) + 5 * w, int(e.j)] - 1) * 100
+                 for w in (4, 8, 13) if int(e.i) + 5 * w <= end and np.isfinite(C[int(e.i) + 5 * w, int(e.j)])}
+        if x is None or not len(x):
+            tl.append(dict(era=e.era, trigger=False, **{f"blind{w}": v for w, v in blind.items()}))
+            continue
+        k = int(x.i.iloc[0])
+        # baseline: the same delay in a winner run that had NO trigger is measured below via 'blind'
+        tl.append(dict(era=e.era, trigger=True, wait_weeks=(k - int(e.i)) / 5,
+                       left=(np.nanmax(C[k:end + 1, int(e.j)]) / C[k, int(e.j)] - 1) * 100,
+                       total=(peak / C[int(e.i), int(e.j)] - 1) * 100,
+                       kind="breakout + anchor" if x.fresh_bo_anchor.iloc[0] else "v6 BUY NOW",
+                       **{f"blind{w}": v for w, v in blind.items()}))
+    TL = pd.DataFrame(tl)
+    print(f"\n--- S1 first chart trigger inside each 80% winner's run ({len(TL)} runs)")
+    for era, g in TL.groupby("era"):
+        h = g[g.trigger]
+        print(f"   {era}: trigger in {100 * g.trigger.mean():.0f}% of runs; median wait {h.wait_weeks.median():.0f} weeks; "
+              f"median gain still ahead {h.left.median():.0f}% of a median {h.total.median():.0f}% run; "
+              f">= 40% ahead in {100 * (h.left >= 40).mean():.0f}%; by kind {h.kind.value_counts().to_dict()}")
+        print("      baseline, ALL runs, gain still ahead if bought blind 4 / 8 / 13 weeks in: "
+              + " / ".join(f"{g[f'blind{w}'].median():.0f}%" for w in (4, 8, 13) if f"blind{w}" in g)
+              + "  (a trigger is useful only if it beats the blind entry at a similar wait)")
 
     # ---- S2 momentum fades ---------------------------------------------------
     mom = m(R.r126 >= 0.5) & m(R.rk126 >= 90)
@@ -732,7 +834,9 @@ def main():
     X2, S2x = exit_summary(S, E2, "S2 exits on momentum episodes")
     tables.append(X2)
     print(f"\n{'=' * 140}\nS2 EXITS: {len(E2)} momentum episodes (first week each run). Mean return per trade; "
-          f"'ret if X' = mean return of that rule on episodes that turned out X.\n{'=' * 140}")
+          f"'ret if X' = mean return of that rule on episodes that turned out X. mean_vs_nifty = excess over Nifty "
+          f"while held, i.e. proceeds parked in Nifty after an exit; it does NOT credit an exit with rotating into "
+          f"the next momentum name, which is what the live engine does.\n{'=' * 140}")
     print(X2.drop(columns="table").to_string(index=False))
 
     # ---- S3 velocity x valuation ---------------------------------------------
