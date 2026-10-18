@@ -110,6 +110,14 @@ own breakout day low broke -- a failed breakout the scanner still showed), 1 too
 Fixed: the scanner anchor now also requires no close below the breakout-day low (failed breakouts are labelled
 ❌); breakout detection drops blank-close rows (sessions-ago miscount; and in the ATH detector one blank close
 made the running max NaN and hid every later ATH breakout).
-Pending test (section 8 of forensics_gate_study.py, run script=forensics): v6-clean = pick the biggest-volume
-day that CLOSED STRONG. Adopt only if its BUY NOW beats v6 at 3m and 6m in both eras and the newly admitted
-names beat Gate 1 in both eras.
+Tested (section 8 of forensics_gate_study.py, 13 Oct 2026 run): v6-clean = pick the biggest-volume day that
+CLOSED STRONG. Verdict KEEP v6 -- 3 of 8 pre-registered checks passed, all in 2016-20; it lost on every
+2021-26 check. vs the typical stock (pp, 3m / 6m):
+| | 2016-20 | 2021-26 |
+|---|---|---|
+| v6 BUY NOW | 2.10 / 3.84 | 1.57 / 3.09 |
+| v6-clean BUY NOW | 2.28 / 3.55 | 1.38 / 2.58 |
+| newly admitted (today's MIXED-anchor cases) | 2.62 / 2.74 | 0.85 / 1.27 |
+| Gate 1 pass, any | 1.67 / 2.64 | 1.29 / 2.31 |
+All years: MIXED anchor 1.35 / 1.59 vs Gate 1 1.45 / 2.45 -- a big spike that closed mid-range is a genuine
+warning, and the clean breakout after it does not cancel it. The Technicals tab stays on v6.
