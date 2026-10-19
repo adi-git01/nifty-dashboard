@@ -2007,6 +2007,58 @@ elif page == "🌊 Trend Scanner":
         filtered_df = filtered_df[_bo_mask]
         st.caption(f"Showing **{len(filtered_df)}** stocks")
 
+    # === BREAKOUTS THIS WEEK + LOG (utils/breakout_log.py) ===
+    try:
+        from utils.breakout_log import load_log as _bo_load, this_week as _bo_week
+        _bo_log = _bo_load()
+    except Exception:
+        _bo_log = pd.DataFrame()
+    if not _bo_log.empty:
+        _now = add_momentum_tags(add_breakout_tags(df)).set_index('ticker')
+        _bo_log = _bo_log.assign(
+            momentum_now=_bo_log.ticker.map(_now['momo_entry'].ne("") | (_now['mom_rank'] >= 90)).fillna(False),
+            flags_now=_bo_log.ticker.map(_now['watch_flags']).fillna(""),
+            screener_link="https://www.screener.in/company/" + _bo_log.ticker.str.replace('.NS', '', regex=False) + "/")
+        _bo_cfg = {
+            "breakout_date": st.column_config.DateColumn("Breakout"),
+            "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
+            "kind": st.column_config.TextColumn("Type"),
+            "momentum": st.column_config.CheckboxColumn("Momentum then", help="Top-10% 6-month return + Gate 1 on the breakout day -- the entry that passed in the study"),
+            "momentum_now": st.column_config.CheckboxColumn("Momentum now"),
+            "size_tier": st.column_config.TextColumn("Size", help=SIZE_HELP),
+            "vol_x": st.column_config.NumberColumn("Vol ×", format="%.1f×", help="Breakout-day volume vs its 50-day median"),
+            "held": st.column_config.CheckboxColumn("Held", help="No close since below the breakout-day low"),
+            "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d"),
+            "signal_price": st.column_config.NumberColumn("Price then", format="₹%.2f"),
+            "current_price": st.column_config.NumberColumn("Now", format="₹%.2f"),
+            "return_pct": st.column_config.NumberColumn("Return", format="%+.1f%%"),
+            "sessions_since": st.column_config.NumberColumn("Sessions"),
+            "flags_now": st.column_config.TextColumn("Flags", help=FLAG_HELP),
+        }
+        _bo_show = ['breakout_date', 'screener_link', 'name', 'kind', 'momentum', 'momentum_now', 'size_tier',
+                    'vol_x', 'held', 'ind_score', 'signal_price', 'current_price', 'return_pct', 'sessions_since',
+                    'flags_now']
+        _wk, _wk_label = _bo_week(_bo_log), "this week"
+        if _wk.empty:                               # Monday before the EOD run: show the week just ended
+            _wk, _wk_label = _bo_week(_bo_log, pd.Timestamp.today().normalize() - pd.Timedelta(days=7)), "last week (none yet this week)"
+        with st.expander(f"📅 **Breakouts {_wk_label}** — {len(_wk)} (all sizes, momentum or not; "
+                         f"{int(_wk.momentum.sum()) if len(_wk) else 0} momentum entries)", expanded=True):
+            if _wk.empty:
+                st.caption("No 52-week / all-time-high breakout or squeeze release yet this week.")
+            else:
+                st.dataframe(_wk.sort_values(['momentum', 'breakout_date'], ascending=[False, False])[_bo_show],
+                             column_config=_bo_cfg, hide_index=True, use_container_width=True)
+            st.caption("Every fresh 52w / ATH closing-high breakout and squeeze release in the week, from the daily "
+                       "log. 'Momentum then' = the study's entry rule on the breakout day; " + MOMO_HELP.split(". ")[1] + ".")
+        with st.expander(f"📒 Breakout log — {len(_bo_log)} events since {pd.to_datetime(_bo_log.breakout_date).min():%d %b %Y}"):
+            _g = _bo_log[_bo_log.sessions_since >= 5].groupby('momentum').return_pct
+            if len(_g.size()):
+                st.caption("Average return since the breakout (events at least 5 sessions old): " + " · ".join(
+                    f"{'momentum entries' if k else 'other breakouts'} {v.mean():+.1f}% (n={len(v)})" for k, v in _g))
+            st.dataframe(_bo_log[_bo_show], column_config=_bo_cfg, hide_index=True, use_container_width=True, height=400)
+            st.download_button("⬇️ Download breakout log", _bo_log.to_csv(index=False).encode(), "breakout_log.csv",
+                               "text/csv", key="dl_bo_log")
+
     # === TRADE PLAN: EDGE, STOP, SIZE ===
     # The tag backtest overturned the old "fresh first / Extended = wait" advice
     # (see _ENTRY_HELP). What this panel is for: ranking the filtered names by

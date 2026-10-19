@@ -171,6 +171,17 @@ def main():
     refresh_signal_log_prices(RS_LOG_FILE, RS_LOG_COLS, price_map)
     print(f"  Found {len(rs_list)} RS Divergence signals.")
 
+    # ── 3b. Breakout / squeeze log (utils/breakout_log.py) ─────────────────
+    print("\n[BO] Updating breakout / squeeze log...")
+    bo_new = pd.DataFrame()
+    try:
+        from utils.breakout_log import update_log
+        bo_log, bo_new = update_log(today_df, snapshot_date() or pd.Timestamp.today().normalize())
+        print(f"  {len(bo_new)} new breakout/squeeze events ({int(bo_new.momentum.sum()) if len(bo_new) else 0} "
+              f"momentum entries); log {len(bo_log)} rows.")
+    except Exception as e:
+        print(f"  Breakout log failed: {e}")
+
     # ── 4. Telegram Summary ───────────────────────────────────────────────
     date_str = datetime.now().strftime("%d %b %Y")
     lines = [f"<b>📡 Daily Signal Logger — {date_str}</b>\n"]
