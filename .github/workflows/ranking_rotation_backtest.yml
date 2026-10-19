@@ -117,7 +117,7 @@ jobs:
         # always(): the extra fundamentals scrape is kept even if the study step fails
         if: always() && github.event.inputs.script == 'entry_exit'
         run: |
-          bash scripts/commit_and_push.sh "Entry / exit study results" analysis/entry_exit_study.csv analysis/ENTRY_EXIT_CASES.md entry_exit_output.txt data/fundamentals_annual_extra.csv.gz data/industry_extra.csv
+          bash scripts/commit_and_push.sh "Entry / exit study results" analysis/entry_exit_study.csv analysis/ENTRY_EXIT_CASES.md entry_exit_output.txt data/fundamentals_annual_extra.csv.gz data/industry_extra.csv data/fundamentals_extra_tried.txt
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
