@@ -206,7 +206,9 @@ def fix_corporate_actions(close, high, low, vol, raw, A):
             e = eq[t].dropna()
             before, after = e[e.index < dt], e[e.index >= dt]
             if len(before) and len(after) and before.iloc[-1] > 0:
-                ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.15
+                # a bonus scales equity capital by exactly 1/ratio; 15% let COVID crash days on banks that
+                # issued shares that year pass (INDUSINDBK, BANDHANBNK Mar 2020, run 3)
+                ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.05
         vbefore, vafter = vb.iat[i - 1, close.columns.get_loc(t)] if i else np.nan, va.at[dt, t]
         # volume also surges after a real crash (PCJEWELLER 2018, ANTGRAPHIC x25 in run 2), so volume can
         # only confirm a true SPLIT ratio; bonus-only ratios (2/3, 3/4, 3/5, 4/7, 1/3...) need the equity jump

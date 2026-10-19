@@ -1,4 +1,4 @@
-# Can charts and valuation improve momentum entries and exits? (run 2, 19 Oct 2026)
+# Can charts and valuation improve momentum entries and exits? (runs 2-3, 19 Oct 2026)
 
 Source: `entry_exit_study.py`, Actions `script=entry_exit`; output `entry_exit_output.txt`, cases
 `ENTRY_EXIT_CASES.md`. Weekly stock-dates 2016-2026, point-in-time top-1000 by turnover, 1,855 stocks
@@ -87,6 +87,32 @@ give-backs from -37 to -40% to -7 to -8%.
 - **Commodity producers: momentum while CHEAP/FAIR lost in both eras** (-4.8 / -0.8 pp) vs RICH
   +15.3 / +1.7 — a low P/E at peak-cycle earnings is a trap (small: 29 / 49 stocks).
 
+## 6. Entry triggers inside momentum (run 3; H6, set before the run)
+Every 6m-rank >= 90 + Gate 1 episode (2,097 / 2,303 — winners AND losers). Enter at once, or wait up to
+3 months for a trigger. Judged against entering all episodes blind after the same delay (6m vs typical,
+mean; 2016-20 / 2021-26):
+
+| | fires | median wait | from trigger | blind, same wait | edge | median from trigger |
+|---|---|---|---|---|---|---|
+| enter at once | 100% | 0 | 11.2 / 10.3 | — | — | 3.0 / 2.8 |
+| **52w / ATH breakout** | 45 / 47% | 26 / 27 d | 13.4 / 12.6 | 12.1 / 10.1 | **+1.2 / +2.5** | 6.0 / 4.1 |
+| **squeeze release** | 52 / 49% | 29 / 27 d | 15.4 / 12.4 | 12.1 / 10.1 | **+3.3 / +2.2** | 7.2 / 4.3 |
+| gap that held | 47 / 50% | 19 / 18 d | 14.5 / 10.3 | 12.0 / 10.1 | +2.5 / +0.2 | 3.6 / 0.8 |
+| strong close (CLV >= 0.8, 1.5x vol) | 90 / 92% | 8 / 7 d | 13.0 / 10.5 | 11.9 / 10.1 | +1.1 / +0.4 | 4.3 / 2.8 |
+| volume anchor | 70 / 86% | 6 / 5 d | 10.8 / 9.9 | 11.8 / 10.1 | -1.0 / -0.2 | 3.2 / 2.0 |
+| pocket pivot, NR7, pullback-to-20d, RSI(2) dip | 93-100% | 2-13 d | | | -0.4 to +0.6 | |
+
+- **Supported: 52w/ATH breakout and squeeze release.** A momentum name bought on its breakout (or on a
+  Bollinger-squeeze release) did 1-3 pp better over 6 months than buying any momentum name after the
+  same wait, and 2-5 pp better than buying at once — so waiting for the breakout did NOT give up gains.
+  Both fire in only about half of episodes after ~5 weeks, so they select names rather than time them;
+  year-by-year they beat the blind entry in 4/5 and 3/6 (breakout), 3/5 and 3/6 (squeeze).
+- **Not supported:** CLV / strong close, volume anchor alone, gap, pocket pivot, NR7, pullback, RSI(2) —
+  they fire on almost every momentum name within days, so they add little information.
+- Demerger check: only 7 of ~3,780 exit episodes contained one of the 64 flagged one-day falls; dropping
+  them changes nothing. Run 3's bonus repair still passed 3 COVID crash days on two banks (equity
+  capital tolerance 15%); tightened to 5% after the run — too few rows to move any result.
+
 ## Use
 1. Keep the live exit. Do not add velocity or valuation exits.
 2. Do not use valuation (P/E vs history or peers) to accept or reject momentum entries; the one
@@ -95,3 +121,5 @@ give-backs from -37 to -40% to -7 to -8%.
    tool; v6 BUY NOW is the small/micro tool; large-cap momentum has had no edge since 2021.
 4. Highlight v6 ABSORPTION on momentum names as the one positive chart sign.
 5. Commodity names: treat a low P/E during a momentum run as a warning, not value.
+6. For momentum names, prefer entries on a fresh 52w/ATH breakout or a squeeze release; do not wait
+   for a CLV / volume-anchor / pullback / RSI(2) signal — they add nothing on top of momentum.
