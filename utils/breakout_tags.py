@@ -228,13 +228,16 @@ MOMO_HELP = ("Top-10% 6-month return + Gate 1 trend, AND a fresh (last 2 weeks) 
              "breakout +13.4 / +12.6 pp over 6 months vs the typical stock (2016-20 / 2021-26), squeeze +15.4 / "
              "+12.4, vs +11.2 / +10.3 buying at once and +12.1 / +10.1 buying blind after the same wait. Fires for "
              "about half of momentum names. CLV, volume anchor alone, gaps, pocket pivots, NR7, pullbacks and "
-             "RSI(2) dips added nothing.")
+             "RSI(2) dips added nothing. Discretionary only: as an ENGINE rule (buy only these) it cut the live book's "
+             "10-year CAGR from 27.5% to 22.5% -- the 6-month ranking already carries this momentum.")
 SIZE_HELP = ("Market-cap rank in the loaded universe: Large 1-100, Mid 101-250, Small 251-500, Micro 501+. "
              "6-month edge vs the typical stock, 2016-20 / 2021-26: momentum Large +7.4 / -4.0 (no edge since 2021), "
              "Mid +12.1 / +4.3, Small +7.4 / +2.6, Micro +2.5 / +4.2; breakout + volume anchor + leader industry "
              "works best in Mid (+6.2 both eras); v6 BUY NOW is the steadiest in Small/Micro (positive every year).")
 FLAG_HELP = ("⚠ loss-maker: latest published annual EPS <= 0 -- momentum names that lose money did worse "
-             "(-4.8 / -1.4 pp over 6 months) and gave their gains back more often. 🟢 absorption: pullbacks on "
+             "(-4.8 / -1.4 pp over 6 months) and gave their gains back more often -- but skipping them in the live engine "
+             "cut 10-year CAGR by ~2 pp (the turnarounds pay for the rest under an MA50 exit), so it is a caution, "
+             "not a filter. 🟢 absorption: pullbacks on "
              "drying volume after the volume anchor (Technicals tab) -- the best chart sign on momentum names "
              "(+8.4 / +6.0 pp). ⛏ cheap commodity: a low P/E during a commodity run is peak-cycle earnings, not value.")
 TIERS = ((100, "Large"), (250, "Mid"), (500, "Small"))

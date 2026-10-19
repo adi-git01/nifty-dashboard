@@ -123,3 +123,28 @@ mean; 2016-20 / 2021-26):
 5. Commodity names: treat a low P/E during a momentum run as a warning, not value.
 6. For momentum names, prefer entries on a fresh 52w/ATH breakout or a squeeze release; do not wait
    for a CLV / volume-anchor / pullback / RSI(2) signal — they add nothing on top of momentum.
+
+## 7. Live-portfolio test (entry_filter_portfolio_backtest.py, 19 Oct 2026): keep the engine
+Live rules, only the names allowed into a free slot changed. PIT top-1000 by turnover, 2014-2026.
+
+| variant | 10y CAGR | 10y Sharpe | 10y max DD | 8 starts beat BASE | 3 periods beat BASE | median d CAGR (starts) |
+|---|---|---|---|---|---|---|
+| **BASE live engine (6m RS)** | **27.5%** | **1.70** | -26.2% | — | — | — |
+| E1 breakout / squeeze required | 22.5% | 1.43 | -26.0% | 1/8 | 0/3 | -2.7 pp |
+| E2 breakout / squeeze first | 22.8% | 1.42 | -29.4% | 1/8 | 0/3 | -2.4 pp |
+| Z1 no large caps | 27.0% | 1.68 | -30.3% | 4/8 | 2/3 | +0.2 pp |
+| X1 no loss-makers | 24.1% | 1.52 | -32.4% | 0/8 | 0/3 | -2.1 pp |
+| ZX no large, no loss | 22.5% | 1.44 | -35.4% | 0/8 | 0/3 | -3.2 pp |
+| C1 E1 + Z1 + X1 | 18.8% | 1.22 | -24.1% | 0/8 | 0/3 | -6.3 pp |
+| C2 E2 + Z1 + X1 | 18.1% | 1.17 | -29.6% | 0/8 | 0/3 | -6.3 pp |
+
+- **Requiring or preferring a breakout/squeeze costs ~2.5 pp a year**, the same lesson as the 30 Sep
+  breakout test. The event study measured holding the trigger name 6 months; the book exits on an MA50
+  break and the filter removes ~13% of buys that the 6-month ranking would have made. The ranking already
+  carries the momentum the trigger confirms.
+- **Skipping loss-makers costs ~2 pp a year** even though loss-making momentum names do worse on average:
+  17% of the engine's buys are loss-makers, and the turnarounds among them pay for the rest inside a book
+  with an MA50 exit (the exit caps the bad ones).
+- **No large caps is a tie** (4/8 starts, 2/3 periods, +0.2 / -0.3 pp) — only 4% of buys are large caps.
+- Nothing beats BASE at most starts AND in most periods. **Engine unchanged.** The scanner columns
+  (momentum entry, size tier, flags) stay as discretionary context, not engine rules.
