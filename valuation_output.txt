@@ -1,0 +1,223 @@
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: AKZOINDIA.NS"}}}
+$AKZOINDIA.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: LTIM.NS"}}}
+$LTIM.NS: possibly delisted; no timezone found
+$VISASTEEL.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$MIRCELECTR.NS: possibly delisted; no timezone found
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$SANGHIIND.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-10-19)
+$JBCHEPHARM.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-10-19)
+$CIGNITITEC.NS: possibly delisted; no timezone found
+$EXCEL.NS: possibly delisted; no timezone found
+$GSPL.NS: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-10-19)
+
+12 Failed downloads:
+['AKZOINDIA.NS', 'LTIM.NS', 'VISASTEEL.NS', 'SASTASUNDR.NS', 'MIRCELECTR.NS', 'LYPSAGEMS.NS', 'GUJGASLTD.NS', 'CIGNITITEC.NS', 'EXCEL.NS']: possibly delisted; no timezone found
+['SANGHIIND.NS', 'JBCHEPHARM.NS', 'GSPL.NS']: possibly delisted; no price data found  (1d 2014-06-01 -> 2026-10-19)
+[yf_safe] bulk download attempt 1/3: 99% coverage (2098/2110 tickers)
+/home/runner/work/nifty-dashboard/nifty-dashboard/valuation_study.py:86: RuntimeWarning: Mean of empty slice
+  eps5 = pd.DataFrame(np.where(n_ok >= 3, np.nanmean(stack, axis=0), np.nan), index=dates, columns=tickers)
+[data] dropped 10 non-session row(s) not in the Nifty calendar
+[data] 2044 tickers, 3044 sessions 2014-06-02 -> 2026-10-16
+[funda] 1936 stocks on file; 0 PIT-universe names still to try (766 tried before)
+[clean] repaired 8 unadjusted bonus/split day(s): BANDHANBNK 2020-03-23 x0.75 (bonus), SILVERTUC 2023-01-02 x0.10 (split), SADHNANIQ 2024-09-04 x0.75 (bonus), PARAS 2025-01-01 x0.50 (split), REDTAPE 2025-01-01 x0.25 (bonus), SIGMA 2025-01-01 x0.10 (split), CALSOFT 2025-01-06 x0.57 (bonus), SILVERTUC 2026-01-01 x0.10 (split)
+[clean] blanked 24 one-day reversing spikes; most in ANTGRAPHIC, SUMEETINDS, CYBERTECH, GICHSGFIN, TIL, NBIFIN, PFOCUS, PFS
+[check] 64 one-day falls of 40%+ that did not reverse -- real crash, or a demerger / bonus Yahoo did not adjust (VEDL 2026 demerger: 655 -> 272). All of them: GOCLCORP 2014-06-26 x0.49, MANAKSIA 2014-12-04 x0.38, MASTEK 2015-06-12 x0.34, JSL 2015-11-19 x0.39, SPCENET 2017-01-10 x0.34, J&KBANK 2017-02-27 x0.46, PTL 2017-03-27 x0.37, CDSL 2017-07-03 x0.50, FCSSOFT 2017-12-04 x0.50, NBIFIN 2017-12-07 x0.57, DCMFINSERV 2018-03-22 x0.57, PRAKASHSTL 2018-06-18 x0.50, HBSL 2018-07-26 x0.10, CCAVENUE 2018-09-28 x0.29, STEELCITY 2019-07-30 x0.51, ABREL 2019-10-11 x0.45, GICHSGFIN 2019-10-17 x0.24, PATANJALI 2020-01-27 x0.05, YESBANK 2020-03-06 x0.44, IMAGICAA 2020-04-28 x0.53, IMAGICAA 2020-05-04 x0.03, ROML 2020-10-08 x0.11, DIGJAMLMTD 2021-10-18 x0.12, 3IINFOLTD 2021-10-22 x0.37, SELMC 2021-10-28 x0.00, SEJALLTD 2021-12-14 x0.01, LATTEYS 2022-03-29 x0.45, GVPTECH 2022-09-12 x0.18, MIRZAINT 2023-03-29 x0.14, ACL 2023-05-10 x0.58, NIITLTD 2023-06-08 x0.24, DOLPHIN 2023-08-21 x0.38, DIACABS 2023-09-18 x0.12, CGCL 2024-01-01 x0.25, GPIL 2024-01-01 x0.20, MOTILALOFS 2024-01-01 x0.25, TIL 2024-03-18 x0.28, AQYLON 2024-04-02 x0.12, UEL 2024-04-16 x0.02, ROSSELLIND 2024-09-20 x0.27, STAR 2024-12-06 x0.46, SHARDAMOTR 2025-01-01 x0.50, CYBERTECH 2025-01-13 x0.01, SUMEETINDS 2025-02-03 x0.19, QUESS 2025-04-15 x0.49, RAYMOND 2025-05-14 x0.35, ABFRL 2025-05-22 x0.33, JSLL 2025-06-03 x0.22, SUMEETINDS 2025-06-19 x0.59, IRISDOREME 2025-07-01 x0.52, SHANKARA 2025-09-24 x0.24, TMPV 2025-10-14 x0.60, SKFINDIA 2025-10-15 x0.45, ALLCARGO 2025-11-12 x0.35, DCMSRIND 2025-12-26 x0.32, AQYLON 2026-01-01 x0.10, SADHNANIQ 2026-02-09 x0.28, MAHAPEXLTD 2026-03-11 x0.56, VEDL 2026-04-30 x0.35, TRIVENI 2026-07-22 x0.58, INDIAGLYCO 2026-09-02 x0.21, BANSALWIRE 2026-10-06 x0.20, VERANDA 2026-10-06 x0.14, BHAGYANGR 2026-10-08 x0.09
+[funda] EPS history for 1874 stocks; holdcos excluded 34; EPS/profit mismatch excluded 27; no share count (no size tier) 0
+[rows] 85312 monthly stock-starts with a valuation, 1464 stocks, Jul 2017 - Oct 2026
+
+======================================================================================================================================================
+1  LONG HORIZONS: return vs the typical stock (pp, cumulative over the horizon), monthly starts
+======================================================================================================================================================
+   half                          cell     n  stocks  1y median vs typ  1y mean vs typ  1y beat%  2y median vs typ  2y mean vs typ  2y beat%  3y median vs typ  3y mean vs typ  3y beat%  worst DD 1y median  -50% within 2y %
+2017-20                           all 24814     961               1.0            12.5        51               1.4            36.2        51               2.0            56.4        51               -34.7              45.8
+2017-20                    zone CHEAP  5843     502               1.4            17.3        52               9.1            56.5        55              12.7            80.7        55               -37.5              44.8
+2017-20                     zone FAIR 12555     755               2.7            11.3        54               3.0            28.6        52               1.9            45.3        51               -31.3              41.5
+2017-20                     zone RICH  2049     271               9.4            16.0        62              13.7            30.5        58              13.0            44.0        58               -27.3              33.6
+2017-20                     zone LOSS  4367     260              -9.8             7.7        39             -15.3            33.9        39             -15.6            61.6        42               -45.7              65.0
+2017-20 own-history P/E Q1 (cheapest)  4035     532              -0.0             9.4        50               5.4            32.8        54               5.9            61.2        53               -38.1              49.0
+2017-20            own-history P/E Q2  4261     617               2.2            13.7        53               4.1            40.9        53               7.3            63.3        54               -33.4              43.2
+2017-20            own-history P/E Q3  4157     655               3.6            14.8        55               4.3            40.5        53               4.2            55.1        52               -32.9              43.1
+2017-20            own-history P/E Q4  4129     600               3.5            15.0        54               5.5            39.5        54               6.7            54.3        53               -30.8              40.8
+2017-20  own-history P/E Q5 (dearest)  4196     470               5.8            14.1        58               6.0            28.0        54               3.7            40.4        52               -27.6              32.9
+2017-20    P/E vs peers Q1 (cheapest)  4190     335               0.6            16.7        51               6.6            55.5        55              11.8            85.9        55               -38.7              50.5
+2017-20               P/E vs peers Q2  4204     456               1.8            11.4        53               5.9            36.7        54              10.2            54.7        55               -34.4              46.2
+2017-20               P/E vs peers Q3  4206     463               2.5            10.7        53               4.0            30.8        53               1.8            45.6        51               -33.1              42.6
+2017-20               P/E vs peers Q4  4204     440               4.9            14.0        56               4.7            30.4        54               1.8            46.5        51               -27.8              34.9
+2017-20     P/E vs peers Q5 (dearest)  4219     336               5.1            13.6        56               3.4            26.5        52               0.1            38.9        50               -28.5              35.2
+2017-20                      P/E 0-10  4777     444               1.3            20.1        51              13.7            72.8        57              22.2           102.7        58               -36.5              41.1
+2017-20                     P/E 10-20  5852     568               0.7            11.1        51              -0.0            30.3        50               1.1            50.8        51               -35.7              47.6
+2017-20                     P/E 20-35  5191     475               3.4            11.0        54               4.0            26.1        53               3.3            40.9        52               -31.1              42.0
+2017-20                     P/E 35-60  2808     314               8.0            14.2        61              11.0            25.4        59               8.7            31.3        56               -27.2              33.9
+2017-20                    P/E 60-100  1345     157               5.8             9.4        58               2.7             9.1        52              -7.4            18.1        45               -26.3              32.6
+2017-20                     P/E 100-+  1074     110               2.2             8.8        52              -5.0            10.5        45              -8.9            26.6        44               -32.7              45.7
+2020-26                           all 60498    1387               0.9            14.5        51               1.6            31.3        51               2.5            62.3        51               -15.3               8.9
+2020-26                    zone CHEAP  8171     745               3.8            18.3        54              15.6            48.4        58              29.7            98.1        62               -12.1               5.5
+2020-26                     zone FAIR 35931    1199               0.5            13.3        51               0.6            28.4        50               0.2            56.3        50               -15.2               7.6
+2020-26                     zone RICH  7510     682               1.2            12.9        51              -5.4            20.6        47             -20.3            31.5        42               -15.4               9.7
+2020-26                     zone LOSS  8886     509               0.4            17.6        50               2.1            37.2        51               3.8            75.5        52               -19.3              15.4
+2020-26 own-history P/E Q1 (cheapest) 10626     867               0.0            10.1        50               6.5            31.5        54              17.2            79.1        57               -14.2               7.5
+2020-26            own-history P/E Q2 10670     994               0.8            13.8        51               4.0            35.2        53              12.3            69.6        55               -14.8               7.6
+2020-26            own-history P/E Q3 10668    1026               0.7            15.8        51              -0.4            29.9        50              -3.9            58.4        48               -14.5               7.1
+2020-26            own-history P/E Q4 10650     997               1.8            14.4        52              -2.2            25.7        49              -8.6            49.1        47               -15.5               7.8
+2020-26  own-history P/E Q5 (dearest) 10721     959               0.9            14.5        51              -3.9            24.8        48             -14.3            38.4        45               -15.9              10.9
+2020-26    P/E vs peers Q1 (cheapest) 10737     628               4.4            20.9        55              14.3            50.3        58              28.1           102.4        60               -15.1               7.1
+2020-26               P/E vs peers Q2 10771     825               2.1            15.8        52               7.8            34.5        55              19.7            68.9        57               -15.0               8.2
+2020-26               P/E vs peers Q3 10765     862               0.5            12.0        51               0.5            24.8        50              -0.1            50.0        50               -14.7               7.2
+2020-26               P/E vs peers Q4 10771     775              -0.8            11.0        49              -5.4            22.2        46             -12.6            43.2        45               -14.4               7.2
+2020-26     P/E vs peers Q5 (dearest) 10799     665              -2.6             8.3        47             -10.6            14.0        43             -22.8            27.6        40               -15.9              11.9
+2020-26                      P/E 0-10  5977     408               9.6            29.3        59              28.0            65.2        64              44.6           128.3        65               -10.9               3.6
+2020-26                     P/E 10-20 11129     728               4.1            18.1        54              11.2            40.4        56              22.3            74.2        58               -13.5               6.3
+2020-26                     P/E 20-35 12850     855               0.4            12.7        50              -0.1            24.7        50              -2.0            47.6        49               -15.1               7.5
+2020-26                     P/E 35-60 11567     788              -1.7             7.5        48              -7.2            17.4        46             -18.2            32.4        42               -15.9               9.2
+2020-26                    P/E 60-100  7113     570              -1.9             7.9        47             -10.2             9.4        43             -31.1            13.4        37               -16.8               9.7
+2020-26                     P/E 100-+  5265     426              -4.3             7.0        46             -16.3            10.2        40             -30.4            22.2        38               -20.7              18.9
+
+======================================================================================================================================================
+2  CRASH WINDOWS (equal-weight universe down >= 15%): median peak-to-trough return by zone at the peak, and the next 6 months from the trough
+======================================================================================================================================================
+      peak     trough  universe_dd  zone   n  crash_median  rebound_6m_median
+2018-01-15 2020-03-24        -63.2 CHEAP  39         -61.9               61.2
+2018-01-15 2020-03-24        -63.2  FAIR 335         -63.9               53.9
+2018-01-15 2020-03-24        -63.2  RICH  90         -65.6               54.1
+2018-01-15 2020-03-24        -63.2  LOSS 152         -82.8               66.7
+2022-01-17 2022-06-20        -22.8 CHEAP  83         -24.1               30.3
+2022-01-17 2022-06-20        -22.8  FAIR 400         -24.8               20.0
+2022-01-17 2022-06-20        -22.8  RICH 126         -23.1               22.5
+2022-01-17 2022-06-20        -22.8  LOSS 185         -27.9               24.9
+2024-09-16 2026-03-30        -26.1 CHEAP  53         -15.8               18.8
+2024-09-16 2026-03-30        -26.1  FAIR 566         -30.5               16.5
+2024-09-16 2026-03-30        -26.1  RICH 113         -33.0               16.0
+2024-09-16 2026-03-30        -26.1  LOSS 103         -42.0               16.9
+   RICH minus CHEAP/FAIR per window: {(datetime.date(2018, 1, 15), datetime.date(2020, 3, 24)): -2.7, (datetime.date(2022, 1, 17), datetime.date(2022, 6, 20)): 1.4, (datetime.date(2024, 9, 16), datetime.date(2026, 3, 30)): -9.9}
+
+--- worst drawdown in the next year and odds of a -50% fall within 2 years, by zone
+   half       cell     n  stocks  1y median vs typ  1y mean vs typ  1y beat%  worst DD 1y median  -50% within 2y %
+2017-20 zone CHEAP  5843     502               1.4            17.3        52               -37.5              44.8
+2017-20  zone FAIR 12555     755               2.7            11.3        54               -31.3              41.5
+2017-20  zone RICH  2049     271               9.4            16.0        62               -27.3              33.6
+2017-20  zone LOSS  4367     260              -9.8             7.7        39               -45.7              65.0
+2017-20        all 24814     961               1.0            12.5        51               -34.7              45.8
+2020-26 zone CHEAP  8171     745               3.8            18.3        54               -12.1               5.5
+2020-26  zone FAIR 35931    1199               0.5            13.3        51               -15.2               7.6
+2020-26  zone RICH  7510     682               1.2            12.9        51               -15.4               9.7
+2020-26  zone LOSS  8886     509               0.4            17.6        50               -19.3              15.4
+2020-26        all 60498    1387               0.9            14.5        51               -15.3               8.9
+
+======================================================================================================================================================
+3  EXPENSIVE EXTREMES
+======================================================================================================================================================
+   half                            cell     n  stocks  1y median vs typ  1y mean vs typ  1y beat%  2y median vs typ  2y mean vs typ  2y beat%  3y median vs typ  3y mean vs typ  3y beat%  worst DD 1y median  -50% within 2y %
+2017-20                             all 24814     961               1.0            12.5        51               1.4            36.2        51               2.0            56.4        51               -34.7              45.8
+2017-20         P/E >= 100 (profitable)   474      69               3.8            12.3        56              -3.9            14.7        47              -0.3            40.5        50               -30.8              41.4
+2017-20                      P/E 60-100  1345     157               5.8             9.4        58               2.7             9.1        52              -7.4            18.1        45               -26.3              32.6
+2017-20        loss-makers / P/E >= 200  4367     260              -9.8             7.7        39             -15.3            33.9        39             -15.6            61.6        42               -45.7              65.0
+2017-20 own >= 95th pct and >= 2x peers   740     148               8.7            16.4        61               7.0            24.4        55               6.6            36.1        54               -28.9              35.0
+2020-26                             all 60498    1387               0.9            14.5        51               1.6            31.3        51               2.5            62.3        51               -15.3               8.9
+2020-26         P/E >= 100 (profitable)  2976     332              -2.6             9.0        47             -14.3            14.6        41             -32.6            16.4        36               -18.6              13.9
+2020-26                      P/E 60-100  7113     570              -1.9             7.9        47             -10.2             9.4        43             -31.1            13.4        37               -16.8               9.7
+2020-26        loss-makers / P/E >= 200  8886     509               0.4            17.6        50               2.1            37.2        51               3.8            75.5        52               -19.3              15.4
+2020-26 own >= 95th pct and >= 2x peers  3264     461              -0.1            11.1        50              -8.0            18.8        45             -20.9            27.7        41               -16.8              15.2
+
+======================================================================================================================================================
+4  VALUE SLEEVE (30 cheapest of the 500 most liquid, monthly) AND BLENDS WITH THE LIVE ENGINE
+======================================================================================================================================================
+                        curve  full cagr  full sharpe  full maxdd  2017-19 cagr  2017-19 sharpe  2017-19 maxdd  2019-22 cagr  2019-22 sharpe  2019-22 maxdd  2022-26 cagr  2022-26 sharpe  2022-26 maxdd
+                  live engine       26.1         1.64       -34.6           8.9            0.72          -34.6          48.9            2.55          -18.9          21.6            1.40          -22.9
+   value sleeve (30 cheapest)       19.4         0.94       -62.3          -8.7           -0.35          -42.4          39.6            1.44          -48.5          25.5            1.32          -22.0
+expensive sleeve (30 dearest)       20.5         1.06       -37.3           5.2            0.41          -23.9          39.7            1.58          -34.2          17.2            0.92          -24.4
+         equal-weight top-500       16.6         0.89       -55.5          -1.8           -0.02          -37.3          28.2            1.21          -42.8          20.8            1.14          -24.6
+     blend 70/30 engine/value       24.6         1.59       -36.9           3.7            0.35          -36.4          46.9            2.43          -19.9          23.2            1.57          -16.3
+     blend 50/50 engine/value       23.3         1.43       -45.1           0.2            0.09          -37.8          45.2            2.16          -28.3          24.0            1.58          -16.3
+   monthly return correlation engine vs value sleeve: 0.45; average names held 30
+
+======================================================================================================================================================
+5  CYCLICALS (normalised vs trailing P/E) AND LENDERS (P/B, P/B / ROE)
+======================================================================================================================================================
+   half                                    cell   n  stocks  1y median vs typ  1y mean vs typ  1y beat%  2y median vs typ  2y mean vs typ  2y beat%  worst DD 1y median  -50% within 2y %
+2017-20 commodity, normalised P/E Q1 (cheapest) 162      14               4.8            13.5        56              19.9            79.1        65               -39.9              44.4
+2017-20            commodity, normalised P/E Q2 170      21               1.7            11.2        52              -9.6            10.9        45               -35.6              41.2
+2017-20            commodity, normalised P/E Q3 175      21              -2.6             2.2        44              -1.0            16.7        49               -39.2              47.4
+2017-20            commodity, normalised P/E Q4 170      18              -1.2             1.1        49              -6.3            17.5        48               -31.9              32.9
+2017-20  commodity, normalised P/E Q5 (dearest) 192      19              10.9            34.9        66              13.2            75.7        60               -35.9              41.1
+2017-20   commodity, trailing P/E Q1 (cheapest) 162      18              -1.4             9.9        48               9.2            74.5        61               -44.3              54.9
+2017-20              commodity, trailing P/E Q2 170      17              -2.6            11.0        47               0.8            21.5        51               -37.6              40.6
+2017-20              commodity, trailing P/E Q3 175      22               3.8            10.3        56               3.2            29.0        54               -34.1              46.3
+2017-20              commodity, trailing P/E Q4 170      20              -7.6            12.5        44             -19.9            43.4        41               -37.8              44.7
+2017-20    commodity, trailing P/E Q5 (dearest) 192      12              13.8            20.6        70              11.8            36.0        60               -29.8              23.4
+2017-20               lender, P/B Q1 (cheapest) 237      16             -11.6             1.6        40             -23.1             5.6        35               -42.6              57.0
+2017-20                          lender, P/B Q2 247      21              -8.1            -1.3        39             -29.2           -20.7        26               -33.3              60.3
+2017-20                          lender, P/B Q3 255      24               5.8            10.0        54              -8.8            -5.9        44               -29.8              46.7
+2017-20                          lender, P/B Q4 247      25               4.6             6.1        53             -19.4           -12.1        40               -30.0              45.7
+2017-20                lender, P/B Q5 (dearest) 267      20               6.5            14.8        57               5.1            13.1        53               -28.1              31.8
+2017-20         lender, P/B / ROE Q1 (cheapest) 237      21              -6.3             9.1        43             -18.6            17.0        38               -37.4              46.0
+2017-20                    lender, P/B / ROE Q2 247      25              -3.0             1.2        48             -20.8           -16.6        33               -39.5              59.1
+2017-20                    lender, P/B / ROE Q3 255      27             -10.7             0.5        40             -28.5           -19.2        31               -39.0              59.2
+2017-20                    lender, P/B / ROE Q4 247      27              -0.7             0.4        49             -25.3           -18.7        42               -29.9              46.2
+2017-20          lender, P/B / ROE Q5 (dearest) 267      22              14.1            20.2        64               9.7            17.9        53               -23.8              30.3
+2020-26 commodity, normalised P/E Q1 (cheapest) 577      25              19.8            42.7        74              51.0            94.3        81               -10.2               0.6
+2020-26            commodity, normalised P/E Q2 600      45              12.4            30.0        65              42.0            69.5        76               -12.6               0.3
+2020-26            commodity, normalised P/E Q3 610      49              12.6            21.3        63              24.0            48.1        65               -12.8               2.6
+2020-26            commodity, normalised P/E Q4 600      41              10.9            17.3        59               1.0            21.1        51               -14.3               5.6
+2020-26  commodity, normalised P/E Q5 (dearest) 632      36               2.2            13.5        52               8.0            14.1        54               -17.7              15.7
+2020-26   commodity, trailing P/E Q1 (cheapest) 577      32              14.2            39.6        70              35.1            77.2        76               -10.9               1.4
+2020-26              commodity, trailing P/E Q2 600      42              14.1            28.7        64              52.3            77.1        77               -13.5               2.7
+2020-26              commodity, trailing P/E Q3 610      49              11.6            26.7        61              18.0            43.9        60               -12.6               2.8
+2020-26              commodity, trailing P/E Q4 600      45              12.8            18.6        64              22.3            31.7        65               -13.8               7.4
+2020-26    commodity, trailing P/E Q5 (dearest) 632      37               5.0            11.2        53              -1.9            16.6        49               -15.8              10.7
+2020-26               lender, P/B Q1 (cheapest) 840      38              17.3            34.6        65              47.9            92.8        77               -13.3               0.2
+2020-26                          lender, P/B Q2 865      54               8.9            17.8        58              23.1            46.1        65               -13.6               7.9
+2020-26                          lender, P/B Q3 867      49               6.3             8.0        57               1.8             3.6        52               -13.3              10.3
+2020-26                          lender, P/B Q4 865      49               0.5             1.7        51             -10.8            -5.2        42               -14.1               5.1
+2020-26                lender, P/B Q5 (dearest) 883      33              -9.4            -8.1        40             -25.4           -21.8        31               -14.9              12.2
+2020-26         lender, P/B / ROE Q1 (cheapest) 840      41              14.3            30.8        65              45.7            86.5        74               -12.2               4.8
+2020-26                    lender, P/B / ROE Q2 865      53               8.9            14.1        59              18.2            33.2        63               -13.0               5.6
+2020-26                    lender, P/B / ROE Q3 867      55               3.8             6.5        54              -1.1             4.0        50               -14.3               6.6
+2020-26                    lender, P/B / ROE Q4 865      52               2.5             3.6        52              -5.6            -2.3        44               -12.4               3.0
+2020-26          lender, P/B / ROE Q5 (dearest) 883      46              -7.1            -1.2        41             -22.6            -6.4        37               -17.1              15.7
+
+======================================================================================================================================================
+6  TURNAROUNDS: cheap + earnings recovering
+======================================================================================================================================================
+   half                          cell     n  stocks  1y median vs typ  1y mean vs typ  1y beat%  2y median vs typ  2y mean vs typ  2y beat%  worst DD 1y median  -50% within 2y %
+2017-20                           all 24814     961               1.0            12.5        51               1.4            36.2        51               -34.7              45.8
+2017-20                         cheap 13296     751               0.7            13.1        51               2.8            39.4        52               -34.9              43.9
+2017-20     cheap + earnings recovery  2059     295              -2.5            11.6        47              -2.4            55.7        48               -38.5              49.3
+2017-20 earnings recovery (any price)  3229     358              -0.0            12.3        50               0.3            47.0        50               -36.6              48.5
+2017-20            cheap, no recovery 11237     727               1.2            13.4        52               3.7            36.4        53               -34.2              42.9
+2020-26                           all 60498    1387               0.9            14.5        51               1.6            31.3        51               -15.3               8.9
+2020-26                         cheap 28087    1132               2.0            15.7        52               7.5            37.4        54               -14.6               7.4
+2020-26     cheap + earnings recovery  5962     676               1.1            18.3        51              10.0            45.7        55               -15.7               8.3
+2020-26 earnings recovery (any price) 11089     886               0.2            15.6        50               3.6            35.1        52               -15.6               8.9
+2020-26            cheap, no recovery 22125    1069               2.2            14.9        53               7.0            34.9        54               -14.3               7.1
+
+======================================================================================================================================================
+PRE-REGISTERED (both halves unless stated; TOO FEW = cell under 200 rows / 30 stocks)
+======================================================================================================================================================
+  FAIL  V1 2017-20: CHEAP 9.1 >= RICH 13.7 + 6 (2y)
+  PASS  V1 2020-26: CHEAP 15.6 >= RICH -5.4 + 6 (2y)
+  FAIL  V2: RICH falls >= 3 pp more -- mean gap -3.7, windows 1/3
+  FAIL  V3 2017-20: P/E >= 100 (profitable) -3.9 <= -5 (2y)
+  PASS  V3 2017-20: loss-makers / P/E >= 200 -15.3 <= -5 (2y)
+  PASS  V3 2020-26: P/E >= 100 (profitable) -14.3 <= -5 (2y)
+  FAIL  V3 2020-26: loss-makers / P/E >= 200 2.1 <= -5 (2y)
+  FAIL  V4 blend 70/30 engine/value: Sharpe 1.59 vs 1.64, max DD -36.9 vs -34.6, periods 1/3
+  FAIL  V4 blend 50/50 engine/value: Sharpe 1.43 vs 1.64, max DD -45.1 vs -34.6, periods 1/3
+  TOO FEW  V5a 2017-20: normalised spread nan >= 3 and > trailing nan
+  TOO FEW  V5b 2017-20: lender P/B/ROE spread nan >= 3
+  TOO FEW  V5a 2020-26: normalised spread nan >= 3 and > trailing 9.2
+  PASS  V5b 2020-26: lender P/B/ROE spread 21.4 >= 3
+  FAIL  V6 2017-20: cheap+recovery -2.5 >= cheap 0.7 + 3 (1y)
+  FAIL  V6 2020-26: cheap+recovery 1.1 >= cheap 2.0 + 3 (1y)
+  => V1: NOT SUPPORTED
+  => V2: NOT SUPPORTED
+  => V3: NOT SUPPORTED
+  => V4 blend 70/30: NOT SUPPORTED
+  => V4 blend 50/50: NOT SUPPORTED
+  => V5a: TOO FEW DATA
+  => V5b: TOO FEW DATA
+  => V6: NOT SUPPORTED
+
+saved -> analysis/valuation_study.csv
