@@ -1,31 +1,13 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-10-16",
-    "cash": 693725.4081135925,
+    "date": "2026-10-19",
+    "cash": 910870.4926796326,
     "holdings": {
-        "SYRMA.NS": {
-            "entry_price": 1266.699951171875,
-            "entry_date": "2026-06-12",
-            "shares": 54,
-            "peak_price": 1782.9000244140625
-        },
-        "REDINGTON.NS": {
-            "entry_price": 354.8500061035156,
-            "entry_date": "2026-08-07",
-            "shares": 204,
-            "peak_price": 410.3500061035156
-        },
         "ARIES.NS": {
             "entry_price": 503.70001220703125,
             "entry_date": "2026-08-26",
             "shares": 132,
             "peak_price": 503.70001220703125
-        },
-        "BLISSGVS.NS": {
-            "entry_price": 684.9500122070312,
-            "entry_date": "2026-09-15",
-            "shares": 93,
-            "peak_price": 737.6500244140625
         },
         "BIL.NS": {
             "entry_price": 1027.550048828125,
@@ -40,81 +22,45 @@
             "peak_price": 310.95001220703125
         }
     },
-    "equity": 1120873.1529561218,
-    "cash_pct": 61.9,
-    "count": 6,
+    "equity": 1113093.1425819765,
+    "cash_pct": 81.8,
+    "count": 3,
     "portfolio": [
-        {
-            "Ticker": "GANDHAR.NS",
-            "Sector": "Petroleum Products",
-            "Price": 296.6499938964844,
-            "RS_Score": 26.7,
-            "Entry": 260.45001220703125,
-            "PnL%": 13.89901324353858,
-            "Dist_MA50": 11.119266190459413,
-            "MA50": 266.97,
-            "Trail_Stop": 273.64,
-            "Danger": ""
-        },
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 1053.3499755859375,
-            "RS_Score": 20.9,
+            "Price": 1057.6500244140625,
+            "RS_Score": 21.1,
             "Entry": 1027.550048828125,
-            "PnL%": 2.5108194766022507,
-            "Dist_MA50": 10.375400856637006,
-            "MA50": 954.33,
+            "PnL%": 2.9292953292411577,
+            "Dist_MA50": 10.253534319337087,
+            "MA50": 959.29,
             "Trail_Stop": 961.71,
             "Danger": ""
         },
         {
-            "Ticker": "REDINGTON.NS",
-            "Sector": "Commercial Services & Supplies",
-            "Price": 383.5,
-            "RS_Score": 17.1,
-            "Entry": 354.8500061035156,
-            "PnL%": 8.073832155473234,
-            "Dist_MA50": 1.9775938817806311,
-            "MA50": 376.06,
-            "Trail_Stop": 361.11,
-            "Danger": "\u26a0\ufe0f 2.0% to MA50"
+            "Ticker": "GANDHAR.NS",
+            "Sector": "Petroleum Products",
+            "Price": 297.75,
+            "RS_Score": 20.4,
+            "Entry": 260.45001220703125,
+            "PnL%": 14.321361506913293,
+            "Dist_MA50": 11.075298233284283,
+            "MA50": 268.06,
+            "Trail_Stop": 273.64,
+            "Danger": ""
         },
         {
             "Ticker": "ARIES.NS",
             "Sector": "Fertilizers & Agrochemicals",
-            "Price": 473.1499938964844,
-            "RS_Score": 16.3,
+            "Price": 473.54998779296875,
+            "RS_Score": 17.8,
             "Entry": 503.70001220703125,
-            "PnL%": -6.065121614090844,
-            "Dist_MA50": 3.363702314934189,
-            "MA50": 457.75,
+            "PnL%": -5.985710479131417,
+            "Dist_MA50": 2.8607377944554124,
+            "MA50": 460.38,
             "Trail_Stop": 443.26,
-            "Danger": "\u26a0\ufe0f 3.4% to MA50"
-        },
-        {
-            "Ticker": "BLISSGVS.NS",
-            "Sector": "Pharmaceuticals & Biotechnology",
-            "Price": 652.0,
-            "RS_Score": 13.6,
-            "Entry": 684.9500122070312,
-            "PnL%": -4.810571811052376,
-            "Dist_MA50": 3.449534499571641,
-            "MA50": 630.26,
-            "Trail_Stop": 649.13,
-            "Danger": "\u26a0\ufe0f 3.4% to MA50 | \u26a0\ufe0f 0.4% to trail"
-        },
-        {
-            "Ticker": "SYRMA.NS",
-            "Sector": "Industrial Products",
-            "Price": 1604.5999755859375,
-            "RS_Score": 11.5,
-            "Entry": 1266.699951171875,
-            "PnL%": 26.675616755290598,
-            "Dist_MA50": 1.3944521688669247,
-            "MA50": 1582.53,
-            "Trail_Stop": 1568.95,
-            "Danger": "\u26a0\ufe0f 1.4% to MA50 | \u26a0\ufe0f 2.3% to trail"
+            "Danger": "\u26a0\ufe0f 2.9% to MA50"
         }
     ],
     "last_rebalance_date": "2026-10-06",
@@ -128,7 +74,7 @@
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-09-17",
+    "last_dd_alert_date": "2026-10-19",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
