@@ -255,7 +255,11 @@ def load_annual(tickers_needed, scrape_missing, delay, minutes):
     print(f"[funda] {len(have)} stocks on file; {len(missing)} PIT-universe names still to try "
           f"({len(tried)} tried before)")
     if missing and scrape_missing:
+        import tempfile
+        import fundamentals_annual
         from fundamentals_annual import scrape
+        # its two sample pages would overwrite tracked files and block the results commit (run #14)
+        fundamentals_annual.SAMPLES = tempfile.mkdtemp()
         missing = missing[:scrape_missing]
         print(f"[funda] scraping up to {len(missing)} from Screener, budget {minutes} min "
               f"(fixes survivorship in the valuation data)", flush=True)

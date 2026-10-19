@@ -21,7 +21,8 @@ for p in "$@"; do git add -- "$p" 2>/dev/null || true; done
 if git diff --cached --quiet; then echo "Nothing to commit"; exit 0; fi
 git commit -q -m "$msg"
 for i in 1 2 3 4 5; do
-  if git pull -q --rebase -X theirs origin "$branch" && git push -q origin "HEAD:$branch"; then
+  # --autostash: files the job touched but is not committing must not block the rebase
+  if git pull -q --rebase --autostash -X theirs origin "$branch" && git push -q origin "HEAD:$branch"; then
     echo "Pushed to $branch (attempt $i)"; exit 0
   fi
   git rebase --abort 2>/dev/null || true
