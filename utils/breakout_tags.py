@@ -75,6 +75,29 @@ def hi52_breakout(df: pd.DataFrame) -> dict:
     return out
 
 
+def squeeze_release(df: pd.DataFrame) -> dict:
+    """
+    Most recent Bollinger squeeze release within FRESH_SESSIONS: the 20-day band width sat below its own
+    20th percentile (last 252 sessions) at some point in the prior 5 sessions, and the close broke above
+    the upper band (20, 2). Same definition as entry_exit_study.py S5, where it passed in both eras.
+    Returns {'sq_days': sessions since the first release day in that window, or NaN}.
+    """
+    out = {"sq_days": np.nan}
+    if df is None or "Close" not in df:
+        return out
+    c = clean_bars(df)["Close"].astype(float)
+    if len(c) < 150:
+        return out
+    m20, s20 = c.rolling(20, min_periods=15).mean(), c.rolling(20, min_periods=15).std()
+    bbw = 4 * s20 / m20
+    pct = bbw.rolling(252, min_periods=120).rank(pct=True) * 100
+    rel = (pct.rolling(5, min_periods=3).min().shift(1) < 20) & (c > m20 + 2 * s20)
+    hits = np.flatnonzero(rel.values[-(FRESH_SESSIONS + 1):])
+    if len(hits):
+        out["sq_days"] = int(FRESH_SESSIONS - hits[0]) if len(c) > FRESH_SESSIONS else np.nan   # first release day
+    return out
+
+
 def clean_bars(df: pd.DataFrame) -> pd.DataFrame:
     """Drop rows without a close, so 'sessions ago' counts real sessions -- the same
     bars the Technicals tab (utils/forensics.py) reads."""
@@ -194,4 +217,80 @@ def add_breakout_tags(df: pd.DataFrame, scores: dict | None = None, sub_map: dic
                     if (v, tg) in edges and pd.notna(edges[(v, tg)][0])), (np.nan, np.nan, ""))
         e3.append(hit[0]); e6.append(hit[1]); ey.append(hit[2] if isinstance(hit[2], str) else "")
     out["edge_3m"], out["edge_6m"], out["edge_years"] = e3, e6, ey
+    return out
+
+
+# ----------------------------------------------------------------------------
+# momentum entry / size / loss-maker / absorption (entry_exit_study.py, analysis/ENTRY_EXIT_VERDICT.md)
+# ----------------------------------------------------------------------------
+MOMO_HELP = ("Top-10% 6-month return + Gate 1 trend, AND a fresh (last 2 weeks) 52-week/all-time-high breakout "
+             "that has held (🚀) or a Bollinger-squeeze release (🎯). 2016-26, every momentum name: bought on the "
+             "breakout +13.4 / +12.6 pp over 6 months vs the typical stock (2016-20 / 2021-26), squeeze +15.4 / "
+             "+12.4, vs +11.2 / +10.3 buying at once and +12.1 / +10.1 buying blind after the same wait. Fires for "
+             "about half of momentum names. CLV, volume anchor alone, gaps, pocket pivots, NR7, pullbacks and "
+             "RSI(2) dips added nothing. Discretionary only: as an ENGINE rule (buy only these) it cut the live book's "
+             "10-year CAGR from 27.5% to 22.5% -- the 6-month ranking already carries this momentum.")
+SIZE_HELP = ("Market-cap rank in the loaded universe: Large 1-100, Mid 101-250, Small 251-500, Micro 501+. "
+             "6-month edge vs the typical stock, 2016-20 / 2021-26: momentum Large +7.4 / -4.0 (no edge since 2021), "
+             "Mid +12.1 / +4.3, Small +7.4 / +2.6, Micro +2.5 / +4.2; breakout + volume anchor + leader industry "
+             "works best in Mid (+6.2 both eras); v6 BUY NOW is the steadiest in Small/Micro (positive every year).")
+FLAG_HELP = ("⚠ loss-maker: latest published annual EPS <= 0 -- momentum names that lose money did worse "
+             "(-4.8 / -1.4 pp over 6 months) and gave their gains back more often -- but skipping them in the live engine "
+             "cut 10-year CAGR by ~2 pp (the turnarounds pay for the rest under an MA50 exit), so it is a caution, "
+             "not a filter. 🟢 absorption: pullbacks on "
+             "drying volume after the volume anchor (Technicals tab) -- the best chart sign on momentum names "
+             "(+8.4 / +6.0 pp). ⛏ cheap commodity: a low P/E during a commodity run is peak-cycle earnings, not value.")
+TIERS = ((100, "Large"), (250, "Mid"), (500, "Small"))
+
+
+def latest_eps(path: str = "data/fundamentals_annual.csv.gz", lag_days: int = 92) -> dict:
+    """Latest annual EPS whose results were public (period end + 92 days), per ticker."""
+    try:
+        A = pd.read_csv(path, parse_dates=["period"])
+        A = A[(A.field == "eps") & (A.period + pd.Timedelta(days=lag_days) <= pd.Timestamp.today())]
+        return A.sort_values("period").groupby("ticker").value.last().to_dict()
+    except Exception:
+        return {}
+
+
+def add_momentum_tags(df: pd.DataFrame, eps: dict | None = None) -> pd.DataFrame:
+    """mom_rank, size_tier, momo_entry (🚀/🎯 on momentum names), loss_maker, absorption, watch_flags."""
+    out = df.copy()
+    col = lambda c: out[c] if c in out else pd.Series(np.nan, index=out.index)
+    out["mom_rank"] = pd.to_numeric(col("return_6m"), errors="coerce").rank(pct=True) * 100
+    price = pd.to_numeric(col("price").fillna(col("currentPrice")), errors="coerce")
+    if "fx_gate1" in out:
+        gate1 = out["fx_gate1"].fillna(False).astype(bool)
+    else:
+        gate1 = (price > pd.to_numeric(col("fiftyDayAverage"), errors="coerce")) & \
+                (price > pd.to_numeric(col("twoHundredDayAverage"), errors="coerce")) & \
+                (pd.to_numeric(col("dist_52w"), errors="coerce") >= -15)
+    rank = pd.to_numeric(col("marketCap"), errors="coerce").rank(ascending=False)
+    out["size_tier"] = np.select([rank <= n for n, _ in TIERS] + [rank.notna()], [l for _, l in TIERS] + ["Micro"], "")
+
+    bo_type = col("bo_type").fillna("") if "bo_type" in out else pd.Series("", index=out.index)
+    bo_ok = (bo_type != "") & (col("bo_held").map(lambda x: not (isinstance(x, (bool, np.bool_)) and not x)))
+    sq = pd.to_numeric(col("sq_days"), errors="coerce")
+    momo = (out["mom_rank"] >= 90) & gate1
+    out["momo_entry"] = [
+        "" if not m else (f"🚀 {t} breakout {int(d)}d" if b else (f"🎯 squeeze {int(s)}d" if pd.notna(s) else ""))
+        for m, b, t, d, s in zip(momo, bo_ok, bo_type, col("bo_days"), sq)]
+
+    if eps is None:
+        eps = latest_eps()
+    e = pd.to_numeric(col("ticker").map(eps), errors="coerce")
+    out["loss_maker"] = e.le(0)
+    out["absorption"] = col("fx_signature").eq("ABSORPTION")
+    try:
+        from utils.valuation import COMMODITY_GRAN
+        from utils.nifty1000_list import SUB_INDUSTRY_MAP
+        commodity = col("ticker").map(SUB_INDUSTRY_MAP).isin(COMMODITY_GRAN)
+    except Exception:
+        commodity = pd.Series(False, index=out.index)
+    pe = pd.to_numeric(col("pe"), errors="coerce")
+    cheap_comm = commodity & momo & (pe > 0) & (pe < 10)
+    out["watch_flags"] = [" ".join(x for x in (
+        "⚠ loss-maker" if lm else "", "🟢 absorption" if ab else "", "⛏ cheap commodity" if cc else "",
+        "Large-cap momentum: no edge since 2021" if (t == "Large" and m) else "") if x)
+        for lm, ab, cc, t, m in zip(out.loss_maker, out.absorption, cheap_comm, out.size_tier, momo)]
     return out

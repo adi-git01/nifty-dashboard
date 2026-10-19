@@ -77,6 +77,13 @@ Pre-registered hypotheses (printed PASS / FAIL at the end)
   H5 Exits: live exit + a velocity exit, or live exit + a valuation exit, beats
      the live exit alone by >= 0.5 pp mean return vs Nifty per trade, both
      eras (each extra exit judged on its own, not the better of the two).
+  H6 Entry triggers (added before run 3): inside strong momentum (6m rank >= 90 + Gate 1), a trigger
+     helps only if, in BOTH eras, the 6m excess from its close beats entering ALL momentum names
+     blind after the same delay by >= 1 pp. Also reported, not judged: the average over all episodes
+     with "no trigger within 3 months" = sat out (unfair to selective triggers: in practice the money
+     goes to another momentum name, not to cash). Triggers: strong close (CLV >= 0.8 on
+     1.5x volume), volume anchor, 52w/ATH breakout, gap that held, pocket pivot, NR7 breakout, squeeze
+     release, pullback to the 20d then up-close, RSI(2) < 10 dip above the 50d.
   A cell needs >= 200 rows from >= 30 distinct stocks or it reports TOO FEW --
   on random data, 20-stock cells "passed" by chance.
 
@@ -170,6 +177,7 @@ def industry_scores(close, pit, groups, nifty):
 
 
 BONUS_SPLIT = [1 / 2, 1 / 3, 2 / 3, 1 / 4, 3 / 4, 1 / 5, 1 / 6, 1 / 10, 2 / 5, 3 / 5, 4 / 7]
+SPLIT_ONLY = {1 / 2, 1 / 5, 1 / 10, 2 / 5}       # face value 10->5, 10->2, 10->1, 5->2
 
 
 def fix_corporate_actions(close, high, low, vol, raw, A):
@@ -198,9 +206,13 @@ def fix_corporate_actions(close, high, low, vol, raw, A):
             e = eq[t].dropna()
             before, after = e[e.index < dt], e[e.index >= dt]
             if len(before) and len(after) and before.iloc[-1] > 0:
-                ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.15
+                # a bonus scales equity capital by exactly 1/ratio; 15% let COVID crash days on banks that
+                # issued shares that year pass (INDUSINDBK, BANDHANBNK Mar 2020, run 3)
+                ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.05
         vbefore, vafter = vb.iat[i - 1, close.columns.get_loc(t)] if i else np.nan, va.at[dt, t]
-        ok_split = bool(vbefore > 0 and vafter / vbefore >= 0.7 / f)
+        # volume also surges after a real crash (PCJEWELLER 2018, ANTGRAPHIC x25 in run 2), so volume can
+        # only confirm a true SPLIT ratio; bonus-only ratios (2/3, 3/4, 3/5, 4/7, 1/3...) need the equity jump
+        ok_split = bool(f in SPLIT_ONLY and vbefore > 0 and vafter / vbefore >= 0.7 / f)
         if not (ok_bonus or ok_split):
             continue
         before = close.index < dt
@@ -228,9 +240,10 @@ def clean_spikes(close, high, low, vol, raw):
     if drop.values.sum():
         d = drop.stack()
         d = d[d]
-        print(f"[check] {len(d)} one-day falls of 40%+ that did not reverse (review: crash or unadjusted "
-              f"split/bonus?): " + ", ".join(f"{t[:-3]} {dt:%Y-%m-%d}" for dt, t in d.index[:25]))
-    return (close.mask(spike), high.mask(spike), low.mask(spike), vol.mask(spike), raw.mask(spike))
+        print(f"[check] {len(d)} one-day falls of 40%+ that did not reverse -- real crash, or a demerger / "
+              f"bonus Yahoo did not adjust (VEDL 2026 demerger: 655 -> 272). All of them: "
+              + ", ".join(f"{t[:-3]} {dt:%Y-%m-%d} x{r1.at[dt, t]:.2f}" for dt, t in d.index))
+    return (close.mask(spike), high.mask(spike), low.mask(spike), vol.mask(spike), raw.mask(spike), drop)
 
 
 EXTRA_IND = "data/industry_extra.csv"
@@ -459,7 +472,8 @@ def build_rows(close, high, low, vol, raw, nifty, pit, gscore, fy, groups):
     # the zone needs >= 2 years of own P/E history: first possible ~mid-2017
     R.loc[R.date < pd.Timestamp("2017-07-01"), "zone"] = ""
     panels = dict(close=close, cf=cf, ma50=ma50, nifty=nifty, rk21=rk21, rk126=rk126, sidx=sidx, V=V,
-                  high=high, low=low, vol=vol, gate1=gate1, fresh_bo_anchor=fresh_bo_anchor, ev=ev)
+                  high=high, low=low, vol=vol, gate1=gate1, fresh_bo_anchor=fresh_bo_anchor, ev=ev,
+                  conf=conf, vu126=fwd[126][2], bbp=indicators(close, high, low)[5])
     return R, panels
 
 
@@ -604,6 +618,83 @@ def exit_summary(S, ent, title):
 
 
 # ----------------------------------------------------------------------------
+# S5: entry triggers inside momentum
+# ----------------------------------------------------------------------------
+def trigger_panels(P):
+    """Daily boolean panels, each True on the day a chart trigger fires (entry at that close)."""
+    from utils.forensics import wilder
+    c, h, l, v = P["close"], P["high"], P["low"], P["vol"]
+    prev = c.ffill().shift(1)
+    vmed = v.rolling(50, min_periods=30).median().shift(1)
+    clv = (c - l) / (h - l).where(lambda x: x > 0)
+    ma20 = c.rolling(20, min_periods=15).mean()
+    ma50 = P["ma50"]
+    up = c > prev
+    downvol = v.where(c < prev)
+    rng = h - l
+    nr7 = rng.le(rng.rolling(7, min_periods=7).min())
+    lvl = h.where(nr7).shift(1).ffill(limit=3)
+    s20 = c.rolling(20, min_periods=15).std()
+    d = c.diff()
+    rsi2 = 100 - 100 / (1 + wilder(d.clip(lower=0), 2) / wilder((-d).clip(lower=0), 2))
+    return {
+        "strong close (CLV >= 0.8, 1.5x vol)": up & (clv >= 0.8) & (v >= 1.5 * vmed),
+        "volume anchor (3x vol, CLV >= 0.5)": P["conf"]["anchor"],
+        "52w / all-time-high breakout": P["ev"]["high52"] | P["ev"]["ath"],
+        "gap that held (low > prior high, 1.5x vol)": (l > h.shift(1)) & (v >= 1.5 * vmed),
+        "pocket pivot (vol > any down day, 10d)": up & (v > downvol.rolling(10, min_periods=1).max().shift(1)) & (c > ma50),
+        "NR7 breakout": (c > lvl) & (prev <= lvl.shift(1)),
+        "squeeze release (BB width < 20th pct, close > upper band)":
+            (P["bbp"].rolling(5, min_periods=3).min().shift(1) < 20) & (c > ma20 + 2 * s20),
+        "pullback to 20d then up-close above prior high":
+            (l.rolling(5, min_periods=3).min() <= 1.02 * ma20) & (c > h.shift(1)) & (c > ma20),
+        "RSI(2) < 10 dip above the 50d": (rsi2 < 10) & (c > ma50),
+    }
+
+
+def entry_timing(R, P, window=63):
+    """
+    For every strong-momentum episode (6m rank >= 90 + Gate 1, first week of each run), compare entering
+    at once with entering at each trigger's first firing within `window` sessions, and with entering BLIND
+    after the same delay. All episodes count -- winners and losers -- so there is no hindsight.
+    """
+    _, E = episodes(R, (R.rk126 >= 90) & R.gate1 & R.vu126.notna(), 56)
+    VU = P["vu126"].values
+    T = len(VU)
+    E = E[E.i + window < T]
+    I, J = E.i.values.astype(int), E.j.values.astype(int)
+    offs = np.arange(window + 1)
+    idx = np.minimum(I[:, None] + offs[None, :], T - 1)
+    Vd = VU[idx, J[:, None]]                         # episode x delay: 6m excess if entered after d sessions
+    rows = []
+    trig = trigger_panels(P)
+    for era in ("2016-20", "2021-26"):
+        m = (E.era == era).values
+        if m.sum() < 30:
+            continue
+        blind = np.nanmean(Vd[m], axis=0)            # all episodes, entered blind after d sessions
+        now = Vd[m, 0]
+        rows.append(dict(era=era, trigger="enter at once (baseline)", episodes=int(m.sum()), fired_pct=100,
+                         median_wait=0, mean_vs_typ=round(np.nanmean(now), 2), median_vs_typ=round(np.nanmedian(now), 2),
+                         beat_pct=round(100 * np.nanmean(now > 0)), blind_same_wait=round(np.nanmean(now), 2),
+                         per_episode=round(np.nanmean(now), 2)))
+        for name, Pn in trig.items():
+            F = np.nan_to_num(Pn.values.astype(float))[idx[m], J[m][:, None]] > 0
+            fired = F.any(axis=1)
+            k = np.argmax(F, axis=1)
+            x = Vd[m][fired, k[fired]]
+            b = blind[k[fired]]
+            yrs = pd.Series(x - b, index=E[m][fired].year.values).groupby(level=0).mean()
+            rows.append(dict(era=era, trigger=name, episodes=int(m.sum()), fired_pct=round(100 * fired.mean()),
+                             median_wait=int(np.median(k[fired])) if fired.any() else np.nan,
+                             mean_vs_typ=round(np.nanmean(x), 2), median_vs_typ=round(np.nanmedian(x), 2),
+                             beat_pct=round(100 * np.nanmean(x > 0)), blind_same_wait=round(np.nanmean(b), 2),
+                             per_episode=round(np.nansum(x) / m.sum(), 2),
+                             yrs_beat_blind=f"{(yrs > 0).sum()}/{len(yrs)}"))
+    return pd.DataFrame(rows)
+
+
+# ----------------------------------------------------------------------------
 # case studies
 # ----------------------------------------------------------------------------
 def fmt(x, f="{:.0f}", na="–"):
@@ -720,12 +811,16 @@ def main():
               f"{sum(t in groups for t in ever)}; fundamentals for {A[A.ticker.isin(ever)].ticker.nunique()}")
         close, high, low, vol, raw = fix_corporate_actions(close, high, low, vol, raw, A)
         gscore = industry_scores(close, pit, groups, nifty)
-    close, high, low, vol, raw = clean_spikes(close, high, low, vol, raw)
+    close, high, low, vol, raw, big_fall = clean_spikes(close, high, low, vol, raw)
     fy = fy_table(A)
     R, P = build_rows(close, high, low, vol, raw, nifty, pit, gscore, fy, groups)
     print(f"[rows] {len(R)} PIT stock-weeks, {R.ticker.nunique()} stocks, {R.date.min():%b %Y} - {R.date.max():%b %Y}",
           flush=True)
     R = add_forensics(R, P)
+    # rows whose forward 6 months contain one of the flagged one-day falls (sensitivity check below)
+    bf = big_fall.astype(float)
+    ahead = (bf[::-1].rolling(H, min_periods=1).max()[::-1].shift(-1) > 0).values
+    R["fall_ahead"] = ahead[R.i.values, R.j.values]
 
     # ---- data checks (bug detectors) --------------------------------------
     cov = R.assign(has=R.zone != "").groupby("year").has.mean().mul(100).round(0)
@@ -858,6 +953,22 @@ def main():
           f"while held, i.e. proceeds parked in Nifty after an exit; it does NOT credit an exit with rotating into "
           f"the next momentum name, which is what the live engine does.\n{'=' * 140}")
     print(X2.drop(columns="table").to_string(index=False))
+    clean = E2[~E2.fall_ahead]
+    print(f"\n--- Sensitivity: drop the {int(E2.fall_ahead.sum())} episodes whose next 6 months contain a flagged "
+          f"one-day fall of 40%+ (possible unadjusted demerger/bonus)")
+    print((clean.groupby("era").outcome.value_counts(normalize=True) * 100).round(1).unstack().to_string())
+    Xc, _ = exit_summary(S[S.set_index(["i", "j"]).index.isin(clean.set_index(["i", "j"]).index)], clean, "S2 exits, flagged falls dropped")
+    tables.append(Xc)
+    print(Xc[["era", "rule", "trades", "mean_ret", "mean_vs_nifty", "avg_days"]].to_string(index=False))
+
+    # ---- S5 entry triggers inside momentum ----------------------------------------
+    T5 = entry_timing(R, P)
+    tables.append(T5.assign(table="S5 entry triggers"))
+    print(f"\n{'=' * 140}\nS5  ENTRY TRIGGERS INSIDE MOMENTUM: every 6m-rank >= 90 + Gate 1 episode, winners AND losers. "
+          f"mean_vs_typ = 6m return from the trigger close vs the typical stock; blind_same_wait = entering all "
+          f"episodes after the same delay without the trigger; per_episode = average over ALL episodes, no "
+          f"trigger = sat out (0).\n{'=' * 140}")
+    print(T5.to_string(index=False))
 
     # ---- S3 velocity x valuation ---------------------------------------------
     strong = m(R.rk126 >= 80)
@@ -930,12 +1041,24 @@ def main():
           f"from >= {MIN_STOCKS} stocks, else TOO FEW)\n{'=' * 140}")
     for k, v in verdict.items():
         print(f"  {'TOO FEW' if v is None else 'PASS' if v else 'FAIL'}  {k}")
+    for era in ("2016-20", "2021-26"):
+        base = T5[(T5.era == era) & (T5.trigger == "enter at once (baseline)")]
+        for _, r in T5[(T5.era == era) & (T5.trigger != "enter at once (baseline)")].iterrows():
+            if not len(base) or r.fired_pct * r.episodes / 100 < MIN_N:
+                verdict[f"H6 {era}: {r.trigger}"] = None
+                continue
+            ok = r.mean_vs_typ >= r.blind_same_wait + 1
+            verdict[f"H6 {era}: {r.trigger}: {r.mean_vs_typ} vs blind {r.blind_same_wait} + 1, per episode "
+                    f"{r.per_episode} vs at once {base.per_episode.iloc[0]}"] = ok
     for h in ("H1", "H2", "H3", "H4"):
         vs = [v for k, v in verdict.items() if k.startswith(h)]
         print(f"  => {h}: {'TOO FEW DATA' if None in vs else 'SUPPORTED' if all(vs) else 'NOT SUPPORTED'}")
     for rule in X2[X2.rule.str.startswith("live + ")].rule.unique():
         vs = [v for k, v in verdict.items() if k.startswith("H5") and rule in k]
         print(f"  => H5 [{rule}]: {'TOO FEW DATA' if None in vs else 'SUPPORTED' if all(vs) else 'NOT SUPPORTED'}")
+    for name in T5[T5.trigger != "enter at once (baseline)"].trigger.unique():
+        vs = [v for k, v in verdict.items() if k.startswith("H6") and f": {name}" in k]
+        print(f"  => H6 [{name}]: {'TOO FEW DATA' if None in vs else 'SUPPORTED' if all(vs) else 'NOT SUPPORTED'}")
 
     # ---- cases ---------------------------------------------------------------
     md = ["# Entry / exit case studies" + (" (SYNTHETIC DATA)" if args.synthetic else ""),
