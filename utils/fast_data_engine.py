@@ -449,8 +449,9 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             # 2b. Fresh 52-week-high breakout (Trend Scanner "Breakout" tag;
             # definition and backtest in utils/breakout_tags.py)
             try:
-                from utils.breakout_tags import hi52_breakout
+                from utils.breakout_tags import hi52_breakout, squeeze_release
                 base_data.update(hi52_breakout(df))
+                base_data.update(squeeze_release(df))
             except Exception:
                 pass
             # 2c. Structural forensics (Technicals tab; utils/forensics.py,

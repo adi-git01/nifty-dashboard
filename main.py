@@ -1962,8 +1962,22 @@ elif page == "🌊 Trend Scanner":
             st.caption(f"Showing **{len(filtered_df)}** stocks with entry status: {' · '.join(_sel_entry)}")
 
     # === BREAKOUT / INDUSTRY FILTERS ===
-    from utils.breakout_tags import add_breakout_tags, BREAKOUT_OPTIONS, BREAKOUT_HELP
-    filtered_df = add_breakout_tags(filtered_df)
+    from utils.breakout_tags import (add_breakout_tags, add_momentum_tags, BREAKOUT_OPTIONS, BREAKOUT_HELP,
+                                     MOMO_HELP, SIZE_HELP, FLAG_HELP)
+    filtered_df = add_momentum_tags(add_breakout_tags(filtered_df))
+    _mf1, _mf2 = st.columns([1, 2])
+    with _mf1:
+        _momo_only = st.toggle("🚀 Momentum entry (breakout / squeeze)", value=False, help=MOMO_HELP)
+    with _mf2:
+        _tiers = st.multiselect("📏 Size tier", options=["Large", "Mid", "Small", "Micro"], default=[], help=SIZE_HELP)
+    if _momo_only:
+        filtered_df = filtered_df[filtered_df['momo_entry'] != ""]
+    if _tiers:
+        filtered_df = filtered_df[filtered_df['size_tier'].isin(_tiers)]
+    if _momo_only or _tiers:
+        st.caption(f"Showing **{len(filtered_df)}** stocks"
+                   + ("" if 'sq_days' in filtered_df.columns else
+                      " -- squeeze releases (🎯) arrive with the next daily engine run"))
     _bf1, _bf2, _bf3 = st.columns([2, 1, 1])
     with _bf1:
         _sel_bo = st.multiselect("⚡ Fresh breakout", options=BREAKOUT_OPTIONS, default=[], help=BREAKOUT_HELP)
@@ -2076,6 +2090,7 @@ elif page == "🌊 Trend Scanner":
                    "you already like.")
 
     display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
+                    'momo_entry', 'size_tier', 'watch_flags',
                     'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
                     'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
     # Add 5-pillar fundamental columns + RS Score for user request
@@ -2101,6 +2116,9 @@ elif page == "🌊 Trend Scanner":
             "entry_label": st.column_config.TextColumn("Entry", help=_ENTRY_HELP),
             "edge_3m": st.column_config.NumberColumn("Edge 3m", format="%+.1f pp", help="Median 3-month return vs the typical stock for this entry tag x industry band x breakout status, 2016-26 backtest"),
             "breakout_label": st.column_config.TextColumn("Breakout", help=BREAKOUT_HELP),
+            "momo_entry": st.column_config.TextColumn("Momentum entry", help=MOMO_HELP),
+            "size_tier": st.column_config.TextColumn("Size", help=SIZE_HELP),
+            "watch_flags": st.column_config.TextColumn("Flags", help=FLAG_HELP),
             "dist_ath": st.column_config.NumberColumn("% from ATH", format="%.1f%%", help="Distance from the all-time closing high (data/ath_levels.csv)"),
             "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d", help="Sub-industry rotation score (0-100): >= 70 leader, < 40 laggard"),
             "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
