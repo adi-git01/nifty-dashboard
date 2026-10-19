@@ -1,0 +1,522 @@
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: GUJGASLTD.NS"}}}
+$GUJGASLTD.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: AKZOINDIA.NS"}}}
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$MIRCELECTR.NS: possibly delisted; no timezone found
+$EXCEL.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+$CIGNITITEC.NS: possibly delisted; no timezone found
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+$VISASTEEL.NS: possibly delisted; no timezone found
+$LTIM.NS: possibly delisted; no timezone found
+
+9 Failed downloads:
+['GUJGASLTD.NS', 'AKZOINDIA.NS', 'MIRCELECTR.NS', 'EXCEL.NS', 'SASTASUNDR.NS', 'CIGNITITEC.NS', 'LYPSAGEMS.NS', 'VISASTEEL.NS', 'LTIM.NS']: possibly delisted; no timezone found
+[yf_safe] bulk download attempt 1/3: 100% coverage (2101/2110 tickers)
+[data] dropped 10 non-session row(s) not in the Nifty calendar
+[data] 2044 tickers, 3044 sessions 2014-06-02 -> 2026-10-16
+[funda] 1170 stocks on file; 0 PIT-universe names without fundamentals
+[clean] blanked 24 one-day reversing spikes; most in ANTGRAPHIC, SUMEETINDS, CYBERTECH, GICHSGFIN, TIL, NBIFIN, PFOCUS, PFS
+[check] 70 one-day falls of 40%+ that did not reverse (review: crash or unadjusted split/bonus?): GOCLCORP 2014-06-26, MANAKSIA 2014-12-04, MASTEK 2015-06-12, JSL 2015-11-19, SPCENET 2017-01-10, J&KBANK 2017-02-27, PTL 2017-03-27, CDSL 2017-07-03, FCSSOFT 2017-12-04, NBIFIN 2017-12-07, DCMFINSERV 2018-03-22, PRAKASHSTL 2018-06-18, HBSL 2018-07-26, CCAVENUE 2018-09-28, STEELCITY 2019-07-30, ABREL 2019-10-11, GICHSGFIN 2019-10-17, PATANJALI 2020-01-27, YESBANK 2020-03-06, IMAGICAA 2020-04-28, IMAGICAA 2020-05-04, ROML 2020-10-08, DIGJAMLMTD 2021-10-18, 3IINFOLTD 2021-10-22, SELMC 2021-10-28
+[funda] EPS history for 1135 stocks; holdcos excluded 19; EPS/profit mismatch excluded 16; no share count (no size tier) 0
+[rows] 379284 PIT stock-weeks, 1085 stocks, Jan 2016 - Oct 2026
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/forensics.py:134: RuntimeWarning: Mean of empty slice
+  f["cum_clv"] = float(np.nanmean(clv[post]))
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/forensics.py:139: RuntimeWarning: divide by zero encountered in divide
+  f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
+[check] valuation coverage of PIT rows by year (%): {2016: 0.0, 2017: 26.0, 2018: 64.0, 2019: 73.0, 2020: 78.0, 2021: 78.0, 2022: 76.0, 2023: 78.0, 2024: 79.0, 2025: 79.0, 2026: 83.0}
+[check] valuation coverage, 80% winners 75% vs others 75%  (a big gap would bias S1)
+[check] 80%-winner base rate by year (%): {2016: 8.9, 2017: 8.3, 2018: 1.1, 2019: 2.7, 2020: 23.2, 2021: 13.9, 2022: 4.5, 2023: 15.0, 2024: 6.0, 2025: 2.4, 2026: 7.1}
+[check] latest P/E vs dashboard snapshot P/E: 705 stocks, median |log ratio| 0.09, within 30%: 83%  (ours = last FY, theirs ~TTM)
+
+============================================================================================================================================
+S1  WHO BECAME AN 80% WINNER? lift = P(winner | cell) / P(winner) in the same weeks. yrs_above = years the cell beat its matched base rate.
+============================================================================================================================================
+    era                                cell      n  stocks  p_pct  base_pct  lift yrs_above
+2016-20                            all rows 161111     800   9.01      9.01  1.00       0/5
+2016-20                     valuation CHEAP  18365     377  12.93     11.22  1.15       2/4
+2016-20                      valuation FAIR  42772     538   6.50      9.03  0.72       0/4
+2016-20                      valuation RICH   8094     267   8.30      9.20  0.90       1/4
+2016-20                      valuation LOSS   9746     136  16.31      9.75  1.67       4/4
+2016-20                  own P/E %ile <= 30  32616     510  10.29     11.13  0.92       0/4
+2016-20                  own P/E %ile >= 80  14602     380   7.04      7.76  0.91       1/4
+2016-20                       <= 0.9x peers  48297     537  10.60      9.26  1.14       4/5
+2016-20                       >= 1.5x peers  30111     431   8.19      9.37  0.87       2/5
+2016-20               3y profit CAGR >= 25%  15143     301  12.30     11.91  1.03       4/5
+2016-20           3y profit CAGR < 0 or n/a  44943     601   9.17      7.69  1.19       3/4
+2016-20                 last FY profit +50%  23224     428   8.41      8.19  1.03       2/5
+2016-20                        Gate 1 trend  48425     760   8.13      8.66  0.94       1/5
+2016-20                           no Gate 1 112686     799   9.39      9.16  1.03       4/5
+2016-20                       6m rank >= 90  15966     665  13.99      9.04  1.55       4/5
+2016-20                       6m rank <= 30  47408     757   9.65      9.04  1.07       4/5
+2016-20                            1m ACCEL  32360     791  11.03      9.01  1.22       5/5
+2016-20                           1m FADING  64295     792   9.08      9.01  1.01       3/5
+2016-20              within 10% of 52w high  44869     749   7.21      8.30  0.87       0/5
+2016-20                > 40% below 52w high  28300     661  14.49     11.21  1.29       5/5
+2016-20                      fresh breakout   7097     672   9.09      9.06  1.00       2/5
+2016-20      fresh breakout + volume anchor   3055     566   9.13      9.35  0.98       2/5
+2016-20 breakout + anchor + leader industry   1404     434   9.83      9.93  0.99       3/5
+2016-20                     leader industry  48736     793   9.56      9.17  1.04       3/5
+2016-20                          v6 BUY NOW  14515     672   8.27      8.53  0.97       1/5
+2016-20                BUY NOW + CHEAP/FAIR   4302     391   7.81      9.65  0.81       0/4
+2016-20                      BUY NOW + RICH   1562     173   9.92      9.45  1.05       2/4
+2016-20          6m rank >= 90 + CHEAP/FAIR   4606     351  10.25      9.43  1.09       2/4
+2016-20                6m rank >= 90 + RICH   2088     171  14.08      9.74  1.45       4/4
+2016-20                          tier Large  24600     164   2.59      8.91  0.29       0/5
+2016-20                            tier Mid  36900     304   4.63      8.91  0.52       0/5
+2016-20                          tier Small  61500     457   9.88      8.91  1.11       3/5
+2016-20                          tier Micro  32641     310  17.12      9.43  1.81       5/5
+2021-26                            all rows 198191    1032   8.13      8.13  1.00       0/6
+2021-26                     valuation CHEAP  19522     490   7.00      7.96  0.88       2/6
+2021-26                      valuation FAIR  97934     770   7.44      7.97  0.93       1/6
+2021-26                      valuation RICH  23055     487   7.86      8.39  0.94       3/6
+2021-26                      valuation LOSS  14307     206  13.83      8.86  1.56       6/6
+2021-26                  own P/E %ile <= 30  32307     632   5.32      7.69  0.69       0/6
+2021-26                  own P/E %ile >= 80  46491     684   8.82      8.16  1.08       4/6
+2021-26                       <= 0.9x peers  68905     720   8.94      7.99  1.12       3/6
+2021-26                       >= 1.5x peers  43803     586   7.01      8.12  0.86       2/6
+2021-26               3y profit CAGR >= 25%  48261     608   7.40      7.45  0.99       3/6
+2021-26           3y profit CAGR < 0 or n/a  57558     655  10.10      8.40  1.20       6/6
+2021-26                 last FY profit +50%  45034     715   8.34      7.76  1.07       4/6
+2021-26                        Gate 1 trend  75163     950   9.94      9.41  1.06       5/6
+2021-26                           no Gate 1 123028    1029   7.02      7.34  0.96       1/6
+2021-26                       6m rank >= 90  19465     804  14.33      8.13  1.76       6/6
+2021-26                       6m rank <= 30  57898     963   6.07      8.14  0.75       0/6
+2021-26                            1m ACCEL  39784    1011  10.47      8.13  1.29       6/6
+2021-26                           1m FADING  79118    1028   7.70      8.13  0.95       1/6
+2021-26              within 10% of 52w high  70000     940   9.29      9.52  0.98       3/6
+2021-26                > 40% below 52w high  15077     640   6.80      6.57  1.03       4/6
+2021-26                      fresh breakout  11911     858  10.82      9.78  1.11       5/6
+2021-26      fresh breakout + volume anchor   6578     804  12.39      9.87  1.26       6/6
+2021-26 breakout + anchor + leader industry   2844     671  12.69      9.76  1.30       5/6
+2021-26                     leader industry  57266    1008   9.72      8.19  1.19       5/6
+2021-26                          v6 BUY NOW  27310     900  10.90      9.53  1.14       6/6
+2021-26                BUY NOW + CHEAP/FAIR  15478     683  10.47      9.54  1.10       2/6
+2021-26                      BUY NOW + RICH   5101     385   9.33      9.32  1.00       3/6
+2021-26          6m rank >= 90 + CHEAP/FAIR   8681     504  13.33      7.97  1.67       6/6
+2021-26                6m rank >= 90 + RICH   4580     311  13.30      7.90  1.68       4/6
+2021-26                          tier Large  26100     183   2.31      8.30  0.28       0/6
+2021-26                            tier Mid  39150     335   4.28      8.30  0.52       0/6
+2021-26                          tier Small  65250     550   8.23      8.30  0.99       3/6
+2021-26                          tier Micro  62003     598  13.02      7.74  1.68       6/6
+
+============================================================================================================================================
+S2  MOMENTUM NAMES (6m +50%, top 10%): 25014 stock-weeks, 863 stocks. Outcome over the next 6 months:
+outcome  CONTINUED  GAVE BACK  PULLBACK  SIDEWAYS
+era                                              
+2016-20       41.8       12.7       9.7      35.9
+2021-26       39.4       12.5      10.5      37.6
+
+--- S2 lift for GAVE BACK
+    era                             cell     n  stocks  p_pct  base_pct  lift yrs_above
+2016-20                all momentum rows  9929     564  12.67     12.67  1.00       0/5
+2016-20                             RICH  1066     129  12.20     16.78  0.73       1/4
+2016-20                       CHEAP/FAIR  2013     225  13.31     16.56  0.80       0/4
+2016-20                             LOSS   686      53  18.95     15.37  1.23       3/4
+2016-20                   own %ile >= 90  1531     164  15.35     19.83  0.77       0/4
+2016-20                      >= 2x peers  2009     162  13.44     13.13  1.02       2/5
+2016-20            3y profit CAGR >= 25%   731      86  12.59     12.79  0.98       3/5
+2016-20    profit falling (last FY < 0%)  2205     235   9.16     12.70  0.72       1/5
+2016-20                        1m FADING  2131     386  13.42     11.54  1.16       3/5
+2016-20                         1m ACCEL  5041     533  13.81     13.06  1.06       4/5
+2016-20                 > 60% above 200d  3421     334  14.06     10.72  1.31       5/5
+2016-20                 < 25% above 200d   656     247  12.20     14.00  0.87       1/5
+2016-20                         RSI > 75  1213     381  15.25     12.17  1.25       5/5
+2016-20 no Gate 1 (already off the high)  2723     372  14.80     12.05  1.23       5/5
+2016-20                  v6 DISTRIBUTION  4251     454  11.01     12.92  0.85       1/5
+2016-20                    v6 ABSORPTION   252      90  16.27     13.87  1.17       3/5
+2016-20                          v6 VETO  1356     262  11.43     12.68  0.90       1/5
+2016-20             near overhead supply   284     143  18.31     14.32  1.28       4/5
+2016-20                  leader industry  4478     483  11.37     12.67  0.90       1/5
+2016-20                 laggard industry  2082     351  12.73     11.40  1.12       4/5
+2016-20                    FADING + RICH   167      53  14.97     16.02  0.93       2/4
+2016-20            FADING + DISTRIBUTION   513     226  12.28     11.71  1.05       2/5
+2021-26                all momentum rows 15085     719  12.52     12.52  1.00       0/6
+2021-26                             RICH  3712     266  12.85     13.36  0.96       3/6
+2021-26                       CHEAP/FAIR  6253     425  11.43     12.27  0.93       2/6
+2021-26                             LOSS  1701     116  15.23     12.38  1.23       5/6
+2021-26                   own %ile >= 90  5711     388  12.52     13.11  0.96       2/6
+2021-26                      >= 2x peers  3606     263  13.42     13.21  1.02       3/6
+2021-26            3y profit CAGR >= 25%  4024     285  12.92     13.84  0.93       3/6
+2021-26    profit falling (last FY < 0%)  3986     344  11.26     12.60  0.89       1/6
+2021-26                        1m FADING  3122     517  12.20     12.81  0.95       1/6
+2021-26                         1m ACCEL  7828     679  13.15     12.38  1.06       5/6
+2021-26                 > 60% above 200d  6905     502  11.93     10.56  1.13       3/6
+2021-26                 < 25% above 200d   753     297  11.82     15.55  0.76       0/6
+2021-26                         RSI > 75  1765     492  13.09     11.81  1.11       5/6
+2021-26 no Gate 1 (already off the high)  3675     503  11.86     12.94  0.92       1/6
+2021-26                  v6 DISTRIBUTION  6480     606  12.50     12.17  1.03       4/6
+2021-26                    v6 ABSORPTION   653     177   9.80     11.88  0.83       1/6
+2021-26                          v6 VETO  1956     385  13.19     13.06  1.01       2/6
+2021-26             near overhead supply   288     153  17.01     12.58  1.35       4/6
+2021-26                  leader industry  6919     638  12.20     12.16  1.00       4/6
+2021-26                 laggard industry  3297     474  12.56     13.12  0.96       1/6
+2021-26                    FADING + RICH   639     150  14.08     13.81  1.02       2/6
+2021-26            FADING + DISTRIBUTION   709     312  11.00     11.22  0.98       3/6
+
+--- S2 lift for SIDEWAYS
+    era                             cell     n  stocks  p_pct  base_pct  lift yrs_above
+2016-20                all momentum rows  9929     564  35.87     35.87  1.00       0/5
+2016-20                             RICH  1066     129  35.65     32.35  1.10       3/4
+2016-20                       CHEAP/FAIR  2013     225  38.35     33.79  1.13       4/4
+2016-20                             LOSS   686      53  25.95     32.39  0.80       0/4
+2016-20                   own %ile >= 90  1531     164  38.47     33.47  1.15       3/4
+2016-20                      >= 2x peers  2009     162  36.44     34.71  1.05       4/5
+2016-20            3y profit CAGR >= 25%   731      86  28.04     31.93  0.88       1/5
+2016-20    profit falling (last FY < 0%)  2205     235  34.47     34.08  1.01       3/5
+2016-20                        1m FADING  2131     386  37.21     35.75  1.04       3/5
+2016-20                         1m ACCEL  5041     533  34.50     36.03  0.96       1/5
+2016-20                 > 60% above 200d  3421     334  29.67     34.20  0.87       0/5
+2016-20                 < 25% above 200d   656     247  41.62     36.17  1.15       4/5
+2016-20                         RSI > 75  1213     381  32.81     35.15  0.93       1/5
+2016-20 no Gate 1 (already off the high)  2723     372  36.83     35.76  1.03       3/5
+2016-20                  v6 DISTRIBUTION  4251     454  36.20     36.02  1.00       3/5
+2016-20                    v6 ABSORPTION   252      90  28.17     32.80  0.86       2/5
+2016-20                          v6 VETO  1356     262  34.81     34.81  1.00       2/5
+2016-20             near overhead supply   284     143  29.93     34.64  0.86       1/5
+2016-20                  leader industry  4478     483  36.91     36.14  1.02       4/5
+2016-20                 laggard industry  2082     351  35.93     35.41  1.01       2/5
+2016-20                    FADING + RICH   167      53  34.73     33.03  1.05       2/4
+2016-20            FADING + DISTRIBUTION   513     226  36.06     35.01  1.03       4/5
+2021-26                all momentum rows 15085     719  37.63     37.63  1.00       0/6
+2021-26                             RICH  3712     266  38.50     38.14  1.01       2/6
+2021-26                       CHEAP/FAIR  6253     425  37.66     37.37  1.01       5/6
+2021-26                             LOSS  1701     116  35.16     38.04  0.92       1/6
+2021-26                   own %ile >= 90  5711     388  39.14     38.17  1.03       2/6
+2021-26                      >= 2x peers  3606     263  37.22     37.79  0.98       2/6
+2021-26            3y profit CAGR >= 25%  4024     285  39.04     37.82  1.03       4/6
+2021-26    profit falling (last FY < 0%)  3986     344  39.59     37.76  1.05       4/6
+2021-26                        1m FADING  3122     517  37.48     37.70  0.99       3/6
+2021-26                         1m ACCEL  7828     679  37.07     37.58  0.99       1/6
+2021-26                 > 60% above 200d  6905     502  34.84     35.95  0.97       3/6
+2021-26                 < 25% above 200d   753     297  42.23     41.50  1.02       4/6
+2021-26                         RSI > 75  1765     492  36.49     36.21  1.01       3/6
+2021-26 no Gate 1 (already off the high)  3675     503  38.61     39.53  0.98       3/6
+2021-26                  v6 DISTRIBUTION  6480     606  36.88     37.12  0.99       2/6
+2021-26                    v6 ABSORPTION   653     177  35.83     36.79  0.97       4/6
+2021-26                          v6 VETO  1956     385  38.70     38.35  1.01       2/6
+2021-26             near overhead supply   288     153  31.25     36.37  0.86       2/6
+2021-26                  leader industry  6919     638  38.31     37.64  1.02       4/6
+2021-26                 laggard industry  3297     474  35.76     37.38  0.96       1/6
+2021-26                    FADING + RICH   639     150  39.12     37.53  1.04       4/6
+2021-26            FADING + DISTRIBUTION   709     312  34.84     35.35  0.99       2/6
+
+--- S2 lift for CONTINUED
+    era                             cell     n  stocks  p_pct  base_pct  lift yrs_above
+2016-20                all momentum rows  9929     564  41.77     41.77  1.00       0/5
+2016-20                             RICH  1066     129  40.99     39.97  1.03       2/4
+2016-20                       CHEAP/FAIR  2013     225  38.60     38.82  0.99       2/4
+2016-20                             LOSS   686      53  44.31     41.88  1.06       2/4
+2016-20                   own %ile >= 90  1531     164  33.18     34.46  0.96       1/4
+2016-20                      >= 2x peers  2009     162  42.01     42.47  0.99       3/5
+2016-20            3y profit CAGR >= 25%   731      86  48.97     46.13  1.06       2/5
+2016-20    profit falling (last FY < 0%)  2205     235  48.21     43.91  1.10       4/5
+2016-20                        1m FADING  2131     386  39.56     43.44  0.91       1/5
+2016-20                         1m ACCEL  5041     533  42.29     41.08  1.03       4/5
+2016-20                 > 60% above 200d  3421     334  47.68     46.42  1.03       3/5
+2016-20                 < 25% above 200d   656     247  36.13     39.57  0.91       1/5
+2016-20                         RSI > 75  1213     381  42.29     42.99  0.98       1/5
+2016-20 no Gate 1 (already off the high)  2723     372  38.01     42.56  0.89       0/5
+2016-20                  v6 DISTRIBUTION  4251     454  42.46     41.31  1.03       4/5
+2016-20                    v6 ABSORPTION   252      90  46.83     43.61  1.07       3/5
+2016-20                          v6 VETO  1356     262  43.44     42.98  1.01       4/5
+2016-20             near overhead supply   284     143  41.55     41.51  1.00       2/5
+2016-20                  leader industry  4478     483  42.01     41.71  1.01       2/5
+2016-20                 laggard industry  2082     351  42.03     43.79  0.96       2/5
+2016-20                    FADING + RICH   167      53  37.72     40.26  0.94       1/4
+2016-20            FADING + DISTRIBUTION   513     226  41.72     43.71  0.95       2/5
+2021-26                all momentum rows 15085     719  39.35     39.35  1.00       0/6
+2021-26                             RICH  3712     266  37.12     37.14  1.00       2/6
+2021-26                       CHEAP/FAIR  6253     425  40.78     40.23  1.01       4/6
+2021-26                             LOSS  1701     116  39.62     38.95  1.02       2/6
+2021-26                   own %ile >= 90  5711     388  36.53     37.37  0.98       3/6
+2021-26                      >= 2x peers  3606     263  37.99     38.18  1.00       3/6
+2021-26            3y profit CAGR >= 25%  4024     285  36.48     37.30  0.98       3/6
+2021-26    profit falling (last FY < 0%)  3986     344  38.61     38.92  0.99       4/6
+2021-26                        1m FADING  3122     517  39.62     38.87  1.02       4/6
+2021-26                         1m ACCEL  7828     679  39.38     39.62  0.99       3/6
+2021-26                 > 60% above 200d  6905     502  43.81     44.03  1.00       3/6
+2021-26                 < 25% above 200d   753     297  33.86     30.75  1.10       4/6
+2021-26                         RSI > 75  1765     492  40.74     42.24  0.96       2/6
+2021-26 no Gate 1 (already off the high)  3675     503  37.74     36.49  1.03       5/6
+2021-26                  v6 DISTRIBUTION  6480     606  39.77     40.40  0.98       3/6
+2021-26                    v6 ABSORPTION   653     177  45.18     41.27  1.09       5/6
+2021-26                          v6 VETO  1956     385  37.32     37.45  1.00       3/6
+2021-26             near overhead supply   288     153  40.62     40.23  1.01       4/6
+2021-26                  leader industry  6919     638  39.04     39.64  0.98       3/6
+2021-26                 laggard industry  3297     474  40.34     38.86  1.04       4/6
+2021-26                    FADING + RICH   639     150  35.37     37.59  0.94       3/6
+2021-26            FADING + DISTRIBUTION   709     312  45.42     43.90  1.03       5/6
+
+--- S2 returns vs typical stock
+    era                             cell     n  stocks  1mo vsTypical  3mo vsTypical  6mo vsTypical  6mo beat% yrs 6mo>0
+2016-20                all momentum rows  9929     564           0.16           1.45           3.35         54       4/5
+2016-20                             RICH  1066     129           1.70           4.23           9.52         59       3/4
+2016-20                       CHEAP/FAIR  2013     225           0.50           0.95           3.30         54       4/4
+2016-20                             LOSS   686      53          -2.22          -1.48          -2.36         48       1/4
+2016-20                   own %ile >= 90  1531     164           1.15           2.54           4.53         56       3/4
+2016-20                      >= 2x peers  2009     162           1.20           3.08           4.95         54       4/5
+2016-20            3y profit CAGR >= 25%   731      86           1.53           4.14           4.39         53       3/5
+2016-20    profit falling (last FY < 0%)  2205     235           0.61           3.81           8.31         60       5/5
+2016-20                        1m FADING  2131     386          -0.46          -0.76          -1.04         49       2/5
+2016-20                         1m ACCEL  5041     533           0.23           1.83           4.07         55       4/5
+2016-20                 > 60% above 200d  3421     334          -0.43           2.32           4.51         54       3/5
+2016-20                 < 25% above 200d   656     247           0.71           1.47          -0.88         49       1/5
+2016-20                         RSI > 75  1213     381           0.46           2.72           2.41         53       2/5
+2016-20 no Gate 1 (already off the high)  2723     372          -0.62          -1.43          -2.41         47       1/5
+2016-20                  v6 DISTRIBUTION  4251     454           0.19           1.73           5.10         56       4/5
+2016-20                    v6 ABSORPTION   252      90          -1.56           2.21           9.11         62       3/5
+2016-20                          v6 VETO  1356     262           0.32           0.05           4.46         55       4/5
+2016-20             near overhead supply   284     143          -0.76          -1.88           2.15         51       3/5
+2016-20                  leader industry  4478     483           0.23           1.96           3.99         55       5/5
+2016-20                 laggard industry  2082     351          -0.57           0.12           0.65         51       2/5
+2016-20                    FADING + RICH   167      53          -0.14           5.81           1.15         53       3/4
+2016-20            FADING + DISTRIBUTION   513     226          -0.53          -1.51          -0.44         49       3/5
+2021-26                all momentum rows 15085     719           0.10           0.44           3.37         54       4/6
+2021-26                             RICH  3712     266           0.66           0.65           2.43         53       4/6
+2021-26                       CHEAP/FAIR  6253     425           0.08           0.96           4.82         57       4/6
+2021-26                             LOSS  1701     116          -0.83          -0.84           1.09         52       4/6
+2021-26                   own %ile >= 90  5711     388           0.55           0.84           2.23         53       4/6
+2021-26                      >= 2x peers  3606     263           0.12           0.07           2.70         53       4/6
+2021-26            3y profit CAGR >= 25%  4024     285           0.15           0.28           2.69         54       4/6
+2021-26    profit falling (last FY < 0%)  3986     344           0.41           0.83           2.36         54       4/6
+2021-26                        1m FADING  3122     517          -0.08           0.42           2.87         54       4/6
+2021-26                         1m ACCEL  7828     679           0.34           0.54           3.33         54       4/6
+2021-26                 > 60% above 200d  6905     502           0.03           0.46           4.23         54       3/6
+2021-26                 < 25% above 200d   753     297           0.00          -0.51           3.66         55       4/6
+2021-26                         RSI > 75  1765     492           1.15           1.72           2.56         53       4/6
+2021-26 no Gate 1 (already off the high)  3675     503          -0.39          -0.13           1.75         52       4/6
+2021-26                  v6 DISTRIBUTION  6480     606          -0.14          -0.07           3.27         54       4/6
+2021-26                    v6 ABSORPTION   653     177           1.56           2.68           8.53         62       6/6
+2021-26                          v6 VETO  1956     385          -0.67          -0.45           2.22         53       5/6
+2021-26             near overhead supply   288     153          -0.06          -1.40          -1.89         48       3/6
+2021-26                  leader industry  6919     638           0.35           0.49           3.37         54       5/6
+2021-26                 laggard industry  3297     474           0.01           0.99           3.98         55       4/6
+2021-26                    FADING + RICH   639     150           0.93          -0.69          -0.63         49       4/6
+2021-26            FADING + DISTRIBUTION   709     312           0.00           0.95           6.32         57       5/6
+
+============================================================================================================================================
+S2 EXITS: 2520 momentum episodes (first week each run). Mean return per trade; 'ret if X' = mean return of that rule on episodes that turned out X.
+============================================================================================================================================
+    era                                             rule  trades  mean_ret  median_ret  mean_vs_nifty  win_pct  avg_days yrs_vs_nifty_pos  ret if CONTINUED  ret if SIDEWAYS  ret if PULLBACK  ret if GAVE BACK
+2021-26                                    hold 6 months    1427     16.46        6.67          12.26       58       126              6/6              62.9              1.6            -19.3             -35.6
+2021-26                     live exit (MA50 / 15% trail)    1427      5.23       -2.63           4.29       40        31              5/6              20.3             -1.2             -5.8              -7.0
+2021-26             live + velocity exit (1m rank <= 30)    1427      3.87       -2.51           3.07       39        26              5/6              15.7             -0.7             -5.5              -6.6
+2021-26               velocity exit (1m rank <= 30) only    1427      6.37       -1.72           4.98       45        40              5/6              23.2              0.3             -6.7             -10.2
+2021-26 live + valuation exit (own >= 95, >= 1.5x peers)    1427      4.57       -2.27           3.70       41        27              5/6              17.6             -0.8             -5.3              -6.1
+2021-26   valuation exit (own >= 95, >= 1.5x peers) only    1427     13.81        4.13          10.16       58       106              5/6              52.5              2.0            -16.3             -31.0
+2016-20                                    hold 6 months    1093     19.98        8.25          11.37       59       126              3/5              68.4              1.8            -19.4             -40.2
+2016-20                     live exit (MA50 / 15% trail)    1093      6.29       -3.22           4.54       39        31              4/5              21.9             -1.0             -5.8              -8.9
+2016-20             live + velocity exit (1m rank <= 30)    1093      4.03       -2.91           2.72       38        25              4/5              15.2             -0.7             -5.1              -8.2
+2016-20               velocity exit (1m rank <= 30) only    1093      4.71       -3.11           3.49       40        39              3/5              22.2             -2.4            -10.7             -14.5
+2016-20 live + valuation exit (own >= 95, >= 1.5x peers)    1093      5.11       -2.52           3.51       40        28              4/5              19.0             -1.5             -5.2              -8.7
+2016-20   valuation exit (own >= 95, >= 1.5x peers) only    1093     16.96        5.43           9.35       58       115              3/5              59.4              1.9            -17.7             -38.2
+
+============================================================================================================================================
+S3  VELOCITY x VALUATION within strong momentum (6m rank >= 80)
+============================================================================================================================================
+    era                   cell      n  stocks  1mo vsTypical  3mo vsTypical  6mo vsTypical  6mo beat% yrs 6mo>0
+2016-20          ACCEL + CHEAP    462     127           0.38           4.65           5.54         56       4/4
+2016-20           ACCEL + FAIR   3558     418           0.10           1.73           5.11         58       4/4
+2016-20           ACCEL + RICH   1623     195           0.95           3.03           8.37         62       3/4
+2016-20           ACCEL + LOSS    756      92          -2.52          -1.34          -3.12         46       1/4
+2016-20  ACCEL (any valuation)  13107     736          -0.03           1.69           4.24         56       5/5
+2016-20         STEADY + CHEAP    453     125           0.15           1.42           3.12         53       2/4
+2016-20          STEADY + FAIR   3686     407           1.02           3.23           5.57         59       4/4
+2016-20          STEADY + RICH   1425     181           1.57           4.67          10.22         66       4/4
+2016-20          STEADY + LOSS    448      80          -1.16          -2.65          -4.34         46       1/4
+2016-20 STEADY (any valuation)  11701     731           0.83           2.56           5.02         57       5/5
+2016-20         FADING + CHEAP    292      94           1.24           1.70           0.31         50       3/4
+2016-20          FADING + FAIR   1838     348           0.54           1.31           2.53         54       3/4
+2016-20          FADING + RICH    624     138           1.15           2.94           5.10         57       3/4
+2016-20          FADING + LOSS    474      77          -2.49          -4.15          -9.21         39       0/4
+2016-20 FADING (any valuation)   7015     693           0.40           0.57           0.95         51       2/5
+2016-20   strong momentum, all  31823     754           0.38           1.76           3.85         55       5/5
+2016-20               all rows 161111     800           0.00           0.00           0.00         50       0/5
+2021-26          ACCEL + CHEAP    455     106          -0.03           1.61           3.71         56       3/6
+2021-26           ACCEL + FAIR   8436     645           0.76           1.50           3.64         55       5/6
+2021-26           ACCEL + RICH   4267     400           1.10           1.74           3.93         56       5/6
+2021-26           ACCEL + LOSS   1667     157           0.21           0.28          -0.04         50       4/6
+2021-26  ACCEL (any valuation)  18545     927           0.75           1.18           3.01         54       5/6
+2021-26         STEADY + CHEAP    462     115           0.47          -1.26           1.62         52       3/6
+2021-26          STEADY + FAIR   7364     637           0.27           0.86           3.07         55       4/6
+2021-26          STEADY + RICH   2936     372           0.03           1.44           2.58         55       5/6
+2021-26          STEADY + LOSS   1094     146           0.20           1.59           3.83         56       6/6
+2021-26 STEADY (any valuation)  14636     925           0.20           0.93           3.13         55       5/6
+2021-26         FADING + CHEAP    402     104           0.04           0.35           4.91         58       4/6
+2021-26          FADING + FAIR   4565     579           0.22           1.31           4.51         57       5/6
+2021-26          FADING + RICH   1707     286           0.93           1.55           3.52         55       4/6
+2021-26          FADING + LOSS    915     140           0.33           0.43           3.55         56       6/6
+2021-26 FADING (any valuation)   9662     886           0.18           0.86           3.50         55       5/6
+2021-26   strong momentum, all  42843     962           0.41           1.01           3.15         55       5/6
+2021-26               all rows 218173    1035           0.00           0.00           0.00         50       0/6
+
+============================================================================================================================================
+S4  BY SIZE TIER (point-in-time market-cap rank) AND FAMILY
+============================================================================================================================================
+    era                                          cell      n  stocks  1mo vsTypical  3mo vsTypical  6mo vsTypical  6mo beat% yrs 6mo>0
+2016-20                                    Large: all  24600     164           0.24          -0.00          -1.18         48       2/5
+2016-20      Large: momentum (6m rank >= 90 + Gate 1)   1548     115           0.23           1.90           4.17         57       3/5
+2016-20                             Large: v6 BUY NOW   2894     148           0.28           0.77           0.00         50       2/5
+2016-20             Large: breakout + anchor + leader    184      72           0.90          -1.38          -1.84         46       2/5
+2016-20                        Large: FADING momentum    785     123           1.16           2.40           0.16         50       3/5
+2016-20                        Large: momentum + RICH    539      45           0.00           2.27           6.10         63       2/4
+2016-20                  Large: momentum + CHEAP/FAIR    626      66           0.32           0.13          -0.30         49       2/4
+2021-26                                    Large: all  28600     186           0.12          -0.41          -0.81         48       1/6
+2021-26      Large: momentum (6m rank >= 90 + Gate 1)   1578     124          -0.36          -2.63          -3.76         43       2/6
+2021-26                             Large: v6 BUY NOW   4115     166           0.12          -0.38          -1.11         48       2/6
+2021-26             Large: breakout + anchor + leader    305     102           0.57           0.01          -2.97         45       2/6
+2021-26                        Large: FADING momentum    875     131          -0.60          -1.68          -3.82         45       2/6
+2021-26                        Large: momentum + RICH    555      54          -0.46          -2.58          -4.75         41       2/6
+2021-26                  Large: momentum + CHEAP/FAIR    992      78          -0.18          -3.03          -2.02         45       3/6
+2016-20                                      Mid: all  36900     304           0.57           1.33           2.07         54       3/5
+2016-20        Mid: momentum (6m rank >= 90 + Gate 1)   2597     183           1.77           4.64           9.23         63       3/5
+2016-20                               Mid: v6 BUY NOW   4135     232           1.18           3.93           6.90         62       4/5
+2016-20               Mid: breakout + anchor + leader    364     118           0.84           3.08           4.94         57       4/5
+2016-20                          Mid: FADING momentum   1323     204           1.59           3.09           4.30         56       4/5
+2016-20                          Mid: momentum + RICH    724      50           2.97           7.45          17.92         73       4/4
+2016-20                    Mid: momentum + CHEAP/FAIR   1065     109           1.76           3.59           6.24         59       2/4
+2021-26                                      Mid: all  42900     351           0.28           0.33           0.01         50       3/6
+2021-26        Mid: momentum (6m rank >= 90 + Gate 1)   2610     210           0.56           0.91           2.98         55       4/6
+2021-26                               Mid: v6 BUY NOW   6140     283           0.57           0.90           1.56         53       5/6
+2021-26               Mid: breakout + anchor + leader    535     165           1.49           3.62           4.45         57       5/6
+2021-26                          Mid: FADING momentum   1408     202           0.27           0.22           1.43         53       3/6
+2021-26                          Mid: momentum + RICH   1019     100           0.19          -0.11           1.51         52       4/6
+2021-26                    Mid: momentum + CHEAP/FAIR   1341     134           0.41           0.39           2.70         57       3/6
+2016-20                                    Small: all  61500     457          -0.15          -0.20          -0.05         50       3/5
+2016-20      Small: momentum (6m rank >= 90 + Gate 1)   4651     305           0.52           2.74           5.45         57       4/5
+2016-20                             Small: v6 BUY NOW   5534     338           1.08           2.12           4.39         57       5/5
+2016-20             Small: breakout + anchor + leader    612     205           1.18           1.78           2.81         54       4/5
+2016-20                        Small: FADING momentum   2892     331           0.16           0.18           1.17         52       4/5
+2016-20                        Small: momentum + RICH    582      70           1.19           3.68           2.28         53       1/4
+2016-20                  Small: momentum + CHEAP/FAIR   2044     160           0.40           2.40           5.11         58       3/4
+2021-26                                    Small: all  71500     565          -0.06          -0.14          -0.53         49       1/6
+2021-26      Small: momentum (6m rank >= 90 + Gate 1)   5873     367           0.70           1.22           3.07         55       3/6
+2021-26                             Small: v6 BUY NOW  10411     468           0.86           2.16           3.87         56       6/6
+2021-26             Small: breakout + anchor + leader   1174     315           0.70           1.84           2.95         54       4/6
+2021-26                        Small: FADING momentum   3254     389           0.66           1.01           3.51         55       4/6
+2021-26                        Small: momentum + RICH   2071     164           0.95           1.87           4.90         57       4/6
+2021-26                  Small: momentum + CHEAP/FAIR   3799     250           0.52           0.88           3.65         55       3/6
+2016-20                                    Micro: all  32641     310          -0.63          -1.32          -1.15         48       3/5
+2016-20      Micro: momentum (6m rank >= 90 + Gate 1)   1869     178           0.17           2.91           4.56         54       3/5
+2016-20                             Micro: v6 BUY NOW   1423     160          -0.25           3.19           6.94         60       3/5
+2016-20             Micro: breakout + anchor + leader    195      77          -1.39          -1.67           1.92         53       3/5
+2016-20                        Micro: FADING momentum   1793     199          -0.74          -2.30          -1.99         47       2/5
+2016-20                        Micro: momentum + RICH    243      31          -0.96          -0.13          13.07         57       2/4
+2016-20                  Micro: momentum + CHEAP/FAIR    871      84          -0.53           0.17           3.13         53       3/4
+2021-26                                    Micro: all  68970     617          -0.18           0.23           1.50         52       5/6
+2021-26      Micro: momentum (6m rank >= 90 + Gate 1)   5499     362           1.01           2.94           9.19         60       6/6
+2021-26                             Micro: v6 BUY NOW   8087     439           0.91           3.10           7.22         59       6/6
+2021-26             Micro: breakout + anchor + leader   1045     271           1.16           4.79           9.36         61       6/6
+2021-26                        Micro: FADING momentum   3914     412           0.15           1.71           6.70         59       5/6
+2021-26                        Micro: momentum + RICH   1436     121           1.37           4.06           8.22         59       4/6
+2021-26                  Micro: momentum + CHEAP/FAIR   3667     241           0.54           2.13           9.08         60       5/6
+2016-20                               industrial: all 129890     645           0.00          -0.02           0.01         50       3/5
+2016-20 industrial: momentum (6m rank >= 90 + Gate 1)   8937     510           0.68           3.06           6.67         59       5/5
+2016-20                        industrial: v6 BUY NOW  11807     547           0.84           2.27           4.27         57       5/5
+2016-20        industrial: breakout + anchor + leader   1129     352           0.79           0.74           1.95         53       3/5
+2016-20                   industrial: FADING momentum   5821     564           0.52           0.68           1.18         51       3/5
+2016-20                   industrial: momentum + RICH   1771     144           1.25           4.29          10.78         63       4/4
+2016-20             industrial: momentum + CHEAP/FAIR   4038     292           0.65           2.30           4.66         57       4/4
+2021-26                               industrial: all 173988     837          -0.07          -0.25          -0.55         49       2/6
+2021-26 industrial: momentum (6m rank >= 90 + Gate 1)  12487     633           0.61           1.30           4.53         56       5/6
+2021-26                        industrial: v6 BUY NOW  23736     741           0.58           1.55           3.15         55       6/6
+2021-26        industrial: breakout + anchor + leader   2453     557           0.75           2.23           3.84         56       5/6
+2021-26                   industrial: FADING momentum   7685     715           0.34           1.18           3.25         55       5/6
+2021-26                   industrial: momentum + RICH   4074     268           0.92           1.54           4.47         55       4/6
+2021-26             industrial: momentum + CHEAP/FAIR   7575     420           0.45           1.12           5.09         57       5/6
+2016-20                                   lender: all  19476     101          -0.01          -0.05          -1.30         48       2/5
+2016-20     lender: momentum (6m rank >= 90 + Gate 1)   1200      73           1.21           3.44           3.23         55       3/5
+2016-20                            lender: v6 BUY NOW   1578      79           0.54           2.45           3.36         55       3/5
+2016-20            lender: breakout + anchor + leader    125      47           0.03           7.51           5.71         58       4/5
+2016-20                       lender: FADING momentum    656      80           0.02           0.12          -2.43         46       1/5
+2016-20                       lender: momentum + RICH    233      18           0.11           1.58           3.77         56       2/4
+2016-20                 lender: momentum + CHEAP/FAIR    422      38           1.59           5.83           5.01         60       2/4
+2021-26                                   lender: all  29616     130           0.13           0.45           1.19         52       4/6
+2021-26     lender: momentum (6m rank >= 90 + Gate 1)   1861     105           0.29          -0.19           2.48         55       3/6
+2021-26                            lender: v6 BUY NOW   3742     121           0.49           1.29           2.09         54       4/6
+2021-26            lender: breakout + anchor + leader    323      91           2.60           3.35           2.65         55       5/6
+2021-26                       lender: FADING momentum   1167     107          -0.86          -0.70           3.62         57       3/6
+2021-26                       lender: momentum + RICH    549      39          -0.58          -0.57          -0.33         49       3/6
+2021-26                 lender: momentum + CHEAP/FAIR   1318      77          -0.14          -0.53           3.65         57       3/6
+2016-20                                commodity: all  11745      54           0.08           0.58           1.76         53       3/5
+2016-20  commodity: momentum (6m rank >= 90 + Gate 1)    804      46           0.32           3.22           6.39         58       3/5
+2016-20                         commodity: v6 BUY NOW   1130      46           0.92           3.37           6.33         63       4/5
+2016-20         commodity: breakout + anchor + leader    150      35           0.62           2.16           2.81         57       2/5
+2016-20                    commodity: FADING momentum    538      49          -0.51          -0.21           3.08         54       3/5
+2016-20                    commodity: momentum + RICH     84       9           5.44          12.36          18.60         82       4/4
+2016-20              commodity: momentum + CHEAP/FAIR    146      21          -3.68          -5.90          -6.82         29       0/4
+2021-26                                commodity: all  14569      68           0.79           2.23           4.76         57       4/6
+2021-26  commodity: momentum (6m rank >= 90 + Gate 1)   1520      60           1.21           2.23           1.77         52       3/6
+2021-26                         commodity: v6 BUY NOW   2073      64           1.32           2.77           5.35         55       3/6
+2021-26         commodity: breakout + anchor + leader    364      56           0.67           3.87           7.38         56       4/6
+2021-26                    commodity: FADING momentum    810      64           0.33           1.74           5.14         57       4/6
+2021-26                    commodity: momentum + RICH    458      30           0.55           2.16           3.56         56       4/6
+2021-26              commodity: momentum + CHEAP/FAIR    906      42           1.18           1.21          -2.17         47       3/6
+
+--- S4 exits by tier (momentum episodes)
+ tier     era                                             rule  trades  mean_ret  mean_vs_nifty  avg_days
+Micro 2021-26                                    hold 6 months     587     20.40          16.21    126.00
+Micro 2021-26                     live exit (MA50 / 15% trail)     587      6.43           5.36     29.90
+Micro 2021-26             live + velocity exit (1m rank <= 30)     587      4.38           3.47     24.93
+Micro 2021-26 live + valuation exit (own >= 95, >= 1.5x peers)     587      5.66           4.65     26.03
+  Mid 2021-26                                    hold 6 months     208     13.13           9.08    126.00
+  Mid 2021-26                     live exit (MA50 / 15% trail)     208      3.98           3.13     32.92
+  Mid 2021-26             live + velocity exit (1m rank <= 30)     208      2.80           2.14     27.75
+  Mid 2021-26 live + valuation exit (own >= 95, >= 1.5x peers)     208      2.50           1.69     26.22
+Small 2016-20                                    hold 6 months     480     22.57          13.28    126.00
+Small 2016-20                     live exit (MA50 / 15% trail)     480      7.91           6.04     32.21
+Small 2016-20             live + velocity exit (1m rank <= 30)     480      5.13           3.84     26.43
+Small 2016-20 live + valuation exit (own >= 95, >= 1.5x peers)     480      7.38           5.66     30.42
+Micro 2016-20                                    hold 6 months     294     22.76          13.95    126.00
+Micro 2016-20                     live exit (MA50 / 15% trail)     294      6.63           4.92     26.10
+Micro 2016-20             live + velocity exit (1m rank <= 30)     294      4.29           2.88     20.79
+Micro 2016-20 live + valuation exit (own >= 95, >= 1.5x peers)     294      4.93           3.40     24.55
+  Mid 2016-20                                    hold 6 months     182     15.75           8.33    126.00
+  Mid 2016-20                     live exit (MA50 / 15% trail)     182      3.46           2.25     32.38
+  Mid 2016-20             live + velocity exit (1m rank <= 30)     182      1.56           0.64     26.37
+  Mid 2016-20 live + valuation exit (own >= 95, >= 1.5x peers)     182      0.81          -0.15     27.79
+Large 2021-26                                    hold 6 months     124      5.26           0.67    126.00
+Large 2021-26                     live exit (MA50 / 15% trail)     124      1.91           1.37     32.63
+Large 2021-26             live + velocity exit (1m rank <= 30)     124      1.53           1.14     27.97
+Large 2021-26 live + valuation exit (own >= 95, >= 1.5x peers)     124      1.79           1.44     27.49
+Small 2021-26                                    hold 6 months     474     16.44          12.37    126.00
+Small 2021-26                     live exit (MA50 / 15% trail)     474      4.99           4.06     31.40
+Small 2021-26             live + velocity exit (1m rank <= 30)     474      4.38           3.51     26.61
+Small 2021-26 live + valuation exit (own >= 95, >= 1.5x peers)     474      4.64           3.79     27.46
+Large 2016-20                                    hold 6 months     105     10.14           2.64    126.00
+Large 2016-20                     live exit (MA50 / 15% trail)     105      3.89           1.54     33.99
+Large 2016-20             live + velocity exit (1m rank <= 30)     105      2.98           1.06     28.02
+Large 2016-20 live + valuation exit (own >= 95, >= 1.5x peers)     105      3.35           0.99     27.70
+      2021-26                                    hold 6 months      34      9.72           4.35    126.00
+      2021-26                     live exit (MA50 / 15% trail)      34      7.48           6.80     26.71
+      2021-26             live + velocity exit (1m rank <= 30)      34      2.85           3.01     21.18
+      2021-26 live + valuation exit (own >= 95, >= 1.5x peers)      34      7.48           6.80     26.71
+      2016-20                                    hold 6 months      32     11.91           5.07    126.00
+      2016-20                     live exit (MA50 / 15% trail)      32      2.84           1.33     27.88
+      2016-20             live + velocity exit (1m rank <= 30)      32      2.68           1.70     23.22
+      2016-20 live + valuation exit (own >= 95, >= 1.5x peers)      32      2.84           1.33     27.88
+
+============================================================================================================================================
+PRE-REGISTERED HYPOTHESES (pass only if both eras pass; cells need >= 200 rows from >= 30 stocks, else TOO FEW)
+============================================================================================================================================
+  PASS  H1 2016-20: winner lift CHEAP 1.15 >= 1.2 x RICH 0.9
+  FAIL  H2 2016-20: breakout+anchor+leader lift 0.99 >= 1.5
+  FAIL  H3 2016-20: momentum RICH 9.52 <= CHEAP/FAIR 3.3 - 2
+  FAIL  H4 2016-20: FADING+RICH 5.1 <= FADING+FAIR 2.53 - 2
+  FAIL  H5 2016-20: live + velocity exit (1m rank <= 30) 2.72 >= live 4.54 + 0.5
+  FAIL  H5 2016-20: live + valuation exit (own >= 95, >= 1.5x peers) 3.51 >= live 4.54 + 0.5
+  FAIL  H1 2021-26: winner lift CHEAP 0.88 >= 1.2 x RICH 0.94
+  FAIL  H2 2021-26: breakout+anchor+leader lift 1.3 >= 1.5
+  PASS  H3 2021-26: momentum RICH 2.43 <= CHEAP/FAIR 4.82 - 2
+  FAIL  H4 2021-26: FADING+RICH 3.52 <= FADING+FAIR 4.51 - 2
+  FAIL  H5 2021-26: live + velocity exit (1m rank <= 30) 3.07 >= live 4.29 + 0.5
+  FAIL  H5 2021-26: live + valuation exit (own >= 95, >= 1.5x peers) 3.7 >= live 4.29 + 0.5
+  => H1: NOT SUPPORTED
+  => H2: NOT SUPPORTED
+  => H3: NOT SUPPORTED
+  => H4: NOT SUPPORTED
+  => H5 [live + velocity exit (1m rank <= 30)]: NOT SUPPORTED
+  => H5 [live + valuation exit (own >= 95, >= 1.5x peers)]: NOT SUPPORTED
+
+saved -> analysis/entry_exit_study.csv, analysis/ENTRY_EXIT_CASES.md

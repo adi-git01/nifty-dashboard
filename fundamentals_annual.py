@@ -74,6 +74,12 @@ def top_ratios(html: str) -> dict:
     return out
 
 
+def broad_industry(html: str) -> str:
+    """Screener's 'Broad Industry' (same vocabulary as the dashboard's sub-industries), or ''."""
+    m = re.search(r'title="Broad Industry">([^<]+)</a>', html)
+    return m.group(1).strip().replace("&amp;", "&") if m else ""
+
+
 def parse_annual(html: str) -> dict:
     out = {}
     for sid, rows in (("profit-loss", PL), ("balance-sheet", BS), ("cash-flow", CF), ("ratios", RT)):
@@ -91,7 +97,8 @@ def parse_quarterly(html: str) -> dict:
     return q
 
 
-def scrape(tickers, delay):
+def scrape(tickers, delay, industries=None):
+    """industries: optional dict filled with ticker -> Screener broad industry."""
     import requests
     sess = requests.Session()
     sess.headers["User-Agent"] = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -125,6 +132,8 @@ def scrape(tickers, delay):
                 with open(f"{SAMPLES}/sample_{n}_{b}.html", "w") as fh:
                     fh.write(r.text)
             a, q = parse_annual(r.text), parse_quarterly(r.text)
+            if industries is not None and broad_industry(r.text):
+                industries[t] = broad_industry(r.text)
             years = sum(1 for (f, _) in a if f == "np")
             if years >= 3 or not best_a:
                 best_a, best_q, basis = a, q, b
