@@ -236,34 +236,52 @@ def clean_spikes(close, high, low, vol, raw):
 EXTRA_IND = "data/industry_extra.csv"
 
 
-def load_annual(tickers_needed, scrape_missing, delay):
-    """Fundamentals (+ Screener broad industry for names outside today's map) for every PIT name."""
+EXTRA_TRIED = "data/fundamentals_extra_tried.txt"
+
+
+def load_annual(tickers_needed, scrape_missing, delay, minutes):
+    """
+    Fundamentals (+ Screener broad industry for names outside today's map) for every PIT name.
+    The scrape is saved every 50 names and remembers which names it tried, so a job killed by its
+    time limit keeps its progress and the next run resumes; it also stops after `minutes`.
+    """
+    import time
     A = pd.read_csv("data/fundamentals_annual.csv.gz", parse_dates=["period"])
     if os.path.exists(EXTRA_FUNDA):
         A = pd.concat([A, pd.read_csv(EXTRA_FUNDA, parse_dates=["period"])])
+    tried = set(open(EXTRA_TRIED).read().split()) if os.path.exists(EXTRA_TRIED) else set()
     have = set(A.ticker)
-    missing = [t for t in tickers_needed if t not in have]
-    print(f"[funda] {len(have)} stocks on file; {len(missing)} PIT-universe names without fundamentals")
+    missing = [t for t in tickers_needed if t not in have and t not in tried]
+    print(f"[funda] {len(have)} stocks on file; {len(missing)} PIT-universe names still to try "
+          f"({len(tried)} tried before)")
     if missing and scrape_missing:
+        import tempfile
+        import fundamentals_annual
         from fundamentals_annual import scrape
+        # its two sample pages would overwrite tracked files and block the results commit (run #14)
+        fundamentals_annual.SAMPLES = tempfile.mkdtemp()
         missing = missing[:scrape_missing]
-        print(f"[funda] scraping {len(missing)} of them from Screener (fixes survivorship in the valuation data)")
+        print(f"[funda] scraping up to {len(missing)} from Screener, budget {minutes} min "
+              f"(fixes survivorship in the valuation data)", flush=True)
         ind = {}
+        base = pd.read_csv(EXTRA_FUNDA, parse_dates=["period"]) if os.path.exists(EXTRA_FUNDA) else None
+        base_ind = pd.read_csv(EXTRA_IND) if os.path.exists(EXTRA_IND) else pd.DataFrame(columns=["ticker", "industry"])
+
+        def save(rows, _q, done):
+            X = pd.DataFrame(rows, columns=["ticker", "field", "period", "value", "basis"])
+            X["period"] = pd.to_datetime(X["period"])
+            X = pd.concat([base, X]) if base is not None else X
+            X.drop_duplicates(["ticker", "field", "period"], keep="last").to_csv(EXTRA_FUNDA, index=False)
+            new = pd.DataFrame(list(ind.items()), columns=["ticker", "industry"])
+            pd.concat([base_ind, new]).drop_duplicates("ticker", keep="last").to_csv(EXTRA_IND, index=False)
+            with open(EXTRA_TRIED, "w") as fh:
+                fh.write("\n".join(sorted(tried | set(done))))
         try:
-            X, _ = scrape(missing, delay, industries=ind)
+            scrape(missing, delay, industries=ind, deadline=time.time() + 60 * minutes, checkpoint=save)
         except SystemExit as e:                     # Screener blocked: carry on, say so
             print(f"[funda] scrape aborted ({e}); valuation limited to names already on file")
-            X = pd.DataFrame()
-        if len(X):
-            old = pd.read_csv(EXTRA_FUNDA, parse_dates=["period"]) if os.path.exists(EXTRA_FUNDA) else None
-            X["period"] = pd.to_datetime(X["period"])
-            X = pd.concat([old, X]) if old is not None else X
-            X.drop_duplicates(["ticker", "field", "period"], keep="last").to_csv(EXTRA_FUNDA, index=False)
-            A = pd.concat([A, X])
-        if ind:
-            old = pd.read_csv(EXTRA_IND) if os.path.exists(EXTRA_IND) else pd.DataFrame(columns=["ticker", "industry"])
-            new = pd.DataFrame(list(ind.items()), columns=["ticker", "industry"])
-            pd.concat([old, new]).drop_duplicates("ticker", keep="last").to_csv(EXTRA_IND, index=False)
+        if os.path.exists(EXTRA_FUNDA):
+            A = pd.concat([A, pd.read_csv(EXTRA_FUNDA, parse_dates=["period"])])
     return A.drop_duplicates(["ticker", "field", "period"], keep="last")
 
 
@@ -677,6 +695,8 @@ def main():
     ap.add_argument("--scrape-missing", type=int, default=1500,
                     help="scrape fundamentals for up to N PIT-universe names missing them (0 = off)")
     ap.add_argument("--delay", type=float, default=1.0)
+    ap.add_argument("--scrape-minutes", type=float, default=90,
+                    help="time budget for the Screener scrape; progress is saved, a rerun resumes")
     ap.add_argument("--cases", type=int, default=15)
     args = ap.parse_args()
     pd.set_option("display.width", 260)
@@ -691,7 +711,7 @@ def main():
         close, high, low, vol, raw, nifty, pit = load_prices(args.max_tickers)
         ever = pit.iloc[260::5]
         ever = list(ever.columns[ever.loc[ever.index >= "2015-06-01"].any()])
-        A = load_annual(ever, args.scrape_missing, args.delay)
+        A = load_annual(ever, args.scrape_missing, args.delay, args.scrape_minutes)
         groups = {t: g for t, g in SUB_INDUSTRY_MAP.items() if g and g != "Unknown"}
         if os.path.exists(EXTRA_IND):
             extra = pd.read_csv(EXTRA_IND).dropna()

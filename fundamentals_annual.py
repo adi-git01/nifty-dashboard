@@ -97,14 +97,21 @@ def parse_quarterly(html: str) -> dict:
     return q
 
 
-def scrape(tickers, delay, industries=None):
-    """industries: optional dict filled with ticker -> Screener broad industry."""
+def scrape(tickers, delay, industries=None, deadline=None, checkpoint=None, every=50):
+    """
+    industries: optional dict filled with ticker -> Screener broad industry.
+    deadline:   epoch seconds; stop cleanly (keeping what was parsed) once passed.
+    checkpoint: called as checkpoint(A_rows, Q_rows, tried) every `every` names and at the end, so a
+                killed job keeps its progress and a rerun can skip what was already tried.
+    After an HTTP 429 the pause between requests grows (x1.5, up to 10 s) instead of staying fixed.
+    """
     import requests
     sess = requests.Session()
     sess.headers["User-Agent"] = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
                                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
     os.makedirs(SAMPLES, exist_ok=True)
     A, Q, fails, codes = [], [], [], {}
+    pace = {"delay": delay}
 
     def get(url):
         for k in range(4):
@@ -115,17 +122,22 @@ def scrape(tickers, delay, industries=None):
                 continue
             codes[r.status_code] = codes.get(r.status_code, 0) + 1
             if r.status_code == 429:
+                pace["delay"] = min(pace["delay"] * 1.5, 10.0)
                 time.sleep(30 * (k + 1))
                 continue
             return r
         return None
 
+    tried = []
     for n, t in enumerate(tickers):
+        if deadline is not None and time.time() > deadline:
+            print(f"[screener] time budget used: stopping after {n}/{len(tickers)} names", flush=True)
+            break
         sym = quote(t.replace(".NS", ""), safe="")
         best_a, best_q, basis = {}, {}, ""
         for path, b in ((f"/company/{sym}/consolidated/", "consolidated"), (f"/company/{sym}/", "standalone")):
             r = get("https://www.screener.in" + path)
-            time.sleep(delay)
+            time.sleep(pace["delay"])
             if r is None or r.status_code != 200:
                 continue
             if n < 2:
@@ -143,11 +155,17 @@ def scrape(tickers, delay, industries=None):
             fails.append(t)
         A += [(t, f, p.date(), v, basis) for (f, p), v in best_a.items()]
         Q += [(t, f, p.date(), v) for (f, p), v in best_q.items()]
+        tried.append(t)
+        if checkpoint is not None and (n + 1) % every == 0:
+            checkpoint(A, Q, tried)
         if n == 19 and len(fails) == 20:
             sys.exit(f"[screener] first 20 requests all failed (HTTP {codes}) -- not writing anything")
         if (n + 1) % 100 == 0:
-            print(f"[screener] {n + 1}/{len(tickers)}  failed {len(fails)}  HTTP {codes}", flush=True)
-    print(f"[screener] done: {len(tickers) - len(fails)} parsed, {len(fails)} failed; HTTP {codes}")
+            print(f"[screener] {n + 1}/{len(tickers)}  failed {len(fails)}  HTTP {codes}  "
+                  f"pause {pace['delay']:.1f}s", flush=True)
+    if checkpoint is not None:
+        checkpoint(A, Q, tried)
+    print(f"[screener] done: {len(tried) - len(fails)} parsed, {len(fails)} failed of {len(tried)} tried; HTTP {codes}")
     if fails:
         print("   failed: " + " ".join(f[:-3] for f in fails[:40]) + (" ..." if len(fails) > 40 else ""))
     return (pd.DataFrame(A, columns=["ticker", "field", "period", "value", "basis"]),
