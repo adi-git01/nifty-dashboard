@@ -170,6 +170,7 @@ def industry_scores(close, pit, groups, nifty):
 
 
 BONUS_SPLIT = [1 / 2, 1 / 3, 2 / 3, 1 / 4, 3 / 4, 1 / 5, 1 / 6, 1 / 10, 2 / 5, 3 / 5, 4 / 7]
+SPLIT_ONLY = {1 / 2, 1 / 5, 1 / 10, 2 / 5}       # face value 10->5, 10->2, 10->1, 5->2
 
 
 def fix_corporate_actions(close, high, low, vol, raw, A):
@@ -200,7 +201,9 @@ def fix_corporate_actions(close, high, low, vol, raw, A):
             if len(before) and len(after) and before.iloc[-1] > 0:
                 ok_bonus = abs((after.iloc[0] / before.iloc[-1]) * f - 1) < 0.15
         vbefore, vafter = vb.iat[i - 1, close.columns.get_loc(t)] if i else np.nan, va.at[dt, t]
-        ok_split = bool(vbefore > 0 and vafter / vbefore >= 0.7 / f)
+        # volume also surges after a real crash (PCJEWELLER 2018, ANTGRAPHIC x25 in run 2), so volume can
+        # only confirm a true SPLIT ratio; bonus-only ratios (2/3, 3/4, 3/5, 4/7, 1/3...) need the equity jump
+        ok_split = bool(f in SPLIT_ONLY and vbefore > 0 and vafter / vbefore >= 0.7 / f)
         if not (ok_bonus or ok_split):
             continue
         before = close.index < dt
@@ -228,9 +231,10 @@ def clean_spikes(close, high, low, vol, raw):
     if drop.values.sum():
         d = drop.stack()
         d = d[d]
-        print(f"[check] {len(d)} one-day falls of 40%+ that did not reverse (review: crash or unadjusted "
-              f"split/bonus?): " + ", ".join(f"{t[:-3]} {dt:%Y-%m-%d}" for dt, t in d.index[:25]))
-    return (close.mask(spike), high.mask(spike), low.mask(spike), vol.mask(spike), raw.mask(spike))
+        print(f"[check] {len(d)} one-day falls of 40%+ that did not reverse -- real crash, or a demerger / "
+              f"bonus Yahoo did not adjust (VEDL 2026 demerger: 655 -> 272). All of them: "
+              + ", ".join(f"{t[:-3]} {dt:%Y-%m-%d} x{r1.at[dt, t]:.2f}" for dt, t in d.index))
+    return (close.mask(spike), high.mask(spike), low.mask(spike), vol.mask(spike), raw.mask(spike), drop)
 
 
 EXTRA_IND = "data/industry_extra.csv"
@@ -720,12 +724,16 @@ def main():
               f"{sum(t in groups for t in ever)}; fundamentals for {A[A.ticker.isin(ever)].ticker.nunique()}")
         close, high, low, vol, raw = fix_corporate_actions(close, high, low, vol, raw, A)
         gscore = industry_scores(close, pit, groups, nifty)
-    close, high, low, vol, raw = clean_spikes(close, high, low, vol, raw)
+    close, high, low, vol, raw, big_fall = clean_spikes(close, high, low, vol, raw)
     fy = fy_table(A)
     R, P = build_rows(close, high, low, vol, raw, nifty, pit, gscore, fy, groups)
     print(f"[rows] {len(R)} PIT stock-weeks, {R.ticker.nunique()} stocks, {R.date.min():%b %Y} - {R.date.max():%b %Y}",
           flush=True)
     R = add_forensics(R, P)
+    # rows whose forward 6 months contain one of the flagged one-day falls (sensitivity check below)
+    bf = big_fall.astype(float)
+    ahead = (bf[::-1].rolling(H, min_periods=1).max()[::-1].shift(-1) > 0).values
+    R["fall_ahead"] = ahead[R.i.values, R.j.values]
 
     # ---- data checks (bug detectors) --------------------------------------
     cov = R.assign(has=R.zone != "").groupby("year").has.mean().mul(100).round(0)
@@ -858,6 +866,13 @@ def main():
           f"while held, i.e. proceeds parked in Nifty after an exit; it does NOT credit an exit with rotating into "
           f"the next momentum name, which is what the live engine does.\n{'=' * 140}")
     print(X2.drop(columns="table").to_string(index=False))
+    clean = E2[~E2.fall_ahead]
+    print(f"\n--- Sensitivity: drop the {int(E2.fall_ahead.sum())} episodes whose next 6 months contain a flagged "
+          f"one-day fall of 40%+ (possible unadjusted demerger/bonus)")
+    print((clean.groupby("era").outcome.value_counts(normalize=True) * 100).round(1).unstack().to_string())
+    Xc, _ = exit_summary(S[S.set_index(["i", "j"]).index.isin(clean.set_index(["i", "j"]).index)], clean, "S2 exits, flagged falls dropped")
+    tables.append(Xc)
+    print(Xc[["era", "rule", "trades", "mean_ret", "mean_vs_nifty", "avg_days"]].to_string(index=False))
 
     # ---- S3 velocity x valuation ---------------------------------------------
     strong = m(R.rk126 >= 80)
