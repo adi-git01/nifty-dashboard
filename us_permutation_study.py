@@ -116,9 +116,12 @@ def sec_eps(tickers):
         return E
     h = {"User-Agent": UA, "Accept-Encoding": "gzip, deflate"}
     try:
-        m = requests.get("https://www.sec.gov/files/company_tickers.json", headers=h, timeout=60).json()
+        r = requests.get("https://www.sec.gov/files/company_tickers.json", headers=h, timeout=60)
+        m = r.json()
     except Exception as e:
-        print(f"[sec] EDGAR unreachable ({e}) -- valuation cells will be n/a")
+        code = getattr(locals().get("r"), "status_code", "n/a")
+        print(f"[sec] EDGAR unreachable (HTTP {code}: {e}) -- valuation cells will be n/a. SEC rejects a "
+              "User-Agent without a contact email: set repo secret SEC_USER_AGENT to 'Name you@domain'.")
         return E
     cik = {v["ticker"].upper().replace(".", "-"): int(v["cik_str"]) for v in m.values()}
     rows, n_ok = [], 0
@@ -239,6 +242,10 @@ def portfolio_grid(close, vol, spy, pit200, pit1000, ok_val, ey, tables, limit=0
     keys = {"1w reversal": -r5.where(base.notna()), "1m": rrb.rel(c, n, 21).where(base.notna()),
             "3m": k["rs63"], "6m": k["rs126"], "12m": k["rs252"], "12-1": k["mom_12_1"],
             "6m + earnings yield": (k["rs126"].rank(axis=1, pct=True) + ey_d.rank(axis=1, pct=True)).where(base.notna())}
+    if ey_d.notna().sum().sum() == 0:
+        # No EDGAR data: the combined key would be all-NaN, i.e. an arbitrary never-rotating basket.
+        print("[grid] no earnings-yield data -- dropping the '6m + earnings yield' key and the valuation filter")
+        del keys["6m + earnings yield"]
     hist = close.notna().cumsum()
     spy_gate = (n > n.rolling(200).mean())
     orig = {kk: dict(v) for kk, v in rm.REGIME_PARAMS.items()}
@@ -272,7 +279,8 @@ def portfolio_grid(close, vol, spy, pit200, pit1000, ok_val, ey, tables, limit=0
     is_dates = dates[(dates >= IS_START) & (dates <= IS_END)]
     oos_dates = dates[dates > IS_END]
     dims = dict(key=list(keys), rebal=[5, 21], exit=["live", "trail 25%", "none (rotate)"],
-                universe=["top 200", "top 1000"], valuation=["none", "no loss, P/E < 60"],
+                universe=["top 200", "top 1000"],
+                valuation=["none", "no loss, P/E < 60"] if "6m + earnings yield" in keys else ["none"],
                 gate=["breadth (live)", "SPY > 200d"],
                 entry=["live (CompRS floor + > MA50)", "none (rank only)"])
     combos = list(itertools.product(*dims.values()))

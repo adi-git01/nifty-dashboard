@@ -157,7 +157,7 @@ jobs:
       - name: US permutation study (holdout grid, signals, valuation)
         if: github.event.inputs.script == 'us_perm'
         env:
-          SEC_USER_AGENT: "nifty-dashboard research (github.com/${{ github.repository }})"
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || 'nifty-dashboard research (github.com/adi-git01/nifty-dashboard)' }}
         run: |
           set -o pipefail
           python us_permutation_study.py --max-tickers "${{ github.event.inputs.max_tickers }}" 2>&1 | tee us_perm_output.txt
