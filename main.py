@@ -246,7 +246,7 @@ if _needs_refresh:
             _h52w  = _nd['High'].rolling(252).max().iloc[-1]
             _close = _nd['Close'].iloc[-1]
             current_regime = classify_regime(float(_close), float(_ma200), float(_h52w))
-            st.session_state['market_regime'] = current_regime
+            st.session_state['market_regime'] = current_regime        # engine mode (drives the live book)
     except Exception:
         pass  # Non-fatal — individual pages can fallback
     
@@ -310,9 +310,11 @@ if 'data_loaded_at' in st.session_state:
         freshness_text = f"🔴 {minutes_ago // 60}h ago (stale)"
     st.sidebar.caption(f"📊 {len(df)} stocks • Updated: {freshness_text}")
     
-    regime = st.session_state.get('market_regime', 'UNKNOWN')
-    regime_color = {"BULL": "🟢", "CAUTION": "🟡", "BEAR": "🟠", "CRISIS": "🔴"}.get(regime, "⚪")
-    st.sidebar.markdown(f"**Market Regime:** {regime_color} **{regime}**")
+    # One regime read for the whole app (utils/regime_badge.py): Nifty 5-state market regime, breadth, and
+    # the engine's own mode. Computed per data load; the pages render the same object.
+    from utils import regime_badge as _rb
+    st.session_state['regime_info'] = _rb.compute(st.session_state.get('nifty_data'), df)
+    st.sidebar.markdown(_rb.sidebar_line(st.session_state['regime_info']))
 else:
     st.sidebar.success(f"Loaded {len(df)} Tickers")
 
@@ -639,7 +641,7 @@ elif page == "🔍 Market Explorer":
 elif page == "🚀 Live Trading Desk":
     st.markdown(page_header("🚀 V2.2 Momentum Engine: The Live Trading Desk", "Pure mathematical momentum deployment guided by 15-Year out-of-sample Regime & Seasonality analytics."), unsafe_allow_html=True)
     
-    from utils.live_desk import get_live_regime, generate_v3_watchlist
+    from utils.live_desk import generate_v3_watchlist
     
     # 1. Use centralized Nifty data (pre-fetched at startup)
     with st.spinner("Calculating Live Macro Regime..."):
@@ -676,28 +678,16 @@ elif page == "🚀 Live Trading Desk":
         _nifty_stale = _sessions_missed >= 1
 
         if nifty_live is not None and not nifty_live.empty:
-            regime_data = get_live_regime(nifty_live)
-            
-            # Show Auto-Regime detection Results
-            st.markdown("### 🧭 MACRO REGIME DETECTOR")
+            # Market regime: the same read as the sidebar and Morning Pulse (utils/regime_badge.py). The old
+            # STRONG BULL / MILD BULL / ... card and its "optimal cash" / "max positions" came from a separate,
+            # untested classifier that the engine never used -- removed.
+            st.markdown("### 🧭 MARKET REGIME")
             _regime_asof = nifty_live.index[-1]
             _regime_asof_str = _regime_asof.strftime('%Y-%m-%d') if hasattr(_regime_asof, 'strftime') else str(_regime_asof)
             st.caption(f"Nifty data as of **{_regime_asof_str}** — refreshes every {AUTO_REFRESH_MINUTES} min")
+            from utils import regime_badge as _rb
+            _rb.render(_rb.compute(nifty_live, df), st)
 
-            rg_col1, rg_col2, rg_col3 = st.columns([1.5, 1, 1])
-            with rg_col1:
-                st.markdown(f"""
-                <div style="background: {regime_data['color']}22; border-left: 5px solid {regime_data['color']}; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin:0; color: {regime_data['color']};">Current Trend: {regime_data['regime']}</h3>
-                    <p style="margin-top: 5px;">{regime_data['description']}</p>
-                    <p style="margin-top: 5px; opacity: 0.6; font-size: 0.8em;">As of {_regime_asof_str}</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with rg_col2:
-                st.metric("Optimal Cash Level", f"{regime_data['cash']*100:.0f}%", help="Based on 15Y Regime Backtests")
-            with rg_col3:
-                st.metric("Max Positions Allowed", f"{regime_data['max_pos']}", help="Fractional Kelly Simulation constraint")
-                
             st.markdown("---")
             
             # 2. V2.2 Momentum Engine + Seasonal Indicators
@@ -4543,6 +4533,9 @@ elif page == "☀️ Morning Pulse":
 
     st.markdown(page_header("☀️ Morning Pulse", "Daily market intelligence from parquet cache — breadth, rotation, catalysts, accumulation"), unsafe_allow_html=True)
 
+    from utils import regime_badge as _rb
+    _rb.render(st.session_state.get('regime_info') or _rb.compute(st.session_state.get('nifty_data'), df), st)
+
     import glob as _glob
     import plotly.graph_objects as _pgo
 
@@ -6196,7 +6189,7 @@ elif page == "\U0001f3af Turnaround Radar":
 
     regime = st.session_state.get('market_regime', 'UNKNOWN')
     if regime in ['BEAR', 'CRISIS']:
-        st.error(f"🚨 **{regime} REGIME ACTIVE** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
+        st.error(f"🚨 **Engine mode {regime}** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
         st.stop()
 
     if wdf.empty:
