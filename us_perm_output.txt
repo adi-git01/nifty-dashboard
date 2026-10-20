@@ -1,0 +1,286 @@
+[universe] 5907 US common-stock symbols from the NASDAQ / NYSE directories
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 300/5907, usable 266
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 600/5907, usable 545
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 900/5907, usable 817
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 1200/5907, usable 1094
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 1500/5907, usable 1380
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 1800/5907, usable 1663
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 2100/5907, usable 1938
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 2400/5907, usable 2216
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 2700/5907, usable 2495
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 3000/5907, usable 2770
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 3300/5907, usable 3048
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 3600/5907, usable 3325
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 3900/5907, usable 3603
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 4200/5907, usable 3886
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 4500/5907, usable 4158
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 4800/5907, usable 4431
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 5100/5907, usable 4714
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 5400/5907, usable 4996
+[yf_safe] bulk download attempt 1/3: 100% coverage (300/300 tickers)
+[data] 5700/5907, usable 5278
+[yf_safe] bulk download attempt 1/3: 100% coverage (206/207 tickers)
+[data] 5907/5907, usable 5464
+[universe] 2044 names ever in the point-in-time top 1000
+[sec] EDGAR unreachable (Expecting value: line 1 column 1 (char 0)) -- valuation cells will be n/a
+
+[grid] 672 configs on the in-sample window 2015-07-01 -> 2021-12-31
+   24/672
+   48/672
+   72/672
+   96/672
+   120/672
+   144/672
+   168/672
+   192/672
+   216/672
+   240/672
+   264/672
+   288/672
+   312/672
+   336/672
+   360/672
+   384/672
+   408/672
+   432/672
+   456/672
+   480/672
+   504/672
+   528/672
+   552/672
+   576/672
+   600/672
+   624/672
+   648/672
+   672/672
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/forensics.py:139: RuntimeWarning: divide by zero encountered in divide
+  f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
+
+In-sample SPY: CAGR 15.71%, Sharpe 0.9, max DD -33.7%
+
+Top 25 configs by in-sample Sharpe:
+                key  rebal          exit universe         valuation           gate                        entry  trades  IS cagr  IS sharpe  IS maxdd
+6m + earnings yield      5 none (rotate)  top 200 no loss, P/E < 60 breadth (live) live (CompRS floor + > MA50)       0    31.96       1.16     -35.4
+6m + earnings yield      5 none (rotate)  top 200              none breadth (live) live (CompRS floor + > MA50)       0    31.96       1.16     -35.4
+6m + earnings yield     21 none (rotate)  top 200              none breadth (live) live (CompRS floor + > MA50)       0    31.19       1.16     -34.4
+6m + earnings yield     21 none (rotate)  top 200              none     SPY > 200d live (CompRS floor + > MA50)       0    31.19       1.16     -34.4
+6m + earnings yield     21 none (rotate)  top 200 no loss, P/E < 60     SPY > 200d live (CompRS floor + > MA50)       0    31.19       1.16     -34.4
+6m + earnings yield     21 none (rotate)  top 200 no loss, P/E < 60 breadth (live) live (CompRS floor + > MA50)       0    31.19       1.16     -34.4
+        1w reversal      5     trail 25% top 1000              none breadth (live)             none (rank only)     195    22.79       0.99     -29.0
+        1w reversal      5     trail 25% top 1000 no loss, P/E < 60 breadth (live)             none (rank only)     195    22.79       0.99     -29.0
+6m + earnings yield     21     trail 25%  top 200 no loss, P/E < 60 breadth (live)             none (rank only)      45    14.59       0.97     -23.7
+6m + earnings yield     21 none (rotate)  top 200              none     SPY > 200d             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield      5 none (rotate)  top 200              none breadth (live)             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield     21 none (rotate)  top 200 no loss, P/E < 60     SPY > 200d             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield      5 none (rotate)  top 200              none     SPY > 200d             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield      5 none (rotate)  top 200 no loss, P/E < 60 breadth (live)             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield      5 none (rotate)  top 200 no loss, P/E < 60     SPY > 200d             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield     21 none (rotate)  top 200 no loss, P/E < 60 breadth (live)             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield     21 none (rotate)  top 200              none breadth (live)             none (rank only)       0    16.17       0.97     -27.0
+6m + earnings yield     21     trail 25%  top 200              none breadth (live)             none (rank only)      45    14.59       0.97     -23.7
+6m + earnings yield      5          live  top 200              none breadth (live) live (CompRS floor + > MA50)     472    17.11       0.96     -16.9
+6m + earnings yield      5          live  top 200 no loss, P/E < 60 breadth (live) live (CompRS floor + > MA50)     472    17.11       0.96     -16.9
+                 3m      5          live top 1000 no loss, P/E < 60 breadth (live)             none (rank only)    1088    25.78       0.95     -30.8
+                 3m      5          live top 1000              none breadth (live)             none (rank only)    1088    25.78       0.95     -30.8
+6m + earnings yield     21     trail 25%  top 200              none     SPY > 200d             none (rank only)      44    13.96       0.94     -24.8
+                 3m      5          live top 1000 no loss, P/E < 60 breadth (live) live (CompRS floor + > MA50)     873    25.41       0.94     -37.6
+        1w reversal     21     trail 25% top 1000 no loss, P/E < 60 breadth (live) live (CompRS floor + > MA50)     165    29.60       0.94     -30.6
+
+Share of the 672 configs beating SPY's in-sample Sharpe: 6%
+
+Which levers matter (median in-sample Sharpe by setting):
+   key      : 12-1=0.55  12m=0.52  1m=0.63  1w reversal=0.53  3m=0.73  6m=0.65  6m + earnings yield=0.72
+   rebal    : 5=0.64  21=0.60
+   exit     : live=0.67  none (rotate)=0.47  trail 25%=0.70
+   universe : top 1000=0.53  top 200=0.67
+   valuation: no loss, P/E < 60=0.62  none=0.62
+   gate     : SPY > 200d=0.57  breadth (live)=0.67
+   entry    : live (CompRS floor + > MA50)=0.66  none (rank only)=0.56
+
+============================================================================================================================================
+OUT-OF-SAMPLE 2022-01-03 -> 2026-10-19 (never seen by the search). SPY: CAGR 11.84%, Sharpe 0.74, max DD -24.5%; halves Sharpe 0.16 / 1.28
+============================================================================================================================================
+      pick                                                                                                                config  OOS_cagr  OOS_sharpe  OOS_maxdd  sharpe_2022_23  sharpe_2024_26  best_random_sharpe  trades  PASS
+     IS #1 6m + earnings yield | 5 | none (rotate) | top 200 | no loss, P/E < 60 | breadth (live) | live (CompRS floor + > MA50)     19.40        0.88      -22.5            0.39            1.23                0.50       0 False
+     IS #2              6m + earnings yield | 5 | none (rotate) | top 200 | none | breadth (live) | live (CompRS floor + > MA50)     19.40        0.88      -22.5            0.39            1.23                0.66       0 False
+     IS #3             6m + earnings yield | 21 | none (rotate) | top 200 | none | breadth (live) | live (CompRS floor + > MA50)     14.95        0.79      -22.3            0.37            1.13                0.35       0 False
+     IS #4                 6m + earnings yield | 21 | none (rotate) | top 200 | none | SPY > 200d | live (CompRS floor + > MA50)     13.42        0.69      -24.2            0.29            1.01                0.51       0 False
+     IS #5    6m + earnings yield | 21 | none (rotate) | top 200 | no loss, P/E < 60 | SPY > 200d | live (CompRS floor + > MA50)     13.42        0.69      -24.2            0.29            1.01                0.60       0 False
+live rules                                      6m | 13 | live | top 1000 | none | breadth (live) | live (CompRS floor + > MA50)     -0.03        0.11      -30.7            0.18            0.10                0.45     596     -
+
+[signals] 567999 weekly stock-dates, 1983 stocks; valuation coverage 0%
+
+======================================================================================================================================================
+B  SIGNALS: median return vs the typical stock (pp) by era; WORKS = both eras 3m >= +1, 6m >= +2, above the placebo 95th pct
+======================================================================================================================================================
+
+--- all sizes
+                                signal  2015-20 n  2015-20 1m  2015-20 3m  2015-20 6m  2021-26 n  2021-26 1m  2021-26 3m  2021-26 6m  WORKS (both eras)
+                                   all     277000        0.00        0.00        0.00     290999        0.00        0.00        0.00              False
+                  top 10% by 1w return      27977       -0.35       -0.60       -0.16      29390       -0.65       -1.91       -2.43              False
+                  top 10% by 1m return      27977       -0.34       -0.42       -0.51      29390       -0.44       -2.02       -2.60              False
+                  top 10% by 3m return      27721       -0.02       -0.16       -0.11      29199       -0.93       -2.68       -1.83              False
+                  top 10% by 6m return      27639       -0.02        0.04        0.01      29067       -0.42       -1.44       -0.24              False
+                 top 10% by 12m return      27360       -0.03       -0.58       -1.49      28807       -0.28       -1.55       -1.31              False
+                top 10% by 12-1 return      27360       -0.01       -0.43       -1.56      28807       -0.22       -1.56       -1.62              False
+bottom 10% by 1w (short-term reversal)      27700        0.05       -0.06       -0.67      29099       -0.44       -1.70       -3.18              False
+                      bottom 10% by 1m      27700        0.08       -0.14       -0.95      29099       -0.70       -1.81       -3.90              False
+        momentum (6m top 10% + Gate 1)      20592       -0.02        0.18        0.22      19447       -0.05       -1.02        0.97              False
+                 within 5% of 52w high      86669        0.11        0.29        0.15      71867        0.29        0.57        1.83              False
+                  > 40% below 52w high      22334        0.90        1.45        2.92      34417       -1.04       -3.53       -7.28              False
+                              RSI < 30      12414        0.01        0.12       -1.00      11102        0.17        0.47       -1.25              False
+             momentum + fresh breakout       2816       -0.44        0.00       -0.09       2945       -0.59       -1.88       -0.61              False
+            momentum + squeeze release       4673       -0.02        0.03        0.64       4437        0.13       -0.27        1.19              False
+              breakout + volume anchor        610        0.71        2.30        3.56        861       -0.70       -2.60       -4.86              False
+                            v6 BUY NOW       7086        0.60        1.11        1.74       8699        0.10       -1.14       -1.37              False
+                         v6 ABSORPTION       1788        0.15        1.15        0.58       1526        0.06        0.54        0.71              False
+                          Gate 1 trend     117026        0.07        0.22        0.04     109909        0.22        0.27        1.12              False
+                       valuation CHEAP          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+               loss-maker / P/E >= 200          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                              P/E < 15          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 15-30          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 30-60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E >= 60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+             cheapest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+              dearest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                earnings yield top 20%          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + CHEAP/FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                       momentum + RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                  momentum, profitable          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + loss-maker          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+
+--- mega (1-100)
+                                signal  2015-20 n  2015-20 1m  2015-20 3m  2015-20 6m  2021-26 n  2021-26 1m  2021-26 3m  2021-26 6m  WORKS (both eras)
+                                   all      27700        0.17        0.54        1.00      29100        0.17        0.34        1.15              False
+                  top 10% by 1w return       2306       -0.01        0.52        1.37       3202       -0.31       -0.79        0.56              False
+                  top 10% by 1m return       2361       -0.08        0.72        1.01       3259       -0.30       -0.96       -0.28              False
+                  top 10% by 3m return       2619        0.76        1.60        2.83       3551       -0.93       -1.86        0.95              False
+                  top 10% by 6m return       2870        1.06        2.41        3.37       3907       -0.39       -0.65        3.39              False
+                 top 10% by 12m return       3064        0.76        1.82        3.54       4337        0.31       -1.05        0.68              False
+                top 10% by 12-1 return       3074        0.83        1.69        2.89       4334        0.44       -1.16        0.63              False
+bottom 10% by 1w (short-term reversal)       2184       -0.15        0.51        0.17       2971       -0.10       -1.40       -1.48              False
+                      bottom 10% by 1m       2170       -0.06        0.32       -0.33       2863       -0.33       -2.03       -3.33              False
+        momentum (6m top 10% + Gate 1)       2221        1.19        3.35        3.91       2492       -0.31       -0.75        3.57              False
+                 within 5% of 52w high      10040        0.46        1.04        1.18       7897        0.32        0.52        2.18              False
+                  > 40% below 52w high       1248       -0.80        0.83        4.87       3095       -0.24       -2.77       -3.31              False
+                              RSI < 30       1074       -0.29        0.16       -1.04        971        1.04        0.38       -1.06              False
+             momentum + fresh breakout        288        1.00        1.81        4.12        355       -0.00       -0.55        4.24              False
+            momentum + squeeze release        447        2.15        3.75        7.12        527       -0.32        0.96        3.30              False
+              breakout + volume anchor         36        3.10       10.10       23.62         79       -0.27       -7.08       -3.18              False
+                            v6 BUY NOW        400        1.78        4.82        8.39        783       -0.27       -3.82       -2.86              False
+                         v6 ABSORPTION        130        0.09        1.84        5.79        141       -0.16       -3.07       -2.27              False
+                          Gate 1 trend      13199        0.36        0.95        1.00      11799        0.36        0.58        2.25              False
+                       valuation CHEAP          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+               loss-maker / P/E >= 200          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                              P/E < 15          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 15-30          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 30-60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E >= 60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+             cheapest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+              dearest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                earnings yield top 20%          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + CHEAP/FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                       momentum + RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                  momentum, profitable          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + loss-maker          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+
+--- large (101-500)
+                                signal  2015-20 n  2015-20 1m  2015-20 3m  2015-20 6m  2021-26 n  2021-26 1m  2021-26 3m  2021-26 6m  WORKS (both eras)
+                                   all     110800        0.01        0.08        0.13     116400        0.10        0.35        0.58              False
+                  top 10% by 1w return      10242       -0.25       -0.32        0.43      11212       -0.38       -1.85       -2.23              False
+                  top 10% by 1m return      10239       -0.20       -0.11        0.68      11252       -0.14       -1.68       -2.28              False
+                  top 10% by 3m return      10156        0.03        0.29        1.51      11095       -0.65       -1.97       -1.81              False
+                  top 10% by 6m return      10280        0.01        0.75        1.40      10985       -0.00       -0.72       -0.27              False
+                 top 10% by 12m return      10265       -0.17       -0.53       -1.43      11077        0.00       -0.87       -1.05              False
+                top 10% by 12-1 return      10204       -0.04       -0.13       -1.34      11095       -0.01       -0.69       -1.47              False
+bottom 10% by 1w (short-term reversal)      10176       -0.06        0.00       -0.85      11044       -0.44       -1.36       -3.23              False
+                      bottom 10% by 1m      10058       -0.11       -0.03       -0.89      10815       -0.62       -1.31       -3.60              False
+        momentum (6m top 10% + Gate 1)       7757       -0.06        0.56        1.18       7479        0.48       -0.29        1.12              False
+                 within 5% of 52w high      36918        0.12        0.31        0.24      30688        0.34        0.81        2.14              False
+                  > 40% below 52w high       7324        1.06        1.68        2.84      13032       -1.00       -3.38       -8.05              False
+                              RSI < 30       4955       -0.14       -0.17       -1.75       4381        0.28        1.26       -0.23              False
+             momentum + fresh breakout       1044       -0.44        0.08        1.27       1078       -0.52       -2.27       -0.73              False
+            momentum + squeeze release       1715       -0.66       -0.34        1.43       1688        0.92        0.43        1.63              False
+              breakout + volume anchor        208       -0.08       -0.40        3.07        272       -1.02       -4.23       -5.22              False
+                            v6 BUY NOW       2545        0.84        1.80        2.66       3129        0.82       -0.54       -0.83              False
+                         v6 ABSORPTION        692        0.76        1.63        0.19        582        0.19       -0.09        1.10              False
+                          Gate 1 trend      48797        0.09        0.28        0.13      45474        0.31        0.44        1.49              False
+                       valuation CHEAP          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+               loss-maker / P/E >= 200          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                              P/E < 15          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 15-30          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 30-60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E >= 60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+             cheapest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+              dearest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                earnings yield top 20%          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + CHEAP/FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                       momentum + RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                  momentum, profitable          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + loss-maker          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+
+--- mid (501-1000)
+                                signal  2015-20 n  2015-20 1m  2015-20 3m  2015-20 6m  2021-26 n  2021-26 1m  2021-26 3m  2021-26 6m  WORKS (both eras)
+                                   all     138500       -0.04       -0.20       -0.34     145499       -0.12       -0.36       -0.73              False
+                  top 10% by 1w return      15429       -0.50       -0.96       -0.97      14976       -0.92       -2.15       -3.26              False
+                  top 10% by 1m return      15377       -0.47       -0.88       -1.73      14879       -0.70       -2.61       -3.18              False
+                  top 10% by 3m return      14946       -0.23       -0.85       -1.92      14553       -1.19       -3.44       -2.58              False
+                  top 10% by 6m return      14489       -0.30       -1.06       -1.69      14175       -0.77       -2.13       -1.08              False
+                 top 10% by 12m return      14031       -0.13       -1.20       -2.75      13393       -0.75       -2.18       -2.18              False
+                top 10% by 12-1 return      14082       -0.20       -1.21       -2.70      13378       -0.61       -2.33       -2.67              False
+bottom 10% by 1w (short-term reversal)      15340        0.21       -0.19       -0.73      15084       -0.49       -1.97       -3.56              False
+                      bottom 10% by 1m      15472        0.29       -0.32       -1.06      15421       -0.81       -2.17       -4.22              False
+        momentum (6m top 10% + Gate 1)      10614       -0.26       -0.83       -1.35       9476       -0.32       -1.64        0.19              False
+                 within 5% of 52w high      39711        0.00        0.04       -0.22      33282        0.24        0.35        1.40              False
+                  > 40% below 52w high      13762        0.94        1.40        2.86      18290       -1.22       -3.71       -7.37              False
+                              RSI < 30       6385        0.18        0.27       -0.56       5750       -0.01        0.01       -2.10              False
+             momentum + fresh breakout       1484       -0.60       -0.80       -1.34       1512       -1.05       -2.24       -1.50              False
+            momentum + squeeze release       2511       -0.01       -0.48       -0.80       2222       -0.27       -1.04        0.29              False
+              breakout + volume anchor        366        0.66        3.03        1.92        510       -0.72       -0.94       -4.54              False
+                            v6 BUY NOW       4141        0.38        0.28        0.24       4787       -0.16       -1.24       -1.69              False
+                         v6 ABSORPTION        966       -0.19        0.61       -0.57        803        0.04        1.66        0.66              False
+                          Gate 1 trend      55030       -0.00       -0.01       -0.28      52636        0.13        0.04        0.52              False
+                       valuation CHEAP          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                        valuation RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+               loss-maker / P/E >= 200          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                              P/E < 15          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 15-30          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E 30-60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                             P/E >= 60          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+             cheapest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+              dearest 20% vs SIC peers          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                earnings yield top 20%          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + CHEAP/FAIR          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                       momentum + RICH          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                  momentum, profitable          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+                 momentum + loss-maker          0         NaN         NaN         NaN          0         NaN         NaN         NaN              False
+
+WORKS IN BOTH ERAS:
+  nothing
+
+saved -> analysis/us_permutation_study.csv
