@@ -1,0 +1,495 @@
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MIRCELECTR.NS"}}}
+$MIRCELECTR.NS: possibly delisted; no timezone found
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: EXCEL.NS"}}}
+$EXCEL.NS: possibly delisted; no timezone found
+$LYPSAGEMS.NS: possibly delisted; no timezone found
+$VISASTEEL.NS: possibly delisted; no timezone found
+$LTIM.NS: possibly delisted; no timezone found
+$AKZOINDIA.NS: possibly delisted; no timezone found
+$GUJGASLTD.NS: possibly delisted; no timezone found
+$SASTASUNDR.NS: possibly delisted; no timezone found
+
+8 Failed downloads:
+['MIRCELECTR.NS', 'EXCEL.NS', 'LYPSAGEMS.NS', 'VISASTEEL.NS', 'LTIM.NS', 'AKZOINDIA.NS', 'GUJGASLTD.NS', 'SASTASUNDR.NS']: possibly delisted; no timezone found
+[yf_safe] bulk download attempt 1/3: 100% coverage (2102/2110 tickers)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/forensics.py:134: RuntimeWarning: Mean of empty slice
+  f["cum_clv"] = float(np.nanmean(clv[post]))
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/forensics.py:139: RuntimeWarning: divide by zero encountered in divide
+  f["dn_vs_med"] = float(np.nanmean(v[down] / vmed[down]))
+[data] dropped 10 non-session row(s) not in the Nifty calendar
+[data] 2026-10-19 has closes for 638 of ~2045 -- using 2026-10-16 as the last day
+[data] 2045 tickers, 3044 sessions 2014-06-02 -> 2026-10-16
+[funda] 1936 stocks on file; 1 PIT-universe names still to try (766 tried before)
+[clean] repaired 8 unadjusted bonus/split day(s): BANDHANBNK 2020-03-23 x0.75 (bonus), SILVERTUC 2023-01-02 x0.10 (split), SADHNANIQ 2024-09-04 x0.75 (bonus), PARAS 2025-01-01 x0.50 (split), REDTAPE 2025-01-01 x0.25 (bonus), SIGMA 2025-01-01 x0.10 (split), CALSOFT 2025-01-06 x0.57 (bonus), SILVERTUC 2026-01-01 x0.10 (split)
+[clean] blanked 24 one-day reversing spikes; most in ANTGRAPHIC, CYBERTECH, SUMEETINDS, GICHSGFIN, NBIFIN, TIL, PFOCUS, PFS
+[check] 64 one-day falls of 40%+ that did not reverse -- real crash, or a demerger / bonus Yahoo did not adjust (VEDL 2026 demerger: 655 -> 272). All of them: GOCLCORP 2014-06-26 x0.49, MANAKSIA 2014-12-04 x0.38, MASTEK 2015-06-12 x0.34, JSL 2015-11-19 x0.39, SPCENET 2017-01-10 x0.34, J&KBANK 2017-02-27 x0.46, PTL 2017-03-27 x0.37, CDSL 2017-07-03 x0.50, FCSSOFT 2017-12-04 x0.50, NBIFIN 2017-12-07 x0.57, DCMFINSERV 2018-03-22 x0.57, PRAKASHSTL 2018-06-18 x0.50, HBSL 2018-07-26 x0.10, CCAVENUE 2018-09-28 x0.29, STEELCITY 2019-07-30 x0.51, ABREL 2019-10-11 x0.45, GICHSGFIN 2019-10-17 x0.24, PATANJALI 2020-01-27 x0.05, YESBANK 2020-03-06 x0.44, IMAGICAA 2020-04-28 x0.53, IMAGICAA 2020-05-04 x0.03, ROML 2020-10-08 x0.11, DIGJAMLMTD 2021-10-18 x0.12, 3IINFOLTD 2021-10-22 x0.37, SELMC 2021-10-28 x0.00, SEJALLTD 2021-12-14 x0.01, LATTEYS 2022-03-29 x0.45, GVPTECH 2022-09-12 x0.18, MIRZAINT 2023-03-29 x0.14, ACL 2023-05-10 x0.58, NIITLTD 2023-06-08 x0.24, DOLPHIN 2023-08-21 x0.38, DIACABS 2023-09-18 x0.12, CGCL 2024-01-01 x0.25, GPIL 2024-01-01 x0.20, MOTILALOFS 2024-01-01 x0.25, TIL 2024-03-18 x0.28, AQYLON 2024-04-02 x0.12, UEL 2024-04-16 x0.02, ROSSELLIND 2024-09-20 x0.27, STAR 2024-12-06 x0.46, SHARDAMOTR 2025-01-01 x0.50, CYBERTECH 2025-01-13 x0.01, SUMEETINDS 2025-02-03 x0.19, QUESS 2025-04-15 x0.49, RAYMOND 2025-05-14 x0.35, ABFRL 2025-05-22 x0.33, JSLL 2025-06-03 x0.22, SUMEETINDS 2025-06-19 x0.59, IRISDOREME 2025-07-01 x0.52, SHANKARA 2025-09-24 x0.24, TMPV 2025-10-14 x0.60, SKFINDIA 2025-10-15 x0.45, ALLCARGO 2025-11-12 x0.35, DCMSRIND 2025-12-26 x0.32, AQYLON 2026-01-01 x0.10, SADHNANIQ 2026-02-09 x0.28, MAHAPEXLTD 2026-03-11 x0.56, VEDL 2026-04-30 x0.35, TRIVENI 2026-07-22 x0.58, INDIAGLYCO 2026-09-02 x0.21, BANSALWIRE 2026-10-06 x0.20, VERANDA 2026-10-06 x0.14, BHAGYANGR 2026-10-08 x0.09
+[funda] EPS history for 1874 stocks; holdcos excluded 34; EPS/profit mismatch excluded 27; no share count (no size tier) 0
+[regime] TODAY (16 Oct 2026): Nifty MILD BEAR; breadth MILD BULL (54% of the universe above its 200-day average)
+[regime] Nifty: % of days {'BEAR': 5.0, 'MILD BEAR': 20.0, 'CHOPPY': 15.0, 'MILD BULL': 13.0, 'BULL': 47.0}; separate episodes {'BEAR': 7, 'MILD BEAR': 14, 'CHOPPY': 19, 'MILD BULL': 19, 'BULL': 13}
+[regime] breadth: % of days {'BEAR': 16.0, 'MILD BEAR': 10.0, 'CHOPPY': 11.0, 'MILD BULL': 14.0, 'BULL': 50.0}; separate episodes {'BEAR': 8, 'MILD BEAR': 15, 'CHOPPY': 21, 'MILD BULL': 18, 'BULL': 9}
+[regime] Nifty vs breadth agreement: 48% of days
+
+======================================================================================================================================================
+BY NIFTY REGIME: median 3m / 6m return vs the typical stock (pp), n, episodes positive at 6m
+======================================================================================================================================================
+6-month median vs typical:
+regime                                       BEAR  MILD BEAR  CHOPPY  MILD BULL  BULL
+signal                                                                               
+momentum: 6m rank >= 90 + Gate 1             -7.1        2.6     3.6        2.3   6.1
+momentum + 1m ACCEL                          -1.6        1.0     3.0        0.8   5.2
+momentum + 1m FADING                        -12.3        2.5     4.0        2.8   6.6
+6m rank <= 10 (losers)                        9.6       -4.2    -4.5       -4.6  -6.6
+momentum + fresh breakout                    -5.1        1.4     3.7        4.1   6.0
+momentum + squeeze release                    9.6        4.7     2.3        3.5   7.5
+breakout + volume anchor + leader            -6.9       -0.6    -0.9        0.5   4.0
+v6 BUY NOW                                   -4.2        2.0     3.0        2.8   4.1
+v6 ABSORPTION                                -3.2        6.5     4.7        3.5   5.4
+v6 DISTRIBUTION                              -3.5        1.6     2.6        2.2   2.9
+Gate 1 trend (any)                           -3.7        2.6     3.0        2.3   3.4
+within 5% of 52w high                        -5.0        2.8     3.2        2.7   4.2
+> 40% below 52w high                          4.0       -3.9    -4.7       -5.1  -6.9
+RSI(14) < 30 (oversold)                       2.1        0.3    -1.3       -1.8  -3.8
+oversold above the 200d (RSI < 40, > MA200)  -1.1        2.4     2.3        1.1  -0.4
+valuation CHEAP                               5.7       -0.6    -0.5        2.3  -0.8
+valuation FAIR                               -3.2        0.7     1.1        1.0   1.0
+valuation RICH                               -7.4        2.0     2.7        0.9   2.6
+loss-maker / P/E >= 200                       2.4       -1.2    -2.3       -3.1  -2.3
+P/E vs peers, cheapest 20%                    6.2       -0.8    -0.4        2.1   0.1
+P/E >= 60                                   -11.6       -0.1     0.2       -1.7  -0.1
+momentum + CHEAP/FAIR                        -2.7        2.1     4.0        4.2   6.3
+momentum + RICH                             -18.8        5.8     7.0        2.5   6.5
+Large cap                                    -6.6        1.3     2.2        0.8   0.3
+Mid cap                                      -3.8        2.6     3.3        2.1   2.7
+Small cap                                     0.7        1.3     0.7       -0.1   0.3
+Micro cap                                     2.8       -2.0    -2.2       -0.8  -1.0
+leader industry                               1.3        1.0     1.0        1.6   2.2
+laggard industry                             -2.2       -0.5    -1.0       -0.7  -1.8
+
+3-month median vs typical:
+regime                                       BEAR  MILD BEAR  CHOPPY  MILD BULL  BULL
+signal                                                                               
+momentum: 6m rank >= 90 + Gate 1             -2.5        2.0     1.1        0.4   2.7
+momentum + 1m ACCEL                          -1.6        1.4     0.7        0.2   2.2
+momentum + 1m FADING                         -2.5        3.6     3.2        0.1   2.4
+6m rank <= 10 (losers)                        5.9       -0.9    -1.8       -1.6  -3.8
+momentum + fresh breakout                    -6.2        0.8     2.4        0.8   2.3
+momentum + squeeze release                    3.2        1.8     0.7        0.0   2.8
+breakout + volume anchor + leader            -2.6        0.4    -0.7        0.6   2.9
+v6 BUY NOW                                    0.1        1.4     1.9        2.0   2.1
+v6 ABSORPTION                                 1.6        4.0     3.0        2.8   3.3
+v6 DISTRIBUTION                              -1.2        1.5     1.4        1.1   1.6
+Gate 1 trend (any)                           -2.0        1.9     1.6        1.3   2.0
+within 5% of 52w high                        -1.6        2.5     1.8        2.0   2.5
+> 40% below 52w high                          3.0       -0.9    -1.9       -1.4  -5.3
+RSI(14) < 30 (oversold)                       2.3        1.2    -0.2       -1.2  -1.8
+oversold above the 200d (RSI < 40, > MA200)   0.1        0.3     0.7        0.3  -0.2
+valuation CHEAP                               3.7       -0.5     0.3        0.6  -0.5
+valuation FAIR                               -3.8        0.4     0.6        0.4   0.7
+valuation RICH                               -5.7        1.5     1.3        0.8   1.5
+loss-maker / P/E >= 200                       4.7       -0.4    -1.8       -1.5  -1.6
+P/E vs peers, cheapest 20%                    4.6       -0.9    -0.0        0.7   0.0
+P/E >= 60                                    -6.4        0.5    -0.4       -1.1   0.0
+momentum + CHEAP/FAIR                         0.2        1.4     0.6        0.8   3.3
+momentum + RICH                              -9.0        3.5     1.9        2.2   3.1
+Large cap                                    -4.3        0.8     1.4        0.8   0.7
+Mid cap                                      -3.2        1.6     1.9        1.1   2.0
+Small cap                                     0.2        0.5     0.5       -0.5   0.4
+Micro cap                                     2.1       -1.1    -1.3       -0.2  -1.1
+leader industry                               0.6        0.3     0.5        0.8   1.4
+laggard industry                             -0.6       -0.1    -0.4       -0.5  -1.3
+
+WORKS (pre-registered rule):
+  BEAR     : 6m rank <= 10 (losers) (+5.9 / +9.6, ep 2/3), P/E vs peers, cheapest 20% (+4.7 / +6.2, ep 2/3), Micro cap (+2.1 / +2.8, ep 2/3)
+  MILD BEAR: momentum: 6m rank >= 90 + Gate 1 (+2.0 / +2.6, ep 10/16), v6 ABSORPTION (+4.0 / +6.5, ep 6/11), Gate 1 trend (any) (+1.9 / +2.6, ep 10/16), within 5% of 52w high (+2.5 / +2.8, ep 9/16), valuation RICH (+1.5 / +2.0, ep 10/13), momentum + RICH (+3.5 / +5.8, ep 7/12), Mid cap (+1.6 / +2.6, ep 10/16)
+  CHOPPY   : momentum: 6m rank >= 90 + Gate 1 (+1.1 / +3.6, ep 17/22), momentum + fresh breakout (+2.4 / +3.7, ep 14/21), v6 BUY NOW (+1.9 / +3.0, ep 17/22), v6 DISTRIBUTION (+1.4 / +2.6, ep 18/22), Gate 1 trend (any) (+1.6 / +3.0, ep 18/22), within 5% of 52w high (+1.8 / +3.2, ep 16/22), valuation RICH (+1.3 / +2.7, ep 13/20), momentum + RICH (+1.9 / +7.0, ep 14/19), Large cap (+1.4 / +2.1, ep 14/22), Mid cap (+1.9 / +3.3, ep 15/22)
+  MILD BULL: v6 BUY NOW (+2.0 / +2.8, ep 14/16), v6 DISTRIBUTION (+1.1 / +2.2, ep 14/16), Gate 1 trend (any) (+1.3 / +2.3, ep 14/16), within 5% of 52w high (+2.0 / +2.7, ep 13/16), Mid cap (+1.1 / +2.1, ep 13/16)
+  BULL     : momentum: 6m rank >= 90 + Gate 1 (+2.7 / +6.1, ep 11/13), momentum + 1m ACCEL (+2.2 / +5.2, ep 11/13), momentum + 1m FADING (+2.4 / +6.6, ep 10/12), momentum + fresh breakout (+2.3 / +6.0, ep 12/13), momentum + squeeze release (+2.8 / +7.5, ep 11/12), breakout + volume anchor + leader (+2.9 / +4.0, ep 11/13), v6 BUY NOW (+2.1 / +4.1, ep 12/13), v6 ABSORPTION (+3.3 / +5.4, ep 10/12), v6 DISTRIBUTION (+1.6 / +2.9, ep 12/13), Gate 1 trend (any) (+2.0 / +3.4, ep 13/13), within 5% of 52w high (+2.5 / +4.2, ep 12/13), valuation RICH (+1.5 / +2.6, ep 10/12), momentum + CHEAP/FAIR (+3.3 / +6.3, ep 10/12), momentum + RICH (+3.1 / +6.5, ep 7/12), Mid cap (+2.0 / +2.7, ep 10/13), leader industry (+1.4 / +2.2, ep 9/13)
+
+Detail:
+                                     signal    regime      n  stocks  1m median  3m median  6m median  6m beat% episodes +/total  placebo 95%  works
+           momentum: 6m rank >= 90 + Gate 1      BEAR    996     272      -2.30      -2.54      -7.09        44              1/3         8.23  False
+           momentum: 6m rank >= 90 + Gate 1 MILD BEAR   5928     964       0.82       1.96       2.59        53            10/16         1.67   True
+           momentum: 6m rank >= 90 + Gate 1    CHOPPY   5254    1096       0.50       1.09       3.65        55            17/22         1.30   True
+           momentum: 6m rank >= 90 + Gate 1 MILD BULL   4484     970       0.66       0.36       2.30        53             9/16         2.27  False
+           momentum: 6m rank >= 90 + Gate 1      BULL  19179    1284       0.64       2.74       6.08        58            11/13         1.49   True
+                        momentum + 1m ACCEL      BEAR    604     242      -2.62      -1.64      -1.57        48              1/3         8.23  False
+                        momentum + 1m ACCEL MILD BEAR   3895     878       0.56       1.42       1.03        52             9/16         2.67  False
+                        momentum + 1m ACCEL    CHOPPY   3426     981       0.33       0.66       2.95        54            16/22         2.33  False
+                        momentum + 1m ACCEL MILD BULL   2816     819       0.79       0.19       0.77        51             8/16         2.27  False
+                        momentum + 1m ACCEL      BULL  11431    1219       0.51       2.18       5.21        57            11/13         1.49   True
+                       momentum + 1m FADING      BEAR    119      57      -1.52      -2.51     -12.33        37              0/1          NaN  False
+                       momentum + 1m FADING MILD BEAR    422     282       1.28       3.59       2.54        53             6/10         8.19  False
+                       momentum + 1m FADING    CHOPPY    399     277       0.34       3.22       3.97        56             7/12         6.95  False
+                       momentum + 1m FADING MILD BULL    414     295       0.83       0.06       2.83        54             5/11         7.61  False
+                       momentum + 1m FADING      BULL   1982     765       0.54       2.39       6.63        58            10/12         5.42   True
+                     6m rank <= 10 (losers)      BEAR   2647     505       2.75       5.94       9.55        60              2/3         3.84   True
+                     6m rank <= 10 (losers) MILD BEAR  10354    1160      -0.37      -0.93      -4.24        43             4/16         1.28  False
+                     6m rank <= 10 (losers)    CHOPPY   8266    1225      -0.60      -1.76      -4.47        43             2/22         1.30  False
+                     6m rank <= 10 (losers) MILD BULL   6227    1133      -0.28      -1.57      -4.63        42             2/16         1.45  False
+                     6m rank <= 10 (losers)      BULL  24259    1362      -1.20      -3.85      -6.56        38             0/13         1.21  False
+                  momentum + fresh breakout      BEAR    224     117      -2.25      -6.19      -5.14        45              1/2        12.84  False
+                  momentum + fresh breakout MILD BEAR   1014     462       1.16       0.76       1.41        54             7/13         4.32  False
+                  momentum + fresh breakout    CHOPPY   1003     566       0.15       2.39       3.68        55            14/21         3.16   True
+                  momentum + fresh breakout MILD BULL    728     435       0.90       0.76       4.09        55             9/13         5.10  False
+                  momentum + fresh breakout      BULL   3078     919       0.65       2.32       6.03        57            12/13         3.91   True
+                 momentum + squeeze release      BEAR     99      61      -2.11       3.25       9.60        55              1/2          NaN  False
+                 momentum + squeeze release MILD BEAR    848     400       0.82       1.78       4.67        55             5/11         5.31  False
+                 momentum + squeeze release    CHOPPY   1006     514       0.53       0.71       2.26        53            13/21         3.16  False
+                 momentum + squeeze release MILD BULL    842     438       2.39       0.03       3.51        55            10/14         5.10  False
+                 momentum + squeeze release      BULL   3649     897       0.55       2.80       7.51        59            11/12         3.91   True
+          breakout + volume anchor + leader      BEAR     98      59      -0.42      -2.60      -6.88        38              0/2          NaN  False
+          breakout + volume anchor + leader MILD BEAR    772     378       0.99       0.40      -0.57        48             6/10         5.31  False
+          breakout + volume anchor + leader    CHOPPY    704     421      -0.07      -0.69      -0.91        49             7/15         5.34  False
+          breakout + volume anchor + leader MILD BULL    841     464       0.14       0.56       0.52        51             6/13         5.10  False
+          breakout + volume anchor + leader      BULL   3937     986       0.99       2.93       3.97        56            11/13         3.91   True
+                                 v6 BUY NOW      BEAR    474     208       0.87       0.06      -4.19        46              1/3        12.84  False
+                                 v6 BUY NOW MILD BEAR   5911     965       0.71       1.43       1.99        53            10/16         1.67  False
+                                 v6 BUY NOW    CHOPPY   5536    1061       0.72       1.89       3.05        55            17/22         1.30   True
+                                 v6 BUY NOW MILD BULL   6533    1100       0.87       1.98       2.83        55            14/16         1.45   True
+                                 v6 BUY NOW      BULL  38623    1390       0.81       2.12       4.13        56            12/13         1.21   True
+                              v6 ABSORPTION      BEAR     52      32      -0.32       1.64      -3.21        48              1/2          NaN  False
+                              v6 ABSORPTION MILD BEAR    673     283       1.40       4.02       6.46        60             6/11         5.31   True
+                              v6 ABSORPTION    CHOPPY    635     327       0.91       3.04       4.74        57            12/17         5.34  False
+                              v6 ABSORPTION MILD BULL    688     334       1.31       2.81       3.47        57            11/14         5.10  False
+                              v6 ABSORPTION      BULL   3743     785       1.27       3.26       5.43        59            10/12         3.91   True
+                            v6 DISTRIBUTION      BEAR   1085     342      -0.73      -1.22      -3.52        46              1/3         5.61  False
+                            v6 DISTRIBUTION MILD BEAR  11539    1259       0.65       1.53       1.60        52             9/16         1.28  False
+                            v6 DISTRIBUTION    CHOPPY  10463    1259       0.55       1.36       2.58        54            18/22         0.89   True
+                            v6 DISTRIBUTION MILD BULL  11596    1279       0.40       1.06       2.19        54            14/16         1.12   True
+                            v6 DISTRIBUTION      BULL  64341    1461       0.56       1.59       2.94        55            12/13         0.66   True
+                         Gate 1 trend (any)      BEAR   2298     633      -1.51      -1.99      -3.74        45              2/3         3.84  False
+                         Gate 1 trend (any) MILD BEAR  19588    1441       0.74       1.88       2.58        54            10/16         1.28   True
+                         Gate 1 trend (any)    CHOPPY  18971    1431       0.73       1.64       3.04        55            18/22         0.89   True
+                         Gate 1 trend (any) MILD BULL  20339    1421       0.52       1.32       2.28        54            14/16         0.66   True
+                         Gate 1 trend (any)      BULL 110107    1553       0.73       2.00       3.37        55            13/13         0.66   True
+                      within 5% of 52w high      BEAR    770     303      -0.71      -1.55      -4.98        43              1/2         8.23  False
+                      within 5% of 52w high MILD BEAR   8490    1134       1.15       2.49       2.84        54             9/16         1.67   True
+                      within 5% of 52w high    CHOPPY   8505    1215       0.97       1.79       3.16        55            16/22         1.30   True
+                      within 5% of 52w high MILD BULL   9001    1253       0.96       2.05       2.70        55            13/16         1.45   True
+                      within 5% of 52w high      BULL  60515    1472       1.06       2.51       4.16        57            12/13         0.66   True
+                       > 40% below 52w high      BEAR  11193    1071       1.57       3.02       4.00        54              1/3         1.49  False
+                       > 40% below 52w high MILD BEAR  22408    1314      -0.35      -0.91      -3.89        43             4/16         0.75  False
+                       > 40% below 52w high    CHOPPY  15388    1220      -0.61      -1.91      -4.68        42             1/22         0.89  False
+                       > 40% below 52w high MILD BULL   6242     973      -0.67      -1.44      -5.07        42             1/16         1.45  False
+                       > 40% below 52w high      BULL  20815    1048      -1.97      -5.26      -6.87        38             0/13         1.21  False
+                    RSI(14) < 30 (oversold)      BEAR   4053    1095       1.71       2.31       2.13        52              1/3         3.84  False
+                    RSI(14) < 30 (oversold) MILD BEAR   7427    1448       0.71       1.25       0.32        51             6/15         1.67  False
+                    RSI(14) < 30 (oversold)    CHOPPY   5763    1362       0.38      -0.23      -1.34        48             6/21         1.30  False
+                    RSI(14) < 30 (oversold) MILD BULL   2045     955       0.13      -1.22      -1.76        47             5/16         2.27  False
+                    RSI(14) < 30 (oversold)      BULL   6123    1364       0.43      -1.75      -3.76        43             1/11         2.55  False
+oversold above the 200d (RSI < 40, > MA200)      BEAR    913     496       0.52       0.10      -1.13        48              2/3         8.23  False
+oversold above the 200d (RSI < 40, > MA200) MILD BEAR   3887    1194       0.39       0.33       2.38        55             9/15         2.67  False
+oversold above the 200d (RSI < 40, > MA200)    CHOPPY   3628    1194       0.66       0.72       2.29        54            16/21         2.33  False
+oversold above the 200d (RSI < 40, > MA200) MILD BULL   3708    1150       0.18       0.27       1.12        52            14/15         2.27  False
+oversold above the 200d (RSI < 40, > MA200)      BULL   9762    1438       0.13      -0.22      -0.43        49             9/12         2.55  False
+                            valuation CHEAP      BEAR   4533     447       1.37       3.74       5.67        56              2/2         3.84  False
+                            valuation CHEAP MILD BEAR  14098     816       0.01      -0.49      -0.64        49             7/13         1.28  False
+                            valuation CHEAP    CHOPPY  10418     757       0.03       0.33      -0.49        49            10/20         0.89  False
+                            valuation CHEAP MILD BULL   6427     640       0.02       0.57       2.33        53            11/14         1.45  False
+                            valuation CHEAP      BULL  20479     780       0.00      -0.49      -0.77        49             7/12         1.21  False
+                             valuation FAIR      BEAR   5990     657      -1.25      -3.75      -3.18        46              0/2         2.56  False
+                             valuation FAIR MILD BEAR  41186    1171       0.20       0.36       0.72        51             7/13         0.75  False
+                             valuation FAIR    CHOPPY  31814    1141       0.25       0.60       1.10        52            15/20         0.65  False
+                             valuation FAIR MILD BULL  24413    1100       0.24       0.45       0.99        52            12/14         0.66  False
+                             valuation FAIR      BULL  89548    1176       0.23       0.66       1.03        52             8/12         0.66  False
+                             valuation RICH      BEAR    685     193      -2.14      -5.67      -7.41        42              1/2         8.23  False
+                             valuation RICH MILD BEAR   6488     582       0.51       1.48       2.03        53            10/13         1.67   True
+                             valuation RICH    CHOPPY   5526     596       0.72       1.26       2.68        55            13/20         1.30   True
+                             valuation RICH MILD BULL   5394     552       0.16       0.81       0.88        52            12/14         1.45  False
+                             valuation RICH      BULL  19562     698       0.38       1.54       2.57        54            10/12         1.49   True
+                    loss-maker / P/E >= 200      BEAR   1786     279       2.01       4.72       2.39        52              2/2         5.61  False
+                    loss-maker / P/E >= 200 MILD BEAR   9869     524      -0.72      -0.37      -1.17        48             7/13         1.67  False
+                    loss-maker / P/E >= 200    CHOPPY   8452     534      -0.88      -1.85      -2.31        47             8/20         1.30  False
+                    loss-maker / P/E >= 200 MILD BULL   7112     517      -0.71      -1.50      -3.11        45             3/14         1.45  False
+                    loss-maker / P/E >= 200      BULL  25496     576      -0.80      -1.64      -2.28        47             4/12         1.21  False
+                 P/E vs peers, cheapest 20%      BEAR   3763     404       1.40       4.65       6.24        57              2/3         3.84   True
+                 P/E vs peers, cheapest 20% MILD BEAR  16825     790      -0.06      -0.86      -0.80        49             8/16         1.28  False
+                 P/E vs peers, cheapest 20%    CHOPPY  13134     776      -0.16      -0.05      -0.39        49            12/22         0.89  False
+                 P/E vs peers, cheapest 20% MILD BULL   9809     715       0.11       0.71       2.06        53             8/16         1.45  False
+                 P/E vs peers, cheapest 20%      BULL  38388     871      -0.00       0.05       0.12        50             6/13         1.21  False
+                                  P/E >= 60      BEAR   1842     295      -2.08      -6.45     -11.60        35              0/3         5.61  False
+                                  P/E >= 60 MILD BEAR  16830     812       0.17       0.50      -0.06        50             6/16         1.28  False
+                                  P/E >= 60    CHOPPY  12591     824       0.07      -0.38       0.23        50            11/22         0.89  False
+                                  P/E >= 60 MILD BULL  10508     791       0.15      -1.13      -1.69        47             7/16         1.12  False
+                                  P/E >= 60      BULL  39851     908      -0.02       0.02      -0.10        50             8/13         1.21  False
+                      momentum + CHEAP/FAIR      BEAR    301      71       0.87       0.19      -2.70        46              0/1        12.84  False
+                      momentum + CHEAP/FAIR MILD BEAR   2499     488       1.18       1.37       2.07        53             7/13         2.67  False
+                      momentum + CHEAP/FAIR    CHOPPY   2027     557       0.71       0.60       3.99        56            14/20         2.33  False
+                      momentum + CHEAP/FAIR MILD BULL   1509     437       0.78       0.82       4.20        57             9/14         3.85  False
+                      momentum + CHEAP/FAIR      BULL   6541     705       0.53       3.26       6.34        59            10/12         2.55   True
+                            momentum + RICH      BEAR    224      51      -4.04      -8.97     -18.82        35              0/1        12.84  False
+                            momentum + RICH MILD BEAR   1178     240       1.11       3.54       5.81        58             7/12         4.32   True
+                            momentum + RICH    CHOPPY    964     290       0.65       1.93       6.98        57            14/19         5.34   True
+                            momentum + RICH MILD BULL    872     245       1.48       2.16       2.51        53             9/13         5.10  False
+                            momentum + RICH      BULL   3110     423       1.17       3.12       6.47        58             7/12         3.91   True
+                                  Large cap      BEAR   2700     159       0.09      -4.33      -6.57        41              1/3         3.84  False
+                                  Large cap MILD BEAR  10600     197       0.37       0.83       1.32        53             9/16         1.28  False
+                                  Large cap    CHOPPY   8500     200       0.75       1.40       2.15        54            14/22         1.30   True
+                                  Large cap MILD BULL   6400     198       0.28       0.79       0.82        52             9/16         1.45  False
+                                  Large cap      BULL  25000     199       0.56       0.68       0.30        51             8/13         1.21  False
+                                    Mid cap      BEAR   4050     287      -0.28      -3.17      -3.82        44              1/3         3.84  False
+                                    Mid cap MILD BEAR  15900     399       0.43       1.62       2.65        55            10/16         1.28   True
+                                    Mid cap    CHOPPY  12750     382       0.72       1.94       3.29        57            15/22         0.89   True
+                                    Mid cap MILD BULL   9600     373       0.60       1.06       2.10        54            13/16         1.45   True
+                                    Mid cap      BULL  37500     394       0.95       2.03       2.66        55            10/13         1.21   True
+                                  Small cap      BEAR   6750     490      -0.03       0.16       0.73        51              1/3         2.56  False
+                                  Small cap MILD BEAR  26500     713       0.12       0.53       1.34        52            10/16         0.75  False
+                                  Small cap    CHOPPY  21250     701       0.26       0.53       0.72        51            12/22         0.65  False
+                                  Small cap MILD BULL  16000     680       0.07      -0.47      -0.10        50             7/16         1.12  False
+                                  Small cap      BULL  62500     715       0.12       0.39       0.26        50             8/13         0.66  False
+                                  Micro cap      BEAR  12565     859       0.13       2.11       2.83        53              2/3         1.49   True
+                                  Micro cap MILD BEAR  49856    1318      -0.28      -1.11      -1.96        47             6/16         0.75  False
+                                  Micro cap    CHOPPY  39893    1321      -0.62      -1.26      -2.24        46             7/22         0.65  False
+                                  Micro cap MILD BULL  30025    1235      -0.30      -0.22      -0.75        49             6/16         0.66  False
+                                  Micro cap      BULL 117162    1345      -0.59      -1.09      -1.01        48             5/13         0.66  False
+                            leader industry      BEAR   7111    1078      -0.03       0.57       1.33        52              2/3         2.56  False
+                            leader industry MILD BEAR  31225    1642       0.31       0.34       0.95        52            11/16         0.75  False
+                            leader industry    CHOPPY  23640    1608       0.35       0.49       0.97        52            13/22         0.65  False
+                            leader industry MILD BULL  20881    1536       0.28       0.85       1.56        53            12/16         0.66  False
+                            leader industry      BULL  74946    1671       0.54       1.35       2.22        54             9/13         0.66   True
+                           laggard industry      BEAR  10832    1158       0.11      -0.61      -2.22        47              0/3         1.49  False
+                           laggard industry MILD BEAR  36393    1659      -0.17      -0.10      -0.51        49             5/16         0.75  False
+                           laggard industry    CHOPPY  30196    1671      -0.26      -0.40      -1.04        48             6/22         0.65  False
+                           laggard industry MILD BULL  20455    1551      -0.24      -0.47      -0.70        49             7/16         0.66  False
+                           laggard industry      BULL  87528    1706      -0.46      -1.34      -1.79        47             2/13         0.66  False
+
+======================================================================================================================================================
+BY BREADTH REGIME: median 3m / 6m return vs the typical stock (pp), n, episodes positive at 6m
+======================================================================================================================================================
+6-month median vs typical:
+regime                                       BEAR  MILD BEAR  CHOPPY  MILD BULL  BULL
+signal                                                                               
+momentum: 6m rank >= 90 + Gate 1              6.6        7.8     3.8        2.6   3.7
+momentum + 1m ACCEL                           5.9        5.8     2.0        2.2   3.0
+momentum + 1m FADING                          7.4        8.3     2.4        2.0   4.5
+6m rank <= 10 (losers)                       -3.8       -4.9    -3.3       -5.3  -5.8
+momentum + fresh breakout                     4.5        7.5     1.7        4.4   5.0
+momentum + squeeze release                    7.5        9.4     5.2        3.7   5.4
+breakout + volume anchor + leader             3.5        2.5     2.3        2.0   2.4
+v6 BUY NOW                                    8.7        8.7     4.6        3.9   3.0
+v6 ABSORPTION                                11.8        7.9     1.0        3.7   4.9
+v6 DISTRIBUTION                               6.4        6.6     3.0        3.1   2.0
+Gate 1 trend (any)                            7.3        6.6     3.0        3.5   2.4
+within 5% of 52w high                         8.1        8.5     4.2        4.3   3.1
+> 40% below 52w high                         -2.7       -4.4    -4.0       -6.7  -7.0
+RSI(14) < 30 (oversold)                       0.0       -0.7    -0.5       -0.9  -4.5
+oversold above the 200d (RSI < 40, > MA200)   3.4        0.1     4.0        2.4  -0.7
+valuation CHEAP                              -0.1       -1.4     0.4        1.1   0.4
+valuation FAIR                                1.1        0.8     0.6        1.1   0.9
+valuation RICH                                3.6        5.4     2.1        2.2   1.4
+loss-maker / P/E >= 200                      -3.3       -2.0    -1.8       -3.2  -1.6
+P/E vs peers, cheapest 20%                   -1.1       -1.5     0.6        0.4   1.3
+P/E >= 60                                     1.5        2.1    -0.8       -0.5  -1.3
+momentum + CHEAP/FAIR                         4.0        5.3     5.1        3.9   5.3
+momentum + RICH                               9.7       15.4     6.2        3.4   1.7
+Large cap                                     2.6        2.9     0.9        3.0  -1.1
+Mid cap                                       4.2        4.4     1.7        2.8   1.4
+Small cap                                     1.7        0.7     0.1        0.1   0.2
+Micro cap                                    -2.7       -2.4    -0.9       -1.9  -0.2
+leader industry                               1.8        0.7     0.9        1.7   2.0
+laggard industry                             -1.2       -1.3    -0.6       -1.1  -1.6
+
+3-month median vs typical:
+regime                                       BEAR  MILD BEAR  CHOPPY  MILD BULL  BULL
+signal                                                                               
+momentum: 6m rank >= 90 + Gate 1              1.4        5.9     3.3        1.2   1.3
+momentum + 1m ACCEL                           1.1        5.4     2.5        1.4   0.8
+momentum + 1m FADING                          0.8        4.1     3.0        0.4   2.2
+6m rank <= 10 (losers)                        0.4       -3.3    -2.2       -2.9  -2.8
+momentum + fresh breakout                     0.2        5.5     3.4        1.3   0.9
+momentum + squeeze release                    0.8        6.4     6.3        1.1   1.2
+breakout + volume anchor + leader            -0.6        1.7     3.9        3.0   1.5
+v6 BUY NOW                                    3.1        5.7     3.8        2.7   1.5
+v6 ABSORPTION                                 3.9        9.2     2.4        3.1   3.0
+v6 DISTRIBUTION                               1.7        4.0     2.8        2.2   1.0
+Gate 1 trend (any)                            2.0        4.7     3.0        2.6   1.3
+within 5% of 52w high                         2.1        6.4     4.6        3.6   1.7
+> 40% below 52w high                         -0.1       -3.5    -3.5       -3.8  -2.7
+RSI(14) < 30 (oversold)                       1.3        0.4    -0.4       -0.6  -1.9
+oversold above the 200d (RSI < 40, > MA200)   1.1        0.5     1.9        0.9  -0.5
+valuation CHEAP                               0.8       -0.9    -0.6        0.0   0.0
+valuation FAIR                               -0.2        0.9     0.8        0.9   0.4
+valuation RICH                                0.6        3.5     2.2        1.7   0.7
+loss-maker / P/E >= 200                      -0.8       -2.3    -2.2       -3.0  -0.6
+P/E vs peers, cheapest 20%                    0.3       -1.1    -0.9       -0.4   0.7
+P/E >= 60                                    -0.2        1.8     0.3       -0.1  -0.8
+momentum + CHEAP/FAIR                         0.1        4.9     3.9        1.4   2.0
+momentum + RICH                               1.9        6.7     6.1        2.0   1.1
+Large cap                                     0.3        1.7     1.4        3.2  -0.3
+Mid cap                                       1.6        3.4     1.6        2.7   0.9
+Small cap                                     0.6        0.8     0.7       -0.0   0.1
+Micro cap                                    -0.8       -1.9    -1.2       -1.8  -0.3
+leader industry                               0.5        0.7     1.0        1.0   1.1
+laggard industry                             -0.2       -0.8    -0.8       -0.5  -1.1
+
+WORKS (pre-registered rule):
+  BEAR     : momentum: 6m rank >= 90 + Gate 1 (+1.4 / +6.6, ep 6/9), momentum + 1m ACCEL (+1.1 / +5.9, ep 6/9), v6 BUY NOW (+3.1 / +8.7, ep 6/9), v6 ABSORPTION (+3.9 / +11.8, ep 4/4), v6 DISTRIBUTION (+1.7 / +6.4, ep 5/9), Gate 1 trend (any) (+2.0 / +7.3, ep 6/9), within 5% of 52w high (+2.1 / +8.1, ep 5/9), momentum + RICH (+1.9 / +9.7, ep 5/7), Mid cap (+1.6 / +4.2, ep 5/9)
+  MILD BEAR: momentum: 6m rank >= 90 + Gate 1 (+5.9 / +7.8, ep 10/13), momentum + 1m ACCEL (+5.4 / +5.8, ep 7/13), momentum + fresh breakout (+5.5 / +7.5, ep 7/10), v6 BUY NOW (+5.7 / +8.7, ep 8/13), v6 DISTRIBUTION (+4.0 / +6.6, ep 8/13), Gate 1 trend (any) (+4.7 / +6.6, ep 10/13), within 5% of 52w high (+6.4 / +8.5, ep 9/13), valuation RICH (+3.5 / +5.4, ep 8/12), P/E >= 60 (+1.8 / +2.1, ep 8/13), momentum + RICH (+6.7 / +15.3, ep 9/11), Large cap (+1.7 / +2.9, ep 8/13), Mid cap (+3.4 / +4.4, ep 8/13)
+  CHOPPY   : momentum: 6m rank >= 90 + Gate 1 (+3.3 / +3.8, ep 15/19), momentum + squeeze release (+6.3 / +5.2, ep 10/14), v6 BUY NOW (+3.8 / +4.5, ep 14/19), v6 DISTRIBUTION (+2.8 / +3.0, ep 13/19), Gate 1 trend (any) (+3.0 / +3.0, ep 14/19), within 5% of 52w high (+4.7 / +4.2, ep 14/19), oversold above the 200d (RSI < 40, > MA200) (+1.9 / +4.0, ep 11/15), valuation RICH (+2.2 / +2.1, ep 12/15), momentum + CHEAP/FAIR (+3.9 / +5.1, ep 11/15), momentum + RICH (+6.1 / +6.2, ep 12/14)
+  MILD BULL: momentum: 6m rank >= 90 + Gate 1 (+1.2 / +2.6, ep 12/18), momentum + fresh breakout (+1.3 / +4.4, ep 9/12), v6 BUY NOW (+2.7 / +3.9, ep 12/18), v6 DISTRIBUTION (+2.2 / +3.1, ep 14/18), Gate 1 trend (any) (+2.5 / +3.5, ep 13/18), within 5% of 52w high (+3.6 / +4.3, ep 12/18), valuation RICH (+1.7 / +2.2, ep 10/15), momentum + CHEAP/FAIR (+1.4 / +3.9, ep 7/13), Large cap (+3.1 / +3.0, ep 11/18)
+  BULL     : momentum: 6m rank >= 90 + Gate 1 (+1.3 / +3.7, ep 7/8), momentum + squeeze release (+1.2 / +5.3, ep 7/8), v6 BUY NOW (+1.5 / +3.0, ep 7/8), v6 DISTRIBUTION (+1.0 / +2.0, ep 7/8), Gate 1 trend (any) (+1.3 / +2.4, ep 7/8), within 5% of 52w high (+1.7 / +3.1, ep 8/8), momentum + CHEAP/FAIR (+2.0 / +5.3, ep 7/7), leader industry (+1.1 / +2.0, ep 7/8)
+
+Detail:
+                                     signal    regime      n  stocks  1m median  3m median  6m median  6m beat% episodes +/total  placebo 95%  works
+           momentum: 6m rank >= 90 + Gate 1      BEAR   3999     623      -0.08       1.42       6.59        59              6/9         3.58   True
+           momentum: 6m rank >= 90 + Gate 1 MILD BEAR   3297     734       1.29       5.94       7.82        61            10/13         2.47   True
+           momentum: 6m rank >= 90 + Gate 1    CHOPPY   3489     877       2.01       3.29       3.76        55            15/19         1.98   True
+           momentum: 6m rank >= 90 + Gate 1 MILD BULL   4627    1008       0.54       1.22       2.61        54            12/18         2.24   True
+           momentum: 6m rank >= 90 + Gate 1      BULL  20429    1298       0.33       1.33       3.70        54              7/8         1.54   True
+                        momentum + 1m ACCEL      BEAR   2632     589      -0.36       1.09       5.90        58              6/9         3.58   True
+                        momentum + 1m ACCEL MILD BEAR   1921     626       1.13       5.38       5.78        59             7/13         3.83   True
+                        momentum + 1m ACCEL    CHOPPY   2221     749       1.56       2.52       1.98        53            14/19         1.98  False
+                        momentum + 1m ACCEL MILD BULL   2972     878       0.53       1.37       2.18        53            10/18         2.24  False
+                        momentum + 1m ACCEL      BULL  12426    1226       0.33       0.84       3.05        54              6/8         2.09  False
+                       momentum + 1m FADING      BEAR    205     135      -1.18       0.85       7.40        60              4/5         9.24  False
+                       momentum + 1m FADING MILD BEAR    279     199       0.93       4.09       8.29        62              6/7         8.48  False
+                       momentum + 1m FADING    CHOPPY    297     199       3.01       2.98       2.38        57              6/7         6.57  False
+                       momentum + 1m FADING MILD BULL    351     261      -0.85       0.39       1.97        54              6/9         7.40  False
+                       momentum + 1m FADING      BULL   2204     789       0.56       2.16       4.48        55              7/8         4.91  False
+                     6m rank <= 10 (losers)      BEAR   8288     905       0.81       0.41      -3.79        44              3/9         2.12  False
+                     6m rank <= 10 (losers) MILD BEAR   5358     941      -1.21      -3.28      -4.89        42             2/13         1.65  False
+                     6m rank <= 10 (losers)    CHOPPY   5548    1053      -0.68      -2.25      -3.30        45             3/19         1.43  False
+                     6m rank <= 10 (losers) MILD BULL   6610    1141      -1.20      -2.94      -5.31        41             3/18         1.69  False
+                     6m rank <= 10 (losers)      BULL  25949    1401      -0.81      -2.85      -5.79        40              1/8         1.54  False
+                  momentum + fresh breakout      BEAR    720     320      -0.50       0.17       4.50        58              5/7         5.38  False
+                  momentum + fresh breakout MILD BEAR    592     340       1.47       5.47       7.46        61             7/10         4.65   True
+                  momentum + fresh breakout    CHOPPY    750     437       1.68       3.42       1.69        53            10/15         4.64  False
+                  momentum + fresh breakout MILD BULL    800     464       1.43       1.30       4.39        54             9/12         3.93   True
+                  momentum + fresh breakout      BULL   3185     885       0.01       0.94       4.99        55              8/8         4.91  False
+                 momentum + squeeze release      BEAR    656     270      -0.26       0.77       7.53        62              5/7         5.38  False
+                 momentum + squeeze release MILD BEAR    580     278       1.31       6.37       9.44        64             5/10         4.65  False
+                 momentum + squeeze release    CHOPPY    618     332       2.80       6.26       5.24        58            10/14         4.64   True
+                 momentum + squeeze release MILD BULL    902     458       0.95       1.11       3.69        56             9/14         3.93  False
+                 momentum + squeeze release      BULL   3688     879       0.48       1.22       5.35        56              7/8         4.91   True
+          breakout + volume anchor + leader      BEAR    254     139       1.54      -0.60       3.49        56              4/6         9.24  False
+          breakout + volume anchor + leader MILD BEAR    239     161       1.52       1.71       2.53        56             6/10         8.48  False
+          breakout + volume anchor + leader    CHOPPY    443     272       2.35       3.88       2.33        53             5/11         6.57  False
+          breakout + volume anchor + leader MILD BULL    748     439       1.51       3.03       1.97        54             9/14         3.93  False
+          breakout + volume anchor + leader      BULL   4668    1059       0.41       1.46       2.45        53              6/8         4.91  False
+                                 v6 BUY NOW      BEAR   2038     424       1.35       3.12       8.70        63              6/9         3.58   True
+                                 v6 BUY NOW MILD BEAR   2421     592       1.67       5.71       8.72        65             8/13         2.47   True
+                                 v6 BUY NOW    CHOPPY   3543     848       1.55       3.75       4.55        57            14/19         1.98   True
+                                 v6 BUY NOW MILD BULL   5947    1101       1.07       2.71       3.93        57            12/18         1.69   True
+                                 v6 BUY NOW      BULL  43128    1457       0.61       1.50       3.00        54              7/8         1.54   True
+                              v6 ABSORPTION      BEAR    232     106       0.92       3.87      11.85        73              4/4         9.24   True
+                              v6 ABSORPTION MILD BEAR    235     134       2.28       9.16       7.86        67              6/7         8.48  False
+                              v6 ABSORPTION    CHOPPY    396     201       1.35       2.36       1.05        53             6/12         6.57  False
+                              v6 ABSORPTION MILD BULL    662     335       1.41       3.07       3.70        57            10/12         3.93  False
+                              v6 ABSORPTION      BULL   4266     835       1.10       2.98       4.87        58              7/8         4.91  False
+                            v6 DISTRIBUTION      BEAR   4259     671       0.46       1.74       6.39        60              5/9         3.58   True
+                            v6 DISTRIBUTION MILD BEAR   4788     880       1.26       3.98       6.63        60             8/13         2.47   True
+                            v6 DISTRIBUTION    CHOPPY   6680    1102       1.43       2.82       2.96        55            13/19         1.43   True
+                            v6 DISTRIBUTION MILD BULL  10422    1321       0.86       2.16       3.07        56            14/18         0.94   True
+                            v6 DISTRIBUTION      BULL  72875    1549       0.37       1.00       2.05        53              7/8         0.91   True
+                         Gate 1 trend (any)      BEAR   7795     813       0.65       1.99       7.27        61              6/9         2.12   True
+                         Gate 1 trend (any) MILD BEAR   9274    1070       1.32       4.66       6.58        61            10/13         1.65   True
+                         Gate 1 trend (any)    CHOPPY  12105    1294       1.36       2.97       3.00        55            14/19         0.71   True
+                         Gate 1 trend (any) MILD BULL  18280    1459       1.16       2.55       3.47        56            13/18         0.94   True
+                         Gate 1 trend (any)      BULL 123849    1650       0.50       1.34       2.42        54              7/8         0.91   True
+                      within 5% of 52w high      BEAR   3214     522       0.77       2.06       8.09        63              5/9         3.58   True
+                      within 5% of 52w high MILD BEAR   4184     734       1.86       6.41       8.46        64             9/13         2.47   True
+                      within 5% of 52w high    CHOPPY   5495    1017       2.29       4.65       4.25        57            14/19         1.43   True
+                      within 5% of 52w high MILD BULL   8367    1228       1.75       3.57       4.34        58            12/18         1.69   True
+                      within 5% of 52w high      BULL  66021    1572       0.79       1.74       3.08        55              8/8         0.91   True
+                       > 40% below 52w high      BEAR  31980    1332       0.30      -0.07      -2.71        46              2/9         0.87  False
+                       > 40% below 52w high MILD BEAR  12847    1139      -1.29      -3.46      -4.40        42             2/13         0.89  False
+                       > 40% below 52w high    CHOPPY   9445    1144      -0.99      -3.52      -3.99        44             3/19         1.43  False
+                       > 40% below 52w high MILD BULL   7797    1040      -1.60      -3.85      -6.72        39             1/18         1.69  False
+                       > 40% below 52w high      BULL  13977     949      -1.30      -2.72      -6.95        40              1/8         2.09  False
+                    RSI(14) < 30 (oversold)      BEAR  10865    1450       1.15       1.26       0.00        50              4/9         1.55  False
+                    RSI(14) < 30 (oversold) MILD BEAR   3495    1204       0.42       0.36      -0.67        49              4/9         2.47  False
+                    RSI(14) < 30 (oversold)    CHOPPY   2839    1102       0.60      -0.42      -0.47        49             8/17         1.98  False
+                    RSI(14) < 30 (oversold) MILD BULL   3374    1198       0.15      -0.63      -0.94        48             6/16         2.24  False
+                    RSI(14) < 30 (oversold)      BULL   4838    1276       0.27      -1.86      -4.47        42              2/8         4.91  False
+oversold above the 200d (RSI < 40, > MA200)      BEAR   1914     762       0.64       1.14       3.42        55              5/9         4.44  False
+oversold above the 200d (RSI < 40, > MA200) MILD BEAR   1682     875       0.43       0.49       0.12        50              3/9         3.83  False
+oversold above the 200d (RSI < 40, > MA200)    CHOPPY   2191     982       1.04       1.87       4.00        57            11/15         1.98   True
+oversold above the 200d (RSI < 40, > MA200) MILD BULL   3661    1262       0.43       0.90       2.40        55            11/17         2.24  False
+oversold above the 200d (RSI < 40, > MA200)      BULL  12450    1442       0.09      -0.50      -0.67        49              4/8         2.09  False
+                            valuation CHEAP      BEAR  14631     727       0.59       0.84      -0.11        50              3/8         1.55  False
+                            valuation CHEAP MILD BEAR   8428     703      -0.21      -0.92      -1.39        47             6/12         1.65  False
+                            valuation CHEAP    CHOPPY   7219     722      -0.24      -0.60       0.35        51             7/15         1.43  False
+                            valuation CHEAP MILD BULL   7405     719      -0.13       0.03       1.08        52             9/15         1.69  False
+                            valuation CHEAP      BULL  18272     727       0.10       0.05       0.41        51              5/7         2.09  False
+                             valuation FAIR      BEAR  31950    1065      -0.01      -0.16       1.07        52              4/8         0.87  False
+                             valuation FAIR MILD BEAR  19524    1058       0.35       0.88       0.80        52             5/12         0.89  False
+                             valuation FAIR    CHOPPY  21378    1105       0.23       0.80       0.55        51            10/15         0.50  False
+                             valuation FAIR MILD BULL  27842    1187       0.39       0.87       1.06        52            10/15         0.64  False
+                             valuation FAIR      BULL  92257    1220       0.16       0.40       0.89        52              6/7         0.91  False
+                             valuation RICH      BEAR   4178     431       0.02       0.65       3.62        55              6/8         3.58  False
+                             valuation RICH MILD BEAR   3194     461       1.10       3.52       5.38        59             8/12         2.47   True
+                             valuation RICH    CHOPPY   3784     547       1.02       2.23       2.13        53            12/15         1.98   True
+                             valuation RICH MILD BULL   5094     606       0.67       1.69       2.17        54            10/15         1.69   True
+                             valuation RICH      BULL  21405     714       0.16       0.69       1.35        52              5/7         1.54  False
+                    loss-maker / P/E >= 200      BEAR   8668     435      -0.66      -0.77      -3.26        45              5/8         2.12  False
+                    loss-maker / P/E >= 200 MILD BEAR   5540     446      -0.90      -2.27      -1.99        47             6/12         1.65  False
+                    loss-maker / P/E >= 200    CHOPPY   5573     503      -0.97      -2.17      -1.76        48             6/15         1.43  False
+                    loss-maker / P/E >= 200 MILD BULL   6578     536      -1.36      -2.96      -3.15        44             5/15         1.69  False
+                    loss-maker / P/E >= 200      BULL  26356     574      -0.49      -0.58      -1.58        48              2/7         1.54  False
+                 P/E vs peers, cheapest 20%      BEAR  13063     669       0.33       0.28      -1.14        48              4/9         1.55  False
+                 P/E vs peers, cheapest 20% MILD BEAR   8337     673      -0.59      -1.12      -1.54        47             6/13         1.65  False
+                 P/E vs peers, cheapest 20%    CHOPPY   8875     745      -0.06      -0.93       0.60        51            11/19         1.43  False
+                 P/E vs peers, cheapest 20% MILD BULL  10866     782      -0.33      -0.39       0.35        51            12/18         0.94  False
+                 P/E vs peers, cheapest 20%      BULL  40778     903       0.15       0.69       1.32        52              4/8         1.54  False
+                                  P/E >= 60      BEAR   9088     631      -0.18      -0.18       1.50        52              5/9         2.12  False
+                                  P/E >= 60 MILD BEAR   6902     674       0.46       1.83       2.11        54             8/13         1.65   True
+                                  P/E >= 60    CHOPPY   8747     760       0.04       0.33      -0.80        49             8/19         1.43  False
+                                  P/E >= 60 MILD BULL  12327     833       0.17      -0.09      -0.48        49             7/18         0.94  False
+                                  P/E >= 60      BULL  44558     937      -0.08      -0.77      -1.33        48              2/8         1.54  False
+                      momentum + CHEAP/FAIR      BEAR   1703     362      -0.31       0.12       3.97        56              5/8         4.44  False
+                      momentum + CHEAP/FAIR MILD BEAR   1394     367       1.46       4.89       5.32        59             6/12         3.83  False
+                      momentum + CHEAP/FAIR    CHOPPY   1443     431       2.84       3.92       5.06        58            11/15         2.63   True
+                      momentum + CHEAP/FAIR MILD BULL   1819     493       1.04       1.44       3.93        56             7/13         3.15   True
+                      momentum + CHEAP/FAIR      BULL   6518     664       0.21       1.98       5.32        57              7/7         2.91   True
+                            momentum + RICH      BEAR    952     173      -0.25       1.94       9.69        63              5/7         5.38   True
+                            momentum + RICH MILD BEAR    648     191       1.85       6.73      15.35        65             9/11         4.65   True
+                            momentum + RICH    CHOPPY    698     230       1.65       6.09       6.17        58            12/14         4.64   True
+                            momentum + RICH MILD BULL    893     281      -0.22       1.97       3.38        55             6/12         3.93  False
+                            momentum + RICH      BULL   3157     388       1.39       1.09       1.71        52              4/7         4.91  False
+                                  Large cap      BEAR   8500     189       0.46       0.29       2.56        55              3/9         2.12  False
+                                  Large cap MILD BEAR   5500     192       1.48       1.74       2.86        56             8/13         1.65   True
+                                  Large cap    CHOPPY   5700     195       0.27       1.37       0.86        51            10/19         1.43  False
+                                  Large cap MILD BULL   6800     196       1.09       3.15       2.96        57            11/18         1.69   True
+                                  Large cap      BULL  26700     211       0.22      -0.29      -1.08        48              5/8         1.54  False
+                                    Mid cap      BEAR  12750     366       0.73       1.64       4.23        58              5/9         1.55   True
+                                    Mid cap MILD BEAR   8250     374       1.51       3.40       4.37        58             8/13         1.65   True
+                                    Mid cap    CHOPPY   8550     383       0.38       1.56       1.74        53            11/19         1.43  False
+                                    Mid cap MILD BULL  10200     388       0.94       2.71       2.84        56             9/18         0.94  False
+                                    Mid cap      BULL  40050     408       0.57       0.89       1.35        52              7/8         1.54  False
+                                  Small cap      BEAR  21250     650       0.06       0.55       1.71        53              8/9         0.87  False
+                                  Small cap MILD BEAR  13750     664       0.28       0.83       0.67        51             6/13         0.89  False
+                                  Small cap    CHOPPY  14250     697       0.11       0.70       0.09        50            11/19         0.71  False
+                                  Small cap MILD BULL  17000     710       0.21      -0.02       0.14        50            10/18         0.94  False
+                                  Small cap      BULL  66750     749       0.11       0.08       0.16        50              4/8         0.91  False
+                                  Micro cap      BEAR  39765    1236      -0.33      -0.82      -2.68        45              5/9         0.87  False
+                                  Micro cap MILD BEAR  25767    1245      -1.10      -1.94      -2.39        46             7/13         0.54  False
+                                  Micro cap    CHOPPY  26755    1291      -0.26      -1.18      -0.86        49             8/19         0.50  False
+                                  Micro cap MILD BULL  32038    1315      -0.79      -1.81      -1.91        47             8/18         0.64  False
+                                  Micro cap      BULL 125176    1371      -0.34      -0.27      -0.15        50              2/8         0.91  False
+                            leader industry      BEAR  23977    1465       0.15       0.49       1.77        53              6/9         0.87  False
+                            leader industry MILD BEAR  14568    1514       0.55       0.67       0.72        51             7/13         0.89  False
+                            leader industry    CHOPPY  16134    1596       0.49       1.05       0.93        52            10/19         0.71  False
+                            leader industry MILD BULL  19891    1624       0.43       0.96       1.71        53            11/18         0.94  False
+                            leader industry      BULL  83233    1734       0.43       1.08       2.01        53              7/8         0.91   True
+                           laggard industry      BEAR  31647    1590      -0.09      -0.21      -1.23        48              2/9         0.87  False
+                           laggard industry MILD BEAR  19956    1578      -0.33      -0.80      -1.33        48             4/13         0.89  False
+                           laggard industry    CHOPPY  20129    1616      -0.28      -0.76      -0.63        49             8/19         0.50  False
+                           laggard industry MILD BULL  23127    1621      -0.23      -0.47      -1.14        48             6/18         0.64  False
+                           laggard industry      BULL  90545    1716      -0.41      -1.12      -1.59        47              1/8         0.91  False
+
+======================================================================================================================================================
+LIVE ENGINE BY REGIME (annualised return while in that regime)
+======================================================================================================================================================
+regime_by    regime  days  engine_ann_ret  nifty_ann_ret  engine_daily_vol_ann  engine_hit_days
+    Nifty      BEAR   142            -6.6          -32.2                  12.8               24
+    Nifty MILD BEAR   648            -5.3          -21.7                  13.4               38
+    Nifty    CHOPPY   450            19.2            6.4                  13.7               47
+    Nifty MILD BULL   363            25.5            2.5                  19.6               54
+    Nifty      BULL  1292            50.3           40.0                  15.8               59
+  breadth      BEAR   419           -10.9          -15.4                   8.3               30
+  breadth MILD BEAR   293            -5.7            2.7                  11.5               42
+  breadth    CHOPPY   337            33.3           15.5                  13.8               47
+  breadth MILD BULL   428            -2.4           -6.9                  17.0               50
+  breadth      BULL  1368            57.6           24.7                  17.7               60
+
+saved -> analysis/regime_study.csv
