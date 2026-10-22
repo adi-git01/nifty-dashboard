@@ -13,20 +13,5 @@
     "last_triggered": null,
     "last_trigger_direction": null,
     "history": []
-  },
-  {
-    "id": "20261022183731929935",
-    "ticker": "ESABINDIA.NS",
-    "metric": "comp_rs",
-    "direction": "above",
-    "threshold": 17.0,
-    "repeat": true,
-    "notes": "",
-    "created": "2026-10-22T18:37:31.929971",
-    "last_value": -0.74,
-    "trigger_count": 0,
-    "last_triggered": null,
-    "last_trigger_direction": null,
-    "history": []
   }
 ]
