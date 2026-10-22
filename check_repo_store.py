@@ -40,8 +40,9 @@ def main() -> int:
 
     print(f"2. target ......................  {repo_store.get_repo()}@{repo_store.get_branch()}")
 
-    print("3. READ  {} ...".format(RS_ALERTS_FILE), end=" ")
-    data, sha = repo_store.get_json(RS_ALERTS_FILE, use_cache=False)
+    br = repo_store.get_alerts_branch()
+    print("3. READ  {} on branch {} ...".format(RS_ALERTS_FILE, br), end=" ")
+    data, sha, _ = repo_store.read_json(RS_ALERTS_FILE, use_cache=False, branch=br)
     if sha is None and data is None:
         print("could not read")
         print("\n   Either the file does not exist yet (fine — a write creates it),")
