@@ -60,7 +60,21 @@ _CACHE_TTL = 30.0
 _cache: dict = {}
 
 
+_CFG: dict = {}
+
+
 def _cfg(key: str, env: str, default: Optional[str] = None) -> Optional[str]:
+    # Memoised: background sync threads have no Streamlit script context, so they
+    # use what the page thread resolved from st.secrets.
+    if key in _CFG:
+        return _CFG[key]
+    val = _cfg_resolve(key, env, default)
+    if val is not None:
+        _CFG[key] = val
+    return val
+
+
+def _cfg_resolve(key: str, env: str, default: Optional[str] = None) -> Optional[str]:
     try:
         import streamlit as st
         if hasattr(st, "secrets") and "github" in st.secrets:

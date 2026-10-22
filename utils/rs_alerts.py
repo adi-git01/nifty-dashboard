@@ -137,7 +137,7 @@ def describe_arm_state(current: Optional[float], threshold: float, direction: st
 # --------------------------------------------------------------------------
 def add_rs_alert(ticker: str, threshold: float, direction: str = "above",
                  metric: str = "comp_rs", notes: str = "", repeat: bool = True,
-                 df=None) -> Dict[str, Any]:
+                 df=None, background: bool = False) -> Dict[str, Any]:
     """
     Create a crossing alert. When `df` is supplied the alert is seeded with the
     current reading so it cannot fire spuriously on the first check.
@@ -171,19 +171,21 @@ def add_rs_alert(ticker: str, threshold: float, direction: str = "above",
         "last_trigger_direction": None,
         "history": [],
     }
-    synced = STORE.commit({"adds": [alert]}, f"add {ticker} {metric} {direction} {threshold:g}")
+    synced = STORE.commit({"adds": [alert]}, f"add {ticker} {metric} {direction} {threshold:g}",
+                          background=background)
     return {**alert, "synced": synced}
 
 
-def remove_rs_alert(alert_id: str, label: str = "") -> bool:
+def remove_rs_alert(alert_id: str, label: str = "", background: bool = False) -> bool:
     """Delete by id only -- never touches any other alert."""
-    return STORE.commit({"removes": [alert_id]}, f"remove {label or alert_id}")
+    return STORE.commit({"removes": [alert_id]}, f"remove {label or alert_id}", background=background)
 
 
-def rearm_rs_alert(alert_id: str) -> bool:
+def rearm_rs_alert(alert_id: str, background: bool = False) -> bool:
     """Clear the fired state of a one-shot alert so it can trigger again."""
     return STORE.commit({"patches": {alert_id: {"trigger_count": 0, "last_triggered": None,
-                                                "last_trigger_direction": None}}}, "re-arm")
+                                                "last_trigger_direction": None}}}, "re-arm",
+                        background=background)
 
 
 # --------------------------------------------------------------------------
