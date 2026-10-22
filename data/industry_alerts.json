@@ -74,5 +74,41 @@
       "n_valid": 15,
       "n_members": 15
     }
+  },
+  {
+    "id": "20261022154113150858",
+    "name": "Hotels",
+    "sub_industry": null,
+    "tickers": [
+      "INDHOTEL.NS",
+      "EIHOTEL.NS",
+      "EIHAHOTELS.NS",
+      "CHALET.NS",
+      "LEMONTREE.NS",
+      "ITCHOTELS.NS",
+      "VENTIVE.NS",
+      "SAMHI.NS",
+      "THELEELA.NS",
+      "PARKHOTELS.NS",
+      "ADVANIHOTR.NS",
+      "ASIANHOTNR.NS",
+      "AHLEAST.NS",
+      "BRIGHOTEL.NS",
+      "ADVENTHTL.NS"
+    ],
+    "on_status": true,
+    "notify": "up",
+    "score_threshold": 50.0,
+    "direction": "above",
+    "notes": "",
+    "created": "2026-10-22T15:41:13.150906",
+    "last_status": "DOWNTREND",
+    "pending_status": null,
+    "pending_days": 0,
+    "last_score": 24.3,
+    "last_date": null,
+    "score_side": "below",
+    "recent": [],
+    "history": []
   }
 ]
