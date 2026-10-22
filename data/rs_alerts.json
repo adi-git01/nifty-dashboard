@@ -1,17 +1,1 @@
-[
-  {
-    "id": "20261022181333987071",
-    "ticker": "GNA.NS",
-    "metric": "comp_rs",
-    "direction": "above",
-    "threshold": 10.0,
-    "repeat": true,
-    "notes": "",
-    "created": "2026-10-22T18:13:33.987101",
-    "last_value": 1.38,
-    "trigger_count": 0,
-    "last_triggered": null,
-    "last_trigger_direction": null,
-    "history": []
-  }
-]
+[]
