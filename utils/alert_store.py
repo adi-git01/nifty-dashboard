@@ -27,6 +27,9 @@ How it works now
 * Changes are operations, not lists: add(alert), remove(id), patch(id, fields).
   A patch for an alert deleted elsewhere is dropped, so nothing comes back
   from the dead. A remove beats a later stale patch.
+* The dashboard queues changes and returns at once; a background timer
+  publishes everything queued within a couple of seconds as one commit, so
+  entering several alerts never waits on GitHub.
 * Until GitHub confirms an operation it waits in a local outbox
   (data/.alert_cache/<name>.pending.json, gitignored). The outbox is applied on
   top of every read, so a pending alert stays visible and is retried on each
@@ -51,7 +54,8 @@ from utils import repo_store
 from utils.atomic_io import atomic_json_dump
 
 CACHE_DIR = os.path.join("data", ".alert_cache")
-_EMPTY = {"adds": [], "removes": [], "patches": {}}
+_EMPTY = {"adds": [], "removes": [], "patches": {}, "reasons": []}
+FLUSH_DELAY = 2.0      # seconds: entries made in quick succession go out as one commit
 
 
 def _read_json(path: str, default):
@@ -75,6 +79,8 @@ class AlertStore:
         self._lock = threading.RLock()    # Streamlit sessions are threads in one process
         self.last_source = None           # "repo" | "cache" | "file"
         self.last_error: Optional[str] = None
+        self._timer: Optional[threading.Timer] = None
+        self.flushing = False
 
     # ------------------------------------------------------------------ local files
     def _outbox(self) -> Dict[str, Any]:
@@ -82,7 +88,7 @@ class AlertStore:
         if not isinstance(ob, dict):
             return copy.deepcopy(_EMPTY)
         return {"adds": list(ob.get("adds") or []), "removes": list(ob.get("removes") or []),
-                "patches": dict(ob.get("patches") or {})}
+                "patches": dict(ob.get("patches") or {}), "reasons": list(ob.get("reasons") or [])}
 
     def _save_outbox(self, ob: Dict[str, Any]) -> None:
         os.makedirs(CACHE_DIR, exist_ok=True)
@@ -129,6 +135,23 @@ class AlertStore:
         for rid, f in (delta.get("patches") or {}).items():
             if rid not in ob["removes"]:
                 ob["patches"].setdefault(rid, {}).update(f)
+        ob["reasons"] = (ob.get("reasons") or []) + list(delta.get("reasons") or [])
+        return ob
+
+    @staticmethod
+    def _subtract(ob: Dict[str, Any], sent: Dict[str, Any]) -> Dict[str, Any]:
+        """What is left in the outbox after `sent` landed; anything queued meanwhile stays."""
+        ob = copy.deepcopy(ob)
+        sent_adds = {a.get("id") for a in sent["adds"]}
+        ob["adds"] = [a for a in ob["adds"] if a.get("id") not in sent_adds]
+        ob["removes"] = [r for r in ob["removes"] if r not in sent["removes"]]
+        for rid, f in sent["patches"].items():
+            left = {k: v for k, v in ob["patches"].get(rid, {}).items() if f.get(k) != v}
+            if left:
+                ob["patches"][rid] = left
+            else:
+                ob["patches"].pop(rid, None)
+        ob["reasons"] = ob["reasons"][len(sent.get("reasons") or []):]
         return ob
 
     # ------------------------------------------------------------------ reading
@@ -158,18 +181,45 @@ class AlertStore:
             base, src = self._base()
             self.last_source = src
             if src == "repo" and self.pending():
-                self.flush("sync pending changes")
-                base, _ = self._base()
+                self.flush_soon()          # never block a page render on GitHub
             return self.apply(base, self._outbox())
 
     # ------------------------------------------------------------------ writing
-    def commit(self, delta: Dict[str, Any], reason: str) -> bool:
-        """Queue an operation and try to publish it. True when GitHub has it."""
+    def commit(self, delta: Dict[str, Any], reason: str, background: bool = False) -> bool:
+        """
+        Queue an operation. background=True returns at once (the dashboard): a timer
+        publishes everything queued within FLUSH_DELAY as one commit. Otherwise publish
+        now. True only when GitHub already has it.
+        """
         with self._lock:
-            self._save_outbox(self._merge(self._outbox(), delta))
-            return self.flush(reason)
+            self._save_outbox(self._merge(self._outbox(), {**delta, "reasons": [reason]}))
+        if background:
+            self.flush_soon()
+            return False
+        return self.flush()
 
-    def flush(self, reason: str = "sync") -> bool:
+    def flush_soon(self, delay: float = FLUSH_DELAY) -> None:
+        """Debounced background publish; repeated calls within `delay` share one commit."""
+        if not repo_store.is_configured():
+            return
+        repo_store.get_token(); repo_store.get_repo(); repo_store.get_branch()   # resolve secrets on this thread
+        with self._lock:
+            if self._timer is not None and self._timer.is_alive():
+                return
+            self._timer = threading.Timer(delay, self._flush_quiet)
+            self._timer.daemon = True
+            self._timer.start()
+
+    def _flush_quiet(self):
+        try:
+            self.flush()
+        except Exception as e:                       # a background thread must never raise
+            self.last_error = str(e)
+        if self.pending() and not self.last_error:
+            self.flush_soon()                        # more was queued while we were sending
+
+    def flush(self, reason: Optional[str] = None) -> bool:
+        """Publish the outbox. The lock is held only for local file work, not the network."""
         with self._lock:
             ob = self._outbox()
             if not (ob["adds"] or ob["removes"] or ob["patches"]):
@@ -177,11 +227,17 @@ class AlertStore:
             if not repo_store.is_configured():
                 self.last_error = None
                 return False
-            ok, new, err = repo_store.update_json(
-                self.path, lambda cur: self.apply(cur, ob), f"🔔 {self.label}: {reason}")
+            self.flushing = True
+        try:
+            why = ob["reasons"] or [reason or "sync"]
+            msg = f"🔔 {self.label}: " + ("; ".join(why) if len(why) <= 3 else f"{len(why)} changes")
+            ok, new, err = repo_store.update_json(self.path, lambda cur: self.apply(cur, ob), msg)
+        finally:
+            self.flushing = False
+        with self._lock:
             self.last_error = err
             if ok:
-                self._save_outbox(copy.deepcopy(_EMPTY))
+                self._save_outbox(self._subtract(self._outbox(), ob))
                 try:
                     atomic_json_dump(new, self.cache, indent=2)
                 except Exception:
@@ -203,11 +259,12 @@ class AlertStore:
                 return alerts
 
             if repo_store.is_configured():
+                sent = self._outbox()
                 ok, new, err = repo_store.update_json(
                     self.path, step, lambda _new: f"🔔 {self.label}: " + reason(box.get("res")))
                 self.last_error = err
                 if ok:
-                    self._save_outbox(copy.deepcopy(_EMPTY))
+                    self._save_outbox(self._subtract(self._outbox(), sent))
                     try:
                         atomic_json_dump(new, self.cache, indent=2)
                     except Exception:
@@ -236,7 +293,7 @@ class AlertStore:
         ls = repo_store.last_status(self.path)
         return {"configured": repo_store.is_configured(), "where": repo_store.status(),
                 "can_write": repo_store.can_write() if repo_store.is_configured() else False,
-                "pending": self.pending(), "source": self.last_source,
+                "pending": self.pending(), "source": self.last_source, "flushing": self.flushing,
                 "ok": None if ls is None else ls["ok"],
                 "error": (ls or {}).get("error") or self.last_error,
                 "when": None if ls is None else time.strftime("%H:%M", time.localtime(ls["when"]))}

@@ -70,6 +70,15 @@ from utils.advanced_scanners import (
 import re as _re
 
 
+def _rerun_fragment() -> None:
+    """Rerun just the current fragment; a full rerun when the click came through a full run."""
+    from streamlit.errors import StreamlitAPIException
+    try:
+        st.rerun(scope="fragment")
+    except StreamlitAPIException:
+        st.rerun()
+
+
 def _alert_sync_banner(stt: dict, retry, key: str) -> None:
     """Say plainly where alerts live and whether the last write reached GitHub."""
     if not stt["configured"]:
@@ -84,7 +93,10 @@ def _alert_sync_banner(stt: dict, retry, key: str) -> None:
                  "cannot be saved there (this is why alerts kept replacing each other). Give the "
                  f"token Contents: Read and write on {repo_store.get_repo()}, or a new token with it. "
                  f"Until then alerts stay on this device ({stt['pending']} waiting to sync).")
-    elif stt["pending"] or stt["ok"] is False:
+    elif stt["pending"] and stt["ok"] is not False:
+        st.caption(f"☁️ {stt['pending']} change(s) syncing to GitHub in the background — "
+                   "carry on, nothing to wait for.")
+    elif stt["ok"] is False:
         st.error(f"⚠️ **{stt['pending']} change(s) not saved to GitHub yet** — kept on this "
                  f"device and retried on every load. Last error: {stt['error'] or 'unknown'}")
         if st.button("↻ Retry sync now", key=f"retry_sync_{key}"):
@@ -2530,339 +2542,341 @@ elif page == "📊 Return Tracker":
     # TAB 2: WATCHLIST
     # ========================================
     with tab_watchlist:
+        # One fragment for the whole tab: saving, deleting or re-arming an alert
+        # reruns only this tab, not the 8,000-line page, and GitHub writes happen
+        # in the background (utils/alert_store.py), so entries take no wait.
+        @st.fragment
+        def _watchlist_tab():
         
-        st.markdown("### 👀 Stocks to Watch")
+            st.markdown("### 👀 Stocks to Watch")
         
-        # Show triggered alerts prominently
-        if triggered_alerts:
-            st.error(f"⚡ {len(triggered_alerts)} alerts triggered!")
-            for alert in triggered_alerts:
-                trigger_type = alert.get('trigger_type', 'METRIC')
-                icon = "🔴" if trigger_type == "STOP_LOSS" else "🎯" if trigger_type == "TARGET" else "📊"
-                st.warning(f"{icon} **{alert['ticker'].replace('.NS', '')}**: {alert.get('alert_message', alert.get('alert_type', 'Alert triggered'))}")
+            # Show triggered alerts prominently
+            if triggered_alerts:
+                st.error(f"⚡ {len(triggered_alerts)} alerts triggered!")
+                for alert in triggered_alerts:
+                    trigger_type = alert.get('trigger_type', 'METRIC')
+                    icon = "🔴" if trigger_type == "STOP_LOSS" else "🎯" if trigger_type == "TARGET" else "📊"
+                    st.warning(f"{icon} **{alert['ticker'].replace('.NS', '')}**: {alert.get('alert_message', alert.get('alert_type', 'Alert triggered'))}")
+                st.markdown("---")
+        
+            # Two columns: Active Alerts + Add New
+            alert_col1, alert_col2 = st.columns([2, 1])
+        
+            with alert_col1:
+                st.markdown("#### Active Alerts")
+            
+                # Fetch alerts using the utility function from alerts.py
+                from utils.alerts import get_alerts_with_pnl, remove_alert, add_price_alert
+                all_alerts = get_alerts_with_pnl(df)
+            
+                if all_alerts:
+                    for alert in all_alerts:
+                        ticker = alert.get('ticker', '').replace('.NS', '')
+                    
+                        # Build status line
+                        parts = [f"**{ticker}**"]
+                    
+                        metric = alert.get('metric', '')
+                        if metric and metric != 'price':
+                            parts.append(f"{metric.title()} {alert.get('condition', '')} {alert.get('threshold', '')}")
+                    
+                        if alert.get('stop_loss'):
+                            parts.append(f"SL: ₹{alert['stop_loss']:.0f}")
+                        if alert.get('target'):
+                            parts.append(f"T: ₹{alert['target']:.0f}")
+                    
+                        # Current P&L if available
+                        pnl = alert.get('pnl_pct')
+                        if pnl is not None:
+                            pnl_color = "green" if pnl >= 0 else "red"
+                            parts.append(f":{pnl_color}[{pnl:+.1f}%]")
+                    
+                        col_info, col_del = st.columns([5, 1])
+                        with col_info:
+                            st.write(" | ".join(parts))
+                            if alert.get('notes'):
+                                st.caption(f"📝 {alert['notes'][:80]}...")
+                        with col_del:
+                            if st.button("🗑️", key=f"del_alert_{alert.get('id')}", help="Delete this alert"):
+                                remove_alert(alert.get('id'))
+                                st.session_state['alert_deleted'] = alert.get('ticker', '')
+                                _rerun_fragment()
+                        st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
+                else:
+                    st.info("No active alerts. Create one →")
+        
+            with alert_col2:
+                st.markdown("#### ➕ New Alert")
+            
+                # Use form to prevent reload on each input change
+                with st.form("new_alert_form", clear_on_submit=True):
+                    # Prefill ticker if coming from position management
+                    prefill = st.session_state.get('prefill_alert_ticker', '')
+                    if prefill:
+                        del st.session_state['prefill_alert_ticker']
+                
+                    new_ticker = st.text_input("Ticker", value=prefill.replace('.NS', ''), placeholder="HDFCBANK")
+                
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        new_entry = st.number_input("Entry ₹", value=0.0, step=10.0, format="%.2f")
+                        new_sl = st.number_input("Stop Loss ₹", value=0.0, step=10.0, format="%.2f")
+                    with col_b:
+                        new_target = st.number_input("Target ₹", value=0.0, step=10.0, format="%.2f")
+                    
+                    new_notes = st.text_area("Notes", placeholder="Investment thesis...", height=80)
+                
+                    submitted = st.form_submit_button("✅ Create Alert", use_container_width=True, type="primary")
+                
+                    if submitted and new_ticker:
+                        ticker = new_ticker.upper()
+                        if not ticker.endswith(".NS"):
+                            ticker += ".NS"
+                        add_price_alert(
+                            ticker,
+                            entry_price=new_entry if new_entry > 0 else None,
+                            stop_loss=new_sl if new_sl > 0 else None,
+                            target=new_target if new_target > 0 else None,
+                            notes=new_notes
+                        )
+                        st.toast(f"Alert created for {ticker}!", icon="✅")
+
+            # ============================================================
+            # COMPOSITE-RS CROSSING ALERTS
+            # ============================================================
             st.markdown("---")
-        
-        # Two columns: Active Alerts + Add New
-        alert_col1, alert_col2 = st.columns([2, 1])
-        
-        with alert_col1:
-            st.markdown("#### Active Alerts")
-            
-            # Fetch alerts using the utility function from alerts.py
-            from utils.alerts import get_alerts_with_pnl, remove_alert, add_price_alert
-            all_alerts = get_alerts_with_pnl(df)
-            
-            if all_alerts:
-                for alert in all_alerts:
-                    ticker = alert.get('ticker', '').replace('.NS', '')
-                    
-                    # Build status line
-                    parts = [f"**{ticker}**"]
-                    
-                    metric = alert.get('metric', '')
-                    if metric and metric != 'price':
-                        parts.append(f"{metric.title()} {alert.get('condition', '')} {alert.get('threshold', '')}")
-                    
-                    if alert.get('stop_loss'):
-                        parts.append(f"SL: ₹{alert['stop_loss']:.0f}")
-                    if alert.get('target'):
-                        parts.append(f"T: ₹{alert['target']:.0f}")
-                    
-                    # Current P&L if available
-                    pnl = alert.get('pnl_pct')
-                    if pnl is not None:
-                        pnl_color = "green" if pnl >= 0 else "red"
-                        parts.append(f":{pnl_color}[{pnl:+.1f}%]")
-                    
-                    col_info, col_del = st.columns([5, 1])
-                    with col_info:
-                        st.write(" | ".join(parts))
-                        if alert.get('notes'):
-                            st.caption(f"📝 {alert['notes'][:80]}...")
-                    with col_del:
-                        if st.button("🗑️", key=f"del_alert_{alert.get('id')}", help="Delete this alert"):
-                            remove_alert(alert.get('id'))
-                            st.session_state['alert_deleted'] = alert.get('ticker', '')
-                            st.rerun()
-                    st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
-            else:
-                st.info("No active alerts. Create one →")
-        
-        with alert_col2:
-            st.markdown("#### ➕ New Alert")
-            
-            # Use form to prevent reload on each input change
-            with st.form("new_alert_form", clear_on_submit=True):
-                # Prefill ticker if coming from position management
-                prefill = st.session_state.get('prefill_alert_ticker', '')
-                if prefill:
-                    del st.session_state['prefill_alert_ticker']
-                
-                new_ticker = st.text_input("Ticker", value=prefill.replace('.NS', ''), placeholder="HDFCBANK")
-                
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    new_entry = st.number_input("Entry ₹", value=0.0, step=10.0, format="%.2f")
-                    new_sl = st.number_input("Stop Loss ₹", value=0.0, step=10.0, format="%.2f")
-                with col_b:
-                    new_target = st.number_input("Target ₹", value=0.0, step=10.0, format="%.2f")
-                    
-                new_notes = st.text_area("Notes", placeholder="Investment thesis...", height=80)
-                
-                submitted = st.form_submit_button("✅ Create Alert", use_container_width=True, type="primary")
-                
-                if submitted and new_ticker:
-                    ticker = new_ticker.upper()
-                    if not ticker.endswith(".NS"):
-                        ticker += ".NS"
-                    add_price_alert(
-                        ticker,
-                        entry_price=new_entry if new_entry > 0 else None,
-                        stop_loss=new_sl if new_sl > 0 else None,
-                        target=new_target if new_target > 0 else None,
-                        notes=new_notes
-                    )
-                    st.toast(f"Alert created for {ticker}!", icon="✅")
+            st.markdown("### 📈 RS Alerts")
+            st.caption("Fire when a stock's Composite RS **crosses** a level, up or "
+                       "down. Crossing — not level — so an alert set above a stock "
+                       "that is already there waits for a real move instead of "
+                       "firing on every refresh.")
 
-        # ============================================================
-        # COMPOSITE-RS CROSSING ALERTS
-        # ============================================================
-        st.markdown("---")
-        st.markdown("### 📈 RS Alerts")
-        st.caption("Fire when a stock's Composite RS **crosses** a level, up or "
-                   "down. Crossing — not level — so an alert set above a stock "
-                   "that is already there waits for a real move instead of "
-                   "firing on every refresh.")
+            _alert_sync_banner(rs_storage_status(), sync_rs_alerts, "rs")
 
-        _alert_sync_banner(rs_storage_status(), sync_rs_alerts, "rs")
+            if _rs_fired:
+                st.error(f"⚡ {len(_rs_fired)} RS crossing(s) since the last EOD check "
+                         f"(Telegram goes out from the EOD run)")
+                for _a in _rs_fired:
+                    st.warning(_a['alert_message'])
 
-        if _rs_fired:
-            st.error(f"⚡ {len(_rs_fired)} RS crossing(s) since the last EOD check "
-                     f"(Telegram goes out from the EOD run)")
-            for _a in _rs_fired:
-                st.warning(_a['alert_message'])
+            rs_col1, rs_col2 = st.columns([2, 1])
 
-        rs_col1, rs_col2 = st.columns([2, 1])
+            with rs_col2:
+                st.markdown("#### ➕ New RS Alert")
+                with st.form("new_rs_alert_form", clear_on_submit=True):
+                    rs_ticker = st.text_input("Ticker", placeholder="AEGISLOG",
+                                              key="rs_alert_ticker")
+                    rs_metric = st.selectbox(
+                        "Metric", options=list(RS_METRICS.keys()),
+                        format_func=lambda k: RS_METRICS[k][0], index=0,
+                        key="rs_alert_metric")
+                    rs_direction = st.selectbox(
+                        "Trigger when it", options=list(DIRECTIONS.keys()),
+                        format_func=lambda k: DIRECTIONS[k], index=0,
+                        key="rs_alert_dir")
+                    rs_threshold = st.number_input(
+                        "RS level", value=17.0, step=1.0, format="%.1f",
+                        help="CompRS is in percentage points vs Nifty. The engine's "
+                             "entry floor is 17 in BULL/CAUTION and 22 in BEAR/CRISIS.",
+                        key="rs_alert_thr")
+                    rs_repeat = st.checkbox(
+                        "Re-fire on every future crossing", value=True,
+                        help="Off = one-shot; it goes quiet after firing until you re-arm it.",
+                        key="rs_alert_repeat")
+                    rs_notes = st.text_area("Notes", placeholder="Why this level...",
+                                            height=70, key="rs_alert_notes")
 
-        with rs_col2:
-            st.markdown("#### ➕ New RS Alert")
-            with st.form("new_rs_alert_form", clear_on_submit=True):
-                rs_ticker = st.text_input("Ticker", placeholder="AEGISLOG",
-                                          key="rs_alert_ticker")
-                rs_metric = st.selectbox(
-                    "Metric", options=list(RS_METRICS.keys()),
-                    format_func=lambda k: RS_METRICS[k][0], index=0,
-                    key="rs_alert_metric")
-                rs_direction = st.selectbox(
-                    "Trigger when it", options=list(DIRECTIONS.keys()),
-                    format_func=lambda k: DIRECTIONS[k], index=0,
-                    key="rs_alert_dir")
-                rs_threshold = st.number_input(
-                    "RS level", value=17.0, step=1.0, format="%.1f",
-                    help="CompRS is in percentage points vs Nifty. The engine's "
-                         "entry floor is 17 in BULL/CAUTION and 22 in BEAR/CRISIS.",
-                    key="rs_alert_thr")
-                rs_repeat = st.checkbox(
-                    "Re-fire on every future crossing", value=True,
-                    help="Off = one-shot; it goes quiet after firing until you re-arm it.",
-                    key="rs_alert_repeat")
-                rs_notes = st.text_area("Notes", placeholder="Why this level...",
-                                        height=70, key="rs_alert_notes")
+                    rs_submitted = st.form_submit_button(
+                        "🔔 Create RS Alert", use_container_width=True, type="primary")
 
-                rs_submitted = st.form_submit_button(
-                    "🔔 Create RS Alert", use_container_width=True, type="primary")
-
-                if rs_submitted and rs_ticker:
-                    _t = normalize_ticker(rs_ticker)
-                    if df[df['ticker'] == _t].empty:
-                        st.error(f"{_t} is not in the loaded universe — "
-                                 f"check the symbol.")
-                    else:
-                        _new = add_rs_alert(_t, rs_threshold, direction=rs_direction,
-                                            metric=rs_metric, notes=rs_notes,
-                                            repeat=rs_repeat, df=df)
-                        _now = read_metric(df, _t, rs_metric)
-                        _state = describe_arm_state(_now, rs_threshold, rs_direction)
-                        if _new.get("duplicate"):
-                            st.info(f"That alert on {_t.replace('.NS','')} already exists.")
-                        elif _new.get("synced"):
-                            st.success(f"Alert set on {_t.replace('.NS','')} — {_state}. Saved to GitHub.")
+                    if rs_submitted and rs_ticker:
+                        _t = normalize_ticker(rs_ticker)
+                        if df[df['ticker'] == _t].empty:
+                            st.error(f"{_t} is not in the loaded universe — "
+                                     f"check the symbol.")
                         else:
-                            st.warning(f"Alert set on {_t.replace('.NS','')} — {_state}. "
-                                       f"**Not on GitHub yet**: kept on this device and retried on every load.")
+                            _new = add_rs_alert(_t, rs_threshold, direction=rs_direction,
+                                                metric=rs_metric, notes=rs_notes,
+                                                repeat=rs_repeat, df=df, background=True)
+                            _now = read_metric(df, _t, rs_metric)
+                            _state = describe_arm_state(_now, rs_threshold, rs_direction)
+                            if _new.get("duplicate"):
+                                st.info(f"That alert on {_t.replace('.NS','')} already exists.")
+                            else:
+                                st.success(f"Alert set on {_t.replace('.NS','')} — {_state}. "
+                                           f"Syncing to GitHub in the background.")
 
-        with rs_col1:
-            st.markdown("#### Active RS Alerts")
-            _rs_all = get_rs_alerts_with_status(df)
-            if not _rs_all:
-                st.info("No RS alerts yet. Create one →")
-            else:
-                for _a in _rs_all:
-                    _name = _a['ticker'].replace('.NS', '').replace('.BO', '')
-                    _label = RS_METRICS.get(_a['metric'], (_a['metric'], None))[0]
-                    _cur = _a.get('current_value')
-                    _dist = _a.get('distance')
+            with rs_col1:
+                st.markdown("#### Active RS Alerts")
+                _rs_all = get_rs_alerts_with_status(df)
+                if not _rs_all:
+                    st.info("No RS alerts yet. Create one →")
+                else:
+                    for _a in _rs_all:
+                        _name = _a['ticker'].replace('.NS', '').replace('.BO', '')
+                        _label = RS_METRICS.get(_a['metric'], (_a['metric'], None))[0]
+                        _cur = _a.get('current_value')
+                        _dist = _a.get('distance')
 
+                        _c_info, _c_act = st.columns([6, 1])
+                        with _c_info:
+                            _line = (f"**{_name}** · {_label} "
+                                     f"{DIRECTIONS[_a['direction']].lower()} "
+                                     f"**{_a['threshold']:+.1f}**")
+                            if _cur is None:
+                                _line += " · now :grey[no clean reading]"
+                            else:
+                                _col = "green" if (_dist or 0) >= 0 else "red"
+                                _line += (f" · now :{_col}[{_cur:+.1f}] "
+                                          f"({_dist:+.1f} away)")
+                            if not _a.get('repeat', True):
+                                _line += " · :grey[one-shot]"
+                            st.write(_line)
+
+                            _sub = _a.get('state', '')
+                            if _a.get('trigger_count', 0):
+                                _when = (_a.get('last_triggered') or '')[:16].replace('T', ' ')
+                                _sub = (f"fired {_a['trigger_count']}× · last "
+                                        f"{_a.get('last_trigger_direction','')} on {_when}")
+                            st.caption(_sub + (f" · 📝 {_a['notes'][:60]}"
+                                               if _a.get('notes') else ""))
+                        with _c_act:
+                            if st.button("🗑️", key=f"del_rs_{_a['id']}",
+                                         help="Delete this RS alert"):
+                                remove_rs_alert(_a['id'], _name, background=True)
+                                _rerun_fragment()
+                            if (not _a.get('repeat', True)) and _a.get('trigger_count', 0):
+                                if st.button("↺", key=f"rearm_rs_{_a['id']}",
+                                             help="Re-arm this one-shot alert"):
+                                    rearm_rs_alert(_a['id'], background=True)
+                                    _rerun_fragment()
+                        st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>",
+                                    unsafe_allow_html=True)
+
+            # ============================================================
+            # INDUSTRY / BASKET STATUS ALERTS
+            # ============================================================
+            st.markdown("---")
+            st.markdown("### 🏭 Industry Alerts")
+            st.caption(
+                "Telegram after the close when an industry (or your own basket, e.g. Hotels) changes "
+                "status, or its trend score crosses your level. Status from member breadth: 🔴 DOWNTREND → "
+                "🟠 BASING → 🟡 TURNING UP → 🟢 UPTREND (🟣 WEAKENING = long trend intact, short-term lost). "
+                "Trend score 0-100 = 40% share above 50-day + 40% share above 200-day + 20% median RS; "
+                "< 30 downtrend, 30-50 basing, 50-70 improving, > 70 strong. Readings are 5-day averages and a "
+                "new status must hold 3 days. Tested 2021-26: an early TURNING UP was not a buy on its own; "
+                "UPTREND was the better-evidenced step — treat these as a watch tool.")
+            _alert_sync_banner(ind_alerts.storage_status(), ind_alerts.sync_industry_alerts, "ind")
+
+            _ind_c1, _ind_c2 = st.columns([2, 1])
+            with _ind_c2:
+                st.markdown("#### ➕ New Industry Alert")
+                _ind_kind = st.radio("Watch", ["Preset basket", "Sub-industry", "Custom tickers"],
+                                     horizontal=True, key="ind_kind")
+                with st.form("new_ind_alert_form", clear_on_submit=False):
+                    _ind_sub, _ind_tk, _ind_name = None, None, ""
+                    if _ind_kind == "Preset basket":
+                        _ind_name = st.selectbox("Basket", list(ind_alerts.PRESET_BASKETS), key="ind_preset")
+                        _ind_tk = ind_alerts.PRESET_BASKETS[_ind_name]
+                        st.caption(", ".join(_ind_tk))
+                    elif _ind_kind == "Sub-industry":
+                        from utils.nifty1000_list import SUB_INDUSTRY_MAP as _SIM
+                        _ind_sub = st.selectbox("Sub-industry", sorted({g for g in _SIM.values()
+                                                                         if g and g != "Unknown"}),
+                                                key="ind_sub")
+                        _ind_name = _ind_sub
+                    else:
+                        _ind_name = st.text_input("Basket name", placeholder="Hotels", key="ind_name")
+                        _ind_raw = st.text_area("Tickers (comma or space separated)",
+                                                placeholder="INDHOTEL, CHALET, LEMONTREE", key="ind_tickers")
+                        _ind_tk = [t for t in _ind_raw.replace(",", " ").split() if t]
+                    _ind_status = st.checkbox("Alert on status changes", value=True, key="ind_on_status")
+                    _ind_notify = st.selectbox("Which changes", list(ind_alerts.NOTIFY),
+                                               format_func=lambda k: ind_alerts.NOTIFY[k], key="ind_notify")
+                    _ind_use_score = st.checkbox("Also alert on a trend-score level", value=True,
+                                                 key="ind_use_score")
+                    _ind_dir = st.selectbox("Trigger when the score", list(ind_alerts.DIRECTIONS),
+                                            format_func=lambda k: ind_alerts.DIRECTIONS[k], key="ind_dir")
+                    _ind_thr = st.slider("Trend score level", 0, 100, 50, 5, key="ind_thr",
+                                         help="Fires when the 5-day score moves from 2+ points one side "
+                                              "of the level to 2+ points the other side.")
+                    _ind_notes = st.text_input("Notes", placeholder="Why I'm watching...", key="ind_notes")
+                    if st.form_submit_button("🔔 Create Industry Alert", use_container_width=True,
+                                             type="primary"):
+                        _mem = ([ind_alerts.normalize_ticker(t) for t in _ind_tk] if _ind_tk
+                                else ind_alerts.basket_members({"sub_industry": _ind_sub}))
+                        _rd = ind_alerts.basket_reading(df, _mem)
+                        if not _ind_name:
+                            st.error("Give the basket a name.")
+                        elif _rd is None:
+                            st.error(f"Fewer than {ind_alerts.MIN_VALID} of these stocks have data "
+                                     f"in the loaded universe — check the symbols.")
+                        else:
+                            _new = ind_alerts.add_industry_alert(
+                                _ind_name, sub_industry=_ind_sub, tickers=_ind_tk,
+                                on_status=_ind_status, notify=_ind_notify,
+                                score_threshold=float(_ind_thr) if _ind_use_score else None,
+                                direction=_ind_dir, notes=_ind_notes, df=df, background=True)
+                            _msg = (f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
+                                    f"{_rd['status']}, score {_rd['score']:.0f}")
+                            st.success(_msg + ". Syncing to GitHub in the background.")
+
+            with _ind_c1:
+                st.markdown("#### Active Industry Alerts")
+                _ind_all = ind_alerts.load_industry_alerts()
+                if not _ind_all:
+                    st.info("No industry alerts yet. Create one →")
+                for _a in _ind_all:
+                    _rd = ind_alerts.basket_reading(df, ind_alerts.basket_members(_a))
+                    _stat = _a.get("last_status") or (_rd or {}).get("status")
                     _c_info, _c_act = st.columns([6, 1])
                     with _c_info:
-                        _line = (f"**{_name}** · {_label} "
-                                 f"{DIRECTIONS[_a['direction']].lower()} "
-                                 f"**{_a['threshold']:+.1f}**")
-                        if _cur is None:
-                            _line += " · now :grey[no clean reading]"
-                        else:
-                            _col = "green" if (_dist or 0) >= 0 else "red"
-                            _line += (f" · now :{_col}[{_cur:+.1f}] "
-                                      f"({_dist:+.1f} away)")
-                        if not _a.get('repeat', True):
-                            _line += " · :grey[one-shot]"
+                        _line = f"**{_a['name']}** · {ind_alerts.ICONS.get(_stat, '')} {_stat}"
+                        if _a.get("pending_status"):
+                            _line += (f" · :orange[→ {_a['pending_status']} pending "
+                                      f"{_a.get('pending_days', 0)}/{ind_alerts.CONFIRM_DAYS}d]")
+                        if _rd:
+                            _line += (f" · score today **{_rd['score']:.0f}** "
+                                      f"({_rd['above_50']:.0f}% > 50d, {_rd['above_200']:.0f}% > 200d)")
                         st.write(_line)
-
-                        _sub = _a.get('state', '')
-                        if _a.get('trigger_count', 0):
-                            _when = (_a.get('last_triggered') or '')[:16].replace('T', ' ')
-                            _sub = (f"fired {_a['trigger_count']}× · last "
-                                    f"{_a.get('last_trigger_direction','')} on {_when}")
-                        st.caption(_sub + (f" · 📝 {_a['notes'][:60]}"
-                                           if _a.get('notes') else ""))
+                        _bits = []
+                        if _a.get("on_status", True):
+                            _bits.append("status: " + ("upgrades" if _a.get("notify") == "up" else "all changes"))
+                        if _a.get("score_threshold") is not None:
+                            _bits.append(f"score {ind_alerts.DIRECTIONS[_a.get('direction', 'above')].lower()} "
+                                         f"{_a['score_threshold']:.0f}")
+                        _hist = _a.get("history") or []
+                        if _hist:
+                            _h = _hist[-1]
+                            _bits.append(f"last change {_h['from']} → {_h['to']} on {_h['date']}")
+                        if _a.get("notes"):
+                            _bits.append(f"📝 {_a['notes'][:60]}")
+                        st.caption(" · ".join(_bits))
                     with _c_act:
-                        if st.button("🗑️", key=f"del_rs_{_a['id']}",
-                                     help="Delete this RS alert"):
-                            remove_rs_alert(_a['id'], _name)
-                            st.rerun()
-                        if (not _a.get('repeat', True)) and _a.get('trigger_count', 0):
-                            if st.button("↺", key=f"rearm_rs_{_a['id']}",
-                                         help="Re-arm this one-shot alert"):
-                                rearm_rs_alert(_a['id'])
-                                st.rerun()
-                    st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>",
-                                unsafe_allow_html=True)
+                        if st.button("🗑️", key=f"del_ind_{_a['id']}", help="Delete this industry alert"):
+                            ind_alerts.remove_industry_alert(_a["id"], _a.get("name", ""), background=True)
+                            _rerun_fragment()
+                    st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
 
-        # ============================================================
-        # INDUSTRY / BASKET STATUS ALERTS
-        # ============================================================
-        st.markdown("---")
-        st.markdown("### 🏭 Industry Alerts")
-        st.caption(
-            "Telegram after the close when an industry (or your own basket, e.g. Hotels) changes "
-            "status, or its trend score crosses your level. Status from member breadth: 🔴 DOWNTREND → "
-            "🟠 BASING → 🟡 TURNING UP → 🟢 UPTREND (🟣 WEAKENING = long trend intact, short-term lost). "
-            "Trend score 0-100 = 40% share above 50-day + 40% share above 200-day + 20% median RS; "
-            "< 30 downtrend, 30-50 basing, 50-70 improving, > 70 strong. Readings are 5-day averages and a "
-            "new status must hold 3 days. Tested 2021-26: an early TURNING UP was not a buy on its own; "
-            "UPTREND was the better-evidenced step — treat these as a watch tool.")
-        _alert_sync_banner(ind_alerts.storage_status(), ind_alerts.sync_industry_alerts, "ind")
-
-        _ind_c1, _ind_c2 = st.columns([2, 1])
-        with _ind_c2:
-            st.markdown("#### ➕ New Industry Alert")
-            _ind_kind = st.radio("Watch", ["Preset basket", "Sub-industry", "Custom tickers"],
-                                 horizontal=True, key="ind_kind")
-            with st.form("new_ind_alert_form", clear_on_submit=False):
-                _ind_sub, _ind_tk, _ind_name = None, None, ""
-                if _ind_kind == "Preset basket":
-                    _ind_name = st.selectbox("Basket", list(ind_alerts.PRESET_BASKETS), key="ind_preset")
-                    _ind_tk = ind_alerts.PRESET_BASKETS[_ind_name]
-                    st.caption(", ".join(_ind_tk))
-                elif _ind_kind == "Sub-industry":
-                    from utils.nifty1000_list import SUB_INDUSTRY_MAP as _SIM
-                    _ind_sub = st.selectbox("Sub-industry", sorted({g for g in _SIM.values()
-                                                                     if g and g != "Unknown"}),
-                                            key="ind_sub")
-                    _ind_name = _ind_sub
-                else:
-                    _ind_name = st.text_input("Basket name", placeholder="Hotels", key="ind_name")
-                    _ind_raw = st.text_area("Tickers (comma or space separated)",
-                                            placeholder="INDHOTEL, CHALET, LEMONTREE", key="ind_tickers")
-                    _ind_tk = [t for t in _ind_raw.replace(",", " ").split() if t]
-                _ind_status = st.checkbox("Alert on status changes", value=True, key="ind_on_status")
-                _ind_notify = st.selectbox("Which changes", list(ind_alerts.NOTIFY),
-                                           format_func=lambda k: ind_alerts.NOTIFY[k], key="ind_notify")
-                _ind_use_score = st.checkbox("Also alert on a trend-score level", value=True,
-                                             key="ind_use_score")
-                _ind_dir = st.selectbox("Trigger when the score", list(ind_alerts.DIRECTIONS),
-                                        format_func=lambda k: ind_alerts.DIRECTIONS[k], key="ind_dir")
-                _ind_thr = st.slider("Trend score level", 0, 100, 50, 5, key="ind_thr",
-                                     help="Fires when the 5-day score moves from 2+ points one side "
-                                          "of the level to 2+ points the other side.")
-                _ind_notes = st.text_input("Notes", placeholder="Why I'm watching...", key="ind_notes")
-                if st.form_submit_button("🔔 Create Industry Alert", use_container_width=True,
-                                         type="primary"):
-                    _mem = ([ind_alerts.normalize_ticker(t) for t in _ind_tk] if _ind_tk
-                            else ind_alerts.basket_members({"sub_industry": _ind_sub}))
-                    _rd = ind_alerts.basket_reading(df, _mem)
-                    if not _ind_name:
-                        st.error("Give the basket a name.")
-                    elif _rd is None:
-                        st.error(f"Fewer than {ind_alerts.MIN_VALID} of these stocks have data "
-                                 f"in the loaded universe — check the symbols.")
+                with st.expander("All sub-industries — status and trend score today"):
+                    _ov = ind_alerts.all_sub_industry_readings(df)
+                    if _ov.empty:
+                        st.caption("No data.")
                     else:
-                        _new = ind_alerts.add_industry_alert(
-                            _ind_name, sub_industry=_ind_sub, tickers=_ind_tk,
-                            on_status=_ind_status, notify=_ind_notify,
-                            score_threshold=float(_ind_thr) if _ind_use_score else None,
-                            direction=_ind_dir, notes=_ind_notes, df=df)
-                        _msg = (f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
-                                f"{_rd['status']}, score {_rd['score']:.0f}")
-                        if _new.get("synced"):
-                            st.success(_msg + ". Saved to GitHub.")
-                        else:
-                            st.warning(_msg + ". **Not on GitHub yet**: kept on this device and retried on every load.")
+                        _ov["status"] = _ov["status"].map(lambda x: f"{ind_alerts.ICONS.get(x, '')} {x}")
+                        st.dataframe(
+                            _ov.sort_values("score", ascending=False)[
+                                ["industry", "status", "score", "above_50", "above_200", "med_rs", "n_valid"]],
+                            hide_index=True, use_container_width=True,
+                            column_config={"score": st.column_config.ProgressColumn(
+                                               "Trend score", min_value=0, max_value=100, format="%.0f"),
+                                           "above_50": st.column_config.NumberColumn("% > 50d", format="%.0f"),
+                                           "above_200": st.column_config.NumberColumn("% > 200d", format="%.0f"),
+                                           "med_rs": st.column_config.NumberColumn("Median RS", format="%+.1f"),
+                                           "n_valid": "Stocks"})
+                        st.caption("Today's single-day reading; alerts use the 5-day average.")
 
-        with _ind_c1:
-            st.markdown("#### Active Industry Alerts")
-            _ind_all = ind_alerts.load_industry_alerts()
-            if not _ind_all:
-                st.info("No industry alerts yet. Create one →")
-            for _a in _ind_all:
-                _rd = ind_alerts.basket_reading(df, ind_alerts.basket_members(_a))
-                _stat = _a.get("last_status") or (_rd or {}).get("status")
-                _c_info, _c_act = st.columns([6, 1])
-                with _c_info:
-                    _line = f"**{_a['name']}** · {ind_alerts.ICONS.get(_stat, '')} {_stat}"
-                    if _a.get("pending_status"):
-                        _line += (f" · :orange[→ {_a['pending_status']} pending "
-                                  f"{_a.get('pending_days', 0)}/{ind_alerts.CONFIRM_DAYS}d]")
-                    if _rd:
-                        _line += (f" · score today **{_rd['score']:.0f}** "
-                                  f"({_rd['above_50']:.0f}% > 50d, {_rd['above_200']:.0f}% > 200d)")
-                    st.write(_line)
-                    _bits = []
-                    if _a.get("on_status", True):
-                        _bits.append("status: " + ("upgrades" if _a.get("notify") == "up" else "all changes"))
-                    if _a.get("score_threshold") is not None:
-                        _bits.append(f"score {ind_alerts.DIRECTIONS[_a.get('direction', 'above')].lower()} "
-                                     f"{_a['score_threshold']:.0f}")
-                    _hist = _a.get("history") or []
-                    if _hist:
-                        _h = _hist[-1]
-                        _bits.append(f"last change {_h['from']} → {_h['to']} on {_h['date']}")
-                    if _a.get("notes"):
-                        _bits.append(f"📝 {_a['notes'][:60]}")
-                    st.caption(" · ".join(_bits))
-                with _c_act:
-                    if st.button("🗑️", key=f"del_ind_{_a['id']}", help="Delete this industry alert"):
-                        ind_alerts.remove_industry_alert(_a["id"], _a.get("name", ""))
-                        st.rerun()
-                st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
-
-            with st.expander("All sub-industries — status and trend score today"):
-                _ov = ind_alerts.all_sub_industry_readings(df)
-                if _ov.empty:
-                    st.caption("No data.")
-                else:
-                    _ov["status"] = _ov["status"].map(lambda x: f"{ind_alerts.ICONS.get(x, '')} {x}")
-                    st.dataframe(
-                        _ov.sort_values("score", ascending=False)[
-                            ["industry", "status", "score", "above_50", "above_200", "med_rs", "n_valid"]],
-                        hide_index=True, use_container_width=True,
-                        column_config={"score": st.column_config.ProgressColumn(
-                                           "Trend score", min_value=0, max_value=100, format="%.0f"),
-                                       "above_50": st.column_config.NumberColumn("% > 50d", format="%.0f"),
-                                       "above_200": st.column_config.NumberColumn("% > 200d", format="%.0f"),
-                                       "med_rs": st.column_config.NumberColumn("Median RS", format="%+.1f"),
-                                       "n_valid": "Stocks"})
-                    st.caption("Today's single-day reading; alerts use the 5-day average.")
+        _watchlist_tab()
 
     # ========================================
     # TAB 3: ADD NEW POSITION

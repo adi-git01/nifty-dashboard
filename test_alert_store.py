@@ -77,7 +77,7 @@ def gh(tmp_path, monkeypatch):
     monkeypatch.setattr(repo_store.requests, "get", fake.get)
     monkeypatch.setattr(repo_store.requests, "put", fake.put)
     monkeypatch.setattr(repo_store.time, "sleep", lambda s: None)
-    repo_store._cache.clear(); repo_store._last.clear(); repo_store._perm.clear()
+    repo_store._cache.clear(); repo_store._last.clear(); repo_store._perm.clear(); repo_store._CFG.clear()
     (tmp_path / "data").mkdir()
     fake.seed("data/rs_alerts.json", [])
     return fake
@@ -112,7 +112,8 @@ def test_read_only_token_keeps_alerts_and_says_so(gh):
     assert stt["can_write"] is False and stt["pending"] == 2 and "403" in stt["error"]
     gh.can_push = True                        # token fixed: the outbox drains on load
     repo_store._perm.clear()
-    rs.load_rs_alerts()
+    rs.load_rs_alerts()                       # schedules a background sync
+    rs.STORE.flush()                          # (or wait FLUSH_DELAY for the timer)
     assert len(gh.data("data/rs_alerts.json")) == 2 and rs.storage_status()["pending"] == 0
 
 
@@ -185,6 +186,7 @@ def test_duplicate_alert_is_not_added(gh):
 def test_local_only_survives_tracked_file_reset(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    repo_store._CFG.clear()
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "rs_alerts.json").write_text("[]")
@@ -205,3 +207,43 @@ def test_industry_alerts_use_the_same_store(gh):
     assert [a["name"] for a in gh.data("data/industry_alerts.json")] == ["Hotels", "Cement"]
     ia.remove_industry_alert("h", "Hotels")
     assert [a["name"] for a in gh.data("data/industry_alerts.json")] == ["Cement"]
+
+
+def _wait(store, timeout=5.0):
+    import time
+    end = time.time() + timeout
+    while time.time() < end and (store.pending() or store.flushing):
+        time.sleep(0.02)
+
+
+def test_background_entries_return_at_once_and_batch_into_one_commit(gh, monkeypatch):
+    import time
+    rs = _rs()
+    monkeypatch.setattr(alert_store, "FLUSH_DELAY", 0.3)
+    orig_put = gh.put
+    gh.put = lambda *a, **k: (time.sleep(0.5), orig_put(*a, **k))[1]   # slow GitHub
+    monkeypatch.setattr(repo_store.requests, "put", gh.put)
+    n, t0 = gh.puts, time.time()
+    for tk in ("AAA", "BBB", "CCC"):
+        rs.add_rs_alert(tk, 20, background=True)
+    assert time.time() - t0 < 0.3                       # nobody waited on GitHub
+    assert [a["ticker"] for a in rs.load_rs_alerts()] == ["AAA.NS", "BBB.NS", "CCC.NS"]  # visible at once
+    _wait(rs.STORE)
+    assert gh.puts == n + 1                             # three entries, one commit
+    assert len(gh.data("data/rs_alerts.json")) == 3 and rs.STORE.pending() == 0
+
+
+def test_entry_made_while_a_sync_is_in_flight_is_not_lost(gh, monkeypatch):
+    import time
+    rs = _rs()
+    monkeypatch.setattr(alert_store, "FLUSH_DELAY", 0.05)
+    orig_put = gh.put
+    gh.put = lambda *a, **k: (time.sleep(0.4), orig_put(*a, **k))[1]
+    monkeypatch.setattr(repo_store.requests, "put", gh.put)
+    rs.add_rs_alert("AAA", 20, background=True)
+    time.sleep(0.15)                                    # first sync is now mid-request
+    t0 = time.time()
+    rs.add_rs_alert("BBB", 20, background=True)
+    assert time.time() - t0 < 0.2                       # lock is not held across the network call
+    _wait(rs.STORE)
+    assert {a["ticker"] for a in gh.data("data/rs_alerts.json")} == {"AAA.NS", "BBB.NS"}

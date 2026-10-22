@@ -173,7 +173,8 @@ def sync_industry_alerts() -> bool:
 def add_industry_alert(name: str, sub_industry: Optional[str] = None,
                        tickers: Optional[List[str]] = None, on_status: bool = True,
                        score_threshold: Optional[float] = None, direction: str = "above",
-                       notify: str = "all", notes: str = "", df=None) -> Dict[str, Any]:
+                       notify: str = "all", notes: str = "", df=None,
+                       background: bool = False) -> Dict[str, Any]:
     if direction not in DIRECTIONS:
         raise ValueError(f"direction must be one of {list(DIRECTIONS)}")
     if not sub_industry and not tickers:
@@ -198,12 +199,12 @@ def add_industry_alert(name: str, sub_industry: Optional[str] = None,
         thr = alert["score_threshold"]
         alert.update(last_status=r["status"], last_score=r["score"],
                      score_side=None if thr is None else ("above" if r["score"] >= thr else "below"))
-    synced = STORE.commit({"adds": [alert]}, f"add {name}")
+    synced = STORE.commit({"adds": [alert]}, f"add {name}", background=background)
     return {**alert, "synced": synced}
 
 
-def remove_industry_alert(alert_id: str, label: str = "") -> bool:
-    return STORE.commit({"removes": [alert_id]}, f"remove {label or alert_id}")
+def remove_industry_alert(alert_id: str, label: str = "", background: bool = False) -> bool:
+    return STORE.commit({"removes": [alert_id]}, f"remove {label or alert_id}", background=background)
 
 
 # --------------------------------------------------------------------------
