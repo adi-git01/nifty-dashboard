@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import os
+import weakref
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -264,13 +265,24 @@ _GROUPS: dict = {}
 
 
 def _series(df, ticker, fld):
-    """One (ticker, field) series, from a per-frame index built once (the frames are large)."""
+    """
+    One (ticker, field) series, from a per-frame index built once (the frames are large).
+
+    The index is keyed by id(df), and ids are reused once a frame is freed. When the dashboard's
+    cached context expired or the data files changed, a new frame could land on an old frame's id
+    and be served that frame's series -- e.g. annual March-2025 profit read as the "latest quarter",
+    so valuation reported "stale" until a fresh fetch. A weak reference now proves the cached index
+    belongs to this very frame.
+    """
     key = id(df)
-    if key not in _GROUPS:
-        _GROUPS.clear() if len(_GROUPS) > 8 else None
-        _GROUPS[key] = {k: g.set_index("period")["value"].sort_index()
-                        for k, g in df.groupby(["ticker", "field"])} if not df.empty else {}
-    s = _GROUPS[key].get((ticker, fld), pd.Series(dtype=float, index=pd.DatetimeIndex([])))
+    hit = _GROUPS.get(key)
+    if hit is None or hit[0]() is not df:
+        if len(_GROUPS) > 8:
+            _GROUPS.clear()
+        groups = {k: g.set_index("period")["value"].sort_index()
+                  for k, g in df.groupby(["ticker", "field"])} if not df.empty else {}
+        hit = _GROUPS[key] = (weakref.ref(df), groups)
+    s = hit[1].get((ticker, fld), pd.Series(dtype=float, index=pd.DatetimeIndex([])))
     return s[~s.index.duplicated(keep="last")]
 
 

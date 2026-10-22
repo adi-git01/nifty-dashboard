@@ -1,0 +1,149 @@
+[universe] 5907 US common-stock symbols from the NASDAQ / NYSE directories
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 400/5907 requested, 356 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 800/5907 requested, 728 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 1200/5907 requested, 1095 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 1600/5907 requested, 1475 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 2000/5907 requested, 1846 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 2400/5907 requested, 2216 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 2800/5907 requested, 2587 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 3200/5907 requested, 2956 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 3600/5907 requested, 3326 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 4000/5907 requested, 3698 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 4400/5907 requested, 4064 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 4800/5907 requested, 4432 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 5200/5907 requested, 4810 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (400/400 tickers)
+[data] 5600/5907 requested, 5185 usable
+[yf_safe] bulk download attempt 1/3: 100% coverage (306/307 tickers)
+[data] 5907/5907 requested, 5465 usable
+[data] 5465 tickers, 3115 sessions 2014-06-02 -> 2026-10-19
+[universe] 2044 names were ever in the point-in-time top 1000
+[universe] point-in-time top 1000 by dollar volume; median names with a CompRS 998
+   window 1y done
+   window 3y done
+   window 5y done
+   window 10y done
+   stagger 2016-10-21 done
+   stagger 2016-09-29 done
+   stagger 2016-09-07 done
+   stagger 2016-08-15 done
+   stagger 2016-07-22 done
+   stagger 2016-06-29 done
+   stagger 2016-06-07 done
+   stagger 2016-05-13 done
+   period 2016-10-21 -> 2019-12-31 done
+   period 2020-01-02 -> 2022-12-30 done
+   period 2023-01-03 -> 2026-10-19 done
+
+========================================================================================================================
+LAST 1/3/5/10 YEARS (nested -- not independent)
+========================================================================================================================
+
+cagr_pct:
+period                    1y     3y     5y    10y
+variant                                          
+US BASE (6m RS)         5.75   3.40  -1.57  15.38
+US BASE, India costs    3.69   1.43  -3.34  13.40
+US no RS floor         -7.50   3.42  -1.30  12.71
+US 12m RS               7.97   8.82   1.81   9.14
+US top 500             18.92  14.68   6.01  18.46
+SPY buy & hold         15.47  23.59  12.63  15.43
+equal-weight top 1000   7.81  19.73   6.98  13.01
+
+sharpe:
+period                   1y    3y    5y   10y
+variant                                      
+US BASE (6m RS)        0.34  0.26  0.05  0.66
+US BASE, India costs   0.27  0.18 -0.03  0.59
+US no RS floor        -0.12  0.26  0.06  0.58
+US 12m RS              0.41  0.45  0.20  0.50
+US top 500             0.72  0.66  0.37  0.75
+SPY buy & hold         1.20  1.48  0.78  0.89
+equal-weight top 1000  0.56  1.13  0.44  0.69
+
+max_drawdown_pct:
+period                   1y    3y    5y   10y
+variant                                      
+US BASE (6m RS)       -19.4 -30.4 -37.3 -43.4
+US BASE, India costs  -19.9 -33.1 -38.9 -45.8
+US no RS floor        -22.8 -29.0 -39.0 -45.6
+US 12m RS             -21.8 -26.8 -43.0 -49.8
+US top 500            -22.5 -25.7 -32.4 -33.4
+SPY buy & hold         -8.9 -18.8 -24.5 -33.7
+equal-weight top 1000  -9.6 -20.9 -29.7 -40.9
+
+10-year trades:
+                      trades  win_pct  avg_pnl_pct     top_exit
+variant                                                        
+US 12m RS               1138       35          2.2  Trend Break
+US BASE (6m RS)         1143       37          2.8  Trend Break
+US BASE, India costs    1143       37          2.8  Trend Break
+US no RS floor          1252       33          2.3  Trend Break
+US top 500              1005       37          3.3  Trend Break
+
+========================================================================================================================
+8 STAGGERED 10-YEAR STARTS
+========================================================================================================================
+              variant beats_SPY beats_best_random  median_sharpe  median_cagr  median_maxdd
+      US BASE (6m RS)       0/8               3/8           0.64        14.66        -49.95
+ US BASE, India costs       0/8               1/8           0.57        12.68        -52.10
+       US no RS floor       0/8               5/8           0.70        15.86        -42.00
+            US 12m RS       0/8               0/8           0.58        11.76        -51.55
+           US top 500       1/8               7/8           0.77        18.23        -35.65
+       SPY buy & hold         -                 -           0.89        15.40        -33.70
+equal-weight top 1000         -                 -           0.70        13.27        -40.90
+
+CAGR % by start/period:
+variant           US BASE (6m RS)  US BASE, India costs  US no RS floor  US 12m RS  US top 500  SPY buy & hold  equal-weight top 1000
+period                                                                                                                               
+start 2016-05-13             12.1                  10.2            15.7       13.4        18.0            15.6                   13.9
+start 2016-06-07             18.5                  16.5            17.4       10.5        12.0            15.5                   13.6
+start 2016-06-29             18.8                  16.8            18.5       14.5        21.6            15.4                   13.9
+start 2016-07-22             13.9                  12.0            14.8        8.7        19.2            14.9                   13.0
+start 2016-08-15             12.2                  10.3            16.0       11.7        17.5            15.3                   13.4
+start 2016-09-07             12.1                  10.3            13.2       11.8        14.6            15.2                   13.1
+start 2016-09-29             15.9                  13.9            16.4       12.2        22.6            15.5                   13.1
+start 2016-10-21             15.4                  13.4            12.7        9.1        18.5            15.4                   13.0
+
+========================================================================================================================
+3 SEPARATE PERIODS
+========================================================================================================================
+              variant beats_SPY beats_best_random  median_sharpe  median_cagr  median_maxdd
+      US BASE (6m RS)       1/3               1/3           0.99        24.41         -23.7
+ US BASE, India costs       1/3               1/3           0.92        22.18         -24.4
+       US no RS floor       1/3               1/3           1.03        26.87         -21.7
+            US 12m RS       1/3               1/3           0.70        16.35         -21.7
+           US top 500       1/3               1/3           1.06        26.29         -23.1
+       SPY buy & hold         -                 -           1.24        15.90         -19.3
+equal-weight top 1000         -                 -           0.96        14.99         -22.2
+
+CAGR % by start/period:
+variant                   US BASE (6m RS)  US BASE, India costs  US no RS floor  US 12m RS  US top 500  SPY buy & hold  equal-weight top 1000
+period                                                                                                                                       
+2016-10-21 -> 2019-12-31              6.4                   4.9             1.0        2.2         4.6            15.9                   15.0
+2020-01-02 -> 2022-12-30             42.0                  39.4            39.8       16.4        55.7             7.3                    7.1
+2023-01-03 -> 2026-10-19             24.4                  22.2            26.9       23.5        26.3            21.8                   16.2
+
+========================================================================================================================
+PRE-REGISTERED: Sharpe beats SPY at >= 6/8 starts AND >= 2/3 periods AND beats the best random seed at >= 6/8 starts
+========================================================================================================================
+  FAIL  US BASE (6m RS): beats SPY 0/8 starts, 1/3 periods; beats best random 3/8 starts
+  FAIL  US BASE, India costs: beats SPY 0/8 starts, 1/3 periods; beats best random 1/8 starts
+  FAIL  US no RS floor: beats SPY 0/8 starts, 1/3 periods; beats best random 5/8 starts
+  FAIL  US 12m RS: beats SPY 0/8 starts, 1/3 periods; beats best random 0/8 starts
+  FAIL  US top 500: beats SPY 1/8 starts, 1/3 periods; beats best random 7/8 starts
+
+saved -> analysis/us_engine_backtest.csv

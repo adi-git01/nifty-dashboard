@@ -1,0 +1,194 @@
+cagr_pct,sharpe,max_drawdown_pct,variant,test,period,trades,avg_holdings
+5.75,0.34,-19.4,US BASE (6m RS),window,1y,138.0,9.8
+3.69,0.27,-19.9,"US BASE, India costs",window,1y,138.0,9.8
+-7.5,-0.12,-22.8,US no RS floor,window,1y,154.0,9.1
+7.97,0.41,-21.8,US 12m RS,window,1y,138.0,9.6
+18.92,0.72,-22.5,US top 500,window,1y,127.0,10.2
+15.47,1.2,-8.9,SPY buy & hold,window,1y,,
+7.81,0.56,-9.6,equal-weight top 1000,window,1y,,
+3.4,0.26,-30.4,US BASE (6m RS),window,3y,387.0,10.4
+1.43,0.18,-33.1,"US BASE, India costs",window,3y,387.0,10.4
+3.42,0.26,-29.0,US no RS floor,window,3y,419.0,10.1
+8.82,0.45,-26.8,US 12m RS,window,3y,384.0,10.6
+14.68,0.66,-25.7,US top 500,window,3y,350.0,10.8
+23.59,1.48,-18.8,SPY buy & hold,window,3y,,
+19.73,1.13,-20.9,equal-weight top 1000,window,3y,,
+-1.57,0.05,-37.3,US BASE (6m RS),window,5y,610.0,10.2
+-3.34,-0.03,-38.9,"US BASE, India costs",window,5y,610.0,10.2
+-1.3,0.06,-39.0,US no RS floor,window,5y,652.0,9.7
+1.81,0.2,-43.0,US 12m RS,window,5y,602.0,10.3
+6.01,0.37,-32.4,US top 500,window,5y,552.0,10.3
+12.63,0.78,-24.5,SPY buy & hold,window,5y,,
+6.98,0.44,-29.7,equal-weight top 1000,window,5y,,
+15.38,0.66,-43.4,US BASE (6m RS),window,10y,1143.0,10.7
+13.4,0.59,-45.8,"US BASE, India costs",window,10y,1143.0,10.7
+12.71,0.58,-45.6,US no RS floor,window,10y,1252.0,10.2
+9.14,0.5,-49.8,US 12m RS,window,10y,1138.0,10.7
+18.46,0.75,-33.4,US top 500,window,10y,1005.0,10.7
+15.43,0.89,-33.7,SPY buy & hold,window,10y,,
+13.01,0.69,-40.9,equal-weight top 1000,window,10y,,
+15.38,0.66,-43.4,US BASE (6m RS),stagger,start 2016-10-21,1143.0,10.7
+13.4,0.59,-45.8,"US BASE, India costs",stagger,start 2016-10-21,1143.0,10.7
+12.71,0.58,-45.6,US no RS floor,stagger,start 2016-10-21,1252.0,10.2
+9.14,0.5,-49.8,US 12m RS,stagger,start 2016-10-21,1138.0,10.7
+18.46,0.75,-33.4,US top 500,stagger,start 2016-10-21,1005.0,10.7
+5.3,0.39,-30.9,RANDOM 0,stagger,start 2016-10-21,946.0,11.3
+11.05,0.63,-42.8,RANDOM 1,stagger,start 2016-10-21,950.0,11.2
+6.33,0.44,-33.7,RANDOM 2,stagger,start 2016-10-21,966.0,11.3
+4.98,0.36,-37.7,RANDOM 3,stagger,start 2016-10-21,988.0,11.2
+8.45,0.52,-44.6,RANDOM 4,stagger,start 2016-10-21,957.0,11.3
+7.56,0.5,-36.9,RANDOM 5,stagger,start 2016-10-21,958.0,11.2
+7.56,0.51,-34.4,RANDOM 6,stagger,start 2016-10-21,957.0,11.2
+8.35,0.53,-34.7,RANDOM 7,stagger,start 2016-10-21,969.0,11.3
+15.43,0.89,-33.7,SPY buy & hold,stagger,start 2016-10-21,,
+13.01,0.69,-40.9,equal-weight top 1000,stagger,start 2016-10-21,,
+15.94,0.66,-48.2,US BASE (6m RS),stagger,start 2016-09-29,1144.0,10.8
+13.93,0.6,-50.4,"US BASE, India costs",stagger,start 2016-09-29,1144.0,10.8
+16.45,0.67,-48.6,US no RS floor,stagger,start 2016-09-29,1248.0,10.4
+12.25,0.61,-50.9,US 12m RS,stagger,start 2016-09-29,1138.0,10.9
+22.65,0.88,-32.5,US top 500,stagger,start 2016-09-29,998.0,10.8
+7.56,0.5,-36.9,RANDOM 0,stagger,start 2016-09-29,950.0,11.5
+11.52,0.69,-30.4,RANDOM 1,stagger,start 2016-09-29,958.0,11.5
+7.45,0.5,-32.6,RANDOM 2,stagger,start 2016-09-29,960.0,11.5
+4.68,0.35,-34.7,RANDOM 3,stagger,start 2016-09-29,991.0,11.4
+9.67,0.6,-32.9,RANDOM 4,stagger,start 2016-09-29,951.0,11.5
+7.25,0.48,-34.7,RANDOM 5,stagger,start 2016-09-29,971.0,11.5
+6.22,0.43,-39.1,RANDOM 6,stagger,start 2016-09-29,951.0,11.5
+8.13,0.51,-34.9,RANDOM 7,stagger,start 2016-09-29,970.0,11.5
+15.47,0.89,-33.7,SPY buy & hold,stagger,start 2016-09-29,,
+13.06,0.69,-40.9,equal-weight top 1000,stagger,start 2016-09-29,,
+12.12,0.59,-51.7,US BASE (6m RS),stagger,start 2016-09-07,1140.0,10.6
+10.28,0.52,-53.8,"US BASE, India costs",stagger,start 2016-09-07,1140.0,10.6
+13.18,0.62,-43.8,US no RS floor,stagger,start 2016-09-07,1238.0,10.2
+11.79,0.58,-59.8,US 12m RS,stagger,start 2016-09-07,1116.0,10.7
+14.57,0.69,-42.5,US top 500,stagger,start 2016-09-07,1010.0,10.7
+8.81,0.57,-40.5,RANDOM 0,stagger,start 2016-09-07,925.0,11.4
+10.83,0.66,-35.5,RANDOM 1,stagger,start 2016-09-07,952.0,11.3
+13.08,0.77,-22.5,RANDOM 2,stagger,start 2016-09-07,944.0,11.4
+8.77,0.57,-29.2,RANDOM 3,stagger,start 2016-09-07,951.0,11.4
+8.53,0.55,-31.4,RANDOM 4,stagger,start 2016-09-07,942.0,11.4
+5.39,0.39,-34.8,RANDOM 5,stagger,start 2016-09-07,941.0,11.3
+5.78,0.42,-30.3,RANDOM 6,stagger,start 2016-09-07,976.0,11.3
+9.11,0.59,-31.3,RANDOM 7,stagger,start 2016-09-07,935.0,11.4
+15.18,0.88,-33.7,SPY buy & hold,stagger,start 2016-09-07,,
+13.13,0.69,-40.9,equal-weight top 1000,stagger,start 2016-09-07,,
+12.15,0.61,-52.5,US BASE (6m RS),stagger,start 2016-08-15,1116.0,10.2
+10.28,0.54,-54.3,"US BASE, India costs",stagger,start 2016-08-15,1116.0,10.2
+16.03,0.76,-39.5,US no RS floor,stagger,start 2016-08-15,1190.0,9.9
+11.73,0.58,-52.3,US 12m RS,stagger,start 2016-08-15,1085.0,10.3
+17.49,0.78,-45.8,US top 500,stagger,start 2016-08-15,971.0,10.2
+6.75,0.48,-31.5,RANDOM 0,stagger,start 2016-08-15,899.0,10.7
+5.85,0.42,-45.0,RANDOM 1,stagger,start 2016-08-15,921.0,10.8
+6.2,0.44,-47.4,RANDOM 2,stagger,start 2016-08-15,913.0,10.9
+7.09,0.48,-39.5,RANDOM 3,stagger,start 2016-08-15,928.0,10.7
+6.68,0.46,-39.9,RANDOM 4,stagger,start 2016-08-15,933.0,10.8
+7.04,0.48,-35.6,RANDOM 5,stagger,start 2016-08-15,912.0,10.8
+12.01,0.74,-33.9,RANDOM 6,stagger,start 2016-08-15,885.0,10.8
+7.42,0.5,-32.0,RANDOM 7,stagger,start 2016-08-15,924.0,10.8
+15.26,0.88,-33.7,SPY buy & hold,stagger,start 2016-08-15,,
+13.41,0.7,-40.9,equal-weight top 1000,stagger,start 2016-08-15,,
+13.94,0.6,-41.5,US BASE (6m RS),stagger,start 2016-07-22,1158.0,10.8
+11.96,0.54,-44.1,"US BASE, India costs",stagger,start 2016-07-22,1158.0,10.8
+14.76,0.63,-40.2,US no RS floor,stagger,start 2016-07-22,1243.0,10.4
+8.72,0.48,-43.3,US 12m RS,stagger,start 2016-07-22,1154.0,10.8
+19.2,0.76,-33.3,US top 500,stagger,start 2016-07-22,1015.0,10.7
+6.64,0.46,-37.2,RANDOM 0,stagger,start 2016-07-22,965.0,11.4
+7.88,0.51,-36.6,RANDOM 1,stagger,start 2016-07-22,970.0,11.3
+8.39,0.55,-30.4,RANDOM 2,stagger,start 2016-07-22,963.0,11.4
+5.42,0.38,-40.8,RANDOM 3,stagger,start 2016-07-22,990.0,11.3
+8.89,0.57,-34.7,RANDOM 4,stagger,start 2016-07-22,962.0,11.4
+5.21,0.38,-36.0,RANDOM 5,stagger,start 2016-07-22,969.0,11.3
+8.9,0.58,-33.4,RANDOM 6,stagger,start 2016-07-22,962.0,11.4
+9.83,0.61,-37.6,RANDOM 7,stagger,start 2016-07-22,952.0,11.5
+14.91,0.87,-33.7,SPY buy & hold,stagger,start 2016-07-22,,
+13.04,0.69,-40.9,equal-weight top 1000,stagger,start 2016-07-22,,
+18.84,0.8,-30.7,US BASE (6m RS),stagger,start 2016-06-29,1132.0,11.0
+16.81,0.73,-31.8,"US BASE, India costs",stagger,start 2016-06-29,1132.0,11.0
+18.47,0.78,-33.3,US no RS floor,stagger,start 2016-06-29,1231.0,10.5
+14.46,0.7,-38.4,US 12m RS,stagger,start 2016-06-29,1128.0,11.1
+21.55,0.9,-30.9,US top 500,stagger,start 2016-06-29,986.0,10.7
+5.79,0.41,-38.2,RANDOM 0,stagger,start 2016-06-29,951.0,11.5
+12.87,0.75,-27.3,RANDOM 1,stagger,start 2016-06-29,955.0,11.5
+8.28,0.55,-39.6,RANDOM 2,stagger,start 2016-06-29,967.0,11.5
+10.82,0.65,-32.8,RANDOM 3,stagger,start 2016-06-29,988.0,11.5
+11.65,0.7,-33.1,RANDOM 4,stagger,start 2016-06-29,961.0,11.6
+6.83,0.46,-32.6,RANDOM 5,stagger,start 2016-06-29,975.0,11.4
+6.83,0.47,-34.6,RANDOM 6,stagger,start 2016-06-29,965.0,11.5
+11.78,0.71,-29.0,RANDOM 7,stagger,start 2016-06-29,957.0,11.5
+15.37,0.89,-33.7,SPY buy & hold,stagger,start 2016-06-29,,
+13.88,0.72,-40.9,equal-weight top 1000,stagger,start 2016-06-29,,
+18.48,0.77,-52.7,US BASE (6m RS),stagger,start 2016-06-07,1117.0,10.6
+16.46,0.7,-54.7,"US BASE, India costs",stagger,start 2016-06-07,1117.0,10.6
+17.44,0.72,-51.5,US no RS floor,stagger,start 2016-06-07,1209.0,10.2
+10.5,0.56,-53.1,US 12m RS,stagger,start 2016-06-07,1086.0,10.7
+12.04,0.64,-37.9,US top 500,stagger,start 2016-06-07,988.0,10.6
+5.51,0.4,-41.1,RANDOM 0,stagger,start 2016-06-07,944.0,11.2
+10.16,0.63,-34.0,RANDOM 1,stagger,start 2016-06-07,949.0,11.2
+9.56,0.61,-24.6,RANDOM 2,stagger,start 2016-06-07,930.0,11.3
+9.67,0.61,-34.0,RANDOM 3,stagger,start 2016-06-07,971.0,11.2
+9.91,0.62,-37.6,RANDOM 4,stagger,start 2016-06-07,940.0,11.2
+6.71,0.46,-35.4,RANDOM 5,stagger,start 2016-06-07,939.0,11.2
+7.12,0.47,-35.3,RANDOM 6,stagger,start 2016-06-07,929.0,11.3
+9.78,0.62,-37.7,RANDOM 7,stagger,start 2016-06-07,939.0,11.3
+15.52,0.9,-33.7,SPY buy & hold,stagger,start 2016-06-07,,
+13.64,0.71,-40.9,equal-weight top 1000,stagger,start 2016-06-07,,
+12.07,0.62,-52.5,US BASE (6m RS),stagger,start 2016-05-13,1105.0,10.3
+10.21,0.55,-54.3,"US BASE, India costs",stagger,start 2016-05-13,1105.0,10.3
+15.68,0.76,-39.5,US no RS floor,stagger,start 2016-05-13,1188.0,10.0
+13.44,0.65,-52.2,US 12m RS,stagger,start 2016-05-13,1081.0,10.4
+17.99,0.81,-45.8,US top 500,stagger,start 2016-05-13,970.0,10.4
+6.49,0.46,-31.5,RANDOM 0,stagger,start 2016-05-13,905.0,10.9
+6.13,0.43,-45.0,RANDOM 1,stagger,start 2016-05-13,925.0,10.9
+3.35,0.28,-47.4,RANDOM 2,stagger,start 2016-05-13,929.0,10.9
+9.45,0.6,-39.6,RANDOM 3,stagger,start 2016-05-13,916.0,10.9
+6.93,0.48,-39.9,RANDOM 4,stagger,start 2016-05-13,937.0,10.9
+5.99,0.44,-35.7,RANDOM 5,stagger,start 2016-05-13,921.0,10.9
+11.65,0.74,-33.8,RANDOM 6,stagger,start 2016-05-13,911.0,10.9
+11.81,0.72,-32.0,RANDOM 7,stagger,start 2016-05-13,905.0,11.0
+15.57,0.9,-33.7,SPY buy & hold,stagger,start 2016-05-13,,
+13.89,0.72,-40.9,equal-weight top 1000,stagger,start 2016-05-13,,
+6.45,0.44,-19.7,US BASE (6m RS),period,2016-10-21 -> 2019-12-31,305.0,12.0
+4.88,0.36,-20.1,"US BASE, India costs",period,2016-10-21 -> 2019-12-31,305.0,12.0
+0.96,0.14,-21.0,US no RS floor,period,2016-10-21 -> 2019-12-31,365.0,11.3
+2.23,0.21,-21.7,US 12m RS,period,2016-10-21 -> 2019-12-31,308.0,11.9
+4.55,0.36,-15.7,US top 500,period,2016-10-21 -> 2019-12-31,253.0,11.3
+1.17,0.15,-17.4,RANDOM 0,period,2016-10-21 -> 2019-12-31,297.0,12.1
+3.96,0.34,-19.0,RANDOM 1,period,2016-10-21 -> 2019-12-31,282.0,12.0
+1.2,0.16,-19.7,RANDOM 2,period,2016-10-21 -> 2019-12-31,283.0,12.1
+4.56,0.39,-18.6,RANDOM 3,period,2016-10-21 -> 2019-12-31,277.0,12.1
+1.29,0.16,-16.7,RANDOM 4,period,2016-10-21 -> 2019-12-31,291.0,12.0
+8.13,0.6,-17.1,RANDOM 5,period,2016-10-21 -> 2019-12-31,278.0,12.2
+9.34,0.68,-18.4,RANDOM 6,period,2016-10-21 -> 2019-12-31,271.0,12.1
+3.92,0.33,-20.0,RANDOM 7,period,2016-10-21 -> 2019-12-31,279.0,12.1
+15.9,1.24,-19.3,SPY buy & hold,period,2016-10-21 -> 2019-12-31,,
+14.99,1.1,-22.2,equal-weight top 1000,period,2016-10-21 -> 2019-12-31,,
+42.01,1.07,-45.6,US BASE (6m RS),period,2020-01-02 -> 2022-12-30,380.0,9.8
+39.38,1.02,-47.7,"US BASE, India costs",period,2020-01-02 -> 2022-12-30,380.0,9.8
+39.83,1.03,-45.7,US no RS floor,period,2020-01-02 -> 2022-12-30,403.0,9.5
+16.35,0.7,-45.4,US 12m RS,period,2020-01-02 -> 2022-12-30,378.0,9.9
+55.69,1.32,-32.5,US top 500,period,2020-01-02 -> 2022-12-30,319.0,10.0
+6.69,0.42,-31.9,RANDOM 0,period,2020-01-02 -> 2022-12-30,310.0,10.6
+8.52,0.52,-25.9,RANDOM 1,period,2020-01-02 -> 2022-12-30,309.0,10.6
+0.76,0.13,-30.5,RANDOM 2,period,2020-01-02 -> 2022-12-30,306.0,10.6
+3.18,0.26,-30.5,RANDOM 3,period,2020-01-02 -> 2022-12-30,305.0,10.7
+6.63,0.42,-31.6,RANDOM 4,period,2020-01-02 -> 2022-12-30,296.0,10.7
+7.36,0.45,-31.0,RANDOM 5,period,2020-01-02 -> 2022-12-30,320.0,10.6
+3.76,0.28,-39.1,RANDOM 6,period,2020-01-02 -> 2022-12-30,310.0,10.7
+8.08,0.46,-32.3,RANDOM 7,period,2020-01-02 -> 2022-12-30,303.0,10.7
+7.3,0.41,-33.7,SPY buy & hold,period,2020-01-02 -> 2022-12-30,,
+7.08,0.38,-40.9,equal-weight top 1000,period,2020-01-02 -> 2022-12-30,,
+24.41,0.99,-23.7,US BASE (6m RS),period,2023-01-03 -> 2026-10-19,455.0,10.4
+22.18,0.92,-24.4,"US BASE, India costs",period,2023-01-03 -> 2026-10-19,455.0,10.4
+26.87,1.06,-21.7,US no RS floor,period,2023-01-03 -> 2026-10-19,489.0,9.9
+23.53,0.97,-19.0,US 12m RS,period,2023-01-03 -> 2026-10-19,435.0,10.4
+26.29,1.06,-23.1,US top 500,period,2023-01-03 -> 2026-10-19,403.0,10.7
+12.63,0.71,-23.6,RANDOM 0,period,2023-01-03 -> 2026-10-19,378.0,11.2
+15.62,0.86,-19.7,RANDOM 1,period,2023-01-03 -> 2026-10-19,361.0,11.2
+8.02,0.52,-20.2,RANDOM 2,period,2023-01-03 -> 2026-10-19,395.0,11.0
+14.18,0.79,-18.3,RANDOM 3,period,2023-01-03 -> 2026-10-19,363.0,11.3
+26.36,1.33,-13.6,RANDOM 4,period,2023-01-03 -> 2026-10-19,356.0,11.3
+23.41,1.24,-21.2,RANDOM 5,period,2023-01-03 -> 2026-10-19,349.0,11.3
+15.26,0.85,-18.1,RANDOM 6,period,2023-01-03 -> 2026-10-19,366.0,11.1
+15.93,0.89,-25.4,RANDOM 7,period,2023-01-03 -> 2026-10-19,371.0,11.2
+21.77,1.4,-18.8,SPY buy & hold,period,2023-01-03 -> 2026-10-19,,
+16.24,0.96,-20.9,equal-weight top 1000,period,2023-01-03 -> 2026-10-19,,

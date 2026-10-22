@@ -1,4 +1,4 @@
-streamlit
+streamlit>=1.65  # st.tabs(key=, on_change=) keeps the selected tab across reruns
 yfinance
 pandas
 plotly

@@ -17,10 +17,18 @@ every other one and to the CI alert daemon.
 
 Concurrency
 -----------
-Every write is a read-modify-write against the blob's current sha. GitHub
-rejects a stale sha with 409, and we retry once against the fresh copy rather
-than clobbering whatever landed in between (the EOD daemon advancing alert
-state, or the same user on another device).
+Use update_json() for anything more than one writer touches. It re-reads the
+file, applies a *function* to the fresh copy and writes with that blob's sha;
+on a stale-sha rejection it re-reads and re-applies the function. put_json()
+writes a precomputed payload, so on a conflict it can only overwrite what
+landed in between -- that is how RS alerts used to replace each other.
+
+Read vs write failures
+----------------------
+A public repo can be read by a token that cannot write to it (read-only PAT,
+or a fine-grained PAT whose repository list does not include this repo). So a
+successful read proves nothing about writes. Every write records its outcome
+in last_status(path), and the UI shows that instead of assuming success.
 
 Configuration (all optional — absent means local-only mode)
 -----------------------------------------------------------
@@ -34,10 +42,11 @@ state on the local device, and the UI says so plainly rather than pretending
 the data is synced.
 """
 import base64
+import copy
 import json
 import os
 import time
-from typing import Any, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple
 
 import requests
 
@@ -105,6 +114,124 @@ def status() -> str:
 
 
 # ---------------------------------------------------------------------------
+_last: dict = {}
+
+
+def last_status(path: str) -> Optional[dict]:
+    """Outcome of the most recent write to `path` from this process: {ok, when, error}."""
+    return _last.get(path)
+
+
+def _explain(code: int, text: str) -> str:
+    if code == 401:
+        return "401: token invalid or expired -- create a new one"
+    if code in (403, 404):
+        return (f"{code}: token cannot write to {get_repo()} -- give it Contents: Read and write, "
+                f"and include this repo in its repository access")
+    if code == 422:
+        return f"422: rejected by GitHub ({text[:120]})"
+    return f"{code}: {text[:160]}"
+
+
+def read_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional[str], bool]:
+    """(data, sha, ok). ok is False when the read itself failed; a missing file is ok=True, data None."""
+    if not is_configured():
+        return None, None, False
+    if use_cache:
+        hit = _cache.get(path)
+        if hit and (time.time() - hit[0]) < _CACHE_TTL:
+            return hit[1], hit[2], True
+    try:
+        r = requests.get(f"{API}/repos/{get_repo()}/contents/{path}",
+                         headers=_headers(), params={"ref": get_branch()}, timeout=TIMEOUT)
+        if r.status_code == 404:
+            _cache[path] = (time.time(), None, None)
+            return None, None, True
+        r.raise_for_status()
+        body = r.json()
+        raw = base64.b64decode(body.get("content", "")).decode("utf-8")
+        data = json.loads(raw) if raw.strip() else None
+        _cache[path] = (time.time(), data, body.get("sha"))
+        return data, body.get("sha"), True
+    except Exception as e:
+        print(f"[repo_store] read {path} failed: {e}")
+        return None, None, False
+
+
+def update_json(path: str, fn: Callable[[Any], Any], message: Any,
+                attempts: int = 4) -> Tuple[bool, Any, Optional[str]]:
+    """
+    Atomic read-modify-write: new = fn(fresh_copy), written against fresh_copy's sha.
+    On a concurrent write GitHub rejects the sha; we re-read and call fn again, so
+    nothing written in between is lost. fn must be safe to call more than once.
+    `message` may be a callable of the new value. Returns (ok, new_value, error).
+    """
+    if not is_configured():
+        return False, None, "not configured"
+    err = None
+    for i in range(attempts):
+        cur, sha, ok = read_json(path, use_cache=False)
+        if not ok:
+            err = "could not read the current file from GitHub"
+            break
+        new = fn(copy.deepcopy(cur))
+        if new == cur and sha:
+            _last[path] = {"ok": True, "when": time.time(), "error": None}
+            return True, new, None          # nothing changed: no empty commit
+        body = {"message": message(new) if callable(message) else message, "branch": get_branch(),
+                "content": base64.b64encode(json.dumps(new, indent=2, default=str).encode()).decode("ascii")}
+        if sha:
+            body["sha"] = sha
+        try:
+            r = requests.put(f"{API}/repos/{get_repo()}/contents/{path}",
+                             headers=_headers(), json=body, timeout=TIMEOUT)
+        except Exception as e:
+            err = f"network error: {e}"
+            break
+        if r.status_code in (200, 201):
+            _cache[path] = (time.time(), new, r.json().get("content", {}).get("sha"))
+            _last[path] = {"ok": True, "when": time.time(), "error": None}
+            return True, new, None
+        # 409 = stale sha; 422 = sha missing/mismatched after a concurrent create
+        if r.status_code in (409, 422) and i < attempts - 1:
+            _cache.pop(path, None)
+            time.sleep(0.5 * (i + 1))
+            continue
+        err = _explain(r.status_code, r.text)
+        break
+    print(f"[repo_store] write {path} failed: {err}")
+    _last[path] = {"ok": False, "when": time.time(), "error": err}
+    return False, None, err
+
+
+_perm: dict = {}
+
+
+def can_write() -> Optional[bool]:
+    """
+    Whether the token may push to the repo, from GitHub's own answer (GET /repos
+    returns permissions.push for the caller). None when unknown. Cached 10 min.
+    """
+    if not is_configured():
+        return False
+    hit = _perm.get("push")
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
+    try:
+        r = requests.get(f"{API}/repos/{get_repo()}", headers=_headers(), timeout=TIMEOUT)
+        if r.status_code == 401:
+            val = False
+        elif r.status_code != 200:
+            return None
+        else:
+            # Fine-grained PATs report push from their Contents permission.
+            val = bool((r.json().get("permissions") or {}).get("push"))
+    except Exception:
+        return None
+    _perm["push"] = (time.time(), val)
+    return val
+
+
 def get_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional[str]]:
     """Return (parsed_json, sha). (None, None) when unconfigured or absent."""
     if not is_configured():
@@ -137,8 +264,8 @@ def get_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional
 
 def put_json(path: str, obj: Any, message: str) -> bool:
     """
-    Read-modify-write `obj` to `path`. Retries once on a 409 sha conflict so a
-    concurrent write (CI daemon, or this user on another device) is not lost.
+    Overwrite `path` with a precomputed `obj`. Only for single-writer files: on a
+    conflict it overwrites what landed in between. Shared state -> update_json().
     """
     if not is_configured():
         return False

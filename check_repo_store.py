@@ -54,10 +54,10 @@ def main() -> int:
         print("\nRead checks done. Re-run with --write to verify the write path.")
         return 0
 
-    print("4. WRITE round-trip ...", end=" ")
-    payload = data if isinstance(data, list) else []
-    ok = repo_store.put_json(RS_ALERTS_FILE, payload,
-                             "chore: verify repo_store write access (no-op)")
+    print("4. WRITE permission ...", end=" ")
+    # GitHub reports the caller's push permission on GET /repos; asking is
+    # exact and writes nothing (the old no-op round-trip could push a stale copy).
+    ok = repo_store.can_write() is True
     if ok:
         print("ok")
         print("\nAll good — RS alerts will sync across devices.")

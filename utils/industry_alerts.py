@@ -32,8 +32,9 @@ Firing (daily breadth is noisy: unsmoothed, 6 alerts produced 161 messages in
   score  : crossing semantics -- seeded on creation, fires when the score moves
            from 2+ points below the level to 2+ points above (or the reverse)
 
-State lives in data/industry_alerts.json (tracked; the EOD workflow evaluates
-and commits it, repo_store syncs it from the dashboard).
+State lives in data/industry_alerts.json (tracked), changed only through the
+atomic GitHub API updates in utils/alert_store.py -- by the dashboard for
+add/remove and by the EOD daemon for state.
 """
 import os
 from datetime import datetime
@@ -42,8 +43,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from utils import repo_store
-from utils.atomic_io import atomic_json_dump
+from utils.alert_store import AlertStore
 
 INDUSTRY_ALERTS_FILE = "data/industry_alerts.json"
 MIN_VALID = 3
@@ -155,40 +155,19 @@ def normalize_ticker(ticker: str) -> str:
     return t
 
 
-def _read_local() -> List[Dict[str, Any]]:
-    if not os.path.exists(INDUSTRY_ALERTS_FILE):
-        return []
-    try:
-        import json
-        with open(INDUSTRY_ALERTS_FILE) as f:
-            data = json.load(f)
-        return data if isinstance(data, list) else []
-    except Exception:
-        return []
-
-
-def _write_local(alerts: List[Dict[str, Any]]) -> None:
-    os.makedirs(os.path.dirname(INDUSTRY_ALERTS_FILE), exist_ok=True)
-    atomic_json_dump(alerts, INDUSTRY_ALERTS_FILE, indent=2)
+STORE = AlertStore(INDUSTRY_ALERTS_FILE, "Industry alerts")
 
 
 def load_industry_alerts() -> List[Dict[str, Any]]:
-    if repo_store.is_configured():
-        data, _ = repo_store.get_json(INDUSTRY_ALERTS_FILE)
-        if isinstance(data, list):
-            try:
-                _write_local(data)
-            except Exception:
-                pass
-            return data
-    return _read_local()
+    return STORE.load()
 
 
-def save_industry_alerts(alerts: List[Dict[str, Any]], reason: str = "update") -> bool:
-    _write_local(alerts)
-    if not repo_store.is_configured():
-        return False
-    return repo_store.put_json(INDUSTRY_ALERTS_FILE, alerts, f"🔔 Industry alerts: {reason}")
+def storage_status() -> Dict[str, Any]:
+    return STORE.status()
+
+
+def sync_industry_alerts() -> bool:
+    return STORE.flush("retry sync")
 
 
 def add_industry_alert(name: str, sub_industry: Optional[str] = None,
@@ -219,17 +198,12 @@ def add_industry_alert(name: str, sub_industry: Optional[str] = None,
         thr = alert["score_threshold"]
         alert.update(last_status=r["status"], last_score=r["score"],
                      score_side=None if thr is None else ("above" if r["score"] >= thr else "below"))
-    alerts = load_industry_alerts()
-    alerts.append(alert)
-    save_industry_alerts(alerts, f"add {name}")
-    return alert
+    synced = STORE.commit({"adds": [alert]}, f"add {name}")
+    return {**alert, "synced": synced}
 
 
-def remove_industry_alert(alert_id: str) -> None:
-    alerts = load_industry_alerts()
-    gone = next((a for a in alerts if a.get("id") == alert_id), {})
-    save_industry_alerts([a for a in alerts if a.get("id") != alert_id],
-                         f"remove {gone.get('name', alert_id)}")
+def remove_industry_alert(alert_id: str, label: str = "") -> bool:
+    return STORE.commit({"removes": [alert_id]}, f"remove {label or alert_id}")
 
 
 # --------------------------------------------------------------------------
@@ -308,13 +282,19 @@ def evaluate(alert: Dict[str, Any], df, asof: str) -> List[str]:
     return out
 
 
-def check_industry_alerts(df, asof: str, persist: bool = True) -> List[str]:
-    alerts = load_industry_alerts()
-    if not alerts:
-        return []
+def _evaluate_all(alerts: List[Dict[str, Any]], df, asof: str) -> List[str]:
     msgs: List[str] = []
     for a in alerts:
         msgs += evaluate(a, df, asof)
-    if persist:
-        save_industry_alerts(alerts, f"{len(msgs)} event(s)" if msgs else "state")
     return msgs
+
+
+def check_industry_alerts(df, asof: str, persist: bool = True) -> List[str]:
+    """Advance state inside the store's atomic update (see utils/alert_store.py)."""
+    if not load_industry_alerts():
+        return []
+    if not persist:
+        return _evaluate_all(load_industry_alerts(), df, asof)
+    msgs, _ = STORE.mutate(lambda alerts: _evaluate_all(alerts, df, asof),
+                           lambda m: f"{len(m)} event(s)" if m else "state")
+    return msgs or []

@@ -20,7 +20,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from rs_alert_daemon import MAX_SNAPSHOT_AGE_DAYS, latest_snapshot  # noqa: E402
-from utils.industry_alerts import check_industry_alerts, load_industry_alerts  # noqa: E402
+from utils.industry_alerts import check_industry_alerts, load_industry_alerts, storage_status  # noqa: E402
 from utils.telegram_notifier import is_telegram_configured, send_telegram_message  # noqa: E402
 
 
@@ -44,6 +44,8 @@ def main() -> int:
         return 0
 
     msgs = check_industry_alerts(df, f"{date:%Y-%m-%d}", persist=not args.dry_run)
+    if not args.dry_run:
+        print(f"[IND] store: {storage_status()}")
     for a in load_industry_alerts() if not args.dry_run else alerts:
         r = a.get("last_reading") or {}
         print(f"     {a.get('name')}: {a.get('last_status')} (pending {a.get('pending_status')}) "
