@@ -97,10 +97,11 @@ jobs:
       # every alert's last_value already matches it, so nothing fires: a stale
       # run is silent rather than wrong.
       env:
-        # Write the checked-out file only; the commit step below publishes it.
-        # Without this the daemon would also push via the Contents API and race
-        # with its own commit.
-        REPO_STORE_DISABLED: "1"
+        # State goes through the Contents API as an atomic read-modify-write
+        # (utils/alert_store.py), not through the git commit below, whose
+        # -X theirs used to replace alerts added from the dashboard mid-run.
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
       run: |
         python rs_alert_daemon.py
       continue-on-error: true
@@ -109,7 +110,8 @@ jobs:
       # Same snapshot as the RS alerts; status changes need two consecutive
       # snapshot dates, so a re-run on the same day cannot fire twice.
       env:
-        REPO_STORE_DISABLED: "1"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
       run: |
         python industry_alert_daemon.py
       continue-on-error: true

@@ -20,9 +20,11 @@ snapshot older than MAX_SNAPSHOT_AGE_DAYS is skipped outright and reported.
 
 State
 -----
-check_rs_alerts() advances each alert's last_value and the workflow commits
-data/rs_alerts.json. That write is the de-duplication: a fired alert cannot
-fire again until the metric genuinely crosses back and over.
+check_rs_alerts() advances each alert's last_value inside an atomic GitHub API
+update of data/rs_alerts.json (utils/alert_store.py), using the workflow's own
+token. That write is the de-duplication: a fired alert cannot fire again until
+the metric genuinely crosses back and over. It no longer goes through the git
+commit, whose `-X theirs` replaced alerts added while the run was going.
 
 Run: python rs_alert_daemon.py [--dry-run]
 """
@@ -38,7 +40,7 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from utils.rs_alerts import check_rs_alerts, load_rs_alerts
+from utils.rs_alerts import check_rs_alerts, load_rs_alerts, storage_status
 from utils.telegram_notifier import is_telegram_configured, send_telegram_message
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -92,6 +94,8 @@ def main() -> int:
         return 0
 
     triggered = check_rs_alerts(df, persist=not args.dry_run)
+    if not args.dry_run:
+        print(f"[RS] store: {storage_status()}")
 
     if not triggered:
         print("[RS] No crossings.")

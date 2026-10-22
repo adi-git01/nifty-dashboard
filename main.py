@@ -38,6 +38,7 @@ from utils.positions import (
 from utils.email_notifier import is_email_configured, configure_email, send_weekly_summary, send_trend_change_alert, test_email_connection, get_email_address
 from utils.return_tracker import export_weekly_summary
 from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+from utils.rs_alerts import storage_status as rs_storage_status, sync_rs_alerts
 from utils.rs_alerts import (
     RS_METRICS, DIRECTIONS, add_rs_alert, remove_rs_alert, rearm_rs_alert,
     check_rs_alerts, get_rs_alerts_with_status, read_metric, normalize_ticker,
@@ -67,6 +68,35 @@ from utils.advanced_scanners import (
 )
 
 import re as _re
+
+
+def _alert_sync_banner(stt: dict, retry, key: str) -> None:
+    """Say plainly where alerts live and whether the last write reached GitHub."""
+    if not stt["configured"]:
+        st.warning(
+            "⚠️ **Alerts are stored on this device only.** They will not appear on another "
+            "machine, the EOD workflow cannot fire them, and on Streamlit Cloud a restart loses "
+            "them. To sync, add a GitHub token with Contents: Read and write on this repo as "
+            "`GITHUB_TOKEN` (env) or `[github] token` in Streamlit secrets.", icon="⚠️")
+        return
+    if stt.get("can_write") is False:
+        st.error("⚠️ **The GitHub token can read this repo but not write to it**, so new alerts "
+                 "cannot be saved there (this is why alerts kept replacing each other). Give the "
+                 f"token Contents: Read and write on {repo_store.get_repo()}, or a new token with it. "
+                 f"Until then alerts stay on this device ({stt['pending']} waiting to sync).")
+    elif stt["pending"] or stt["ok"] is False:
+        st.error(f"⚠️ **{stt['pending']} change(s) not saved to GitHub yet** — kept on this "
+                 f"device and retried on every load. Last error: {stt['error'] or 'unknown'}")
+        if st.button("↻ Retry sync now", key=f"retry_sync_{key}"):
+            st.toast("Synced" if retry() else "Still failing — see the error above", icon="☁️")
+            st.rerun()
+    elif stt["source"] == "cache":
+        st.warning("☁️ GitHub could not be read just now — showing the last synced copy.")
+    else:
+        st.caption(f"☁️ Synced to **{repo_store.get_repo()}** (`{repo_store.get_branch()}`)"
+                   + (f" · last write {stt['when']} ✓" if stt["ok"] else "")
+                   + " — alerts follow you across devices and fire from the EOD workflow.")
+
 
 def _us_quote_url(ticker: str) -> str:
     """
@@ -364,14 +394,14 @@ if triggered_positions and 'pos_alerts_notified' not in st.session_state:
     st.session_state['pos_alerts_notified'] = True
 
 # === COMPOSITE-RS CROSSING ALERTS ===
-# Evaluated once per data load. check_rs_alerts() advances each alert's
-# last-seen value, so it is the write that de-duplicates: a fired alert cannot
-# fire again until the metric genuinely crosses back and over. Results are
-# parked in session state so the Watchlist tab can render them further down
-# without re-running the check (which would consume the crossing).
+# Read-only here. The EOD workflow (rs_alert_daemon.py) is the one evaluator
+# that advances last_value and sends Telegram, inside an atomic update of
+# data/rs_alerts.json. When the dashboard also wrote state, every page load
+# rewrote the alert file and raced the daemon and other devices. What shows
+# here is "crossed since the last EOD check" on the data loaded now.
 if 'rs_alerts_fired' not in st.session_state:
     try:
-        st.session_state['rs_alerts_fired'] = check_rs_alerts(df)
+        st.session_state['rs_alerts_fired'] = check_rs_alerts(df, persist=False)
     except Exception as _e:
         st.session_state['rs_alerts_fired'] = []
         if DASH_DEBUG:
@@ -379,14 +409,8 @@ if 'rs_alerts_fired' not in st.session_state:
 
 _rs_fired = st.session_state.get('rs_alerts_fired', [])
 if _rs_fired and 'rs_alerts_notified' not in st.session_state:
-    st.toast(f"🔔 {len(_rs_fired)} RS alert(s): "
+    st.toast(f"🔔 {len(_rs_fired)} RS alert(s) since the last close: "
              + " | ".join(a['alert_message'] for a in _rs_fired[:3]), icon="📈")
-    try:
-        if is_telegram_configured():
-            send_telegram_message("RS ALERT\n" + "\n".join(
-                a['alert_message'] for a in _rs_fired))
-    except Exception:
-        pass
     st.session_state['rs_alerts_notified'] = True
 
 # Render persistent alert panel in sidebar (regardless of notification state)
@@ -2600,22 +2624,11 @@ elif page == "📊 Return Tracker":
                    "that is already there waits for a real move instead of "
                    "firing on every refresh.")
 
-        # Never let the UI imply alerts are safe when they only exist on this
-        # device — that is exactly how they went missing on a device change.
-        if repo_store.is_configured():
-            st.caption(f"☁️ Synced to **{repo_store.get_repo()}** "
-                       f"(`{repo_store.get_branch()}`) — alerts follow you across "
-                       f"devices and fire from the EOD workflow.")
-        else:
-            st.warning(
-                "⚠️ **Alerts are stored on this device only.** They will not "
-                "appear on another machine and the EOD workflow cannot fire "
-                "them. To sync, add a GitHub token with `contents: write` as "
-                "`GITHUB_TOKEN` (env) or under `[github] token` in Streamlit "
-                "secrets.", icon="⚠️")
+        _alert_sync_banner(rs_storage_status(), sync_rs_alerts, "rs")
 
         if _rs_fired:
-            st.error(f"⚡ {len(_rs_fired)} RS crossing(s) on this refresh")
+            st.error(f"⚡ {len(_rs_fired)} RS crossing(s) since the last EOD check "
+                     f"(Telegram goes out from the EOD run)")
             for _a in _rs_fired:
                 st.warning(_a['alert_message'])
 
@@ -2655,13 +2668,18 @@ elif page == "📊 Return Tracker":
                         st.error(f"{_t} is not in the loaded universe — "
                                  f"check the symbol.")
                     else:
-                        add_rs_alert(_t, rs_threshold, direction=rs_direction,
-                                     metric=rs_metric, notes=rs_notes,
-                                     repeat=rs_repeat, df=df)
+                        _new = add_rs_alert(_t, rs_threshold, direction=rs_direction,
+                                            metric=rs_metric, notes=rs_notes,
+                                            repeat=rs_repeat, df=df)
                         _now = read_metric(df, _t, rs_metric)
                         _state = describe_arm_state(_now, rs_threshold, rs_direction)
-                        st.success(f"Alert set on {_t.replace('.NS','')} — {_state}")
-                        st.toast(f"RS alert created for {_t.replace('.NS','')}", icon="🔔")
+                        if _new.get("duplicate"):
+                            st.info(f"That alert on {_t.replace('.NS','')} already exists.")
+                        elif _new.get("synced"):
+                            st.success(f"Alert set on {_t.replace('.NS','')} — {_state}. Saved to GitHub.")
+                        else:
+                            st.warning(f"Alert set on {_t.replace('.NS','')} — {_state}. "
+                                       f"**Not on GitHub yet**: kept on this device and retried on every load.")
 
         with rs_col1:
             st.markdown("#### Active RS Alerts")
@@ -2700,7 +2718,7 @@ elif page == "📊 Return Tracker":
                     with _c_act:
                         if st.button("🗑️", key=f"del_rs_{_a['id']}",
                                      help="Delete this RS alert"):
-                            remove_rs_alert(_a['id'])
+                            remove_rs_alert(_a['id'], _name)
                             st.rerun()
                         if (not _a.get('repeat', True)) and _a.get('trigger_count', 0):
                             if st.button("↺", key=f"rearm_rs_{_a['id']}",
@@ -2723,6 +2741,7 @@ elif page == "📊 Return Tracker":
             "< 30 downtrend, 30-50 basing, 50-70 improving, > 70 strong. Readings are 5-day averages and a "
             "new status must hold 3 days. Tested 2021-26: an early TURNING UP was not a buy on its own; "
             "UPTREND was the better-evidenced step — treat these as a watch tool.")
+        _alert_sync_banner(ind_alerts.storage_status(), ind_alerts.sync_industry_alerts, "ind")
 
         _ind_c1, _ind_c2 = st.columns([2, 1])
         with _ind_c2:
@@ -2768,13 +2787,17 @@ elif page == "📊 Return Tracker":
                         st.error(f"Fewer than {ind_alerts.MIN_VALID} of these stocks have data "
                                  f"in the loaded universe — check the symbols.")
                     else:
-                        ind_alerts.add_industry_alert(
+                        _new = ind_alerts.add_industry_alert(
                             _ind_name, sub_industry=_ind_sub, tickers=_ind_tk,
                             on_status=_ind_status, notify=_ind_notify,
                             score_threshold=float(_ind_thr) if _ind_use_score else None,
                             direction=_ind_dir, notes=_ind_notes, df=df)
-                        st.success(f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
-                                   f"{_rd['status']}, score {_rd['score']:.0f}")
+                        _msg = (f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
+                                f"{_rd['status']}, score {_rd['score']:.0f}")
+                        if _new.get("synced"):
+                            st.success(_msg + ". Saved to GitHub.")
+                        else:
+                            st.warning(_msg + ". **Not on GitHub yet**: kept on this device and retried on every load.")
 
         with _ind_c1:
             st.markdown("#### Active Industry Alerts")
@@ -2809,7 +2832,7 @@ elif page == "📊 Return Tracker":
                     st.caption(" · ".join(_bits))
                 with _c_act:
                     if st.button("🗑️", key=f"del_ind_{_a['id']}", help="Delete this industry alert"):
-                        ind_alerts.remove_industry_alert(_a["id"])
+                        ind_alerts.remove_industry_alert(_a["id"], _a.get("name", ""))
                         st.rerun()
                 st.markdown("<hr style='margin: 5px 0; opacity: 0.2;'>", unsafe_allow_html=True)
 
