@@ -788,7 +788,7 @@ elif page == "🚀 Live Trading Desk":
                 rs21    = prev_df.set_index("ticker")[rs_col].dropna().to_dict() if rs_col in prev_df.columns else {}
                 return scores, rs21
 
-            _scan_tab_in, _scan_tab_us = st.tabs(["🇮🇳 Nifty Universe", "🇺🇸 S&P 500"])
+            _scan_tab_in, _scan_tab_us = st.tabs(["🇮🇳 Nifty Universe", "🇺🇸 S&P 500"], key="scan_tab", on_change="rerun")
 
             with _scan_tab_in:
                 with st.spinner("Running Advanced Pattern Recognition..."):
@@ -1846,23 +1846,29 @@ elif page == "🌊 Trend Scanner":
             st.caption("Re-weight the Composite RS vs Nifty blend. Weights are "
                        "normalized, so they need not sum to 100. Defaults match "
                        "the OptComp-V22 engine.")
-            _wc1, _wc2, _wc3, _wc4 = st.columns([1, 1, 1, 1])
-            with _wc1:
-                _w5 = st.number_input("RS5 (1W) %", min_value=0.0, max_value=100.0,
-                                      value=_DEFAULT_RS_W[0], step=5.0, key="rs_w5")
-            with _wc2:
-                _w21 = st.number_input("RS21 (1M) %", min_value=0.0, max_value=100.0,
-                                       value=_DEFAULT_RS_W[1], step=5.0, key="rs_w21")
-            with _wc3:
-                _w63 = st.number_input("RS63 (3M) %", min_value=0.0, max_value=100.0,
-                                       value=_DEFAULT_RS_W[2], step=5.0, key="rs_w63")
-            with _wc4:
-                st.write("")  # vertical spacer to align button with inputs
-                st.write("")
-                if st.button("↺ Reset to default", key="rs_w_reset", use_container_width=True):
-                    for _k in ('rs_w5', 'rs_w21', 'rs_w63'):
-                        st.session_state.pop(_k, None)
-                    st.rerun()
+            # A form, so stepping a weight does not rerun the whole page on every
+            # click; the table updates once, on Apply.
+            with st.form("rs_weights_form", border=False):
+                _wc1, _wc2, _wc3, _wc4 = st.columns([1, 1, 1, 1])
+                with _wc1:
+                    st.number_input("RS5 (1W) %", min_value=0.0, max_value=100.0,
+                                    value=_DEFAULT_RS_W[0], step=5.0, key="rs_w5")
+                with _wc2:
+                    st.number_input("RS21 (1M) %", min_value=0.0, max_value=100.0,
+                                    value=_DEFAULT_RS_W[1], step=5.0, key="rs_w21")
+                with _wc3:
+                    st.number_input("RS63 (3M) %", min_value=0.0, max_value=100.0,
+                                    value=_DEFAULT_RS_W[2], step=5.0, key="rs_w63")
+                with _wc4:
+                    st.write("")  # vertical spacer to align buttons with inputs
+                    st.form_submit_button("✓ Apply weights", use_container_width=True, type="primary")
+            if st.button("↺ Reset to default (10 / 50 / 40)", key="rs_w_reset"):
+                for _k in ('rs_w5', 'rs_w21', 'rs_w63'):
+                    st.session_state.pop(_k, None)
+                st.rerun()
+            _w5 = st.session_state.get("rs_w5", _DEFAULT_RS_W[0])
+            _w21 = st.session_state.get("rs_w21", _DEFAULT_RS_W[1])
+            _w63 = st.session_state.get("rs_w63", _DEFAULT_RS_W[2])
 
             _wsum = _w5 + _w21 + _w63
             if _wsum <= 0:
@@ -2323,7 +2329,11 @@ elif page == "📊 Return Tracker":
     st.markdown("---")
     
     # === MAIN TABS (Simplified) ===
-    tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(["📋 Active Positions", "👀 Watchlist", "➕ Add New", "⚙️ Settings"])
+    # key + on_change: the selected tab is kept in session state, so saving or
+    # deleting an alert (which reruns the script) no longer drops you back on
+    # Active Positions.
+    tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(
+        ["📋 Active Positions", "👀 Watchlist", "➕ Add New", "⚙️ Settings"], key="desk_tab", on_change="rerun")
     
     # ========================================
     # TAB 1: ACTIVE POSITIONS (Using unified positions.json)
