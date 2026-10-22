@@ -4189,26 +4189,79 @@ elif page == "☀️ Morning Pulse":
         except Exception:
             st.info("IAS signal log not available.")
 
-        # ── SECTION 6: TC LOG RECENT ──────────────────────────────────────────
+        # ── SECTION 6: TC CATALYST LOG (full research log) ────────────────────
         st.markdown("---")
-        st.markdown("### 🔄 Recent Turnaround Catalyst Signals")
+        st.markdown("### 🔄 Turnaround Catalyst Signal Log")
+        st.caption("Every A/B/A+B signal with trigger conditions, alert price, current price and "
+                   "return since alert — for studying which setups give alpha.")
         try:
             _tc = pd.read_csv("data/tc_log.csv")
             if not _tc.empty:
-                _tc["signal_date"] = pd.to_datetime(_tc["signal_date"])
-                _tc7 = _tc[_tc["signal_date"] >= pd.Timestamp.now() - pd.Timedelta(days=7)].sort_values("signal_date", ascending=False)
-                if not _tc7.empty:
-                    _tc7_disp = _tc7.copy()
-                    _tc7_disp["screener_link"] = "https://www.screener.in/company/" + _tc7_disp["ticker"].str.replace(".NS","",regex=False) + "/"
-                    _tc7_disp["signal_date"] = _tc7_disp["signal_date"].dt.strftime("%Y-%m-%d")
+                _tc["signal_date"] = pd.to_datetime(_tc["signal_date"], format="mixed")
+
+                # ── Filters ──
+                _fc1, _fc2 = st.columns([1, 1])
+                with _fc1:
+                    _win = st.selectbox("Window", ["7 days", "30 days", "90 days", "All"],
+                                        index=1, key="tc_log_window")
+                with _fc2:
+                    _pats = sorted(_tc["pattern"].dropna().unique().tolist())
+                    _pat_sel = st.multiselect("Pattern", _pats, default=_pats, key="tc_log_pattern")
+
+                _days_map = {"7 days": 7, "30 days": 30, "90 days": 90, "All": 100000}
+                _cutoff = pd.Timestamp.now() - pd.Timedelta(days=_days_map[_win])
+                _tcf = _tc[(_tc["signal_date"] >= _cutoff) & (_tc["pattern"].isin(_pat_sel))].copy()
+                _tcf = _tcf.sort_values("signal_date", ascending=False)
+
+                if not _tcf.empty:
+                    # ── Pattern performance summary (alpha study) ──
+                    _perf_rows = []
+                    for _p, _g in _tcf.groupby("pattern"):
+                        _r = _g["return_since_signal"].dropna()
+                        _perf_rows.append({
+                            "Pattern":    _p,
+                            "Signals":    len(_g),
+                            "Win %":      round((_r > 0).sum() / max(len(_r), 1) * 100, 0),
+                            "Avg Ret":    round(_r.mean(), 2) if len(_r) else 0.0,
+                            "Median Ret": round(_r.median(), 2) if len(_r) else 0.0,
+                            "Best":       round(_r.max(), 1) if len(_r) else 0.0,
+                            "Worst":      round(_r.min(), 1) if len(_r) else 0.0,
+                        })
+                    _perf_df = pd.DataFrame(_perf_rows).sort_values("Median Ret", ascending=False)
+                    st.markdown("**📊 Pattern Performance** (return since alert)")
                     st.dataframe(
-                        _tc7_disp[["signal_date","screener_link","name","sector","pattern","jump_pct","vol_score","dist_52w","ts_pre","ts_now","ts_gain","rs21_vel","return_since_signal","status"]],
+                        _perf_df,
                         column_config={
-                            "signal_date":         st.column_config.TextColumn("Date"),
+                            "Pattern":    st.column_config.TextColumn("Pattern"),
+                            "Signals":    st.column_config.NumberColumn("N", format="%d"),
+                            "Win %":      st.column_config.NumberColumn("Win %", format="%.0f%%"),
+                            "Avg Ret":    st.column_config.NumberColumn("Avg Ret", format="%+.2f%%"),
+                            "Median Ret": st.column_config.NumberColumn("Median", format="%+.2f%%"),
+                            "Best":       st.column_config.NumberColumn("Best", format="%+.1f%%"),
+                            "Worst":      st.column_config.NumberColumn("Worst", format="%+.1f%%"),
+                        },
+                        hide_index=True, use_container_width=True,
+                    )
+
+                    # ── Full signal log ──
+                    _tcd = _tcf.copy()
+                    _tcd["screener_link"] = "https://www.screener.in/company/" + _tcd["ticker"].str.replace(".NS","",regex=False) + "/"
+                    _tcd["signal_date"] = _tcd["signal_date"].dt.strftime("%Y-%m-%d")
+                    st.markdown(f"**📋 Signals ({len(_tcd)})**")
+                    st.dataframe(
+                        _tcd[["signal_date","screener_link","name","sector","pattern",
+                              "signal_price","current_price","return_since_signal","days_held",
+                              "jump_pct","vol_score","dist_52w","ts_pre","ts_now","ts_gain","rs21_vel","status"]],
+                        column_config={
+                            "signal_date":         st.column_config.TextColumn("Alert Date"),
                             "screener_link":       st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                             "name":                st.column_config.TextColumn("Name"),
                             "sector":              st.column_config.TextColumn("Sector"),
                             "pattern":             st.column_config.TextColumn("Pattern"),
+                            "signal_price":        st.column_config.NumberColumn("Alert ₹",  format="₹%.1f"),
+                            "current_price":       st.column_config.NumberColumn("Now ₹",    format="₹%.1f"),
+                            "return_since_signal": st.column_config.NumberColumn("Return",   format="%+.1f%%"),
+                            "days_held":           st.column_config.NumberColumn("Days",     format="%.0f"),
                             "jump_pct":            st.column_config.NumberColumn("Day %",    format="%+.1f%%"),
                             "vol_score":           st.column_config.NumberColumn("Vol",      format="%.0f /10"),
                             "dist_52w":            st.column_config.NumberColumn("Dist 52W", format="%.0f%%"),
@@ -4216,17 +4269,22 @@ elif page == "☀️ Morning Pulse":
                             "ts_now":              st.column_config.NumberColumn("TS Now",   format="%.0f"),
                             "ts_gain":             st.column_config.NumberColumn("TS Gain",  format="+%.0f"),
                             "rs21_vel":            st.column_config.NumberColumn("RS21 Vel", format="%+.1f"),
-                            "return_since_signal": st.column_config.NumberColumn("Return",   format="%+.1f%%"),
                             "status":              st.column_config.TextColumn("Status"),
                         },
-                        hide_index=True, use_container_width=True,
+                        hide_index=True, use_container_width=True, height=min(len(_tcd) * 36 + 42, 700),
+                    )
+
+                    st.download_button(
+                        "⬇️ Download TC Log CSV",
+                        _tcf.to_csv(index=False).encode(),
+                        "tc_catalyst_log.csv", "text/csv", key="dl_tc_log",
                     )
                 else:
-                    st.info("No TC signals in the last 7 days.")
+                    st.info(f"No TC signals in the selected window / patterns.")
             else:
                 st.info("TC log is empty — will populate after next engine run.")
-        except Exception:
-            st.info("TC log not yet available.")
+        except Exception as _tc_err:
+            st.info(f"TC log not yet available. ({_tc_err})")
 
 # --- VIEW 2: SECTOR PULSE ---
 elif page == "📊 Sector Pulse":

@@ -2,8 +2,10 @@ name: Alpha Trend Engine
 
 on:
   schedule:
-    # Regular: 3:45 PM IST = 10:15 AM UTC (Mon-Fri) - After market close for proper EOD data
-    - cron: '15 10 * * 1-5'
+    # 5:30 PM IST = 12:00 UTC (Mon-Fri). NSE closes 3:30 PM IST; Yahoo's daily
+    # bar needs ~1-2h to settle to the official close. Running at 3:45 PM caught
+    # near-close intraday prices, overstating change_p and firing false signals.
+    - cron: '0 12 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
