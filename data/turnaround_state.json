@@ -1,102 +1,37 @@
 {
-    "TATAELXSI.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 100.0
-    },
     "WIPRO.NS": {
         "tier": "ALERT",
-        "days_active": 7,
+        "days_active": 8,
         "ias": 100.0
     },
     "TCS.NS": {
         "tier": "ALERT",
-        "days_active": 8,
-        "ias": 94.2
+        "days_active": 9,
+        "ias": 92.5
     },
-    "ITCHOTELS.NS": {
+    "NATCOPHARM.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 75.9
-    },
-    "BALKRISIND.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 72.6
-    },
-    "SUNTECK.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 65.4
-    },
-    "HEXT.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 65.0
-    },
-    "ECLERX.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 65.0
-    },
-    "TRANSRAILL.NS": {
-        "tier": "READY",
-        "days_active": 2,
-        "ias": 61.1
-    },
-    "AMBUJACEM.NS": {
-        "tier": "READY",
-        "days_active": 1,
-        "ias": 60.5
+        "ias": 63.5
     },
     "TTML.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 57.0
-    },
-    "BSOFT.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 56.6
-    },
-    "INFY.NS": {
-        "tier": "WATCH",
-        "days_active": 7,
-        "ias": 54.7
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 60.0
     },
     "BETA.NS": {
         "tier": "WATCH",
-        "days_active": 1,
+        "days_active": 2,
         "ias": 54.0
     },
-    "KPITTECH.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 52.9
-    },
-    "INDIACEM.NS": {
+    "SUNTECK.NS": {
         "tier": "WATCH",
         "days_active": 2,
-        "ias": 52.1
+        "ias": 41.6
     },
-    "FRACTAL.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 45.2
-    },
-    "KAYNES.NS": {
+    "SHREECEM.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 41.1
-    },
-    "SOBHA.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 40.1
-    },
-    "IOC.NS": {
-        "tier": "WATCH",
-        "days_active": 1,
-        "ias": 37.5
+        "ias": 37.1
     }
 }

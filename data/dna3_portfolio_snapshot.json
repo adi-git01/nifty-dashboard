@@ -1,14 +1,8 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-10-22",
-    "cash": 910870.4926796326,
+    "date": "2026-10-23",
+    "cash": 969855.2866796326,
     "holdings": {
-        "ARIES.NS": {
-            "entry_price": 503.70001220703125,
-            "entry_date": "2026-08-26",
-            "shares": 132,
-            "peak_price": 503.70001220703125
-        },
         "BIL.NS": {
             "entry_price": 1027.550048828125,
             "entry_date": "2026-09-15",
@@ -22,45 +16,33 @@
             "peak_price": 310.95001220703125
         }
     },
-    "equity": 1108915.2895546327,
-    "cash_pct": 82.1,
-    "count": 3,
+    "equity": 1104517.7866796325,
+    "cash_pct": 87.8,
+    "count": 2,
     "portfolio": [
         {
-            "Ticker": "ARIES.NS",
-            "Sector": "Fertilizers & Agrochemicals",
-            "Price": 471.29998779296875,
-            "RS_Score": 20.5,
-            "Entry": 503.70001220703125,
-            "PnL%": -6.432404929294584,
-            "Dist_MA50": 1.2406117671958663,
-            "MA50": 465.52,
-            "Trail_Stop": 443.26,
-            "Danger": "\u26a0\ufe0f 1.2% to MA50"
+            "Ticker": "BIL.NS",
+            "Sector": "Consumer Durables",
+            "Price": 995.25,
+            "RS_Score": 14.5,
+            "Entry": 1027.550048828125,
+            "PnL%": -3.14340395048998,
+            "Dist_MA50": 2.637905305654094,
+            "MA50": 969.67,
+            "Trail_Stop": 961.71,
+            "Danger": "\u26a0\ufe0f 2.6% to MA50 | \u26a0\ufe0f 3.5% to trail"
         },
         {
             "Ticker": "GANDHAR.NS",
             "Sector": "Petroleum Products",
-            "Price": 295.0,
-            "RS_Score": 18.7,
+            "Price": 293.0,
+            "RS_Score": 10.1,
             "Entry": 260.45001220703125,
-            "PnL%": 13.265496707101331,
-            "Dist_MA50": 9.245178601643136,
-            "MA50": 270.03,
+            "PnL%": 12.497595034510816,
+            "Dist_MA50": 8.107469757762532,
+            "MA50": 271.03,
             "Trail_Stop": 273.64,
             "Danger": ""
-        },
-        {
-            "Ticker": "BIL.NS",
-            "Sector": "Consumer Durables",
-            "Price": 1006.0999755859375,
-            "RS_Score": 15.7,
-            "Entry": 1027.550048828125,
-            "PnL%": -2.087496688521435,
-            "Dist_MA50": 4.105011329354238,
-            "MA50": 966.43,
-            "Trail_Stop": 961.71,
-            "Danger": "\u26a0\ufe0f 4.1% to MA50 | \u26a0\ufe0f 4.6% to trail"
         }
     ],
     "last_rebalance_date": "2026-10-06",
@@ -74,7 +56,7 @@
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-10-22",
+    "last_dd_alert_date": "2026-10-23",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
