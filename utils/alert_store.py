@@ -20,7 +20,12 @@ Every change rewrote the whole alert list from whatever copy the caller had:
 
 How it works now
 ----------------
-* The tracked file (e.g. data/rs_alerts.json) is changed only through
+* State lives on its own branch (default `alert-state`, created from main on
+  first use). Saving an alert used to be a commit on main, the branch Streamlit
+  Cloud deploys from; each one updated the running app under the user and left
+  the page greyed until a reload. The copies under data/ on main are no longer
+  read when a token is configured.
+* The file (e.g. data/rs_alerts.json on the alert branch) is changed only through
   repo_store.update_json(): read fresh, apply the *operation*, write against
   that sha, and on a conflict re-read and re-apply. Two writers can no longer
   erase each other's alerts.
@@ -80,7 +85,18 @@ class AlertStore:
         self.last_source = None           # "repo" | "cache" | "file"
         self.last_error: Optional[str] = None
         self._timer: Optional[threading.Timer] = None
+        self._branch: Optional[str] = None
         self.flushing = False
+
+    @property
+    def branch(self) -> str:
+        if self._branch is None:
+            self._branch = repo_store.get_alerts_branch()
+        return self._branch
+
+    def _ready(self) -> bool:
+        """Configured, and the alert branch exists (created from the deploy branch on first use)."""
+        return repo_store.is_configured() and repo_store.ensure_branch(self.branch)
 
     # ------------------------------------------------------------------ local files
     def _outbox(self) -> Dict[str, Any]:
@@ -156,8 +172,8 @@ class AlertStore:
 
     # ------------------------------------------------------------------ reading
     def _base(self) -> Tuple[List[Dict[str, Any]], str]:
-        if repo_store.is_configured():
-            data, _, ok = repo_store.read_json(self.path)
+        if self._ready():
+            data, _, ok = repo_store.read_json(self.path, branch=self.branch)
             if ok:
                 data = data if isinstance(data, list) else []
                 try:
@@ -224,14 +240,15 @@ class AlertStore:
             ob = self._outbox()
             if not (ob["adds"] or ob["removes"] or ob["patches"]):
                 return True
-            if not repo_store.is_configured():
-                self.last_error = None
+            if not self._ready():
+                self.last_error = None if not repo_store.is_configured() else \
+                    f"could not open branch {self.branch} -- check the token's Contents: Read and write"
                 return False
             self.flushing = True
         try:
             why = ob["reasons"] or [reason or "sync"]
             msg = f"🔔 {self.label}: " + ("; ".join(why) if len(why) <= 3 else f"{len(why)} changes")
-            ok, new, err = repo_store.update_json(self.path, lambda cur: self.apply(cur, ob), msg)
+            ok, new, err = repo_store.update_json(self.path, lambda cur: self.apply(cur, ob), msg, branch=self.branch)
         finally:
             self.flushing = False
         with self._lock:
@@ -258,10 +275,10 @@ class AlertStore:
                 box["res"] = fn(alerts)
                 return alerts
 
-            if repo_store.is_configured():
+            if self._ready():
                 sent = self._outbox()
                 ok, new, err = repo_store.update_json(
-                    self.path, step, lambda _new: f"🔔 {self.label}: " + reason(box.get("res")))
+                    self.path, step, lambda _new: f"🔔 {self.label}: " + reason(box.get("res")), branch=self.branch)
                 self.last_error = err
                 if ok:
                     self._save_outbox(self._subtract(self._outbox(), sent))
@@ -282,16 +299,14 @@ class AlertStore:
                     patches[a["id"]] = diff
             if patches:
                 self._save_outbox(self._merge(self._outbox(), {"patches": patches}))
-                if os.environ.get("GITHUB_ACTIONS"):
-                    # CI without API access: publish through the workflow's git commit instead.
-                    atomic_json_dump(self.apply(self._base()[0], self._outbox()), self.path, indent=2)
             return res, False
 
     # ------------------------------------------------------------------ UI
     def status(self) -> Dict[str, Any]:
         """Plain facts for the UI: where state lives and whether the last write landed."""
         ls = repo_store.last_status(self.path)
-        return {"configured": repo_store.is_configured(), "where": repo_store.status(),
+        return {"configured": repo_store.is_configured(), "where": repo_store.status(self.branch),
+                "branch": self.branch,
                 "can_write": repo_store.can_write() if repo_store.is_configured() else False,
                 "pending": self.pending(), "source": self.last_source, "flushing": self.flushing,
                 "ok": None if ls is None else ls["ok"],

@@ -105,7 +105,7 @@ def _alert_sync_banner(stt: dict, retry, key: str) -> None:
     elif stt["source"] == "cache":
         st.warning("☁️ GitHub could not be read just now — showing the last synced copy.")
     else:
-        st.caption(f"☁️ Synced to **{repo_store.get_repo()}** (`{repo_store.get_branch()}`)"
+        st.caption(f"☁️ Synced to **{repo_store.get_repo()}** (`{stt.get('branch', repo_store.get_branch())}` branch)"
                    + (f" · last write {stt['when']} ✓" if stt["ok"] else "")
                    + " — alerts follow you across devices and fire from the EOD workflow.")
 
@@ -495,6 +495,28 @@ except Exception as e:
 # --- NAVIGATION CONTROLLER ---
 st.sidebar.markdown("---")
 
+_NAV = {
+    "🔍 Market Specs": ("page_market_specs", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk",
+                                             "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex",
+                                             "🇺🇸 US AI Play", "🇺🇸 US Scanner"]),
+    "📋 Portfolio Manager": ("page_portfolio", ["📊 Return Tracker", "📝 Notes"]),
+    "⚖️ Analysis Lab": ("page_analysis", ["⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
+}
+
+# Shortcut buttons ("Open Position Manager", Deep Dive "Report", ...) leave a
+# nav_page request. It used to override `page` for ONE run only, so the next
+# interaction -- saving an alert, clicking a tab -- silently fell back to the
+# sidebar's page (usually Morning Pulse), which looked like the dashboard
+# reloading. Turn the request into the real sidebar selection instead, before
+# those widgets are drawn, so the page sticks.
+if 'nav_page' in st.session_state:
+    _want = st.session_state.pop('nav_page')
+    for _ws, (_key, _pages) in _NAV.items():
+        if _want in _pages:
+            st.session_state['active_workspace'] = _ws
+            st.session_state[_key] = _want
+            break
+
 # Initialize workspace in session state if not present
 if 'active_workspace' not in st.session_state:
     st.session_state['active_workspace'] = "🔍 Market Specs"
@@ -507,20 +529,9 @@ active_workspace = st.sidebar.selectbox("📂 Workspace", [
 
 page = "🌊 Trend Scanner" # Default
 
-if active_workspace == "🔍 Market Specs":
-    page = st.sidebar.radio("View", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk", "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex", "🇺🇸 US AI Play", "🇺🇸 US Scanner"], key="page_market_specs")
-    
-elif active_workspace == "📋 Portfolio Manager":
-    page = st.sidebar.radio("Tools", ["📊 Return Tracker", "📝 Notes"], key="page_portfolio")
-    
-elif active_workspace == "⚖️ Analysis Lab":
-    page = st.sidebar.radio("Tools", ["⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"], key="page_analysis")
-
-# Handle auto-navigation override (e.g. from Deep Dive buttons)
-if 'nav_page' in st.session_state:
-    page = st.session_state['nav_page']
-    # Clear it so it doesn't persist
-    del st.session_state['nav_page']
+if active_workspace in _NAV:
+    _key, _pages = _NAV[active_workspace]
+    page = st.sidebar.radio("View" if active_workspace == "🔍 Market Specs" else "Tools", _pages, key=_key)
 
 
 # --- VIEW: COMPARE STOCKS ---

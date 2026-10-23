@@ -19,6 +19,13 @@ class FakeGitHub:
     def __init__(self, can_push=True):
         self.files, self.n, self.can_push, self.puts = {}, 0, can_push, 0
         self.before_put = None          # hook to inject a concurrent write
+        self.branches = {"main"}
+        self.read_refs, self.put_branches = set(), set()
+
+    def post(self, url, headers=None, json=None, timeout=None):
+        assert url.endswith("/git/refs")
+        self.branches.add(json["ref"].rsplit("/", 1)[1])
+        return _Resp(201, {})
 
     def _sha(self):
         self.n += 1
@@ -31,6 +38,11 @@ class FakeGitHub:
         return json.loads(self.files[path][0]) if path in self.files else None
 
     def get(self, url, headers=None, params=None, timeout=None):
+        if "/git/ref/heads/" in url:
+            br = url.rsplit("/heads/", 1)[1]
+            return _Resp(200, {"object": {"sha": "base"}}) if br in self.branches else _Resp(404, {})
+        if params and params.get("ref"):
+            self.read_refs.add(params["ref"])
         if url.endswith("/repos/" + repo_store.get_repo()):
             return _Resp(200, {"permissions": {"push": self.can_push}})
         path = url.split("/contents/")[1]
@@ -46,6 +58,7 @@ class FakeGitHub:
         if self.before_put:
             hook, self.before_put = self.before_put, None
             hook()
+        self.put_branches.add(json.get("branch"))
         cur = self.files.get(path)
         if cur and json.get("sha") != cur[1]:
             return _Resp(409, {}, "sha does not match")
@@ -76,8 +89,10 @@ def gh(tmp_path, monkeypatch):
     fake = FakeGitHub()
     monkeypatch.setattr(repo_store.requests, "get", fake.get)
     monkeypatch.setattr(repo_store.requests, "put", fake.put)
+    monkeypatch.setattr(repo_store.requests, "post", fake.post)
     monkeypatch.setattr(repo_store.time, "sleep", lambda s: None)
     repo_store._cache.clear(); repo_store._last.clear(); repo_store._perm.clear(); repo_store._CFG.clear()
+    repo_store._branches.clear()
     (tmp_path / "data").mkdir()
     fake.seed("data/rs_alerts.json", [])
     return fake
@@ -121,7 +136,7 @@ def test_two_devices_do_not_overwrite_each_other(gh, tmp_path, monkeypatch):
     rs = _rs()
     rs.add_rs_alert("AAA", 20)
     # Device 2 holds a stale cached copy ([]) and adds BBB.
-    repo_store._cache["data/rs_alerts.json"] = (repo_store.time.time(), [], "stale")
+    repo_store._cache["alert-state:data/rs_alerts.json"] = (repo_store.time.time(), [], "stale")
     rs.add_rs_alert("BBB", 20)
     assert {a["ticker"] for a in gh.data("data/rs_alerts.json")} == {"AAA.NS", "BBB.NS"}
 
@@ -247,3 +262,13 @@ def test_entry_made_while_a_sync_is_in_flight_is_not_lost(gh, monkeypatch):
     assert time.time() - t0 < 0.2                       # lock is not held across the network call
     _wait(rs.STORE)
     assert {a["ticker"] for a in gh.data("data/rs_alerts.json")} == {"AAA.NS", "BBB.NS"}
+
+
+def test_alert_writes_never_touch_the_deploy_branch(gh):
+    """Commits on main redeploy the Streamlit app under the user (page greyed until reload)."""
+    rs = _rs()
+    rs.add_rs_alert("AAA", 20)
+    rs.check_rs_alerts(_df(**{"AAA.NS": 25}))
+    assert "alert-state" in gh.branches                 # created on first use
+    assert gh.put_branches == {"alert-state"}
+    assert gh.read_refs <= {"alert-state"}

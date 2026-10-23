@@ -98,6 +98,11 @@ def get_branch() -> str:
     return _cfg("branch", "GITHUB_BRANCH", "main")
 
 
+def get_alerts_branch() -> str:
+    """Branch that holds alert state -- never the one the dashboard deploys from."""
+    return _cfg("alerts_branch", "ALERTS_BRANCH", "alert-state")
+
+
 def is_disabled() -> bool:
     """
     Hard off-switch. The EOD workflow sets this so the alert daemon writes only
@@ -120,11 +125,11 @@ def _headers() -> dict:
     }
 
 
-def status() -> str:
+def status(branch: Optional[str] = None) -> str:
     """One-line description of where state is being stored, for the UI."""
     if not is_configured():
         return "local-only (this device)"
-    return f"synced to {get_repo()}@{get_branch()}"
+    return f"synced to {get_repo()}@{branch or get_branch()}"
 
 
 # ---------------------------------------------------------------------------
@@ -147,25 +152,27 @@ def _explain(code: int, text: str) -> str:
     return f"{code}: {text[:160]}"
 
 
-def read_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional[str], bool]:
+def read_json(path: str, use_cache: bool = True, branch: Optional[str] = None) -> Tuple[Optional[Any], Optional[str], bool]:
     """(data, sha, ok). ok is False when the read itself failed; a missing file is ok=True, data None."""
     if not is_configured():
         return None, None, False
+    branch = branch or get_branch()
+    ck = f"{branch}:{path}"
     if use_cache:
-        hit = _cache.get(path)
+        hit = _cache.get(ck)
         if hit and (time.time() - hit[0]) < _CACHE_TTL:
             return hit[1], hit[2], True
     try:
         r = requests.get(f"{API}/repos/{get_repo()}/contents/{path}",
-                         headers=_headers(), params={"ref": get_branch()}, timeout=TIMEOUT)
+                         headers=_headers(), params={"ref": branch}, timeout=TIMEOUT)
         if r.status_code == 404:
-            _cache[path] = (time.time(), None, None)
+            _cache[ck] = (time.time(), None, None)
             return None, None, True
         r.raise_for_status()
         body = r.json()
         raw = base64.b64decode(body.get("content", "")).decode("utf-8")
         data = json.loads(raw) if raw.strip() else None
-        _cache[path] = (time.time(), data, body.get("sha"))
+        _cache[ck] = (time.time(), data, body.get("sha"))
         return data, body.get("sha"), True
     except Exception as e:
         print(f"[repo_store] read {path} failed: {e}")
@@ -173,7 +180,7 @@ def read_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optiona
 
 
 def update_json(path: str, fn: Callable[[Any], Any], message: Any,
-                attempts: int = 4) -> Tuple[bool, Any, Optional[str]]:
+                attempts: int = 4, branch: Optional[str] = None) -> Tuple[bool, Any, Optional[str]]:
     """
     Atomic read-modify-write: new = fn(fresh_copy), written against fresh_copy's sha.
     On a concurrent write GitHub rejects the sha; we re-read and call fn again, so
@@ -182,9 +189,11 @@ def update_json(path: str, fn: Callable[[Any], Any], message: Any,
     """
     if not is_configured():
         return False, None, "not configured"
+    branch = branch or get_branch()
+    ck = f"{branch}:{path}"
     err = None
     for i in range(attempts):
-        cur, sha, ok = read_json(path, use_cache=False)
+        cur, sha, ok = read_json(path, use_cache=False, branch=branch)
         if not ok:
             err = "could not read the current file from GitHub"
             break
@@ -192,7 +201,7 @@ def update_json(path: str, fn: Callable[[Any], Any], message: Any,
         if new == cur and sha:
             _last[path] = {"ok": True, "when": time.time(), "error": None}
             return True, new, None          # nothing changed: no empty commit
-        body = {"message": message(new) if callable(message) else message, "branch": get_branch(),
+        body = {"message": message(new) if callable(message) else message, "branch": branch,
                 "content": base64.b64encode(json.dumps(new, indent=2, default=str).encode()).decode("ascii")}
         if sha:
             body["sha"] = sha
@@ -203,12 +212,12 @@ def update_json(path: str, fn: Callable[[Any], Any], message: Any,
             err = f"network error: {e}"
             break
         if r.status_code in (200, 201):
-            _cache[path] = (time.time(), new, r.json().get("content", {}).get("sha"))
+            _cache[ck] = (time.time(), new, r.json().get("content", {}).get("sha"))
             _last[path] = {"ok": True, "when": time.time(), "error": None}
             return True, new, None
         # 409 = stale sha; 422 = sha missing/mismatched after a concurrent create
         if r.status_code in (409, 422) and i < attempts - 1:
-            _cache.pop(path, None)
+            _cache.pop(ck, None)
             time.sleep(0.5 * (i + 1))
             continue
         err = _explain(r.status_code, r.text)
@@ -216,6 +225,40 @@ def update_json(path: str, fn: Callable[[Any], Any], message: Any,
     print(f"[repo_store] write {path} failed: {err}")
     _last[path] = {"ok": False, "when": time.time(), "error": err}
     return False, None, err
+
+
+_branches: set = set()
+
+
+def ensure_branch(branch: str, base: Optional[str] = None) -> bool:
+    """
+    Make sure `branch` exists, creating it from `base` (the deploy branch) when it
+    does not. Alert state lives on its own branch: every save used to be a commit
+    on the branch Streamlit Cloud deploys from, and each one updated the running
+    app under the user, leaving the page greyed until a reload.
+    """
+    if branch in _branches or not is_configured():
+        return branch in _branches
+    base = base or get_branch()
+    try:
+        r = requests.get(f"{API}/repos/{get_repo()}/git/ref/heads/{branch}", headers=_headers(), timeout=TIMEOUT)
+        if r.status_code == 200:
+            _branches.add(branch)
+            return True
+        if r.status_code != 404:
+            return False
+        r = requests.get(f"{API}/repos/{get_repo()}/git/ref/heads/{base}", headers=_headers(), timeout=TIMEOUT)
+        r.raise_for_status()
+        sha = r.json()["object"]["sha"]
+        r = requests.post(f"{API}/repos/{get_repo()}/git/refs", headers=_headers(), timeout=TIMEOUT,
+                          json={"ref": f"refs/heads/{branch}", "sha": sha})
+        if r.status_code in (201, 422):          # 422: created meanwhile by another writer
+            _branches.add(branch)
+            return True
+        print(f"[repo_store] create branch {branch} failed: {r.status_code} {r.text[:160]}")
+    except Exception as e:
+        print(f"[repo_store] ensure branch {branch} failed: {e}")
+    return False
 
 
 _perm: dict = {}
@@ -252,7 +295,7 @@ def get_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional
         return None, None
 
     if use_cache:
-        hit = _cache.get(path)
+        hit = _cache.get(f"{get_branch()}:{path}")
         if hit and (time.time() - hit[0]) < _CACHE_TTL:
             return hit[1], hit[2]
 
@@ -262,14 +305,14 @@ def get_json(path: str, use_cache: bool = True) -> Tuple[Optional[Any], Optional
             headers=_headers(), params={"ref": get_branch()}, timeout=TIMEOUT,
         )
         if r.status_code == 404:
-            _cache[path] = (time.time(), None, None)
+            _cache[f"{get_branch()}:{path}"] = (time.time(), None, None)
             return None, None
         r.raise_for_status()
         body = r.json()
         raw = base64.b64decode(body.get("content", "")).decode("utf-8")
         data = json.loads(raw) if raw.strip() else None
         sha = body.get("sha")
-        _cache[path] = (time.time(), data, sha)
+        _cache[f"{get_branch()}:{path}"] = (time.time(), data, sha)
         return data, sha
     except Exception as e:
         print(f"[repo_store] read {path} failed: {e}")
@@ -298,10 +341,10 @@ def put_json(path: str, obj: Any, message: str) -> bool:
             r = requests.put(f"{API}/repos/{get_repo()}/contents/{path}",
                              headers=_headers(), json=body, timeout=TIMEOUT)
             if r.status_code in (200, 201):
-                _cache[path] = (time.time(), obj, r.json().get("content", {}).get("sha"))
+                _cache[f"{get_branch()}:{path}"] = (time.time(), obj, r.json().get("content", {}).get("sha"))
                 return True
             if r.status_code == 409 and attempt == 1:
-                _cache.pop(path, None)
+                _cache.pop(f"{get_branch()}:{path}", None)
                 continue  # someone else wrote first — re-read and retry
             print(f"[repo_store] write {path} failed: {r.status_code} {r.text[:200]}")
             return False
@@ -312,4 +355,4 @@ def put_json(path: str, obj: Any, message: str) -> bool:
 
 
 def invalidate(path: str) -> None:
-    _cache.pop(path, None)
+    _cache.pop(f"{get_branch()}:{path}", None)
