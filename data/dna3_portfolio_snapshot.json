@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-10-23",
+    "date": "2026-10-26",
     "cash": 969855.2866796326,
     "holdings": {
         "BIL.NS": {
@@ -16,47 +16,44 @@
             "peak_price": 310.95001220703125
         }
     },
-    "equity": 1104517.7866796325,
-    "cash_pct": 87.8,
+    "equity": 1107900.9374364684,
+    "cash_pct": 87.5,
     "count": 2,
     "portfolio": [
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 995.25,
-            "RS_Score": 14.5,
+            "Price": 1020.7000122070312,
+            "RS_Score": 18.3,
             "Entry": 1027.550048828125,
-            "PnL%": -3.14340395048998,
-            "Dist_MA50": 2.637905305654094,
-            "MA50": 969.67,
+            "PnL%": -0.6666377592902566,
+            "Dist_MA50": 4.829857072599258,
+            "MA50": 973.67,
             "Trail_Stop": 961.71,
-            "Danger": "\u26a0\ufe0f 2.6% to MA50 | \u26a0\ufe0f 3.5% to trail"
+            "Danger": "\u26a0\ufe0f 4.8% to MA50"
         },
         {
             "Ticker": "GANDHAR.NS",
             "Sector": "Petroleum Products",
-            "Price": 293.0,
-            "RS_Score": 10.1,
+            "Price": 300.25,
+            "RS_Score": 12.3,
             "Entry": 260.45001220703125,
-            "PnL%": 12.497595034510816,
-            "Dist_MA50": 8.107469757762532,
-            "MA50": 271.03,
+            "PnL%": 15.281238597651441,
+            "Dist_MA50": 10.26198453071492,
+            "MA50": 272.31,
             "Trail_Stop": 273.64,
             "Danger": ""
         }
     ],
-    "last_rebalance_date": "2026-10-06",
-    "rebalance_count": 12,
+    "last_rebalance_date": "2026-10-26",
+    "rebalance_count": 13,
     "regime": "CAUTION",
     "circuit_breaker": false,
     "recently_exited": {
-        "HATSUN.NS": "2026-09-28",
-        "DOLPHIN.NS": "2026-10-01",
-        "ANTELOPUS.NS": "2026-10-01",
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-10-23",
+    "last_dd_alert_date": "2026-10-26",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [

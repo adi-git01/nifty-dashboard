@@ -1,37 +1,77 @@
 {
-    "WIPRO.NS": {
+    "HEXT.NS": {
         "tier": "ALERT",
-        "days_active": 8,
+        "days_active": 1,
         "ias": 100.0
     },
     "TCS.NS": {
         "tier": "ALERT",
-        "days_active": 9,
-        "ias": 92.5
+        "days_active": 10,
+        "ias": 84.9
     },
-    "NATCOPHARM.NS": {
+    "FRACTAL.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 63.5
+        "ias": 70.3
+    },
+    "ITCHOTELS.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 65.0
+    },
+    "GVT&D.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
     },
     "TTML.NS": {
         "tier": "READY",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 60.0
+    },
+    "KAYNES.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 56.3
     },
     "BETA.NS": {
         "tier": "WATCH",
-        "days_active": 2,
+        "days_active": 3,
         "ias": 54.0
     },
-    "SUNTECK.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 41.6
-    },
-    "SHREECEM.NS": {
+    "AMBUJACEM.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 37.1
+        "ias": 50.9
+    },
+    "JUBLFOOD.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 50.9
+    },
+    "BPCL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 49.4
+    },
+    "YATHARTH.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 48.1
+    },
+    "TATACHEM.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 44.9
+    },
+    "SRF.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 37.0
+    },
+    "ONGC.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 35.8
     }
 }
