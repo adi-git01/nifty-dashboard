@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-10-26",
+    "date": "2026-10-27",
     "cash": 969855.2866796326,
     "holdings": {
         "BIL.NS": {
@@ -13,36 +13,36 @@
             "entry_price": 260.45001220703125,
             "entry_date": "2026-09-15",
             "shares": 249,
-            "peak_price": 310.95001220703125
+            "peak_price": 314.8999938964844
         }
     },
-    "equity": 1107900.9374364684,
-    "cash_pct": 87.5,
+    "equity": 1111759.5836461852,
+    "cash_pct": 87.2,
     "count": 2,
     "portfolio": [
         {
-            "Ticker": "BIL.NS",
-            "Sector": "Consumer Durables",
-            "Price": 1020.7000122070312,
-            "RS_Score": 18.3,
-            "Entry": 1027.550048828125,
-            "PnL%": -0.6666377592902566,
-            "Dist_MA50": 4.829857072599258,
-            "MA50": 973.67,
-            "Trail_Stop": 961.71,
-            "Danger": "\u26a0\ufe0f 4.8% to MA50"
-        },
-        {
             "Ticker": "GANDHAR.NS",
             "Sector": "Petroleum Products",
-            "Price": 300.25,
-            "RS_Score": 12.3,
+            "Price": 314.8999938964844,
+            "RS_Score": 25.1,
             "Entry": 260.45001220703125,
-            "PnL%": 15.281238597651441,
-            "Dist_MA50": 10.26198453071492,
-            "MA50": 272.31,
-            "Trail_Stop": 273.64,
+            "PnL%": 20.906116005927053,
+            "Dist_MA50": 15.049192250018296,
+            "MA50": 273.71,
+            "Trail_Stop": 277.11,
             "Danger": ""
+        },
+        {
+            "Ticker": "BIL.NS",
+            "Sector": "Consumer Durables",
+            "Price": 1024.0999755859375,
+            "RS_Score": 18.1,
+            "Entry": 1027.550048828125,
+            "PnL%": -0.3357571970457453,
+            "Dist_MA50": 4.804250926888263,
+            "MA50": 977.15,
+            "Trail_Stop": 961.71,
+            "Danger": "\u26a0\ufe0f 4.8% to MA50"
         }
     ],
     "last_rebalance_date": "2026-10-26",
@@ -53,7 +53,7 @@
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-10-26",
+    "last_dd_alert_date": "2026-10-27",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
