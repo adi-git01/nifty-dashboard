@@ -1,48 +1,30 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-10-27",
-    "cash": 969855.2866796326,
+    "date": "2026-10-28",
+    "cash": 1034627.3314628968,
     "holdings": {
         "BIL.NS": {
             "entry_price": 1027.550048828125,
             "entry_date": "2026-09-15",
             "shares": 62,
             "peak_price": 1092.8499755859375
-        },
-        "GANDHAR.NS": {
-            "entry_price": 260.45001220703125,
-            "entry_date": "2026-09-15",
-            "shares": 249,
-            "peak_price": 314.8999938964844
         }
     },
-    "equity": 1111759.5836461852,
-    "cash_pct": 87.2,
-    "count": 2,
+    "equity": 1097737.1329765688,
+    "cash_pct": 94.3,
+    "count": 1,
     "portfolio": [
-        {
-            "Ticker": "GANDHAR.NS",
-            "Sector": "Petroleum Products",
-            "Price": 314.8999938964844,
-            "RS_Score": 25.1,
-            "Entry": 260.45001220703125,
-            "PnL%": 20.906116005927053,
-            "Dist_MA50": 15.049192250018296,
-            "MA50": 273.71,
-            "Trail_Stop": 277.11,
-            "Danger": ""
-        },
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 1024.0999755859375,
-            "RS_Score": 18.1,
+            "Price": 1017.9000244140625,
+            "RS_Score": 15.9,
             "Entry": 1027.550048828125,
-            "PnL%": -0.3357571970457453,
-            "Dist_MA50": 4.804250926888263,
-            "MA50": 977.15,
+            "PnL%": -0.9391293811009909,
+            "Dist_MA50": 3.786332806320421,
+            "MA50": 980.76,
             "Trail_Stop": 961.71,
-            "Danger": "\u26a0\ufe0f 4.8% to MA50"
+            "Danger": "\u26a0\ufe0f 3.8% to MA50"
         }
     ],
     "last_rebalance_date": "2026-10-26",
@@ -53,7 +35,7 @@
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-10-27",
+    "last_dd_alert_date": "2026-10-28",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
