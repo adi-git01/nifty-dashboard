@@ -180,5 +180,25 @@
     "score_side": "below",
     "recent": [],
     "history": []
+  },
+  {
+    "id": "20261029131800236564",
+    "name": "Healthcare Services",
+    "sub_industry": "Healthcare Services",
+    "tickers": null,
+    "on_status": true,
+    "notify": "all",
+    "score_threshold": 45.0,
+    "direction": "above",
+    "notes": "",
+    "created": "2026-10-29T13:18:00.236616",
+    "last_status": "DOWNTREND",
+    "pending_status": null,
+    "pending_days": 0,
+    "last_score": 24.1,
+    "last_date": null,
+    "score_side": "below",
+    "recent": [],
+    "history": []
   }
 ]
