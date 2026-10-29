@@ -29,16 +29,10 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 21.4,
-    "last_date": "2026-10-28",
+    "last_score": 22.2,
+    "last_date": "2026-10-29",
     "score_side": null,
     "recent": [
-      {
-        "date": "2026-10-22",
-        "a50": 26.7,
-        "a200": 13.3,
-        "rs": -1.71
-      },
       {
         "date": "2026-10-23",
         "a50": 20.0,
@@ -62,15 +56,21 @@
         "a50": 20.0,
         "a200": 13.3,
         "rs": -3.58
+      },
+      {
+        "date": "2026-10-29",
+        "a50": 33.3,
+        "a200": 20.0,
+        "rs": -3.1
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 21.4,
-      "above_50": 22.7,
-      "above_200": 14.6,
-      "med_rs": -3.49,
+      "score": 22.2,
+      "above_50": 24.0,
+      "above_200": 16.0,
+      "med_rs": -3.77,
       "n_valid": 15,
       "n_members": 15
     }
@@ -105,11 +105,27 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 24.6,
-    "last_date": null,
+    "last_score": 28.2,
+    "last_date": "2026-10-29",
     "score_side": "below",
-    "recent": [],
-    "history": []
+    "recent": [
+      {
+        "date": "2026-10-29",
+        "a50": 33.3,
+        "a200": 20.0,
+        "rs": -3.1
+      }
+    ],
+    "history": [],
+    "last_reading": {
+      "status": "DOWNTREND",
+      "score": 28.2,
+      "above_50": 33.3,
+      "above_200": 20.0,
+      "med_rs": -3.1,
+      "n_valid": 15,
+      "n_members": 15
+    }
   },
   {
     "id": "20261029131800236564",
@@ -125,11 +141,27 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 24.1,
-    "last_date": null,
+    "last_score": 25.2,
+    "last_date": "2026-10-29",
     "score_side": "below",
-    "recent": [],
-    "history": []
+    "recent": [
+      {
+        "date": "2026-10-29",
+        "a50": 4.8,
+        "a200": 47.6,
+        "rs": -5.81
+      }
+    ],
+    "history": [],
+    "last_reading": {
+      "status": "DOWNTREND",
+      "score": 25.2,
+      "above_50": 4.8,
+      "above_200": 47.6,
+      "med_rs": -5.81,
+      "n_valid": 21,
+      "n_members": 21
+    }
   },
   {
     "id": "20261029131808787203",
@@ -145,11 +177,27 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 24.1,
-    "last_date": null,
+    "last_score": 25.2,
+    "last_date": "2026-10-29",
     "score_side": "below",
-    "recent": [],
-    "history": []
+    "recent": [
+      {
+        "date": "2026-10-29",
+        "a50": 4.8,
+        "a200": 47.6,
+        "rs": -5.81
+      }
+    ],
+    "history": [],
+    "last_reading": {
+      "status": "DOWNTREND",
+      "score": 25.2,
+      "above_50": 4.8,
+      "above_200": 47.6,
+      "med_rs": -5.81,
+      "n_valid": 21,
+      "n_members": 21
+    }
   },
   {
     "id": "20261029131927613546",
@@ -165,10 +213,26 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 27.3,
-    "last_date": null,
+    "last_score": 33.5,
+    "last_date": "2026-10-29",
     "score_side": "below",
-    "recent": [],
-    "history": []
+    "recent": [
+      {
+        "date": "2026-10-29",
+        "a50": 33.3,
+        "a200": 33.3,
+        "rs": -3.1
+      }
+    ],
+    "history": [],
+    "last_reading": {
+      "status": "DOWNTREND",
+      "score": 33.5,
+      "above_50": 33.3,
+      "above_200": 33.3,
+      "med_rs": -3.1,
+      "n_valid": 6,
+      "n_members": 6
+    }
   }
 ]
