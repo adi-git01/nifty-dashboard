@@ -150,5 +150,25 @@
     "score_side": "below",
     "recent": [],
     "history": []
+  },
+  {
+    "id": "20261029131927613546",
+    "name": "Non - Ferrous Metals",
+    "sub_industry": "Non - Ferrous Metals",
+    "tickers": null,
+    "on_status": true,
+    "notify": "up",
+    "score_threshold": 35.0,
+    "direction": "above",
+    "notes": "",
+    "created": "2026-10-29T13:19:27.613580",
+    "last_status": "DOWNTREND",
+    "pending_status": null,
+    "pending_days": 0,
+    "last_score": 27.3,
+    "last_date": null,
+    "score_side": "below",
+    "recent": [],
+    "history": []
   }
 ]
