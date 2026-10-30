@@ -29,16 +29,10 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 22.2,
-    "last_date": "2026-10-29",
+    "last_score": 22.8,
+    "last_date": "2026-10-30",
     "score_side": null,
     "recent": [
-      {
-        "date": "2026-10-23",
-        "a50": 20.0,
-        "a200": 13.3,
-        "rs": -2.97
-      },
       {
         "date": "2026-10-26",
         "a50": 26.7,
@@ -62,15 +56,21 @@
         "a50": 33.3,
         "a200": 20.0,
         "rs": -3.1
+      },
+      {
+        "date": "2026-10-30",
+        "a50": 26.7,
+        "a200": 20.0,
+        "rs": -5.61
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 22.2,
-      "above_50": 24.0,
-      "above_200": 16.0,
-      "med_rs": -3.77,
+      "score": 22.8,
+      "above_50": 25.3,
+      "above_200": 17.3,
+      "med_rs": -4.3,
       "n_valid": 15,
       "n_members": 15
     }
@@ -105,8 +105,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 28.2,
-    "last_date": "2026-10-29",
+    "last_score": 25.6,
+    "last_date": "2026-10-30",
     "score_side": "below",
     "recent": [
       {
@@ -114,15 +114,21 @@
         "a50": 33.3,
         "a200": 20.0,
         "rs": -3.1
+      },
+      {
+        "date": "2026-10-30",
+        "a50": 26.7,
+        "a200": 20.0,
+        "rs": -5.61
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 28.2,
-      "above_50": 33.3,
+      "score": 25.6,
+      "above_50": 30.0,
       "above_200": 20.0,
-      "med_rs": -3.1,
+      "med_rs": -4.36,
       "n_valid": 15,
       "n_members": 15
     }
@@ -141,8 +147,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 25.2,
-    "last_date": "2026-10-29",
+    "last_score": 25.3,
+    "last_date": "2026-10-30",
     "score_side": "below",
     "recent": [
       {
@@ -150,15 +156,21 @@
         "a50": 4.8,
         "a200": 47.6,
         "rs": -5.81
+      },
+      {
+        "date": "2026-10-30",
+        "a50": 14.3,
+        "a200": 42.9,
+        "rs": -7.37
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 25.2,
-      "above_50": 4.8,
-      "above_200": 47.6,
-      "med_rs": -5.81,
+      "score": 25.3,
+      "above_50": 9.6,
+      "above_200": 45.2,
+      "med_rs": -6.59,
       "n_valid": 21,
       "n_members": 21
     }
@@ -177,8 +189,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 25.2,
-    "last_date": "2026-10-29",
+    "last_score": 25.3,
+    "last_date": "2026-10-30",
     "score_side": "below",
     "recent": [
       {
@@ -186,15 +198,21 @@
         "a50": 4.8,
         "a200": 47.6,
         "rs": -5.81
+      },
+      {
+        "date": "2026-10-30",
+        "a50": 14.3,
+        "a200": 42.9,
+        "rs": -7.37
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 25.2,
-      "above_50": 4.8,
-      "above_200": 47.6,
-      "med_rs": -5.81,
+      "score": 25.3,
+      "above_50": 9.6,
+      "above_200": 45.2,
+      "med_rs": -6.59,
       "n_valid": 21,
       "n_members": 21
     }
@@ -213,8 +231,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 33.5,
-    "last_date": "2026-10-29",
+    "last_score": 29.0,
+    "last_date": "2026-10-30",
     "score_side": "below",
     "recent": [
       {
@@ -222,15 +240,21 @@
         "a50": 33.3,
         "a200": 33.3,
         "rs": -3.1
+      },
+      {
+        "date": "2026-10-30",
+        "a50": 16.7,
+        "a200": 33.3,
+        "rs": -5.57
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 33.5,
-      "above_50": 33.3,
+      "score": 29.0,
+      "above_50": 25.0,
       "above_200": 33.3,
-      "med_rs": -3.1,
+      "med_rs": -4.33,
       "n_valid": 6,
       "n_members": 6
     }
