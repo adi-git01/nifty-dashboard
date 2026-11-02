@@ -29,16 +29,10 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 22.8,
-    "last_date": "2026-10-30",
+    "last_score": 23.1,
+    "last_date": "2026-11-02",
     "score_side": null,
     "recent": [
-      {
-        "date": "2026-10-26",
-        "a50": 26.7,
-        "a200": 13.3,
-        "rs": -4.4
-      },
       {
         "date": "2026-10-27",
         "a50": 20.0,
@@ -62,15 +56,21 @@
         "a50": 26.7,
         "a200": 20.0,
         "rs": -5.61
+      },
+      {
+        "date": "2026-11-02",
+        "a50": 26.7,
+        "a200": 20.0,
+        "rs": -5.61
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 22.8,
+      "score": 23.1,
       "above_50": 25.3,
-      "above_200": 17.3,
-      "med_rs": -4.3,
+      "above_200": 18.7,
+      "med_rs": -4.54,
       "n_valid": 15,
       "n_members": 15
     }
@@ -105,8 +105,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 25.6,
-    "last_date": "2026-10-30",
+    "last_score": 24.8,
+    "last_date": "2026-11-02",
     "score_side": "below",
     "recent": [
       {
@@ -120,15 +120,21 @@
         "a50": 26.7,
         "a200": 20.0,
         "rs": -5.61
+      },
+      {
+        "date": "2026-11-02",
+        "a50": 26.7,
+        "a200": 20.0,
+        "rs": -5.61
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 25.6,
-      "above_50": 30.0,
+      "score": 24.8,
+      "above_50": 28.9,
       "above_200": 20.0,
-      "med_rs": -4.36,
+      "med_rs": -4.77,
       "n_valid": 15,
       "n_members": 15
     }
@@ -147,8 +153,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 25.3,
-    "last_date": "2026-10-30",
+    "last_score": 25.4,
+    "last_date": "2026-11-02",
     "score_side": "below",
     "recent": [
       {
@@ -162,15 +168,21 @@
         "a50": 14.3,
         "a200": 42.9,
         "rs": -7.37
+      },
+      {
+        "date": "2026-11-02",
+        "a50": 14.3,
+        "a200": 42.9,
+        "rs": -7.37
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 25.3,
-      "above_50": 9.6,
-      "above_200": 45.2,
-      "med_rs": -6.59,
+      "score": 25.4,
+      "above_50": 11.1,
+      "above_200": 44.5,
+      "med_rs": -6.85,
       "n_valid": 21,
       "n_members": 21
     }
@@ -189,8 +201,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 25.3,
-    "last_date": "2026-10-30",
+    "last_score": 25.4,
+    "last_date": "2026-11-02",
     "score_side": "below",
     "recent": [
       {
@@ -204,15 +216,21 @@
         "a50": 14.3,
         "a200": 42.9,
         "rs": -7.37
+      },
+      {
+        "date": "2026-11-02",
+        "a50": 14.3,
+        "a200": 42.9,
+        "rs": -7.37
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 25.3,
-      "above_50": 9.6,
-      "above_200": 45.2,
-      "med_rs": -6.59,
+      "score": 25.4,
+      "above_50": 11.1,
+      "above_200": 44.5,
+      "med_rs": -6.85,
       "n_valid": 21,
       "n_members": 21
     }
@@ -231,8 +249,8 @@
     "last_status": "DOWNTREND",
     "pending_status": null,
     "pending_days": 0,
-    "last_score": 29.0,
-    "last_date": "2026-10-30",
+    "last_score": 27.5,
+    "last_date": "2026-11-02",
     "score_side": "below",
     "recent": [
       {
@@ -246,15 +264,21 @@
         "a50": 16.7,
         "a200": 33.3,
         "rs": -5.57
+      },
+      {
+        "date": "2026-11-02",
+        "a50": 16.7,
+        "a200": 33.3,
+        "rs": -5.57
       }
     ],
     "history": [],
     "last_reading": {
       "status": "DOWNTREND",
-      "score": 29.0,
-      "above_50": 25.0,
+      "score": 27.5,
+      "above_50": 22.2,
       "above_200": 33.3,
-      "med_rs": -4.33,
+      "med_rs": -4.75,
       "n_valid": 6,
       "n_members": 6
     }
