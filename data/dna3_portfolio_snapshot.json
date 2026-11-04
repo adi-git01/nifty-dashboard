@@ -1,6 +1,6 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-11-03",
+    "date": "2026-11-04",
     "cash": 1034627.3314628968,
     "holdings": {
         "BIL.NS": {
@@ -10,19 +10,19 @@
             "peak_price": 1092.8499755859375
         }
     },
-    "equity": 1101209.1329765688,
-    "cash_pct": 94.0,
+    "equity": 1101897.331462897,
+    "cash_pct": 93.9,
     "count": 1,
     "portfolio": [
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 1073.9000244140625,
-            "RS_Score": 19.3,
+            "Price": 1085.0,
+            "RS_Score": 12.8,
             "Entry": 1027.550048828125,
-            "PnL%": 4.510726814601155,
-            "Dist_MA50": 7.734321569864464,
-            "MA50": 996.8,
+            "PnL%": 5.590963791729084,
+            "Dist_MA50": 8.296186761591176,
+            "MA50": 1001.88,
             "Trail_Stop": 961.71,
             "Danger": ""
         }
@@ -35,7 +35,7 @@
         "GMMPFAUDLR.NS": "2026-10-09",
         "CYIENTDLM.NS": "2026-10-16"
     },
-    "last_dd_alert_date": "2026-11-03",
+    "last_dd_alert_date": "2026-11-04",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
