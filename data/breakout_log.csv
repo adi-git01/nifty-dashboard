@@ -1,297 +1,331 @@
 breakout_date,first_seen,ticker,name,kind,momentum,mom_rank,gate1,size_tier,ind_score,vol_x,anchor,held,loss_maker,absorption,signal_price,current_price,return_pct,last_seen,sessions_since
-2026-11-04,2026-11-04,BOSCHLTD.NS,Bosch Limited,ATH breakout,True,93.7,True,,75.0,1.8,False,True,False,False,50925.0,50925.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,CNL.NS,Creative Newtech Limited,ATH breakout,True,99.7,True,Micro,100.0,13.2,True,True,False,False,1386.5999755859375,1386.5999755859375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,EMCURE.NS,Emcure Pharmaceuticals Limited,ATH breakout,True,90.8,True,Mid,92.0,12.7,True,True,False,False,2160.39990234375,2160.39990234375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,GRWRHITECH.NS,Garware Hi-Tech Films Limited,ATH breakout,True,95.7,True,Small,30.0,1.9,False,True,False,False,7544.5,7544.5,0.0,2026-11-04,0
-2026-11-04,2026-11-04,ICIL.NS,Indo Count Industries Limited,ATH breakout,True,98.7,True,Micro,55.0,25.8,True,True,False,False,525.3499755859375,525.3499755859375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,SANSERA.NS,Sansera Engineering Limited,squeeze release,True,98.1,True,Small,75.0,,False,True,False,False,4430.7998046875,4430.7998046875,0.0,2026-11-04,0
-2026-11-04,2026-11-04,ABBOTINDIA.NS,Abbott India Limited,squeeze release,False,71.7,True,Mid,92.0,,False,True,False,False,27120.0,27120.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,ADANIPORTS.NS,Adani Ports and Special Economic Zone Limited,ATH breakout,False,76.5,True,Large,72.0,2.2,False,True,False,False,1910.0,1910.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,ASHOKLEY.NS,Ashok Leyland Limited,squeeze release,False,52.2,False,,32.0,,False,True,False,False,154.02999877929688,154.02999877929688,0.0,2026-11-04,0
-2026-11-04,2026-11-04,BEML.NS,BEML Limited,squeeze release,False,79.3,True,Small,43.0,,False,True,False,False,2123.0,2123.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,BPCL.NS,Bharat Petroleum Corporation Limited,squeeze release,False,58.0,False,Large,98.0,,False,True,False,True,304.70001220703125,304.70001220703125,0.0,2026-11-04,0
-2026-11-04,2026-11-04,CSLFINANCE.NS,CSL Finance Limited,squeeze release,False,64.6,False,Micro,19.0,,False,True,False,False,227.8300018310547,227.8300018310547,0.0,2026-11-04,0
-2026-11-04,2026-11-04,FORCEMOT.NS,Force Motors Limited,squeeze release,False,45.3,False,Small,68.0,,False,True,False,False,18148.0,18148.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,GMRAIRPORT.NS,GMR Airports Limited,squeeze release,False,56.0,False,Mid,8.0,,False,True,False,False,95.0,95.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,GOKULAGRO.NS,Gokul Agro Resources Limited,squeeze release,False,54.1,True,Micro,85.0,,False,True,False,False,223.05999755859375,223.05999755859375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,HINDALCO.NS,Hindalco Industries Limited,squeeze release,False,44.7,False,Large,66.0,,False,True,False,False,935.7999877929688,935.7999877929688,0.0,2026-11-04,0
-2026-11-04,2026-11-04,IEX.NS,Indian Energy Exchange Limited,squeeze release,False,38.5,False,Micro,79.0,,False,True,False,False,111.2699966430664,111.2699966430664,0.0,2026-11-04,0
-2026-11-04,2026-11-04,ISGEC.NS,Isgec Heavy Engineering Limited,squeeze release,False,41.7,True,Micro,42.0,,False,True,False,False,945.0999755859375,945.0999755859375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,JSWSTEEL.NS,JSW Steel Limited,ATH breakout,False,72.4,True,Large,83.0,1.0,False,True,False,False,1343.0,1343.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,KANSAINER.NS,Kansai Nerolac Paints Limited,squeeze release,False,60.2,False,Small,30.0,,False,True,False,False,195.32000732421875,195.32000732421875,0.0,2026-11-04,0
-2026-11-04,2026-11-04,LALPATHLAB.NS,Dr. Lal PathLabs Limited,ATH breakout,False,89.9,True,Mid,91.0,3.3,True,True,False,False,2029.4000244140625,2029.4000244140625,0.0,2026-11-04,0
-2026-11-04,2026-11-04,LEMONTREE.NS,Lemon Tree Hotels Limited,squeeze release,False,54.6,False,Micro,60.0,,False,True,False,False,115.56999969482422,115.56999969482422,0.0,2026-11-04,0
-2026-11-04,2026-11-04,LICI.NS,Life Insurance Corporation of India,squeeze release,False,68.0,True,Large,36.0,,False,True,False,False,408.0,408.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,M&M.NS,Mahindra & Mahindra Limited,squeeze release,False,46.7,False,Large,68.0,,False,True,False,False,2961.89990234375,2961.89990234375,0.0,2026-11-04,0
-2026-11-04,2026-11-04,MARICO.NS,Marico Limited,ATH breakout,False,76.6,True,Large,85.0,3.7,True,True,False,False,890.0,890.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,NAVINFLUOR.NS,Navin Fluorine International Limited,ATH breakout,False,87.6,True,Mid,30.0,1.8,False,True,False,False,8785.0,8785.0,0.0,2026-11-04,0
-2026-11-04,2026-11-04,UNOMINDA.NS,Uno Minda Limited,squeeze release,False,72.5,True,Mid,75.0,,False,True,False,False,1196.9000244140625,1196.9000244140625,0.0,2026-11-04,0
-2026-11-03,2026-11-03,GRWRHITECH.NS,Garware Hi-Tech Films Limited,squeeze release,True,97.4,True,Small,34.0,,False,True,False,False,7395.5,7544.5,2.0147386924481037,2026-11-04,1
-2026-11-03,2026-11-03,SAREGAMA.NS,Saregama India Limited,52W breakout,True,97.3,True,Small,91.0,2.1,False,True,False,False,562.2000122070312,636.7999877929688,13.26929455107624,2026-11-04,1
-2026-11-03,2026-11-03,BERGEPAINT.NS,Berger Paints India Limited,squeeze release,False,67.0,False,Mid,34.0,,False,True,False,False,479.7000122070313,485.1000061035156,1.1257022637209735,2026-11-04,1
-2026-11-03,2026-11-03,CEIGALL.NS,Ceigall India Limited,52W breakout,False,80.5,True,Micro,17.0,1.6,False,True,False,True,397.2000122070313,399.45001220703125,0.5664652393885694,2026-11-04,1
-2026-11-03,2026-11-03,DRREDDY.NS,Dr. Reddy's Laboratories Limited,52W breakout,False,74.7,True,Large,89.0,1.2,False,True,False,False,1368.300048828125,1374.0,0.4165717290412152,2026-11-04,1
-2026-11-03,2026-11-03,GAIL.NS,GAIL (India) Limited,52W breakout,False,77.7,True,Large,92.0,2.4,False,True,False,False,181.75,186.22000122070312,2.4594229549948388,2026-11-04,1
-2026-11-03,2026-11-03,GODREJPROP.NS,Godrej Properties Limited,squeeze release,False,50.4,False,Mid,47.0,,False,True,False,False,1669.5,1739.0,4.162923030847554,2026-11-04,1
-2026-11-03,2026-11-03,HDFCAMC.NS,HDFC Asset Management Company Limited,squeeze release,False,43.7,False,Mid,83.0,,False,True,False,False,2440.0,2505.0,2.6639344262294973,2026-11-04,1
-2026-11-03,2026-11-03,HINDUNILVR.NS,Hindustan Unilever Limited,squeeze release,False,35.8,False,Large,58.0,,False,True,False,False,1962.800048828125,1977.0999755859375,0.7285472998816322,2026-11-04,1
-2026-11-03,2026-11-03,JKCEMENT.NS,J.K. Cement Limited,squeeze release,False,56.2,False,Mid,60.0,,False,True,False,False,5084.60009765625,5076.2998046875,-0.16324377157165282,2026-11-04,1
-2026-11-03,2026-11-03,KITEX.NS,Kitex Garments Limited,squeeze release,False,21.7,False,Micro,57.0,,False,True,False,False,133.22999572753906,134.60000610351562,1.0283047511149723,2026-11-04,1
-2026-11-03,2026-11-03,MARUTI.NS,Maruti Suzuki India Limited,squeeze release,False,44.7,False,Large,68.0,,False,True,False,False,11869.0,11995.0,1.0615890133962358,2026-11-04,1
-2026-11-03,2026-11-03,MCX.NS,Multi Commodity Exchange of India Limited,ATH breakout,False,85.5,True,,83.0,2.7,False,True,False,False,3490.10009765625,3315.0,-5.017050879825402,2026-11-04,1
-2026-11-03,2026-11-03,ORIENTCEM.NS,Orient Cement Limited,squeeze release,False,36.8,False,Micro,60.0,,False,True,False,False,119.52999877929688,121.30999755859375,1.4891648937297441,2026-11-04,1
-2026-11-03,2026-11-03,SKFINDIA.NS,SKF India Limited,squeeze release,False,44.3,False,Micro,,,False,True,False,False,1471.9000244140625,1395.300048828125,-5.204156146164252,2026-11-04,1
-2026-11-03,2026-11-03,SUNTECK.NS,Sunteck Realty Limited,squeeze release,False,37.7,False,Micro,47.0,,False,True,False,False,286.95001220703125,293.70001220703125,2.35232608916216,2026-11-04,1
-2026-11-02,2026-11-03,ALIVUS.NS,Alivus Life Sciences Limited,ATH breakout,True,93.4,True,Small,89.0,7.3,False,True,False,False,1481.300048828125,1520.699951171875,2.6598191483838685,2026-11-04,2
-2026-11-02,2026-11-03,INDGN.NS,Indegene Limited,52W breakout,False,79.5,True,Small,66.0,5.3,False,False,False,False,612.7999877929688,617.0999755859375,0.7016951499061452,2026-11-04,2
-2026-11-02,2026-11-03,INDGN.NS,Indegene Limited,squeeze release,False,79.5,True,Small,66.0,,False,True,False,False,612.7999877929688,617.0999755859375,0.7016951499061452,2026-11-04,2
-2026-11-02,2026-11-03,NH.NS,Narayana Hrudayalaya Limited,squeeze release,False,72.2,True,Mid,81.0,,False,True,False,False,1870.5999755859373,1931.5,3.2556412492728004,2026-11-04,2
-2026-11-02,2026-11-03,OIL.NS,Oil India Limited,squeeze release,False,55.4,False,Mid,43.0,,False,True,False,False,455.5,458.0,0.5488474204171201,2026-11-04,2
-2026-11-02,2026-11-03,ONGC.NS,Oil and Natural Gas Corporation Limited,squeeze release,False,25.8,False,Large,43.0,,False,True,False,False,232.1699981689453,235.0,1.2189351997993203,2026-11-04,2
-2026-11-02,2026-11-03,PETRONET.NS,Petronet LNG Limited,squeeze release,False,75.0,True,Mid,92.0,,False,True,False,False,303.0,311.0,2.64026402640265,2026-11-04,2
-2026-11-02,2026-11-03,SBIN.NS,State Bank of India,squeeze release,False,50.8,False,Large,72.0,,False,True,False,False,970.25,979.0,0.9018294254058201,2026-11-04,2
-2026-11-02,2026-11-03,TANLA.NS,Tanla Platforms Limited,52W breakout,False,88.2,True,Micro,66.0,3.2,True,True,False,False,662.0499877929688,659.0999755859375,-0.4455875328788217,2026-11-04,2
-2026-10-30,2026-10-30,ATHERENERG.NS,Ather Energy Limited,52W breakout,True,98.5,True,Mid,62.0,2.4,False,True,True,False,1756.0,1840.0,4.783599088838275,2026-11-04,3
-2026-10-30,2026-10-30,COFORGE.NS,Coforge Limited,ATH breakout,True,97.9,True,Mid,66.0,3.0,True,True,False,False,2045.0,2060.0,0.7334963325183352,2026-11-04,3
-2026-10-30,2026-10-30,ETERNAL.NS,Eternal Limited,52W breakout,True,93.8,True,Large,28.0,1.8,False,True,False,False,343.6499938964844,344.5,0.24734646256727721,2026-11-04,3
-2026-10-30,2026-10-30,ZYDUSLIFE.NS,Zydus Lifesciences Limited,52W breakout,True,94.0,True,Large,92.0,3.0,True,True,False,False,1245.5,1188.0999755859375,-4.608592887520069,2026-11-04,3
-2026-10-30,2026-10-30,AFSL.NS,Abans Financial Services Limited,squeeze release,False,65.6,True,Micro,89.0,,False,True,False,False,202.4499969482422,201.5,-0.46925016673873277,2026-11-04,3
-2026-10-30,2026-10-30,AGARWALEYE.NS,Dr. Agarwal's Health Care Limited,squeeze release,False,81.7,True,Small,38.0,,False,True,False,False,509.2000122070313,523.5,2.80832432249718,2026-11-04,3
-2026-10-30,2026-10-30,GKWLIMITED.NS,GKW Limited,squeeze release,False,59.2,False,Micro,58.0,,False,True,False,False,1590.699951171875,1641.800048828125,3.2124284418695304,2026-11-04,3
-2026-10-29,2026-10-29,21STCENMGM.NS,Twentyfirst Century Management Services Limited,52W breakout,True,95.4,True,Micro,83.0,5.9,False,True,True,False,55.06999969482422,60.560001373291016,9.969133301053535,2026-11-04,4
-2026-10-29,2026-10-29,DIVISLAB.NS,Divi's Laboratories Limited,ATH breakout,True,95.0,True,Large,91.0,0.8,False,True,False,False,9664.0,10037.5,3.86485927152318,2026-11-04,4
-2026-10-29,2026-10-29,ETERNAL.NS,Eternal Limited,squeeze release,True,90.8,True,Large,32.0,,False,True,False,False,337.8500061035156,344.5,1.9683272980160371,2026-11-04,4
-2026-10-29,2026-10-29,NYKAA.NS,FSN E-Commerce Ventures Limited,52W breakout,True,90.2,True,Mid,32.0,1.9,False,True,False,False,352.8999938964844,355.5,0.7367543634127394,2026-11-04,4
-2026-10-29,2026-10-29,AERONEU.NS,Aeroflex Neu Limited,squeeze release,False,33.2,False,Micro,45.0,,False,True,False,False,72.7699966430664,79.91000366210938,9.811745703472251,2026-11-04,4
-2026-10-29,2026-10-29,CEMPRO.NS,Cemindia Projects Limited,squeeze release,False,98.4,False,Small,23.0,,False,True,False,False,1287.4000244140625,1310.0999755859375,1.7632399208790117,2026-11-04,4
-2026-10-29,2026-10-29,DLF.NS,DLF Limited,squeeze release,False,82.7,True,Large,40.0,,False,True,False,False,694.3499755859375,720.0,3.6941060439178885,2026-11-04,4
-2026-10-29,2026-10-29,GENUSPAPER.NS,Genus Paper & Boards Limited,squeeze release,False,24.0,False,Micro,98.0,,False,True,False,False,10.960000038146973,10.40999984741211,-5.018249897997739,2026-11-04,4
-2026-10-29,2026-10-29,GESHIP.NS,The Great Eastern Shipping Company Limited,squeeze release,False,72.7,True,Small,58.0,,False,True,False,False,1618.800048828125,1571.800048828125,-2.903385136047165,2026-11-04,4
-2026-10-29,2026-10-29,KOTAKBANK.NS,Kotak Mahindra Bank Limited,ATH breakout,False,84.4,True,Large,92.0,3.0,True,True,False,False,459.0,459.3999938964844,0.08714463975694198,2026-11-04,4
-2026-10-29,2026-10-29,MARICO.NS,Marico Limited,squeeze release,False,68.8,False,Mid,66.0,,False,True,False,False,802.9000244140625,890.0,10.84817199370507,2026-11-04,4
-2026-10-28,2026-10-28,PPLPHARMA.NS,Piramal Pharma Limited,52W breakout,True,93.7,True,Small,96.0,41.0,True,True,True,False,232.8000030517578,237.75999450683594,2.1305804940111583,2026-11-04,5
-2026-10-28,2026-10-28,PPLPHARMA.NS,Piramal Pharma Limited,squeeze release,True,93.7,True,Small,96.0,,False,True,True,False,232.8000030517578,237.75999450683594,2.1305804940111583,2026-11-04,5
-2026-10-28,2026-10-28,SAREGAMA.NS,Saregama India Limited,squeeze release,True,94.9,True,Micro,94.0,,False,True,False,False,523.9500122070312,636.7999877929688,21.538309563269276,2026-11-04,5
-2026-10-28,2026-10-28,63MOONS.NS,63 moons technologies limited,52W breakout,False,88.8,True,Micro,85.0,1.8,False,True,True,False,932.5,925.9500122070312,-0.702411559567695,2026-11-04,5
-2026-10-28,2026-10-28,GUJAPOLLO.NS,Gujarat Apollo Industries Limited,squeeze release,False,30.1,False,Micro,57.0,,False,True,False,False,357.45001220703125,352.29998779296875,-1.440767726447767,2026-11-04,5
-2026-10-28,2026-11-03,LT.NS,Larsen & Toubro Limited,squeeze release,False,59.5,True,Large,17.0,,False,True,False,False,3948.199951171875,3944.39990234375,-0.09624762866928815,2026-11-04,5
-2026-10-27,2026-10-27,ACUTAAS.NS,Acutaas Chemicals Limited,ATH breakout,True,95.8,True,Small,58.0,15.1,True,True,False,False,3793.300048828125,3777.300048828125,-0.4217963196700647,2026-11-04,6
-2026-10-27,2026-10-27,LAURUSLABS.NS,Laurus Labs Limited,squeeze release,True,98.8,True,Large,83.0,,False,True,False,False,2142.0,2323.800048828125,8.48739723754084,2026-11-04,6
-2026-10-27,2026-10-27,SONACOMS.NS,Sona BLW Precision Forgings Limited,ATH breakout,True,94.9,True,Mid,72.0,10.4,True,True,False,False,851.8499755859375,893.7000122070312,4.91284120684603,2026-11-04,6
-2026-10-27,2026-10-27,SONACOMS.NS,Sona BLW Precision Forgings Limited,squeeze release,True,94.9,True,Mid,72.0,,False,True,False,False,851.8499755859375,893.7000122070312,4.91284120684603,2026-11-04,6
-2026-10-27,2026-10-27,BATAINDIA.NS,Bata India Limited,squeeze release,False,57.4,False,Micro,32.0,,False,True,False,False,662.4000244140625,633.2000122070312,-4.408214240761932,2026-11-04,6
-2026-10-27,2026-10-27,COHANCE.NS,Cohance Lifesciences Limited,squeeze release,False,78.0,False,Small,83.0,,False,True,False,False,479.25,450.45001220703125,-6.009387124250132,2026-11-04,6
-2026-10-27,2026-10-27,ITCHOTELS.NS,ITC Hotels Limited,squeeze release,False,71.1,False,Mid,81.0,,False,True,False,False,166.3000030517578,173.2899932861328,4.203241194288787,2026-11-04,6
-2026-10-27,2026-10-27,WESTLIFE.NS,Westlife Foodworld Limited,52W breakout,False,89.2,True,Micro,81.0,3.3,True,True,False,False,600.7000122070312,631.0499877929688,5.052434654434035,2026-11-04,6
-2026-10-26,2026-10-26,ACUTAAS.NS,Acutaas Chemicals Limited,squeeze release,True,93.9,True,Small,49.0,,False,True,False,False,3348.800048828125,3777.300048828125,12.795628098188438,2026-11-04,7
-2026-10-26,2026-10-26,ATHERENERG.NS,Ather Energy Limited,squeeze release,True,98.1,True,Mid,57.0,,False,True,True,False,1575.0,1840.0,16.825396825396833,2026-11-04,7
-2026-10-26,2026-10-26,BCONCEPTS.NS,Brand Concepts Limited,squeeze release,False,4.0,False,Micro,40.0,,False,True,False,False,153.6199951171875,134.7899932861328,-12.25752013381488,2026-11-04,7
-2026-10-23,2026-10-23,CYIENT.NS,Cyient Limited,52W breakout,True,92.3,True,Small,51.0,41.0,False,False,False,False,1233.0,1113.0,-9.7323600973236,2026-11-04,8
-2026-10-23,2026-10-23,ANANDRATHI.NS,Anand Rathi Wealth Limited,ATH breakout,False,88.2,True,Mid,81.0,4.4,True,True,False,False,2235.0,2296.0,2.7293064876957596,2026-11-04,8
-2026-10-23,2026-10-23,IGIL.NS,International Gemological Institute Limited,52W breakout,False,77.1,True,Small,68.0,47.7,True,True,False,False,381.1499938964844,402.0,5.47028897740931,2026-11-04,8
-2026-10-23,2026-10-23,JSWCEMENT.NS,JSW Cement Limited,squeeze release,False,57.3,False,Small,21.0,,False,True,True,False,116.9800033569336,121.79000091552734,4.111811780272667,2026-11-04,8
-2026-10-23,2026-10-23,SHREECEM.NS,Shree Cement Limited,squeeze release,False,48.8,False,Mid,36.0,,False,True,False,False,22735.0,24175.0,6.333846492192663,2026-11-04,8
-2026-10-22,2026-10-22,CRISIL.NS,CRISIL Limited,squeeze release,False,77.1,True,Small,87.0,,False,True,False,False,4777.2001953125,4448.0,-6.891069703034825,2026-11-04,9
-2026-10-22,2026-10-22,EXXARO.NS,Exxaro Tiles Limited,squeeze release,False,58.5,False,Micro,42.0,,False,True,False,False,6.78000020980835,6.309999942779541,-6.9321571162915046,2026-11-04,9
-2026-10-21,2026-10-21,FRACTAL.NS,Fractal Analytics Limited,squeeze release,False,39.4,False,Small,91.0,,False,True,False,False,785.9000244140625,835.6500244140625,6.330321727256805,2026-11-04,10
-2026-10-21,2026-11-03,LTTS.NS,L&T Technology Services Limited,squeeze release,False,81.2,True,Mid,66.0,,False,True,False,False,4224.0,4133.5,-2.1425189393939448,2026-11-04,10
-2026-10-20,2026-11-03,AJMERA.NS,Ajmera Realty & Infra India Limited,squeeze release,False,77.1,False,Micro,47.0,,False,True,False,False,132.41000366210938,139.75,5.543385042584248,2026-11-04,11
-2026-10-20,2026-10-28,DCMSRIND.NS,DCM Shriram Industries Limited,squeeze release,False,93.4,False,Micro,64.0,,False,True,False,False,54.720001220703125,61.56999969482422,12.51827178602003,2026-11-04,11
-2026-10-20,2026-11-03,TECHM.NS,Tech Mahindra Limited,squeeze release,False,89.6,True,Large,79.0,,False,True,False,False,1789.0999755859375,1783.0,-0.340952192117705,2026-11-04,11
-2026-10-20,2026-11-03,ZENSARTECH.NS,Zensar Technologies Limited,squeeze release,False,72.5,False,Small,79.0,,False,True,False,False,533.1500244140625,533.0,-0.02813924921551969,2026-11-04,11
-2026-10-19,2026-10-30,APOLLO.NS,Apollo Micro Systems Limited,squeeze release,True,92.4,True,Small,68.0,,False,True,False,False,398.75,435.1000061035156,9.115988991477275,2026-11-04,12
-2026-10-19,2026-10-19,APOLLOTYRE.NS,Apollo Tyres Limited,squeeze release,False,48.5,False,Small,64.0,,False,True,False,False,416.75,402.3999938964844,-3.4433128022832937,2026-11-04,12
-2026-10-19,2026-10-19,DELTAMAGNT.NS,Delta Manufacturing Limited,squeeze release,False,46.7,False,Micro,55.0,,False,True,True,False,58.209999084472656,54.7400016784668,-5.961170693320749,2026-11-04,12
-2026-10-19,2026-10-19,DHANBANK.NS,Dhanlaxmi Bank Limited,52W breakout,False,88.8,True,Micro,87.0,8.4,True,False,False,False,37.04999923706055,31.81999969482422,-14.116058434367895,2026-11-04,12
-2026-10-19,2026-10-30,DYNPRO.NS,Dynemic Products Limited,squeeze release,False,70.8,False,Micro,49.0,,False,True,False,False,230.69000244140625,220.55999755859375,-4.391176373317462,2026-11-04,12
-2026-10-19,2026-10-30,FEDFINA.NS,Fedbank Financial Services Limited,squeeze release,False,62.1,False,Micro,17.0,,False,True,False,False,143.64999389648438,157.92999267578125,9.940827974964762,2026-11-04,12
-2026-10-19,2026-10-29,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,False,84.2,True,Mid,92.0,,False,True,False,False,354.5,343.8999938964844,-2.990128661076341,2026-11-04,12
-2026-10-16,2026-10-28,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,94.6,True,Micro,92.0,,False,True,True,False,52.45000076293945,60.560001373291016,15.462346029329321,2026-11-04,13
-2026-10-16,2026-10-19,AIIL.NS,Authum Investment & Infrastructure Limited,squeeze release,False,78.5,False,Mid,96.0,,False,True,False,False,548.9500122070312,515.9500122070312,-6.011476321373022,2026-11-04,13
-2026-10-16,2026-10-19,AJMERA.NS,Ajmera Realty & Infra India Limited,squeeze release,False,67.0,False,Micro,49.0,,False,True,False,False,127.4800033569336,139.75,9.625036335080273,2026-11-04,13
-2026-10-16,2026-10-19,EXPLEOSOL.NS,Expleo Solutions Limited,squeeze release,False,80.9,True,Micro,94.0,,False,True,False,False,875.5499877929688,822.4000244140625,-6.070465892288269,2026-11-04,13
-2026-10-16,2026-10-29,GALLANTT.NS,Gallantt Ispat Limited,squeeze release,False,6.3,False,Small,57.0,,False,True,False,False,572.0,529.1500244140625,-7.491254473066,2026-11-04,13
-2026-10-16,2026-10-16,INDHOTEL.NS,The Indian Hotels Company Limited,52W breakout,False,77.4,True,Large,75.0,5.6,True,True,False,False,772.0999755859375,849.0,9.959853237361393,2026-11-04,13
-2026-10-16,2026-10-16,KARURVYSYA.NS,The Karur Vysya Bank Limited,ATH breakout,False,85.2,True,Mid,68.0,11.0,False,False,False,False,355.6499938964844,343.8999938964844,-3.3038099821871336,2026-11-04,13
-2026-10-16,2026-10-19,KITEX.NS,Kitex Garments Limited,squeeze release,False,8.5,False,Micro,55.0,,False,True,False,False,121.75,134.60000610351562,10.554419797548764,2026-11-04,13
-2026-10-16,2026-10-19,RALLIS.NS,Rallis India Limited,squeeze release,False,16.2,False,Micro,17.0,,False,True,False,False,204.6499938964844,189.6699981689453,-7.31981244774248,2026-11-04,13
-2026-10-16,2026-10-30,TARIL.NS,Transformers and Rectifiers (India) Limited,squeeze release,False,46.7,False,Micro,34.0,,False,True,False,False,298.29998779296875,317.54998779296875,6.45323526240309,2026-11-04,13
-2026-10-16,2026-10-16,TECHM.NS,Tech Mahindra Limited,ATH breakout,False,80.1,True,Large,89.0,10.3,True,True,False,False,1790.0,1783.0,-0.3910614525139633,2026-11-04,13
-2026-10-15,2026-10-22,EIMCOELECO.NS,Eimco Elecon (India) Limited,squeeze release,True,90.6,True,Micro,75.0,,False,True,False,False,2253.89990234375,2306.89990234375,2.351479759366737,2026-11-04,14
-2026-10-15,2026-10-21,EMAMIPAP.NS,Emami Paper Mills Limited,ATH breakout,True,96.3,True,Micro,60.0,3.3,False,False,False,False,115.70999908447266,117.37999725341797,1.4432617597085473,2026-11-04,14
-2026-10-15,2026-10-19,AXISBANK.NS,Axis Bank Limited,squeeze release,False,41.4,False,Large,87.0,,False,True,False,False,1236.0,1232.0,-0.3236245954692518,2026-11-04,14
-2026-10-15,2026-10-15,BMWVENTLTD.NS,BMW Ventures Limited,52W breakout,False,78.3,True,Micro,85.0,27.8,True,False,False,False,71.2699966430664,65.0,-8.797526221963691,2026-11-04,14
-2026-10-15,2026-10-19,BUTTERFLY.NS,Butterfly Gandhimathi Appliances Limited,squeeze release,False,48.5,False,Micro,43.0,,False,True,False,False,587.9500122070312,580.7000122070312,-1.2330980269538827,2026-11-04,14
-2026-10-15,2026-10-19,ELDEHSG.NS,Eldeco Housing and Industries Limited,squeeze release,False,49.3,False,Micro,49.0,,False,True,False,False,794.9500122070312,792.2999877929688,-0.3333573650379895,2026-11-04,14
-2026-10-15,2026-10-19,JAIBALAJI.NS,Jai Balaji Industries Limited,squeeze release,False,49.1,False,Micro,79.0,,False,True,False,False,69.97000122070312,69.19000244140625,-1.1147617060010662,2026-11-04,14
-2026-10-15,2026-10-15,KOTAKBANK.NS,Kotak Mahindra Bank Limited,52W breakout,False,77.3,True,Large,68.0,2.8,False,False,False,False,447.9500122070313,459.3999938964844,2.5560846919145064,2026-11-04,14
-2026-10-15,2026-10-19,PRINCEPIPE.NS,Prince Pipes and Fittings Limited,squeeze release,False,68.7,True,Micro,57.0,,False,True,False,False,277.25,297.75,7.394048692515787,2026-11-04,14
-2026-10-15,2026-10-19,TECHM.NS,Tech Mahindra Limited,squeeze release,False,81.5,True,Large,85.0,,False,True,False,False,1779.0999755859375,1783.0,0.21921333638252882,2026-11-04,14
-2026-10-14,2026-10-14,EMAMIPAP.NS,Emami Paper Mills Limited,52W breakout,True,95.4,True,Micro,87.0,3.3,False,True,False,False,122.19000244140624,117.37999725341797,-3.936496515166865,2026-11-04,15
-2026-10-14,2026-10-19,EMAMIPAP.NS,Emami Paper Mills Limited,squeeze release,True,95.7,True,Micro,83.0,,False,True,False,False,117.36000061035156,117.37999725341797,0.017038720997275547,2026-11-04,15
-2026-10-14,2026-10-19,RAIN.NS,Rain Industries Limited,squeeze release,True,96.7,True,Micro,26.0,,False,True,False,False,224.08999633789065,183.97000122070312,-17.903519020408755,2026-11-04,15
-2026-10-14,2026-10-14,ADVANCE.NS,Advance Agrolife Limited,52W breakout,False,89.2,True,Micro,25.0,45.2,True,False,False,False,155.6699981689453,131.27999877929688,-15.667758512580242,2026-11-04,15
-2026-10-14,2026-10-19,ASIANTILES.NS,Asian Granito India Limited,squeeze release,False,1.6,False,Micro,42.0,,False,True,False,False,47.470001220703125,44.45000076293945,-6.361913587747193,2026-11-04,15
-2026-10-14,2026-10-22,AURUM.NS,Aurum PropTech Limited,squeeze release,False,79.9,False,Micro,57.0,,False,True,True,False,212.69000244140625,209.3699951171875,-1.5609606874368187,2026-11-04,15
-2026-10-14,2026-10-19,CCL.NS,CCL Products (India) Limited,squeeze release,False,40.7,False,Small,77.0,,False,True,False,False,986.7999877929688,964.4000244140625,-2.2699598354277373,2026-11-04,15
-2026-10-14,2026-10-19,DYNPRO.NS,Dynemic Products Limited,squeeze release,False,59.2,False,Micro,70.0,,False,True,False,False,245.42999267578125,220.55999755859375,-10.133233858683822,2026-11-04,15
-2026-10-14,2026-10-19,FEDFINA.NS,Fedbank Financial Services Limited,squeeze release,False,68.6,True,Micro,15.0,,False,True,False,False,160.74000549316406,157.92999267578125,-1.7481726523284946,2026-11-04,15
-2026-10-14,2026-10-19,GANGESSECU.NS,Ganges Securities Limited,squeeze release,False,38.6,False,Micro,77.0,,False,True,False,False,113.3000030517578,113.52999877929688,0.20299710621720646,2026-11-04,15
-2026-10-14,2026-10-19,IDBI.NS,IDBI Bank Limited,squeeze release,False,72.9,False,Mid,87.0,,False,True,False,False,82.23999786376953,79.29000091552734,-3.5870586391902104,2026-11-04,15
-2026-10-14,2026-10-14,SUNTV.NS,Sun TV Network Limited,52W breakout,False,61.2,True,Small,6.0,2.2,False,False,False,False,653.0999755859375,601.6500244140625,-7.877806322947112,2026-11-04,15
-2026-10-14,2026-10-14,TIPSMUSIC.NS,Tips Music Limited,52W breakout,False,83.5,True,Micro,98.0,2.8,False,False,False,False,718.25,786.5499877929688,9.509222108314486,2026-11-04,15
-2026-10-13,2026-10-19,COFORGE.NS,Coforge Limited,squeeze release,True,94.3,True,Mid,94.0,,False,True,False,False,1925.0,2060.0,7.012987012987004,2026-11-04,16
-2026-10-13,2026-10-26,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,squeeze release,True,99.3,True,Micro,94.0,,False,True,False,False,300.25,269.80999755859375,-10.138218964664858,2026-11-04,16
-2026-10-13,2026-10-13,GOODLUCK.NS,Goodluck India Limited,ATH breakout,True,92.0,True,Micro,85.0,10.6,False,True,False,False,566.6500244140625,542.2000122070312,-4.314834757540775,2026-11-04,16
-2026-10-13,2026-10-13,NAZARA.NS,Nazara Technologies Limited,ATH breakout,True,93.4,True,Small,98.0,1.0,False,True,False,False,400.4500122070313,421.04998779296875,5.144206507175064,2026-11-04,16
-2026-10-13,2026-10-19,AARON.NS,Aaron Industries Limited,squeeze release,False,34.7,False,Micro,57.0,,False,True,False,False,122.83999633789062,134.05999755859375,9.133833893840858,2026-11-04,16
-2026-10-13,2026-10-19,ARTNIRMAN.NS,Art Nirman Limited,squeeze release,False,39.0,False,Micro,49.0,,False,True,False,False,39.720001220703125,35.630001068115234,-10.297079624599991,2026-11-04,16
-2026-10-13,2026-10-27,ATL.NS,Allcargo Terminals Limited,squeeze release,False,55.1,False,Micro,45.0,,False,True,False,False,24.26000022888184,26.420000076293945,8.90354421695594,2026-11-04,16
-2026-10-13,2026-10-19,BSOFT.NS,Birlasoft Limited,squeeze release,False,22.9,False,Micro,94.0,,False,True,False,False,312.6000061035156,319.25,2.1273172638014204,2026-11-04,16
-2026-10-13,2026-10-13,DHAMPURSUG.NS,Dhampur Sugar Mills Limited,52W breakout,False,89.7,True,Micro,79.0,3.5,True,False,False,False,202.63999938964844,170.5500030517578,-15.835963499084915,2026-11-04,16
-2026-10-13,2026-10-13,GALAXYSURF.NS,Galaxy Surfactants Limited,52W breakout,False,88.6,True,Micro,81.0,1.7,False,False,False,False,2581.89990234375,2267.10009765625,-12.19256425865839,2026-11-04,16
-2026-10-13,2026-10-23,GPPL.NS,Gujarat Pipavav Port Limited,squeeze release,False,72.0,False,Micro,64.0,,False,True,False,False,157.07000732421875,164.97999572753906,5.035963605064819,2026-11-04,16
-2026-10-13,2026-10-19,GTPL.NS,GTPL Hathway Limited,squeeze release,False,23.7,False,Micro,98.0,,False,True,False,False,54.70000076293945,54.2400016784668,-0.8409489543998672,2026-11-04,16
-2026-10-13,2026-10-27,HEXT.NS,Hexaware Technologies Limited,squeeze release,False,90.1,False,Mid,87.0,,False,True,False,False,569.3499755859375,501.20001220703125,-11.96978419271394,2026-11-04,16
-2026-10-13,2026-10-27,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,False,83.5,True,Mid,79.0,,False,True,False,False,350.6000061035156,343.8999938964844,-1.9110131461472557,2026-11-04,16
-2026-10-13,2026-10-19,LTTS.NS,L&T Technology Services Limited,squeeze release,False,60.3,False,Mid,94.0,,False,True,False,False,3611.300048828125,4133.5,14.460165151365079,2026-11-04,16
-2026-10-13,2026-10-19,MASTEK.NS,Mastek Limited,squeeze release,False,69.3,False,Micro,94.0,,False,True,False,False,1808.4000244140625,1443.699951171875,-20.167002229517973,2026-11-04,16
-2026-10-13,2026-10-13,PNBHOUSING.NS,PNB Housing Finance Limited,52W breakout,False,88.3,True,Small,13.0,1.1,False,False,False,False,1224.800048828125,1082.0,-11.659049896736573,2026-11-04,16
-2026-10-13,2026-10-19,TANLA.NS,Tanla Platforms Limited,squeeze release,False,77.2,True,Micro,94.0,,False,True,False,False,552.3499755859375,659.0999755859375,19.32651483993617,2026-11-04,16
-2026-10-13,2026-10-19,TIPSMUSIC.NS,Tips Music Limited,squeeze release,False,89.4,True,Micro,98.0,,False,True,False,False,771.7000122070312,786.5499877929688,1.9243197293035141,2026-11-04,16
-2026-10-13,2026-10-19,TRIVENI.NS,Triveni Engineering & Industries Limited,squeeze release,False,2.0,False,Micro,34.0,,False,True,False,False,246.4100036621093,245.61000061035156,-0.3246633821144429,2026-11-04,16
-2026-10-13,2026-10-19,ZENSARTECH.NS,Zensar Technologies Limited,squeeze release,False,34.6,False,Small,85.0,,False,True,False,False,513.1500244140625,533.0,3.8682596982438255,2026-11-04,16
-2026-10-12,2026-10-26,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,91.3,True,Micro,83.0,,False,True,True,False,47.59000015258789,60.560001373291016,27.253627188731656,2026-11-04,17
-2026-10-12,2026-10-19,CARTRADE.NS,CarTrade Tech Limited,squeeze release,True,97.3,True,Small,36.0,,False,True,False,False,3032.89990234375,2492.89990234375,-17.80474190996878,2026-11-04,17
-2026-10-12,2026-10-14,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,ATH breakout,True,98.8,True,Micro,94.0,2.0,False,False,False,False,310.95001220703125,269.80999755859375,-13.230427089048124,2026-11-04,17
-2026-10-12,2026-10-19,GOODLUCK.NS,Goodluck India Limited,squeeze release,True,92.6,True,Micro,79.0,,False,True,False,False,588.25,542.2000122070312,-7.828302217249261,2026-11-04,17
-2026-10-12,2026-10-19,NEOGEN.NS,Neogen Chemicals Limited,squeeze release,True,96.2,True,Micro,70.0,,False,True,False,False,2481.800048828125,2273.60009765625,-8.389070314918579,2026-11-04,17
-2026-10-12,2026-10-26,SKYGOLD.NS,Sky Gold and Diamonds Limited,squeeze release,True,99.4,True,Small,40.0,,False,True,False,False,938.5,927.2000122070312,-1.2040477136887273,2026-11-04,17
-2026-10-12,2026-10-26,BHARATGEAR.NS,Bharat Gears Limited,squeeze release,False,41.2,False,Micro,77.0,,False,True,False,False,93.61000061035156,99.0199966430664,5.779292807863312,2026-11-04,17
-2026-10-12,2026-10-19,BLKASHYAP.NS,B.L. Kashyap and Sons Limited,squeeze release,False,57.2,True,Micro,23.0,,False,True,False,False,54.93999862670898,53.4900016784668,-2.639237321599175,2026-11-04,17
-2026-10-12,2026-10-21,CYIENT.NS,Cyient Limited,squeeze release,False,84.5,True,Small,36.0,,False,True,False,False,1169.699951171875,1113.0,-4.847392796338035,2026-11-04,17
-2026-10-12,2026-10-19,DCMSRIND.NS,DCM Shriram Industries Limited,squeeze release,False,82.5,False,Micro,77.0,,False,True,False,False,47.900001525878906,61.56999969482422,28.53861739766299,2026-11-04,17
-2026-10-12,2026-10-19,GAEL.NS,Gujarat Ambuja Exports Limited,squeeze release,False,74.7,False,Micro,77.0,,False,True,False,False,165.4499969482422,152.08999633789062,-8.074947631779638,2026-11-04,17
-2026-10-12,2026-10-19,GALLANTT.NS,Gallantt Ispat Limited,squeeze release,False,7.9,False,Small,79.0,,False,True,False,False,626.2000122070312,529.1500244140625,-15.498241121222234,2026-11-04,17
-2026-10-12,2026-10-19,NETWEB.NS,Netweb Technologies India Limited,squeeze release,False,83.8,False,Small,94.0,,False,True,False,False,4699.89990234375,4062.300048828125,-13.566243255471589,2026-11-04,17
-2026-10-12,2026-10-26,PERSISTENT.NS,Persistent Systems Limited,squeeze release,False,85.9,True,Mid,91.0,,False,True,False,False,5850.0,6065.0,3.6752136752136844,2026-11-04,17
-2026-10-12,2026-10-19,TARIL.NS,Transformers and Rectifiers (India) Limited,squeeze release,False,59.8,False,Micro,40.0,,False,True,False,False,326.1000061035156,317.54998779296875,-2.6219006901314845,2026-11-04,17
-2026-10-09,2026-10-19,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,True,90.2,True,Mid,87.0,,False,True,False,False,370.0499877929688,343.8999938964844,-7.066611203650286,2026-11-04,18
-2026-10-09,2026-10-19,ATL.NS,Allcargo Terminals Limited,squeeze release,False,70.2,False,Micro,51.0,,False,True,False,False,27.8799991607666,26.420000076293945,-5.236725711696588,2026-11-04,18
-2026-10-09,2026-10-19,HEXT.NS,Hexaware Technologies Limited,squeeze release,False,80.8,False,Mid,94.0,,False,True,False,False,574.2999877929688,501.20001220703125,-12.728535110519545,2026-11-04,18
-2026-10-09,2026-10-23,HINDCOMPOS.NS,Hindustan Composites Limited,squeeze release,False,33.6,False,Micro,66.0,,False,True,False,False,360.20001220703125,368.0,2.1654601689701236,2026-11-04,18
-2026-10-08,2026-10-19,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,93.8,True,Micro,96.0,,False,True,True,False,48.45000076293945,60.560001373291016,24.99484090744284,2026-11-04,19
-2026-10-08,2026-10-19,FINOPB.NS,Fino Payments Bank Limited,squeeze release,False,49.4,False,Micro,87.0,,False,True,False,False,131.4199981689453,120.30000305175781,-8.461417799513537,2026-11-04,19
-2026-10-07,2026-10-07,CYIENTDLM.NS,Cyient DLM Limited,ATH breakout,True,99.7,True,Micro,83.0,2.9,False,True,False,False,988.2999877929688,753.6500244140625,-23.742787238408958,2026-11-04,20
-2026-10-07,2026-10-19,EBGNG.NS,GNG Electronics Limited,squeeze release,True,96.9,True,Micro,100.0,,False,True,False,False,700.2000122070312,728.9000244140625,4.098830577932833,2026-11-04,20
-2026-10-07,2026-10-19,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,squeeze release,True,98.9,True,Micro,89.0,,False,True,False,False,297.75,269.80999755859375,-9.3837119870382,2026-11-04,20
-2026-10-07,2026-10-19,GLAND.NS,Gland Pharma Limited,squeeze release,True,96.8,True,Mid,32.0,,False,True,False,False,3019.800048828125,3159.0,4.609575101698993,2026-11-04,20
-2026-10-07,2026-10-07,PTCIL.NS,PTC Industries Limited,ATH breakout,True,94.3,True,Mid,72.0,6.1,True,True,False,False,24685.0,24410.0,-1.1140368644926069,2026-11-04,20
-2026-10-07,2026-10-07,ARFIN.NS,Arfin India Limited,52W breakout,False,70.2,True,Micro,70.0,10.5,True,False,False,False,103.05999755859376,94.16000366210938,-8.635740449561313,2026-11-04,20
-2026-10-07,2026-10-19,BHARATGEAR.NS,Bharat Gears Limited,squeeze release,False,45.9,False,Micro,64.0,,False,True,False,False,100.52999877929688,99.0199966430664,-1.502041335487847,2026-11-04,20
-2026-10-07,2026-10-19,CINEVISTA.NS,Cinevista Limited,squeeze release,False,39.6,False,Micro,98.0,,False,True,False,False,13.779999732971191,13.40999984741211,-2.6850500198036253,2026-11-04,20
-2026-10-07,2026-10-19,DEEPAKFERT.NS,Deepak Fertilisers And Petrochemicals Corporation Limited,squeeze release,False,61.4,False,Small,70.0,,False,True,False,False,1255.699951171875,1146.4000244140625,-8.704302859597068,2026-11-04,20
-2026-10-07,2026-10-19,HAVISHA.NS,Sri Havisha Hospitality and Infrastructure Limited,squeeze release,False,15.2,False,Micro,75.0,,False,True,True,False,1.2999999523162842,1.2200000286102295,-6.153840510802655,2026-11-04,20
-2026-10-07,2026-10-07,JAMNAAUTO.NS,Jamna Auto Industries Limited,ATH breakout,False,77.3,True,Micro,66.0,7.6,True,False,False,False,151.77000427246094,128.3300018310547,-15.444423655234418,2026-11-04,20
-2026-10-06,2026-10-06,BHEL.NS,Bharat Heavy Electricals Limited,ATH breakout,True,92.6,True,Large,64.0,3.8,True,False,False,False,452.0,423.8500061035156,-6.227874755859375,2026-11-04,21
-2026-10-06,2026-10-19,CUPID.NS,Cupid Limited,squeeze release,True,99.9,True,Mid,19.0,,False,True,False,False,336.29998779296875,336.5,0.05947434263791074,2026-11-04,21
-2026-10-06,2026-10-06,DMCC.NS,DMCC Speciality Chemicals Limited,52W breakout,True,94.8,True,Micro,81.0,48.5,True,False,False,False,355.79998779296875,241.5,-32.124786878710374,2026-11-04,21
-2026-10-06,2026-10-19,EIMCOELECO.NS,Eimco Elecon (India) Limited,squeeze release,True,90.9,True,Micro,72.0,,False,True,False,False,2254.199951171875,2306.89990234375,2.3378561047558533,2026-11-04,21
-2026-10-06,2026-10-19,GALAXYSURF.NS,Galaxy Surfactants Limited,squeeze release,True,90.8,True,Micro,70.0,,False,True,False,False,2437.5,2267.10009765625,-6.990765224358975,2026-11-04,21
-2026-10-06,2026-10-06,HFCL.NS,HFCL Limited,ATH breakout,True,99.8,True,Mid,74.0,0.5,False,False,False,False,262.7799987792969,228.16000366210938,-13.174516811785232,2026-11-04,21
-2026-10-06,2026-10-06,OPTIEMUS.NS,Optiemus Infracom Limited,ATH breakout,True,99.1,True,Micro,74.0,58.7,True,False,False,False,889.9000244140625,805.1500244140625,-9.523541709733296,2026-11-04,21
-2026-10-06,2026-10-06,SKYGOLD.NS,Sky Gold and Diamonds Limited,ATH breakout,True,98.7,True,Small,34.0,5.0,True,True,False,False,857.6500244140625,927.2000122070312,8.10936696940976,2026-11-04,21
-2026-10-06,2026-10-19,SKYGOLD.NS,Sky Gold and Diamonds Limited,squeeze release,True,99.7,True,Small,43.0,,False,True,False,False,1028.0999755859375,927.2000122070312,-9.814217077614561,2026-11-04,21
-2026-10-06,2026-10-19,AMNPLST.NS,Amines & Plasticizers Limited,squeeze release,False,56.8,False,Micro,70.0,,False,True,False,False,160.38999938964844,146.3800048828125,-8.73495514692304,2026-11-04,21
-2026-10-06,2026-10-19,AMRUTANJAN.NS,Amrutanjan Health Care Limited,squeeze release,False,43.0,False,Micro,32.0,,False,True,False,False,499.1499938964844,513.2999877929688,2.834818004509243,2026-11-04,21
-2026-10-06,2026-10-19,AURUM.NS,Aurum PropTech Limited,squeeze release,False,81.8,False,Micro,49.0,,False,True,True,False,220.0200042724609,209.3699951171875,-4.8404731153831815,2026-11-04,21
-2026-10-06,2026-10-19,BHEL.NS,Bharat Heavy Electricals Limited,squeeze release,False,87.7,True,Large,57.0,,False,True,False,False,427.3500061035156,423.8500061035156,-0.8190008073036492,2026-11-04,21
-2026-10-06,2026-10-06,FINEORG.NS,Fine Organic Industries Limited,52W breakout,False,72.9,True,Small,81.0,4.1,True,False,False,False,5537.0,5135.0,-7.260249232436333,2026-11-04,21
-2026-10-06,2026-10-19,FINEORG.NS,Fine Organic Industries Limited,squeeze release,False,68.9,True,Small,70.0,,False,True,False,False,5398.0,5135.0,-4.8721748795850335,2026-11-04,21
-2026-10-06,2026-10-19,GREENPLY.NS,Greenply Industries Limited,squeeze release,False,87.3,True,Micro,83.0,,False,True,False,False,303.54998779296875,260.25,-14.264532872424551,2026-11-04,21
-2026-10-06,2026-10-19,ICIL.NS,Indo Count Industries Limited,squeeze release,False,95.4,False,Micro,55.0,,False,True,False,False,423.7999877929688,525.3499755859375,23.961772231710633,2026-11-04,21
-2026-10-06,2026-10-19,LEMONTREE.NS,Lemon Tree Hotels Limited,squeeze release,False,55.3,False,Micro,75.0,,False,True,False,False,111.66999816894533,115.56999969482422,3.492434485383078,2026-11-04,21
-2026-10-06,2026-10-19,LXCHEM.NS,Laxmi Organic Industries Limited,squeeze release,False,81.3,False,Micro,70.0,,False,True,False,False,171.13999938964844,161.97999572753906,-5.35234526982441,2026-11-04,21
-2026-10-06,2026-10-19,MOTILALOFS.NS,Motilal Oswal Financial Services Limited,squeeze release,False,84.7,True,Mid,96.0,,False,True,False,False,1021.0,1013.0,-0.7835455435847183,2026-11-04,21
-2026-10-06,2026-10-19,NAVA.NS,Nava Limited,squeeze release,False,12.5,False,Small,6.0,,False,True,False,False,536.2000122070312,521.9500122070312,-2.657590390821918,2026-11-04,21
-2026-10-06,2026-10-19,PETRONET.NS,Petronet LNG Limited,squeeze release,False,70.4,True,Mid,81.0,,False,True,False,False,293.6499938964844,311.0,5.908396548317896,2026-11-04,21
-2026-10-05,2026-10-06,CPPLUS.NS,Aditya Infotech Limited,52W breakout,True,98.3,True,Mid,32.0,1.2,False,True,False,False,3976.0,3999.800048828125,0.598592777367335,2026-11-04,22
-2026-10-05,2026-10-05,DPABHUSHAN.NS,D. P. Abhushan Limited,ATH breakout,True,96.5,True,Micro,34.0,28.5,True,True,False,False,1874.0,1930.0,2.9882604055496254,2026-11-04,22
-2026-10-05,2026-10-05,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,52W breakout,True,98.5,True,Micro,94.0,1.0,False,True,False,False,282.6000061035156,269.80999755859375,-4.525834489981195,2026-11-04,22
-2026-10-05,2026-10-19,ADFFOODS.NS,ADF Foods Limited,squeeze release,False,80.7,False,Micro,77.0,,False,True,False,False,263.6000061035156,263.70001220703125,0.03793858163885222,2026-11-04,22
-2026-10-05,2026-10-06,ARIES.NS,Aries Agro Limited,ATH breakout,False,81.8,True,Micro,25.0,2.0,False,True,False,False,499.0,473.0,-5.210420841683372,2026-11-04,22
-2026-10-05,2026-10-19,ARIES.NS,Aries Agro Limited,squeeze release,False,83.9,True,Micro,17.0,,False,True,False,False,473.5499877929688,473.0,-0.11614144380661662,2026-11-04,22
-2026-10-05,2026-10-19,ARSSBL.NS,Anand Rathi Share and Stock Brokers Limited,squeeze release,False,25.8,False,Micro,15.0,,False,True,False,False,483.7999877929688,485.29998779296875,0.31004548115900477,2026-11-04,22
-2026-10-05,2026-10-19,CYIENT.NS,Cyient Limited,squeeze release,False,83.2,True,Small,53.0,,False,True,False,False,1172.4000244140625,1113.0,-5.06653217136781,2026-11-04,22
-2026-10-05,2026-10-06,DELTACORP.NS,Delta Corp Limited,52W breakout,False,89.0,True,Micro,75.0,143.2,True,True,False,False,84.33999633789062,75.27999877929688,-10.742231387225532,2026-11-04,22
-2026-10-05,2026-10-19,EVERESTIND.NS,Everest Industries Limited,squeeze release,False,78.3,False,Micro,42.0,,False,True,True,False,473.3500061035156,448.54998779296875,-5.23925593974186,2026-11-04,22
-2026-10-05,2026-10-19,GILLANDERS.NS,Gillanders Arbuthnot and Company Limited,squeeze release,False,73.2,False,Micro,34.0,,False,True,False,False,102.63999938964844,98.30999755859375,-4.218630024165204,2026-11-04,22
-2026-10-05,2026-10-19,GPPL.NS,Gujarat Pipavav Port Limited,squeeze release,False,69.5,True,Micro,51.0,,False,True,False,False,166.0800018310547,164.97999572753906,-0.6623350742942624,2026-11-04,22
-2026-10-05,2026-10-19,HALEOSLABS.NS,Haleos Labs Limited,squeeze release,False,77.5,True,Micro,32.0,,False,True,False,False,1538.300048828125,1398.5999755859375,-9.081458025605006,2026-11-04,22
-2026-10-05,2026-10-19,HINDCOMPOS.NS,Hindustan Composites Limited,squeeze release,False,44.3,True,Micro,64.0,,False,True,False,False,414.1499938964844,368.0,-11.143304256095055,2026-11-04,22
-2026-10-05,2026-10-19,RRKABEL.NS,R R Kabel Limited,squeeze release,False,95.8,False,Small,40.0,,False,True,False,False,2387.800048828125,2017.5999755859375,-15.50381378976321,2026-11-04,22
-2026-10-05,2026-10-06,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,52W breakout,False,83.2,True,Small,75.0,1.0,False,True,False,False,582.7000122070312,663.4500122070312,13.857902575658398,2026-11-04,22
-2026-10-01,2026-10-01,DPABHUSHAN.NS,D. P. Abhushan Limited,ATH breakout,True,96.5,True,Micro,34.0,28.5,True,True,False,False,1874.0,1930.0,2.9882604055496254,2026-11-04,24
-2026-10-01,2026-10-01,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,52W breakout,True,98.5,True,Micro,94.0,1.0,False,True,False,False,282.6000061035156,269.80999755859375,-4.525834489981195,2026-11-04,24
-2026-09-30,2026-09-30,CUPID.NS,Cupid Limited,ATH breakout,True,99.9,True,Mid,17.0,2.9,False,True,False,False,311.6499938964844,336.5,7.973690547149381,2026-11-04,25
-2026-09-30,2026-09-30,AXISCADES.NS,AXISCADES Technologies Limited,ATH breakout,False,81.2,True,Micro,26.0,7.9,True,False,False,False,2231.199951171875,1910.4000244140625,-14.377910262561688,2026-11-04,25
-2026-09-30,2026-09-30,LALPATHLAB.NS,Dr. Lal PathLabs Limited,52W breakout,False,84.8,True,Mid,21.0,2.4,False,True,False,False,1987.0,2029.4000244140625,2.1338713847036894,2026-11-04,25
-2026-09-29,2026-10-05,ASAHISONG.NS,Asahi Songwon Colors Limited,52W breakout,True,93.1,True,Micro,81.0,2.1,False,True,False,False,371.25,371.20001220703125,-0.013464725378786735,2026-11-04,26
-2026-09-29,2026-09-30,AZAD.NS,Azad Engineering Limited,ATH breakout,True,96.2,True,Small,64.0,13.0,True,True,False,False,2963.199951171875,2581.300048828125,-12.888090869221214,2026-11-04,26
-2026-09-29,2026-09-30,DPABHUSHAN.NS,D. P. Abhushan Limited,52W breakout,True,94.8,True,Micro,34.0,35.5,True,True,False,False,1788.800048828125,1930.0,7.893556983318373,2026-11-04,26
-2026-09-29,2026-10-05,LLOYDSENGG.NS,Lloyds Engineering Works Limited,ATH breakout,True,98.2,True,Small,64.0,8.2,True,True,False,False,98.30999755859376,82.94999694824219,-15.624047392735275,2026-11-04,26
-2026-09-29,2026-09-30,AARTIPHARM.NS,Aarti Pharmalabs Limited,ATH breakout,False,85.3,True,Micro,43.0,2.1,False,False,False,False,953.75,926.5,-2.857142857142858,2026-11-04,26
-2026-09-29,2026-09-30,SHRIPISTON.NS,SPR Auto Technologies Limited,ATH breakout,False,89.7,True,Small,34.0,4.6,True,True,False,False,4653.7001953125,4257.5,-8.513659640377735,2026-11-04,26
-2026-09-28,2026-10-05,ABDL.NS,Allied Blenders and Distillers Limited,ATH breakout,True,93.4,True,Small,53.0,21.3,True,True,False,False,679.4500122070312,697.5,2.656558608975179,2026-11-04,27
-2026-09-28,2026-10-05,CUBEXTUB.NS,Cubex Tubings Limited,ATH breakout,True,97.5,True,Micro,70.0,19.9,True,True,False,False,166.10000610351562,184.0,10.776636507363445,2026-11-04,27
-2026-09-28,2026-09-30,SUNFLAG.NS,Sunflag Iron and Steel Company Limited,ATH breakout,True,96.9,True,Micro,45.0,29.9,True,True,False,False,456.0499877929688,391.8999938964844,-14.066439121495245,2026-11-04,27
-2026-09-28,2026-10-05,SOUTHBANK.NS,The South Indian Bank Limited,ATH breakout,False,75.4,True,Small,68.0,7.0,True,True,False,False,47.43999862670898,55.849998474121094,17.727656178044747,2026-11-04,27
-2026-09-28,2026-09-30,ZYDUSLIFE.NS,Zydus Lifesciences Limited,52W breakout,False,77.4,True,Large,43.0,3.8,True,True,False,False,1162.0,1188.0999755859375,2.2461252655712194,2026-11-04,27
-2026-09-25,2026-10-09,ABDL.NS,Allied Blenders and Distillers Limited,52W breakout,True,92.3,True,Small,53.0,20.6,True,True,False,False,711.5499877929688,697.5,-1.9745608929806813,2026-11-04,28
-2026-09-25,2026-09-30,ASAHISONG.NS,Asahi Songwon Colors Limited,52W breakout,True,95.2,True,Micro,81.0,2.1,False,True,False,False,389.1499938964844,371.20001220703125,-4.612612609786626,2026-11-04,28
-2026-09-25,2026-09-30,LLOYDSENGG.NS,Lloyds Engineering Works Limited,ATH breakout,True,98.0,True,Small,64.0,8.2,True,True,False,False,98.63999938964844,82.94999694824219,-15.9063286075535,2026-11-04,28
-2026-09-25,2026-10-07,SHRIPISTON.NS,SPR Auto Technologies Limited,ATH breakout,False,75.4,False,Small,34.0,1.9,False,True,False,False,4411.60009765625,4257.5,-3.49306587734729,2026-11-04,28
-2026-09-25,2026-10-09,SOUTHBANK.NS,The South Indian Bank Limited,52W breakout,False,78.7,True,Small,68.0,6.9,True,True,False,False,47.90999984741211,55.849998474121094,16.572737741592512,2026-11-04,28
-2026-09-24,2026-09-30,ABDL.NS,Allied Blenders and Distillers Limited,ATH breakout,True,93.4,True,Small,53.0,21.3,True,True,False,False,718.9000244140625,697.5,-2.9767733603159208,2026-11-04,29
-2026-09-24,2026-09-30,CUBEXTUB.NS,Cubex Tubings Limited,ATH breakout,True,97.4,True,Micro,70.0,19.9,True,True,False,False,174.83999633789062,184.0,5.239077930662406,2026-11-04,29
-2026-09-24,2026-09-30,SOUTHBANK.NS,The South Indian Bank Limited,ATH breakout,False,76.2,True,Small,68.0,7.0,True,True,False,False,48.2400016784668,55.849998474121094,15.775283024194465,2026-11-04,29
-2026-09-23,2026-09-30,GNA.NS,G N A Axles Limited,ATH breakout,True,90.1,True,Micro,66.0,11.7,True,True,False,False,598.3499755859375,545.75,-8.790837759194137,2026-11-04,30
-2026-09-23,2026-09-30,INNOVACAP.NS,Innova Captab Limited,ATH breakout,True,92.3,True,Micro,43.0,10.3,True,True,False,False,1159.800048828125,1035.0,-10.760479701154036,2026-11-04,30
-2026-09-23,2026-09-30,PGIL.NS,Pearl Global Industries Limited,ATH breakout,True,93.1,True,Micro,34.0,5.5,True,True,False,False,1282.0999755859375,1319.9000244140625,2.9482918296484417,2026-11-04,30
-2026-09-23,2026-09-30,SONACOMS.NS,Sona BLW Precision Forgings Limited,ATH breakout,True,90.8,True,Mid,66.0,1.6,False,True,False,False,830.0,893.7000122070312,7.674700265907375,2026-11-04,30
-2026-09-23,2026-09-30,APOLLOHOSP.NS,Apollo Hospitals Enterprise Limited,ATH breakout,False,54.6,False,Large,21.0,1.6,False,True,False,False,8165.5,8599.5,5.315045006429497,2026-11-04,30
-2026-09-23,2026-09-30,CARBORUNIV.NS,Carborundum Universal Limited,52W breakout,False,85.0,True,Small,62.0,3.3,True,True,False,False,1252.5,1093.4000244140625,-12.702592861152695,2026-11-04,30
-2026-09-23,2026-09-30,DYNAMATECH.NS,Dynamatic Technologies Limited,ATH breakout,False,84.4,True,Micro,66.0,2.9,False,True,False,False,13611.0,12648.0,-7.075159797222829,2026-11-04,30
-2026-09-23,2026-09-30,IKS.NS,Inventurus Knowledge Solutions Limited,52W breakout,False,69.0,False,Small,92.0,7.9,True,True,False,False,1747.5,1750.4000244140625,0.16595275616952954,2026-11-04,30
-2026-09-23,2026-09-30,TI.NS,Tilaknagar Industries Ltd.,ATH breakout,False,74.1,True,Small,77.0,2.2,False,True,False,False,540.6500244140625,473.6000061035156,-12.401741474665307,2026-11-04,30
-2026-09-22,2026-10-05,APARINDS.NS,APAR Industries Limited,ATH breakout,True,94.3,True,Mid,51.0,2.2,False,True,False,False,17648.0,15998.0,-9.34950135992747,2026-11-04,31
-2026-09-22,2026-10-05,EMIL.NS,Electronics Mart India Limited,52W breakout,True,97.9,True,Micro,42.0,9.8,True,True,False,False,204.0500030517578,160.74000549316406,-21.225188390518213,2026-11-04,31
-2026-09-22,2026-09-30,OPTIEMUS.NS,Optiemus Infracom Limited,52W breakout,True,99.0,True,Micro,74.0,46.8,True,True,False,False,767.75,805.1500244140625,4.871380581447404,2026-11-04,31
-2026-09-22,2026-09-30,ADROITINFO.NS,Adroit Infotech Limited,52W breakout,False,89.6,True,Micro,92.0,12.6,False,True,False,False,14.670000076293944,13.329999923706055,-9.134288654526102,2026-11-04,31
-2026-09-22,2026-09-30,BLUESTONE.NS,BlueStone Jewellery and Lifestyle Limited,52W breakout,False,95.6,False,Small,34.0,3.5,True,True,False,False,794.8499755859375,690.6500244140625,-13.109385968724752,2026-11-04,31
-2026-09-22,2026-10-05,CASTROLIND.NS,Castrol India Limited,52W breakout,False,65.2,True,Small,94.0,7.3,True,True,False,False,199.0399932861328,194.97000122070312,-2.044811195094254,2026-11-04,31
-2026-09-22,2026-09-30,GANDHITUBE.NS,Gandhi Special Tubes Limited,ATH breakout,False,65.0,True,Micro,72.0,62.2,True,True,False,False,951.5499877929688,891.9000244140625,-6.268715689572835,2026-11-04,31
-2026-09-22,2026-10-05,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,52W breakout,False,87.8,True,Micro,81.0,3.5,True,True,False,False,589.1500244140625,470.70001220703125,-20.105237596287186,2026-11-04,31
-2026-09-22,2026-09-30,JSWINFRA.NS,JSW Infrastructure Limited,ATH breakout,False,87.6,True,Mid,11.0,6.7,True,True,False,False,356.6000061035156,345.25,-3.182839570737661,2026-11-04,31
-2026-09-22,2026-10-05,JYOTICNC.NS,Jyoti CNC Automation Limited,52W breakout,False,77.4,True,Small,72.0,5.1,True,True,False,False,1032.0999755859375,1034.949951171875,0.2761336743874576,2026-11-04,31
-2026-09-22,2026-09-30,ORCHPHARMA.NS,Orchid Pharma Limited,52W breakout,False,96.7,False,Micro,43.0,8.5,False,True,False,False,997.0,876.75,-12.061183550651954,2026-11-04,31
-2026-09-21,2026-09-30,AEGISLOG.NS,Aegis Logistics Limited,ATH breakout,True,98.8,True,Mid,94.0,2.0,False,True,False,False,1380.0999755859375,1224.9000244140625,-11.245558576724346,2026-11-04,32
-2026-09-21,2026-10-05,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,52W breakout,True,90.5,True,Mid,96.0,5.7,True,True,False,False,290.75,239.58999633789062,-17.59587400244519,2026-11-04,32
-2026-09-21,2026-10-05,ACE.NS,Action Construction Equipment Limited,52W breakout,False,85.6,True,Small,58.0,2.3,False,True,False,False,1212.300048828125,1104.75,-8.871570114353188,2026-11-04,32
-2026-09-21,2026-09-30,ASHIANA.NS,Ashiana Housing Limited,52W breakout,False,70.2,True,Micro,55.0,27.8,True,True,False,False,386.0,370.0,-4.145077720207258,2026-11-04,32
-2026-09-21,2026-09-30,EMCURE.NS,Emcure Pharmaceuticals Limited,ATH breakout,False,70.6,True,Mid,43.0,1.4,False,True,False,False,1943.0,2160.39990234375,11.188878144300052,2026-11-04,32
-2026-09-21,2026-10-05,GOCLCORP.NS,GOCL Corporation Limited,52W breakout,False,85.4,False,Micro,81.0,22.3,True,True,False,False,351.6499938964844,326.45001220703125,-7.166211325705662,2026-11-04,32
-2026-09-21,2026-10-05,SHAREINDIA.NS,Share India Securities Limited,52W breakout,False,88.6,True,Micro,13.0,47.2,True,True,False,False,205.08999633789065,182.9199981689453,-10.809887641920746,2026-11-04,32
-2026-09-21,2026-09-30,TEGA.NS,Tega Industries Limited,52W breakout,False,68.1,True,Small,64.0,42.9,True,True,False,False,2106.699951171875,1814.699951171875,-13.860540502579488,2026-11-04,32
-2026-09-21,2026-09-30,USHAMART.NS,Usha Martin Limited,ATH breakout,False,69.3,False,Small,85.0,8.4,True,True,False,False,498.6499938964844,486.0,-2.5368483006760867,2026-11-04,32
-2026-09-18,2026-09-30,APARINDS.NS,APAR Industries Limited,ATH breakout,True,94.3,True,Mid,51.0,2.2,False,True,False,False,17384.0,15998.0,-7.972848596410498,2026-11-04,33
-2026-09-18,2026-09-30,EMIL.NS,Electronics Mart India Limited,52W breakout,True,97.9,True,Micro,42.0,9.8,True,True,False,False,205.3600006103516,160.74000549316406,-21.7276952593359,2026-11-04,33
-2026-09-18,2026-09-30,CASTROLIND.NS,Castrol India Limited,52W breakout,False,60.6,True,Small,94.0,7.3,True,True,False,False,200.5200042724609,194.97000122070312,-2.7678051733016074,2026-11-04,33
-2026-09-18,2026-09-30,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,52W breakout,False,88.4,True,Micro,81.0,3.5,True,True,False,False,604.4000244140625,470.70001220703125,-22.121112972595782,2026-11-04,33
-2026-09-18,2026-09-30,JKPAPER.NS,JK Paper Limited,52W breakout,False,64.0,False,Micro,87.0,1.5,False,True,False,False,393.7000122070313,368.29998779296875,-6.451618904371714,2026-11-04,33
-2026-09-18,2026-09-30,JYOTICNC.NS,Jyoti CNC Automation Limited,52W breakout,False,79.3,True,Small,72.0,5.1,True,True,False,False,1039.8499755859375,1034.949951171875,-0.4712241697463537,2026-11-04,33
-2026-09-17,2026-09-30,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,52W breakout,True,93.8,True,Mid,96.0,5.7,True,True,False,False,296.79998779296875,239.58999633789062,-19.275604382768584,2026-11-04,34
-2026-09-17,2026-09-30,ACE.NS,Action Construction Equipment Limited,52W breakout,False,85.9,True,Small,58.0,2.3,False,True,False,False,1232.0,1104.75,-10.328733766233766,2026-11-04,34
-2026-09-17,2026-09-30,GOCLCORP.NS,GOCL Corporation Limited,52W breakout,False,83.8,False,Micro,81.0,22.3,True,True,False,False,362.4500122070313,326.45001220703125,-9.932404135066452,2026-11-04,34
-2026-09-17,2026-09-30,SHAREINDIA.NS,Share India Securities Limited,52W breakout,False,88.8,True,Micro,13.0,47.2,True,True,False,False,205.009994506836,182.9199981689453,-10.775082644643497,2026-11-04,34
-2026-09-16,2026-09-30,FOSECOIND.NS,Foseco India Limited,ATH breakout,False,82.4,True,Micro,81.0,37.9,True,True,False,False,6462.5,5969.0,-7.636363636363641,2026-11-04,35
+2026-11-05,2026-11-05,BIL.NS,Bhartiya International Ltd.,squeeze release,True,95.4,True,Micro,43.0,,False,True,False,False,1101.199951171875,1101.199951171875,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ETERNAL.NS,Eternal Limited,ATH breakout,True,93.8,True,Large,9.0,1.7,False,True,False,False,358.29998779296875,358.29998779296875,0.0,2026-11-05,0
+2026-11-05,2026-11-05,LUMAXTECH.NS,Lumax Auto Technologies Limited,ATH breakout,True,91.6,True,Small,43.0,4.0,True,True,False,False,2255.800048828125,2255.800048828125,0.0,2026-11-05,0
+2026-11-05,2026-11-05,PAYTM.NS,One97 Communications Limited,squeeze release,True,96.1,True,Large,36.0,,False,True,False,False,1781.5999755859375,1781.5999755859375,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ABLBL.NS,Aditya Birla Lifestyle Brands Limited,squeeze release,False,5.3,False,Micro,9.0,,False,True,False,False,77.48999786376953,77.48999786376953,0.0,2026-11-05,0
+2026-11-05,2026-11-05,AIROLAM.NS,Airo Lam Limited,52W breakout,False,88.3,True,Micro,43.0,68.5,False,True,False,False,109.37000274658203,109.37000274658203,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ARIS.NS,Arisinfra Solutions Limited,squeeze release,False,66.2,True,Micro,19.0,,False,True,False,False,149.72000122070312,149.72000122070312,0.0,2026-11-05,0
+2026-11-05,2026-11-05,AUROPHARMA.NS,Aurobindo Pharma Limited,ATH breakout,False,85.6,True,Mid,92.0,3.9,True,True,False,False,1785.0,1785.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,BIKAJI.NS,Bikaji Foods International Limited,squeeze release,False,12.8,False,Small,72.0,,False,True,False,False,492.3999938964844,492.3999938964844,0.0,2026-11-05,0
+2026-11-05,2026-11-05,BIRLACORPN.NS,Birla Corporation Limited,squeeze release,False,35.5,False,Micro,25.0,,False,True,False,False,836.0,836.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,CREST.NS,Crest Ventures Limited,squeeze release,False,60.4,True,Micro,34.0,,False,True,False,False,370.29998779296875,370.29998779296875,0.0,2026-11-05,0
+2026-11-05,2026-11-05,DEVYANI.NS,Devyani International Limited,squeeze release,False,76.2,False,Small,74.0,,False,True,True,False,129.2100067138672,129.2100067138672,0.0,2026-11-05,0
+2026-11-05,2026-11-05,EICHERMOT.NS,Eicher Motors Limited,squeeze release,False,72.8,True,Large,75.0,,False,True,False,False,7713.0,7713.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,EIHOTEL.NS,EIH Limited,squeeze release,False,49.1,False,Small,74.0,,False,True,False,False,307.75,307.75,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ELDEHSG.NS,Eldeco Housing and Industries Limited,squeeze release,False,55.0,False,Micro,62.0,,False,True,False,False,816.3499755859375,816.3499755859375,0.0,2026-11-05,0
+2026-11-05,2026-11-05,EMAMILTD.NS,Emami Limited,squeeze release,False,34.6,False,Small,45.0,,False,True,False,False,388.04998779296875,388.04998779296875,0.0,2026-11-05,0
+2026-11-05,2026-11-05,GROWW.NS,Billionbrains Garage Ventures Limited,52W breakout,False,74.6,True,Large,81.0,3.9,True,True,False,False,223.88999938964844,223.88999938964844,0.0,2026-11-05,0
+2026-11-05,2026-11-05,GTLINFRA.NS,GTL Infrastructure Limited,squeeze release,False,21.1,False,Micro,32.0,,False,True,True,False,1.1100000143051147,1.1100000143051147,0.0,2026-11-05,0
+2026-11-05,2026-11-05,HMVL.NS,Hindustan Media Ventures Limited,squeeze release,False,86.1,False,Micro,6.0,,False,True,False,False,81.16999816894531,81.16999816894531,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ICICIBANK.NS,ICICI Bank Limited,ATH breakout,False,84.5,True,Large,91.0,3.6,True,True,False,False,1500.0,1500.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,INDIANB.NS,Indian Bank,squeeze release,False,71.7,True,Large,91.0,,False,True,False,False,892.1500244140625,892.1500244140625,0.0,2026-11-05,0
+2026-11-05,2026-11-05,MGL.NS,Mahanagar Gas Limited,squeeze release,False,55.3,True,Small,98.0,,False,True,False,False,1106.0,1106.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,MOTHERSON.NS,Samvardhana Motherson International Limited,squeeze release,False,89.9,True,Large,70.0,,False,True,False,False,168.0,168.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,MOTILALOFS.NS,Motilal Oswal Financial Services Limited,52W breakout,False,86.7,True,Mid,81.0,3.6,True,True,False,False,1095.0,1095.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,PRICOLLTD.NS,Pricol Limited,squeeze release,False,83.9,True,,70.0,,False,True,False,False,727.9000244140625,727.9000244140625,0.0,2026-11-05,0
+2026-11-05,2026-11-05,PRINCEPIPE.NS,Prince Pipes and Fittings Limited,52W breakout,False,85.4,True,Micro,42.0,16.9,True,True,False,False,318.25,318.25,0.0,2026-11-05,0
+2026-11-05,2026-11-05,RELIGARE.NS,Religare Enterprises Limited,squeeze release,False,65.4,False,Micro,34.0,,False,True,False,False,228.9499969482422,228.9499969482422,0.0,2026-11-05,0
+2026-11-05,2026-11-05,SAPPHIRE.NS,Sapphire Foods India Limited,squeeze release,False,78.9,False,Micro,74.0,,False,True,True,False,210.05999755859375,210.05999755859375,0.0,2026-11-05,0
+2026-11-05,2026-11-05,SIGNATURE.NS,Signatureglobal (India) Limited,squeeze release,False,25.4,False,Small,62.0,,False,True,False,False,732.6500244140625,732.6500244140625,0.0,2026-11-05,0
+2026-11-05,2026-11-05,SOBHA.NS,Sobha Limited,squeeze release,False,42.9,False,Small,62.0,,False,True,False,False,1291.9000244140625,1291.9000244140625,0.0,2026-11-05,0
+2026-11-05,2026-11-05,SUNPHARMA.NS,Sun Pharmaceutical Industries Limited,squeeze release,False,62.6,True,Large,92.0,,False,True,False,False,1829.0,1829.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,UNOMINDA.NS,Uno Minda Limited,52W breakout,False,83.1,True,Mid,70.0,12.1,True,True,False,False,1335.0,1335.0,0.0,2026-11-05,0
+2026-11-05,2026-11-05,ZFCVINDIA.NS,ZF Commercial Vehicle Control Systems India Limited,squeeze release,False,55.7,False,Small,70.0,,False,True,False,False,2309.10009765625,2309.10009765625,0.0,2026-11-05,0
+2026-11-04,2026-11-04,BOSCHLTD.NS,Bosch Limited,ATH breakout,True,93.7,True,,75.0,1.8,False,True,False,False,50925.0,52475.0,3.043691703485507,2026-11-05,1
+2026-11-04,2026-11-04,CNL.NS,Creative Newtech Limited,ATH breakout,True,99.7,True,Micro,100.0,13.2,True,True,False,False,1386.5999755859375,1388.300048828125,0.12260733247662081,2026-11-05,1
+2026-11-04,2026-11-04,EMCURE.NS,Emcure Pharmaceuticals Limited,ATH breakout,True,90.8,True,Mid,92.0,12.7,True,True,False,False,2160.39990234375,2245.0,3.915946189613795,2026-11-05,1
+2026-11-04,2026-11-04,GRWRHITECH.NS,Garware Hi-Tech Films Limited,ATH breakout,True,95.7,True,Small,30.0,1.9,False,True,False,False,7544.5,7630.5,1.1399032407714227,2026-11-05,1
+2026-11-04,2026-11-04,ICIL.NS,Indo Count Industries Limited,ATH breakout,True,98.7,True,Micro,55.0,25.8,True,True,False,False,525.3499755859375,501.1000061035156,-4.615964711024345,2026-11-05,1
+2026-11-04,2026-11-04,SANSERA.NS,Sansera Engineering Limited,squeeze release,True,98.1,True,Small,75.0,,False,True,False,False,4430.7998046875,4431.7998046875,0.02256928870814079,2026-11-05,1
+2026-11-04,2026-11-04,ABBOTINDIA.NS,Abbott India Limited,squeeze release,False,71.7,True,Mid,92.0,,False,True,False,False,27120.0,26605.0,-1.8989675516224214,2026-11-05,1
+2026-11-04,2026-11-04,ADANIPORTS.NS,Adani Ports and Special Economic Zone Limited,ATH breakout,False,76.5,True,Large,72.0,2.2,False,True,False,False,1910.0,1884.5999755859375,-1.3298442101603358,2026-11-05,1
+2026-11-04,2026-11-04,ASHOKLEY.NS,Ashok Leyland Limited,squeeze release,False,52.2,False,,32.0,,False,True,False,False,154.02999877929688,170.2100067138672,10.504452420176902,2026-11-05,1
+2026-11-04,2026-11-04,BEML.NS,BEML Limited,squeeze release,False,79.3,True,Small,43.0,,False,True,False,False,2123.0,1990.9000244140625,-6.22232574592263,2026-11-05,1
+2026-11-04,2026-11-05,BEML.NS,BEML Limited,52W breakout,False,63.4,True,Small,47.0,1.6,False,False,False,False,1990.9000244140625,1990.9000244140625,0.0,2026-11-05,1
+2026-11-04,2026-11-04,BPCL.NS,Bharat Petroleum Corporation Limited,squeeze release,False,58.0,False,Large,98.0,,False,True,False,True,304.70001220703125,317.1000061035156,4.0695744665934175,2026-11-05,1
+2026-11-04,2026-11-04,CSLFINANCE.NS,CSL Finance Limited,squeeze release,False,64.6,False,Micro,19.0,,False,True,False,False,227.8300018310547,225.80999755859375,-0.8866278612238543,2026-11-05,1
+2026-11-04,2026-11-04,FORCEMOT.NS,Force Motors Limited,squeeze release,False,45.3,False,Small,68.0,,False,True,False,False,18148.0,18382.0,1.2893982808023008,2026-11-05,1
+2026-11-04,2026-11-04,GMRAIRPORT.NS,GMR Airports Limited,squeeze release,False,56.0,False,Mid,8.0,,False,True,False,False,95.0,99.30000305175781,4.526319001850321,2026-11-05,1
+2026-11-04,2026-11-04,GOKULAGRO.NS,Gokul Agro Resources Limited,squeeze release,False,54.1,True,Micro,85.0,,False,True,False,False,223.05999755859372,223.22000122070312,0.07173122203023574,2026-11-05,1
+2026-11-04,2026-11-04,HINDALCO.NS,Hindalco Industries Limited,squeeze release,False,44.7,False,Large,66.0,,False,True,False,False,935.7999877929688,937.8499755859375,0.2190626009521024,2026-11-05,1
+2026-11-04,2026-11-04,IEX.NS,Indian Energy Exchange Limited,squeeze release,False,38.5,False,Micro,79.0,,False,True,False,False,111.2699966430664,112.19999694824219,0.835805098618847,2026-11-05,1
+2026-11-04,2026-11-04,ISGEC.NS,Isgec Heavy Engineering Limited,squeeze release,False,41.7,True,Micro,42.0,,False,True,False,False,945.0999755859376,974.0499877929688,3.063169289479961,2026-11-05,1
+2026-11-04,2026-11-04,JSWSTEEL.NS,JSW Steel Limited,ATH breakout,False,72.4,True,Large,83.0,1.0,False,True,False,False,1343.0,1355.5999755859375,0.9381962461606497,2026-11-05,1
+2026-11-04,2026-11-04,KANSAINER.NS,Kansai Nerolac Paints Limited,squeeze release,False,60.2,False,Small,30.0,,False,True,False,False,195.32000732421875,204.24000549316406,4.566863523683318,2026-11-05,1
+2026-11-04,2026-11-04,LALPATHLAB.NS,Dr. Lal PathLabs Limited,ATH breakout,False,89.9,True,Mid,91.0,3.3,True,True,False,False,2029.4000244140625,1966.800048828125,-3.084654323092939,2026-11-05,1
+2026-11-04,2026-11-04,LEMONTREE.NS,Lemon Tree Hotels Limited,squeeze release,False,54.6,False,Micro,60.0,,False,True,False,False,115.56999969482422,117.52999877929688,1.6959410657162444,2026-11-05,1
+2026-11-04,2026-11-04,LICI.NS,Life Insurance Corporation of India,squeeze release,False,68.0,True,Large,36.0,,False,True,False,False,408.0,408.0,0.0,2026-11-05,1
+2026-11-04,2026-11-04,M&M.NS,Mahindra & Mahindra Limited,squeeze release,False,46.7,False,Large,68.0,,False,True,False,False,2961.89990234375,3127.5,5.591009254742563,2026-11-05,1
+2026-11-04,2026-11-04,MARICO.NS,Marico Limited,ATH breakout,False,76.6,True,Large,85.0,3.7,True,True,False,False,890.0,887.75,-0.2528089887640417,2026-11-05,1
+2026-11-04,2026-11-04,NAVINFLUOR.NS,Navin Fluorine International Limited,ATH breakout,False,87.6,True,Mid,30.0,1.8,False,True,False,False,8785.0,8845.0,0.6829823562891191,2026-11-05,1
+2026-11-04,2026-11-04,UNOMINDA.NS,Uno Minda Limited,squeeze release,False,72.5,True,Mid,75.0,,False,True,False,False,1196.9000244140625,1335.0,11.53813792037841,2026-11-05,1
+2026-11-03,2026-11-03,GRWRHITECH.NS,Garware Hi-Tech Films Limited,squeeze release,True,97.4,True,Small,34.0,,False,True,False,False,7395.5,7630.5,3.1776080048678157,2026-11-05,2
+2026-11-03,2026-11-03,SAREGAMA.NS,Saregama India Limited,52W breakout,True,97.3,True,Small,91.0,2.1,False,True,False,False,562.2000122070312,632.0499877929688,12.424399514280893,2026-11-05,2
+2026-11-03,2026-11-03,BERGEPAINT.NS,Berger Paints India Limited,squeeze release,False,67.0,False,Mid,34.0,,False,True,False,False,479.7000122070313,505.0,5.27412698543972,2026-11-05,2
+2026-11-03,2026-11-03,CEIGALL.NS,Ceigall India Limited,52W breakout,False,80.5,True,Micro,17.0,1.6,False,False,False,True,397.2000122070313,386.8500061035156,-2.605741637822756,2026-11-05,2
+2026-11-03,2026-11-03,DRREDDY.NS,Dr. Reddy's Laboratories Limited,52W breakout,False,74.7,True,Large,89.0,1.2,False,True,False,False,1368.300048828125,1366.0,-0.1680953552617992,2026-11-05,2
+2026-11-03,2026-11-03,GAIL.NS,GAIL (India) Limited,52W breakout,False,77.7,True,Large,92.0,2.4,False,True,False,False,181.75,185.99000549316406,2.332877850434145,2026-11-05,2
+2026-11-03,2026-11-03,GODREJPROP.NS,Godrej Properties Limited,squeeze release,False,50.4,False,Mid,47.0,,False,True,False,False,1669.5,1815.0,8.715184186882308,2026-11-05,2
+2026-11-03,2026-11-03,HDFCAMC.NS,HDFC Asset Management Company Limited,squeeze release,False,43.7,False,Mid,83.0,,False,True,False,False,2440.0,2640.0,8.196721311475418,2026-11-05,2
+2026-11-03,2026-11-03,HINDUNILVR.NS,Hindustan Unilever Limited,squeeze release,False,35.8,False,Large,58.0,,False,True,False,False,1962.800048828125,1982.0,0.9781919041289111,2026-11-05,2
+2026-11-03,2026-11-03,JKCEMENT.NS,J.K. Cement Limited,squeeze release,False,56.2,False,Mid,60.0,,False,True,False,False,5084.60009765625,5250.10009765625,3.254926578715356,2026-11-05,2
+2026-11-03,2026-11-03,KITEX.NS,Kitex Garments Limited,squeeze release,False,21.7,False,Micro,57.0,,False,True,False,False,133.22999572753906,139.6699981689453,4.833748140753769,2026-11-05,2
+2026-11-03,2026-11-03,MARUTI.NS,Maruti Suzuki India Limited,squeeze release,False,44.7,False,Large,68.0,,False,True,False,False,11869.0,12652.0,6.59701744039094,2026-11-05,2
+2026-11-03,2026-11-03,MCX.NS,Multi Commodity Exchange of India Limited,ATH breakout,False,85.5,True,,83.0,2.7,False,True,False,False,3490.10009765625,3366.0,-3.5557747395150163,2026-11-05,2
+2026-11-03,2026-11-03,ORIENTCEM.NS,Orient Cement Limited,squeeze release,False,36.8,False,Micro,60.0,,False,True,False,False,119.52999877929688,125.55000305175781,5.036396163256396,2026-11-05,2
+2026-11-03,2026-11-03,SKFINDIA.NS,SKF India Limited,squeeze release,False,44.3,False,Micro,,,False,True,False,False,1471.9000244140625,1420.4000244140625,-3.4988789418969657,2026-11-05,2
+2026-11-03,2026-11-03,SUNTECK.NS,Sunteck Realty Limited,squeeze release,False,37.7,False,Micro,47.0,,False,True,False,False,286.95001220703125,298.04998779296875,3.868261060720557,2026-11-05,2
+2026-11-02,2026-11-03,ALIVUS.NS,Alivus Life Sciences Limited,ATH breakout,True,93.4,True,Small,89.0,7.3,False,True,False,False,1481.300048828125,1497.199951171875,1.073374861246279,2026-11-05,3
+2026-11-02,2026-11-03,INDGN.NS,Indegene Limited,52W breakout,False,79.5,True,Small,66.0,5.3,False,False,False,False,612.7999877929688,613.3499755859375,0.08974996800334978,2026-11-05,3
+2026-11-02,2026-11-03,INDGN.NS,Indegene Limited,squeeze release,False,79.5,True,Small,66.0,,False,True,False,False,612.7999877929688,613.3499755859375,0.08974996800334978,2026-11-05,3
+2026-11-02,2026-11-03,NH.NS,Narayana Hrudayalaya Limited,squeeze release,False,72.2,True,Mid,81.0,,False,True,False,False,1870.5999755859373,1915.5,2.4003007056598857,2026-11-05,3
+2026-11-02,2026-11-03,OIL.NS,Oil India Limited,squeeze release,False,55.4,False,Mid,43.0,,False,True,False,False,455.5,439.75,-3.457738748627881,2026-11-05,3
+2026-11-02,2026-11-03,ONGC.NS,Oil and Natural Gas Corporation Limited,squeeze release,False,25.8,False,Large,43.0,,False,True,False,False,232.1699981689453,230.0,-0.9346591661538617,2026-11-05,3
+2026-11-02,2026-11-03,PETRONET.NS,Petronet LNG Limited,squeeze release,False,75.0,True,Mid,92.0,,False,True,False,False,303.0,317.0,4.62046204620461,2026-11-05,3
+2026-11-02,2026-11-03,SBIN.NS,State Bank of India,squeeze release,False,50.8,False,Large,72.0,,False,True,False,False,970.25,1006.4000244140625,3.7258463709417766,2026-11-05,3
+2026-11-02,2026-11-03,TANLA.NS,Tanla Platforms Limited,52W breakout,False,88.2,True,Micro,66.0,3.2,True,True,False,False,662.0499877929688,655.75,-0.9515879328040766,2026-11-05,3
+2026-10-30,2026-10-30,ATHERENERG.NS,Ather Energy Limited,52W breakout,True,98.5,True,Mid,62.0,2.4,False,True,True,False,1756.0,1778.5999755859375,1.2870145550078371,2026-11-05,4
+2026-10-30,2026-10-30,COFORGE.NS,Coforge Limited,ATH breakout,True,97.9,True,Mid,66.0,3.0,True,True,False,False,2045.0,2079.0,1.6625916870415702,2026-11-05,4
+2026-10-30,2026-10-30,ETERNAL.NS,Eternal Limited,52W breakout,True,93.8,True,Large,28.0,1.8,False,True,False,False,343.6499938964844,358.29998779296875,4.263056643876251,2026-11-05,4
+2026-10-30,2026-10-30,ZYDUSLIFE.NS,Zydus Lifesciences Limited,52W breakout,True,94.0,True,Large,92.0,3.0,True,True,False,False,1245.5,1193.0,-4.2151746286631875,2026-11-05,4
+2026-10-30,2026-10-30,AFSL.NS,Abans Financial Services Limited,squeeze release,False,65.6,True,Micro,89.0,,False,True,False,False,202.4499969482422,201.24000549316406,-0.5976742273735236,2026-11-05,4
+2026-10-30,2026-10-30,AGARWALEYE.NS,Dr. Agarwal's Health Care Limited,squeeze release,False,81.7,True,Small,38.0,,False,True,False,False,509.2000122070313,511.70001220703125,0.49096620975404015,2026-11-05,4
+2026-10-30,2026-10-30,GKWLIMITED.NS,GKW Limited,squeeze release,False,59.2,False,Micro,58.0,,False,True,False,False,1590.699951171875,1670.5999755859375,5.022947561870472,2026-11-05,4
+2026-10-29,2026-10-29,21STCENMGM.NS,Twentyfirst Century Management Services Limited,52W breakout,True,95.4,True,Micro,83.0,5.9,False,True,True,False,55.06999969482422,57.540000915527344,4.485202895207685,2026-11-05,5
+2026-10-29,2026-10-29,DIVISLAB.NS,Divi's Laboratories Limited,ATH breakout,True,95.0,True,Large,91.0,0.8,False,True,False,False,9664.0,10140.5,4.930670529801318,2026-11-05,5
+2026-10-29,2026-10-29,ETERNAL.NS,Eternal Limited,squeeze release,True,90.8,True,Large,32.0,,False,True,False,False,337.8500061035156,358.29998779296875,6.052976563566292,2026-11-05,5
+2026-10-29,2026-10-29,NYKAA.NS,FSN E-Commerce Ventures Limited,52W breakout,True,90.2,True,Mid,32.0,1.9,False,True,False,False,352.8999938964844,350.29998779296875,-0.7367543634127394,2026-11-05,5
+2026-10-29,2026-10-29,AERONEU.NS,Aeroflex Neu Limited,squeeze release,False,33.2,False,Micro,45.0,,False,True,False,False,72.7699966430664,78.63999938964844,8.0665150712788,2026-11-05,5
+2026-10-29,2026-10-29,CEMPRO.NS,Cemindia Projects Limited,squeeze release,False,98.4,False,Small,23.0,,False,True,False,False,1287.4000244140625,1287.4000244140625,0.0,2026-11-05,5
+2026-10-29,2026-10-29,DLF.NS,DLF Limited,squeeze release,False,82.7,True,Large,40.0,,False,True,False,False,694.3499755859375,745.2000122070312,7.323401513506678,2026-11-05,5
+2026-10-29,2026-10-29,GENUSPAPER.NS,Genus Paper & Boards Limited,squeeze release,False,24.0,False,Micro,98.0,,False,True,False,False,10.960000038146973,10.510000228881836,-4.1058376614861665,2026-11-05,5
+2026-10-29,2026-10-29,GESHIP.NS,The Great Eastern Shipping Company Limited,squeeze release,False,72.7,True,Small,58.0,,False,True,False,False,1618.800048828125,1460.0,-9.809738327045569,2026-11-05,5
+2026-10-29,2026-10-29,KOTAKBANK.NS,Kotak Mahindra Bank Limited,ATH breakout,False,84.4,True,Large,92.0,3.0,True,True,False,False,459.0,467.0,1.7429193899782147,2026-11-05,5
+2026-10-29,2026-10-29,MARICO.NS,Marico Limited,squeeze release,False,68.8,False,Mid,66.0,,False,True,False,False,802.9000244140625,887.75,10.567937851024345,2026-11-05,5
+2026-10-28,2026-10-28,PPLPHARMA.NS,Piramal Pharma Limited,52W breakout,True,93.7,True,Small,96.0,41.0,True,True,True,False,232.8000030517578,238.6300048828125,2.504296286352936,2026-11-05,6
+2026-10-28,2026-10-28,PPLPHARMA.NS,Piramal Pharma Limited,squeeze release,True,93.7,True,Small,96.0,,False,True,True,False,232.8000030517578,238.6300048828125,2.504296286352936,2026-11-05,6
+2026-10-28,2026-10-28,SAREGAMA.NS,Saregama India Limited,squeeze release,True,94.9,True,Micro,94.0,,False,True,False,False,523.9500122070312,632.0499877929688,20.631734529519075,2026-11-05,6
+2026-10-28,2026-10-28,63MOONS.NS,63 moons technologies limited,52W breakout,False,88.8,True,Micro,85.0,1.8,False,True,True,False,932.5,951.8499755859375,2.07506440599865,2026-11-05,6
+2026-10-28,2026-10-28,GUJAPOLLO.NS,Gujarat Apollo Industries Limited,squeeze release,False,30.1,False,Micro,57.0,,False,True,False,False,357.45001220703125,347.1499938964844,-2.881526915316268,2026-11-05,6
+2026-10-28,2026-11-03,LT.NS,Larsen & Toubro Limited,squeeze release,False,59.5,True,Large,17.0,,False,True,False,False,3948.199951171875,4050.0,2.578391421080628,2026-11-05,6
+2026-10-27,2026-10-27,ACUTAAS.NS,Acutaas Chemicals Limited,ATH breakout,True,95.8,True,Small,58.0,15.1,True,True,False,False,3793.300048828125,3770.800048828125,-0.5931510745360358,2026-11-05,7
+2026-10-27,2026-10-27,LAURUSLABS.NS,Laurus Labs Limited,squeeze release,True,98.8,True,Large,83.0,,False,True,False,False,2142.0,2346.0,9.523809523809534,2026-11-05,7
+2026-10-27,2026-10-27,SONACOMS.NS,Sona BLW Precision Forgings Limited,ATH breakout,True,94.9,True,Mid,72.0,10.4,True,True,False,False,851.8499755859375,915.25,7.442627954582415,2026-11-05,7
+2026-10-27,2026-10-27,SONACOMS.NS,Sona BLW Precision Forgings Limited,squeeze release,True,94.9,True,Mid,72.0,,False,True,False,False,851.8499755859375,915.25,7.442627954582415,2026-11-05,7
+2026-10-27,2026-10-27,BATAINDIA.NS,Bata India Limited,squeeze release,False,57.4,False,Micro,32.0,,False,True,False,False,662.4000244140625,637.6500244140625,-3.736412905765374,2026-11-05,7
+2026-10-27,2026-10-27,COHANCE.NS,Cohance Lifesciences Limited,squeeze release,False,78.0,False,Small,83.0,,False,True,False,False,479.25,449.0,-6.311945748565462,2026-11-05,7
+2026-10-27,2026-10-27,ITCHOTELS.NS,ITC Hotels Limited,squeeze release,False,71.1,False,Mid,81.0,,False,True,False,False,166.3000030517578,176.52999877929688,6.151530691406637,2026-11-05,7
+2026-10-27,2026-10-27,WESTLIFE.NS,Westlife Foodworld Limited,52W breakout,False,89.2,True,Micro,81.0,3.3,True,True,False,False,600.7000122070312,644.3499755859375,7.266516146475843,2026-11-05,7
+2026-10-26,2026-10-26,ACUTAAS.NS,Acutaas Chemicals Limited,squeeze release,True,93.9,True,Small,49.0,,False,True,False,False,3348.800048828125,3770.800048828125,12.601528722136578,2026-11-05,8
+2026-10-26,2026-10-26,ATHERENERG.NS,Ather Energy Limited,squeeze release,True,98.1,True,Mid,57.0,,False,True,True,False,1575.0,1778.5999755859375,12.926982576884916,2026-11-05,8
+2026-10-26,2026-10-26,BCONCEPTS.NS,Brand Concepts Limited,squeeze release,False,4.0,False,Micro,40.0,,False,True,False,False,153.6199951171875,139.61000061035156,-9.119902976268524,2026-11-05,8
+2026-10-23,2026-10-23,CYIENT.NS,Cyient Limited,52W breakout,True,92.3,True,Small,51.0,41.0,False,False,False,False,1233.0,1128.9000244140625,-8.442820404374496,2026-11-05,9
+2026-10-23,2026-10-23,ANANDRATHI.NS,Anand Rathi Wealth Limited,ATH breakout,False,88.2,True,Mid,81.0,4.4,True,True,False,False,2235.0,2370.0,6.040268456375841,2026-11-05,9
+2026-10-23,2026-10-23,IGIL.NS,International Gemological Institute Limited,52W breakout,False,77.1,True,Small,68.0,47.7,True,True,False,False,381.1499938964844,406.95001220703125,6.7689934995916134,2026-11-05,9
+2026-10-23,2026-10-23,JSWCEMENT.NS,JSW Cement Limited,squeeze release,False,57.3,False,Small,21.0,,False,True,True,False,116.9800033569336,122.5199966430664,4.735846407209432,2026-11-05,9
+2026-10-23,2026-10-23,SHREECEM.NS,Shree Cement Limited,squeeze release,False,48.8,False,Mid,36.0,,False,True,False,False,22735.0,24895.0,9.500769738288973,2026-11-05,9
+2026-10-22,2026-10-22,CRISIL.NS,CRISIL Limited,squeeze release,False,77.1,True,Small,87.0,,False,True,False,False,4777.2001953125,4428.5,-7.299258583608292,2026-11-05,10
+2026-10-22,2026-10-22,EXXARO.NS,Exxaro Tiles Limited,squeeze release,False,58.5,False,Micro,42.0,,False,True,False,False,6.78000020980835,6.340000152587891,-6.4896761593595365,2026-11-05,10
+2026-10-21,2026-10-21,FRACTAL.NS,Fractal Analytics Limited,squeeze release,False,39.4,False,Small,91.0,,False,True,False,False,785.9000244140625,809.4500122070312,2.9965628020595547,2026-11-05,11
+2026-10-21,2026-11-03,LTTS.NS,L&T Technology Services Limited,squeeze release,False,81.2,True,Mid,66.0,,False,True,False,False,4224.0,4225.60009765625,0.037881099816527986,2026-11-05,11
+2026-10-20,2026-11-03,AJMERA.NS,Ajmera Realty & Infra India Limited,squeeze release,False,77.1,False,Micro,47.0,,False,True,False,False,132.41000366210938,132.4499969482422,0.030204127351929344,2026-11-05,12
+2026-10-20,2026-10-28,DCMSRIND.NS,DCM Shriram Industries Limited,squeeze release,False,93.4,False,Micro,64.0,,False,True,False,False,54.720001220703125,61.540000915527344,12.463449456656628,2026-11-05,12
+2026-10-20,2026-11-03,TECHM.NS,Tech Mahindra Limited,squeeze release,False,89.6,True,Large,79.0,,False,True,False,False,1789.0999755859375,1822.699951171875,1.8780378986329893,2026-11-05,12
+2026-10-20,2026-11-03,ZENSARTECH.NS,Zensar Technologies Limited,squeeze release,False,72.5,False,Small,79.0,,False,True,False,False,533.1500244140625,565.75,6.114597035190084,2026-11-05,12
+2026-10-19,2026-10-30,APOLLO.NS,Apollo Micro Systems Limited,squeeze release,True,92.4,True,Small,68.0,,False,True,False,False,398.75,434.6499938964844,9.003133265576025,2026-11-05,13
+2026-10-19,2026-10-19,APOLLOTYRE.NS,Apollo Tyres Limited,squeeze release,False,48.5,False,Small,64.0,,False,True,False,False,416.75,418.8500061035156,0.5039006847068039,2026-11-05,13
+2026-10-19,2026-10-19,DELTAMAGNT.NS,Delta Manufacturing Limited,squeeze release,False,46.7,False,Micro,55.0,,False,True,True,False,58.209999084472656,55.11000061035156,-5.325542901353542,2026-11-05,13
+2026-10-19,2026-10-19,DHANBANK.NS,Dhanlaxmi Bank Limited,52W breakout,False,88.8,True,Micro,87.0,8.4,True,False,False,False,37.04999923706055,33.380001068115234,-9.905528325286095,2026-11-05,13
+2026-10-19,2026-10-30,DYNPRO.NS,Dynemic Products Limited,squeeze release,False,70.8,False,Micro,49.0,,False,True,False,False,230.69000244140625,221.6300048828125,-3.927347289744354,2026-11-05,13
+2026-10-19,2026-10-30,FEDFINA.NS,Fedbank Financial Services Limited,squeeze release,False,62.1,False,Micro,17.0,,False,True,False,False,143.64999389648438,158.6999969482422,10.476856032867632,2026-11-05,13
+2026-10-19,2026-10-29,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,False,84.2,True,Mid,92.0,,False,True,False,False,354.5,360.5,1.6925246826516194,2026-11-05,13
+2026-10-16,2026-10-28,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,94.6,True,Micro,92.0,,False,True,True,False,52.45000076293945,57.540000915527344,9.704480607337619,2026-11-05,14
+2026-10-16,2026-10-19,AIIL.NS,Authum Investment & Infrastructure Limited,squeeze release,False,78.5,False,Mid,96.0,,False,True,False,False,548.9500122070312,569.5999755859375,3.7617201784701404,2026-11-05,14
+2026-10-16,2026-10-19,AJMERA.NS,Ajmera Realty & Infra India Limited,squeeze release,False,67.0,False,Micro,49.0,,False,True,False,False,127.4800033569336,132.4499969482422,3.8986456388717006,2026-11-05,14
+2026-10-16,2026-10-19,EXPLEOSOL.NS,Expleo Solutions Limited,squeeze release,False,80.9,True,Micro,94.0,,False,True,False,False,875.5499877929688,824.0999755859375,-5.876307797881786,2026-11-05,14
+2026-10-16,2026-10-29,GALLANTT.NS,Gallantt Ispat Limited,squeeze release,False,6.3,False,Small,57.0,,False,True,False,False,572.0,535.9500122070312,-6.302445418351176,2026-11-05,14
+2026-10-16,2026-10-16,INDHOTEL.NS,The Indian Hotels Company Limited,52W breakout,False,77.4,True,Large,75.0,5.6,True,True,False,False,772.0999755859375,875.0,13.327292794689294,2026-11-05,14
+2026-10-16,2026-10-16,KARURVYSYA.NS,The Karur Vysya Bank Limited,ATH breakout,False,85.2,True,Mid,68.0,11.0,False,False,False,False,355.6499938964844,360.5,1.3637020066777472,2026-11-05,14
+2026-10-16,2026-10-19,KITEX.NS,Kitex Garments Limited,squeeze release,False,8.5,False,Micro,55.0,,False,True,False,False,121.75,139.6699981689453,14.718684327675824,2026-11-05,14
+2026-10-16,2026-10-19,RALLIS.NS,Rallis India Limited,squeeze release,False,16.2,False,Micro,17.0,,False,True,False,False,204.6499938964844,192.1199951171875,-6.122648010258336,2026-11-05,14
+2026-10-16,2026-10-30,TARIL.NS,Transformers and Rectifiers (India) Limited,squeeze release,False,46.7,False,Micro,34.0,,False,True,False,False,298.29998779296875,315.6000061035156,5.799537049446246,2026-11-05,14
+2026-10-16,2026-10-16,TECHM.NS,Tech Mahindra Limited,ATH breakout,False,80.1,True,Large,89.0,10.3,True,True,False,False,1790.0,1822.699951171875,1.826812914629894,2026-11-05,14
+2026-10-15,2026-10-22,EIMCOELECO.NS,Eimco Elecon (India) Limited,squeeze release,True,90.6,True,Micro,75.0,,False,True,False,False,2253.89990234375,2517.10009765625,11.677545885636164,2026-11-05,15
+2026-10-15,2026-10-21,EMAMIPAP.NS,Emami Paper Mills Limited,ATH breakout,True,96.3,True,Micro,60.0,3.3,False,False,False,False,115.70999908447266,115.20999908447266,-0.43211477310183266,2026-11-05,15
+2026-10-15,2026-10-19,AXISBANK.NS,Axis Bank Limited,squeeze release,False,41.4,False,Large,87.0,,False,True,False,False,1236.0,1280.0,3.5598705501618033,2026-11-05,15
+2026-10-15,2026-10-15,BMWVENTLTD.NS,BMW Ventures Limited,52W breakout,False,78.3,True,Micro,85.0,27.8,True,False,False,False,71.2699966430664,64.76000213623047,-9.13427082007484,2026-11-05,15
+2026-10-15,2026-10-19,BUTTERFLY.NS,Butterfly Gandhimathi Appliances Limited,squeeze release,False,48.5,False,Micro,43.0,,False,True,False,False,587.9500122070312,585.4500122070312,-0.42520621619099863,2026-11-05,15
+2026-10-15,2026-10-19,ELDEHSG.NS,Eldeco Housing and Industries Limited,squeeze release,False,49.3,False,Micro,49.0,,False,True,False,False,794.9500122070312,816.3499755859375,2.6919885590658943,2026-11-05,15
+2026-10-15,2026-10-19,JAIBALAJI.NS,Jai Balaji Industries Limited,squeeze release,False,49.1,False,Micro,79.0,,False,True,False,False,69.97000122070312,67.94999694824219,-2.886957606430973,2026-11-05,15
+2026-10-15,2026-10-15,KOTAKBANK.NS,Kotak Mahindra Bank Limited,52W breakout,False,77.3,True,Large,68.0,2.8,False,False,False,False,447.9500122070313,467.0,4.252703934331903,2026-11-05,15
+2026-10-15,2026-10-19,PRINCEPIPE.NS,Prince Pipes and Fittings Limited,squeeze release,False,68.7,True,Micro,57.0,,False,True,False,False,277.25,318.25,14.788097385031552,2026-11-05,15
+2026-10-15,2026-10-19,TECHM.NS,Tech Mahindra Limited,squeeze release,False,81.5,True,Large,85.0,,False,True,False,False,1779.0999755859375,1822.699951171875,2.450675970111127,2026-11-05,15
+2026-10-14,2026-10-14,EMAMIPAP.NS,Emami Paper Mills Limited,52W breakout,True,95.4,True,Micro,87.0,3.3,False,True,False,False,122.19000244140624,115.20999908447266,-5.712417724421193,2026-11-05,16
+2026-10-14,2026-10-19,EMAMIPAP.NS,Emami Paper Mills Limited,squeeze release,True,95.7,True,Micro,83.0,,False,True,False,False,117.36000061035156,115.20999908447266,-1.8319712974586233,2026-11-05,16
+2026-10-14,2026-10-19,RAIN.NS,Rain Industries Limited,squeeze release,True,96.7,True,Micro,26.0,,False,True,False,False,224.08999633789065,188.32000732421875,-15.962331919420746,2026-11-05,16
+2026-10-14,2026-10-14,ADVANCE.NS,Advance Agrolife Limited,52W breakout,False,89.2,True,Micro,25.0,45.2,True,False,False,False,155.6699981689453,125.25,-19.541336498206373,2026-11-05,16
+2026-10-14,2026-10-19,ASIANTILES.NS,Asian Granito India Limited,squeeze release,False,1.6,False,Micro,42.0,,False,True,False,False,47.470001220703125,44.68000030517578,-5.877398027768621,2026-11-05,16
+2026-10-14,2026-10-22,AURUM.NS,Aurum PropTech Limited,squeeze release,False,79.9,False,Micro,57.0,,False,True,True,False,212.69000244140625,216.27999877929688,1.6879008400404905,2026-11-05,16
+2026-10-14,2026-10-19,CCL.NS,CCL Products (India) Limited,squeeze release,False,40.7,False,Small,77.0,,False,True,False,False,986.7999877929688,965.2000122070312,-2.18889094579815,2026-11-05,16
+2026-10-14,2026-10-19,DYNPRO.NS,Dynemic Products Limited,squeeze release,False,59.2,False,Micro,70.0,,False,True,False,False,245.42999267578125,221.6300048828125,-9.697261338555752,2026-11-05,16
+2026-10-14,2026-10-19,FEDFINA.NS,Fedbank Financial Services Limited,squeeze release,False,68.6,True,Micro,15.0,,False,True,False,False,160.74000549316406,158.6999969482422,-1.2691355451077357,2026-11-05,16
+2026-10-14,2026-10-19,GANGESSECU.NS,Ganges Securities Limited,squeeze release,False,38.6,False,Micro,77.0,,False,True,False,False,113.3000030517578,117.37999725341797,3.601053920357211,2026-11-05,16
+2026-10-14,2026-10-19,IDBI.NS,IDBI Bank Limited,squeeze release,False,72.9,False,Mid,87.0,,False,True,False,False,82.23999786376953,79.72000122070312,-3.064198332350132,2026-11-05,16
+2026-10-14,2026-10-14,SUNTV.NS,Sun TV Network Limited,52W breakout,False,61.2,True,Small,6.0,2.2,False,False,False,False,653.0999755859375,597.0499877929688,-8.582145136766039,2026-11-05,16
+2026-10-14,2026-10-14,TIPSMUSIC.NS,Tips Music Limited,52W breakout,False,83.5,True,Micro,98.0,2.8,False,False,False,False,718.25,763.5,6.30003480682213,2026-11-05,16
+2026-10-13,2026-10-19,COFORGE.NS,Coforge Limited,squeeze release,True,94.3,True,Mid,94.0,,False,True,False,False,1925.0,2079.0,8.000000000000007,2026-11-05,17
+2026-10-13,2026-10-26,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,squeeze release,True,99.3,True,Micro,94.0,,False,True,False,False,300.25,254.1999969482422,-15.33722000058545,2026-11-05,17
+2026-10-13,2026-10-13,GOODLUCK.NS,Goodluck India Limited,ATH breakout,True,92.0,True,Micro,85.0,10.6,False,True,False,False,566.6500244140625,533.5999755859375,-5.832532851701544,2026-11-05,17
+2026-10-13,2026-10-13,NAZARA.NS,Nazara Technologies Limited,ATH breakout,True,93.4,True,Small,98.0,1.0,False,True,False,False,400.4500122070313,417.6000061035156,4.2826803280549885,2026-11-05,17
+2026-10-13,2026-10-19,AARON.NS,Aaron Industries Limited,squeeze release,False,34.7,False,Micro,57.0,,False,True,False,False,122.83999633789062,135.2100067138672,10.070018515753553,2026-11-05,17
+2026-10-13,2026-10-19,ARTNIRMAN.NS,Art Nirman Limited,squeeze release,False,39.0,False,Micro,49.0,,False,True,False,False,39.720001220703125,37.33000183105469,-6.017118117314424,2026-11-05,17
+2026-10-13,2026-10-27,ATL.NS,Allcargo Terminals Limited,squeeze release,False,55.1,False,Micro,45.0,,False,True,False,False,24.26000022888184,27.200000762939453,12.1187160194562,2026-11-05,17
+2026-10-13,2026-10-19,BSOFT.NS,Birlasoft Limited,squeeze release,False,22.9,False,Micro,94.0,,False,True,False,False,312.6000061035156,330.29998779296875,5.662182131753335,2026-11-05,17
+2026-10-13,2026-10-13,DHAMPURSUG.NS,Dhampur Sugar Mills Limited,52W breakout,False,89.7,True,Micro,79.0,3.5,True,False,False,False,202.63999938964844,169.75,-16.230753794272157,2026-11-05,17
+2026-10-13,2026-10-13,GALAXYSURF.NS,Galaxy Surfactants Limited,52W breakout,False,88.6,True,Micro,81.0,1.7,False,False,False,False,2581.89990234375,2163.10009765625,-16.220605775898967,2026-11-05,17
+2026-10-13,2026-10-23,GPPL.NS,Gujarat Pipavav Port Limited,squeeze release,False,72.0,False,Micro,64.0,,False,True,False,False,157.07000732421875,161.27999877929688,2.68032804403453,2026-11-05,17
+2026-10-13,2026-10-19,GTPL.NS,GTPL Hathway Limited,squeeze release,False,23.7,False,Micro,98.0,,False,True,False,False,54.70000076293945,54.15999984741211,-0.9872045850010447,2026-11-05,17
+2026-10-13,2026-10-27,HEXT.NS,Hexaware Technologies Limited,squeeze release,False,90.1,False,Mid,87.0,,False,True,False,False,569.3499755859375,503.1499938964844,-11.627291565495279,2026-11-05,17
+2026-10-13,2026-10-27,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,False,83.5,True,Mid,79.0,,False,True,False,False,350.6000061035156,360.5,2.823728957255467,2026-11-05,17
+2026-10-13,2026-10-19,LTTS.NS,L&T Technology Services Limited,squeeze release,False,60.3,False,Mid,94.0,,False,True,False,False,3611.300048828125,4225.60009765625,17.010495957749818,2026-11-05,17
+2026-10-13,2026-10-19,MASTEK.NS,Mastek Limited,squeeze release,False,69.3,False,Micro,94.0,,False,True,False,False,1808.4000244140625,1472.800048828125,-18.557839585004142,2026-11-05,17
+2026-10-13,2026-10-13,PNBHOUSING.NS,PNB Housing Finance Limited,52W breakout,False,88.3,True,Small,13.0,1.1,False,False,False,False,1224.800048828125,1100.0,-10.189422261007607,2026-11-05,17
+2026-10-13,2026-10-19,TANLA.NS,Tanla Platforms Limited,squeeze release,False,77.2,True,Micro,94.0,,False,True,False,False,552.3499755859375,655.75,18.72001973103645,2026-11-05,17
+2026-10-13,2026-10-19,TIPSMUSIC.NS,Tips Music Limited,squeeze release,False,89.4,True,Micro,98.0,,False,True,False,False,771.7000122070312,763.5,-1.0625906540521535,2026-11-05,17
+2026-10-13,2026-10-19,TRIVENI.NS,Triveni Engineering & Industries Limited,squeeze release,False,2.0,False,Micro,34.0,,False,True,False,False,246.4100036621093,243.14999389648438,-1.323002198439649,2026-11-05,17
+2026-10-13,2026-10-19,ZENSARTECH.NS,Zensar Technologies Limited,squeeze release,False,34.6,False,Small,85.0,,False,True,False,False,513.1500244140625,565.75,10.25040886356743,2026-11-05,17
+2026-10-12,2026-10-26,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,91.3,True,Micro,83.0,,False,True,True,False,47.59000015258789,57.540000915527344,20.90775526588937,2026-11-05,18
+2026-10-12,2026-10-19,CARTRADE.NS,CarTrade Tech Limited,squeeze release,True,97.3,True,Small,36.0,,False,True,False,False,3032.89990234375,2601.89990234375,-14.210821783697302,2026-11-05,18
+2026-10-12,2026-10-14,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,ATH breakout,True,98.8,True,Micro,94.0,2.0,False,False,False,False,310.95001220703125,254.1999969482422,-18.250526782743705,2026-11-05,18
+2026-10-12,2026-10-19,GOODLUCK.NS,Goodluck India Limited,squeeze release,True,92.6,True,Micro,79.0,,False,True,False,False,588.25,533.5999755859375,-9.290271893593282,2026-11-05,18
+2026-10-12,2026-10-19,NEOGEN.NS,Neogen Chemicals Limited,squeeze release,True,96.2,True,Micro,70.0,,False,True,False,False,2481.800048828125,2408.0,-2.97365006753757,2026-11-05,18
+2026-10-12,2026-10-26,SKYGOLD.NS,Sky Gold and Diamonds Limited,squeeze release,True,99.4,True,Small,40.0,,False,True,False,False,938.5,949.0499877929688,1.124132956096835,2026-11-05,18
+2026-10-12,2026-10-26,BHARATGEAR.NS,Bharat Gears Limited,squeeze release,False,41.2,False,Micro,77.0,,False,True,False,False,93.61000061035156,98.94000244140625,5.693838047540067,2026-11-05,18
+2026-10-12,2026-10-19,BLKASHYAP.NS,B.L. Kashyap and Sons Limited,squeeze release,False,57.2,True,Micro,23.0,,False,True,False,False,54.93999862670898,56.0099983215332,1.9475786704953535,2026-11-05,18
+2026-10-12,2026-10-21,CYIENT.NS,Cyient Limited,squeeze release,False,84.5,True,Small,36.0,,False,True,False,False,1169.699951171875,1128.9000244140625,-3.4880677490784495,2026-11-05,18
+2026-10-12,2026-10-19,DCMSRIND.NS,DCM Shriram Industries Limited,squeeze release,False,82.5,False,Micro,77.0,,False,True,False,False,47.900001525878906,61.540000915527344,28.47598946793177,2026-11-05,18
+2026-10-12,2026-10-19,GAEL.NS,Gujarat Ambuja Exports Limited,squeeze release,False,74.7,False,Micro,77.0,,False,True,False,False,165.4499969482422,152.39999389648438,-7.887581319110115,2026-11-05,18
+2026-10-12,2026-10-19,GALLANTT.NS,Gallantt Ispat Limited,squeeze release,False,7.9,False,Small,79.0,,False,True,False,False,626.2000122070312,535.9500122070312,-14.412328048655798,2026-11-05,18
+2026-10-12,2026-10-19,NETWEB.NS,Netweb Technologies India Limited,squeeze release,False,83.8,False,Small,94.0,,False,True,False,False,4699.89990234375,4023.5,-14.39179379131973,2026-11-05,18
+2026-10-12,2026-10-26,PERSISTENT.NS,Persistent Systems Limited,squeeze release,False,85.9,True,Mid,91.0,,False,True,False,False,5850.0,6109.5,4.435897435897429,2026-11-05,18
+2026-10-12,2026-10-19,TARIL.NS,Transformers and Rectifiers (India) Limited,squeeze release,False,59.8,False,Micro,40.0,,False,True,False,False,326.1000061035156,315.6000061035156,-3.2198711448864326,2026-11-05,18
+2026-10-09,2026-10-19,KARURVYSYA.NS,The Karur Vysya Bank Limited,squeeze release,True,90.2,True,Mid,87.0,,False,True,False,False,370.0499877929688,360.5,-2.580729119848457,2026-11-05,19
+2026-10-09,2026-10-19,ATL.NS,Allcargo Terminals Limited,squeeze release,False,70.2,False,Micro,51.0,,False,True,False,False,27.8799991607666,27.200000762939453,-2.4390187169878286,2026-11-05,19
+2026-10-09,2026-10-19,HEXT.NS,Hexaware Technologies Limited,squeeze release,False,80.8,False,Mid,94.0,,False,True,False,False,574.2999877929688,503.1499938964844,-12.388994499183848,2026-11-05,19
+2026-10-09,2026-10-23,HINDCOMPOS.NS,Hindustan Composites Limited,squeeze release,False,33.6,False,Micro,66.0,,False,True,False,False,360.20001220703125,374.29998779296875,3.9144850383384444,2026-11-05,19
+2026-10-08,2026-10-19,21STCENMGM.NS,Twentyfirst Century Management Services Limited,squeeze release,True,93.8,True,Micro,96.0,,False,True,True,False,48.45000076293945,57.540000915527344,18.761609926621592,2026-11-05,20
+2026-10-08,2026-10-19,FINOPB.NS,Fino Payments Bank Limited,squeeze release,False,49.4,False,Micro,87.0,,False,True,False,False,131.4199981689453,122.47000122070312,-6.8102245266634664,2026-11-05,20
+2026-10-07,2026-10-07,CYIENTDLM.NS,Cyient DLM Limited,ATH breakout,True,99.7,True,Micro,83.0,2.9,False,True,False,False,988.2999877929688,813.75,-17.661640185058246,2026-11-05,21
+2026-10-07,2026-10-19,EBGNG.NS,GNG Electronics Limited,squeeze release,True,96.9,True,Micro,100.0,,False,True,False,False,700.2000122070312,729.5499877929688,4.191655966046959,2026-11-05,21
+2026-10-07,2026-10-19,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,squeeze release,True,98.9,True,Micro,89.0,,False,True,False,False,297.75,254.1999969482422,-14.626365424603804,2026-11-05,21
+2026-10-07,2026-10-19,GLAND.NS,Gland Pharma Limited,squeeze release,True,96.8,True,Mid,32.0,,False,True,False,False,3019.800048828125,3145.199951171875,4.152589585936761,2026-11-05,21
+2026-10-07,2026-10-07,PTCIL.NS,PTC Industries Limited,ATH breakout,True,94.3,True,Mid,72.0,6.1,True,True,False,False,24685.0,24325.0,-1.4583755316994074,2026-11-05,21
+2026-10-07,2026-10-07,ARFIN.NS,Arfin India Limited,52W breakout,False,70.2,True,Micro,70.0,10.5,True,False,False,False,103.05999755859376,95.31999969482422,-7.510186344967695,2026-11-05,21
+2026-10-07,2026-10-19,BHARATGEAR.NS,Bharat Gears Limited,squeeze release,False,45.9,False,Micro,64.0,,False,True,False,False,100.52999877929688,98.94000244140625,-1.5816138040360417,2026-11-05,21
+2026-10-07,2026-10-19,CINEVISTA.NS,Cinevista Limited,squeeze release,False,39.6,False,Micro,98.0,,False,True,False,False,13.779999732971191,13.579999923706055,-1.4513774538514657,2026-11-05,21
+2026-10-07,2026-10-19,DEEPAKFERT.NS,Deepak Fertilisers And Petrochemicals Corporation Limited,squeeze release,False,61.4,False,Small,70.0,,False,True,False,False,1255.699951171875,1163.300048828125,-7.3584379976696095,2026-11-05,21
+2026-10-07,2026-10-19,HAVISHA.NS,Sri Havisha Hospitality and Infrastructure Limited,squeeze release,False,15.2,False,Micro,75.0,,False,True,True,False,1.2999999523162842,1.2899999618530273,-0.7692300638503347,2026-11-05,21
+2026-10-07,2026-10-07,JAMNAAUTO.NS,Jamna Auto Industries Limited,ATH breakout,False,77.3,True,Micro,66.0,7.6,True,False,False,False,151.77000427246094,135.2899932861328,-10.858542875667865,2026-11-05,21
+2026-10-06,2026-10-06,BHEL.NS,Bharat Heavy Electricals Limited,ATH breakout,True,92.6,True,Large,64.0,3.8,True,False,False,False,452.0,418.1000061035156,-7.499998649664685,2026-11-05,22
+2026-10-06,2026-10-19,CUPID.NS,Cupid Limited,squeeze release,True,99.9,True,Mid,19.0,,False,True,False,False,336.29998779296875,341.25,1.4719037724373996,2026-11-05,22
+2026-10-06,2026-10-06,DMCC.NS,DMCC Speciality Chemicals Limited,52W breakout,True,94.8,True,Micro,81.0,48.5,True,False,False,False,355.79998779296875,244.8000030517578,-31.197298636727076,2026-11-05,22
+2026-10-06,2026-10-19,EIMCOELECO.NS,Eimco Elecon (India) Limited,squeeze release,True,90.9,True,Micro,72.0,,False,True,False,False,2254.199951171875,2517.10009765625,11.662680870332863,2026-11-05,22
+2026-10-06,2026-10-19,GALAXYSURF.NS,Galaxy Surfactants Limited,squeeze release,True,90.8,True,Micro,70.0,,False,True,False,False,2437.5,2163.10009765625,-11.257431891025638,2026-11-05,22
+2026-10-06,2026-10-06,HFCL.NS,HFCL Limited,ATH breakout,True,99.8,True,Mid,74.0,0.5,False,False,False,False,262.7799987792969,221.74000549316406,-15.61762442985678,2026-11-05,22
+2026-10-06,2026-10-06,OPTIEMUS.NS,Optiemus Infracom Limited,ATH breakout,True,99.1,True,Micro,74.0,58.7,True,False,False,False,889.9000244140625,831.0,-6.61872376650895,2026-11-05,22
+2026-10-06,2026-10-06,SKYGOLD.NS,Sky Gold and Diamonds Limited,ATH breakout,True,98.7,True,Small,34.0,5.0,True,True,False,False,857.6500244140625,949.0499877929688,10.65702335184444,2026-11-05,22
+2026-10-06,2026-10-19,SKYGOLD.NS,Sky Gold and Diamonds Limited,squeeze release,True,99.7,True,Small,43.0,,False,True,False,False,1028.0999755859375,949.0499877929688,-7.688939759765711,2026-11-05,22
+2026-10-06,2026-10-19,AMNPLST.NS,Amines & Plasticizers Limited,squeeze release,False,56.8,False,Micro,70.0,,False,True,False,False,160.38999938964844,148.3000030517578,-7.537874171642967,2026-11-05,22
+2026-10-06,2026-10-19,AMRUTANJAN.NS,Amrutanjan Health Care Limited,squeeze release,False,43.0,False,Micro,32.0,,False,True,False,False,499.1499938964844,518.7000122070312,3.916662035380347,2026-11-05,22
+2026-10-06,2026-10-19,AURUM.NS,Aurum PropTech Limited,squeeze release,False,81.8,False,Micro,49.0,,False,True,True,False,220.0200042724609,216.27999877929688,-1.6998479322510196,2026-11-05,22
+2026-10-06,2026-10-19,BHEL.NS,Bharat Heavy Electricals Limited,squeeze release,False,87.7,True,Large,57.0,,False,True,False,False,427.3500061035156,418.1000061035156,-2.1645021335882197,2026-11-05,22
+2026-10-06,2026-10-06,FINEORG.NS,Fine Organic Industries Limited,52W breakout,False,72.9,True,Small,81.0,4.1,True,False,False,False,5537.0,5168.0,-6.664258623803498,2026-11-05,22
+2026-10-06,2026-10-19,FINEORG.NS,Fine Organic Industries Limited,squeeze release,False,68.9,True,Small,70.0,,False,True,False,False,5398.0,5168.0,-4.260837347165614,2026-11-05,22
+2026-10-06,2026-10-19,GREENPLY.NS,Greenply Industries Limited,squeeze release,False,87.3,True,Micro,83.0,,False,True,False,False,303.54998779296875,265.3500061035156,-12.584412197541184,2026-11-05,22
+2026-10-06,2026-10-19,ICIL.NS,Indo Count Industries Limited,squeeze release,False,95.4,False,Micro,55.0,,False,True,False,False,423.7999877929688,501.1000061035156,18.239740570334504,2026-11-05,22
+2026-10-06,2026-10-19,LEMONTREE.NS,Lemon Tree Hotels Limited,squeeze release,False,55.3,False,Micro,75.0,,False,True,False,False,111.66999816894533,117.52999877929688,5.247605181730153,2026-11-05,22
+2026-10-06,2026-10-19,LXCHEM.NS,Laxmi Organic Industries Limited,squeeze release,False,81.3,False,Micro,70.0,,False,True,False,False,171.13999938964844,167.5,-2.1269132889038755,2026-11-05,22
+2026-10-06,2026-10-19,MOTILALOFS.NS,Motilal Oswal Financial Services Limited,squeeze release,False,84.7,True,Mid,96.0,,False,True,False,False,1021.0,1095.0,7.247796278158658,2026-11-05,22
+2026-10-06,2026-10-19,NAVA.NS,Nava Limited,squeeze release,False,12.5,False,Small,6.0,,False,True,False,False,536.2000122070312,534.4500122070312,-0.3263707497500601,2026-11-05,22
+2026-10-06,2026-10-19,PETRONET.NS,Petronet LNG Limited,squeeze release,False,70.4,True,Mid,81.0,,False,True,False,False,293.6499938964844,317.0,7.951645356324044,2026-11-05,22
+2026-10-05,2026-10-06,CPPLUS.NS,Aditya Infotech Limited,52W breakout,True,98.3,True,Mid,32.0,1.2,False,True,False,False,3976.0,4170.5,4.891851106639833,2026-11-05,23
+2026-10-05,2026-10-05,DPABHUSHAN.NS,D. P. Abhushan Limited,ATH breakout,True,96.5,True,Micro,34.0,28.5,True,True,False,False,1874.0,2001.9000244140625,6.824974621881674,2026-11-05,23
+2026-10-05,2026-10-05,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,52W breakout,True,98.5,True,Micro,94.0,1.0,False,True,False,False,282.6000061035156,254.1999969482422,-10.049543008456475,2026-11-05,23
+2026-10-05,2026-10-19,ADFFOODS.NS,ADF Foods Limited,squeeze release,False,80.7,False,Micro,77.0,,False,True,False,False,263.6000061035156,263.95001220703125,0.13277924712118416,2026-11-05,23
+2026-10-05,2026-10-06,ARIES.NS,Aries Agro Limited,ATH breakout,False,81.8,True,Micro,25.0,2.0,False,True,False,False,499.0,496.6499938964844,-0.4709431069169545,2026-11-05,23
+2026-10-05,2026-10-19,ARIES.NS,Aries Agro Limited,squeeze release,False,83.9,True,Micro,17.0,,False,True,False,False,473.5499877929688,496.6499938964844,4.878050195117867,2026-11-05,23
+2026-10-05,2026-10-19,ARSSBL.NS,Anand Rathi Share and Stock Brokers Limited,squeeze release,False,25.8,False,Micro,15.0,,False,True,False,False,483.7999877929688,493.8999938964844,2.087640834715687,2026-11-05,23
+2026-10-05,2026-10-19,CYIENT.NS,Cyient Limited,squeeze release,False,83.2,True,Small,53.0,,False,True,False,False,1172.4000244140625,1128.9000244140625,-3.710337691415544,2026-11-05,23
+2026-10-05,2026-10-06,DELTACORP.NS,Delta Corp Limited,52W breakout,False,89.0,True,Micro,75.0,143.2,True,True,False,False,84.33999633789062,76.5999984741211,-9.177138012623143,2026-11-05,23
+2026-10-05,2026-10-19,EVERESTIND.NS,Everest Industries Limited,squeeze release,False,78.3,False,Micro,42.0,,False,True,True,False,473.3500061035156,437.75,-7.520863133934419,2026-11-05,23
+2026-10-05,2026-10-19,GILLANDERS.NS,Gillanders Arbuthnot and Company Limited,squeeze release,False,73.2,False,Micro,34.0,,False,True,False,False,102.63999938964844,96.98999786376953,-5.5046780587264195,2026-11-05,23
+2026-10-05,2026-10-19,GPPL.NS,Gujarat Pipavav Port Limited,squeeze release,False,69.5,True,Micro,51.0,,False,True,False,False,166.0800018310547,161.27999877929688,-2.890175216062818,2026-11-05,23
+2026-10-05,2026-10-19,HALEOSLABS.NS,Haleos Labs Limited,squeeze release,False,77.5,True,Micro,32.0,,False,True,False,False,1538.300048828125,1409.800048828125,-8.353376839446314,2026-11-05,23
+2026-10-05,2026-10-19,HINDCOMPOS.NS,Hindustan Composites Limited,squeeze release,False,44.3,True,Micro,64.0,,False,True,False,False,414.1499938964844,374.29998779296875,-9.622119205795766,2026-11-05,23
+2026-10-05,2026-10-19,RRKABEL.NS,R R Kabel Limited,squeeze release,False,95.8,False,Small,40.0,,False,True,False,False,2387.800048828125,2014.199951171875,-15.646205294266746,2026-11-05,23
+2026-10-05,2026-10-06,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,52W breakout,False,83.2,True,Small,75.0,1.0,False,True,False,False,582.7000122070312,689.75,18.371372155546517,2026-11-05,23
+2026-10-01,2026-10-01,DPABHUSHAN.NS,D. P. Abhushan Limited,ATH breakout,True,96.5,True,Micro,34.0,28.5,True,True,False,False,1874.0,2001.9000244140625,6.824974621881674,2026-11-05,25
+2026-10-01,2026-10-01,GANDHAR.NS,Gandhar Oil Refinery (India) Limited,52W breakout,True,98.5,True,Micro,94.0,1.0,False,True,False,False,282.6000061035156,254.1999969482422,-10.049543008456475,2026-11-05,25
+2026-09-30,2026-09-30,CUPID.NS,Cupid Limited,ATH breakout,True,99.9,True,Mid,17.0,2.9,False,True,False,False,311.6499938964844,341.25,9.497836253238411,2026-11-05,26
+2026-09-30,2026-09-30,AXISCADES.NS,AXISCADES Technologies Limited,ATH breakout,False,81.2,True,Micro,26.0,7.9,True,False,False,False,2231.199951171875,1887.9000244140625,-15.386336243755473,2026-11-05,26
+2026-09-30,2026-09-30,LALPATHLAB.NS,Dr. Lal PathLabs Limited,52W breakout,False,84.8,True,Mid,21.0,2.4,False,True,False,False,1987.0,1966.800048828125,-1.0166054943067437,2026-11-05,26
+2026-09-29,2026-10-05,ASAHISONG.NS,Asahi Songwon Colors Limited,52W breakout,True,93.1,True,Micro,81.0,2.1,False,True,False,False,371.25,368.70001220703125,-0.6868653987794571,2026-11-05,27
+2026-09-29,2026-09-30,AZAD.NS,Azad Engineering Limited,ATH breakout,True,96.2,True,Small,64.0,13.0,True,True,False,False,2963.199951171875,2582.89990234375,-12.834100131438152,2026-11-05,27
+2026-09-29,2026-09-30,DPABHUSHAN.NS,D. P. Abhushan Limited,52W breakout,True,94.8,True,Micro,34.0,35.5,True,True,False,False,1788.800048828125,2001.9000244140625,11.913012621256524,2026-11-05,27
+2026-09-29,2026-10-05,LLOYDSENGG.NS,Lloyds Engineering Works Limited,ATH breakout,True,98.2,True,Small,64.0,8.2,True,True,False,False,98.30999755859376,85.29000091552734,-13.243817481844989,2026-11-05,27
+2026-09-29,2026-09-30,AARTIPHARM.NS,Aarti Pharmalabs Limited,ATH breakout,False,85.3,True,Micro,43.0,2.1,False,False,False,False,953.75,928.2999877929688,-2.668415434551119,2026-11-05,27
+2026-09-29,2026-09-30,SHRIPISTON.NS,SPR Auto Technologies Limited,ATH breakout,False,89.7,True,Small,34.0,4.6,True,True,False,False,4653.7001953125,4302.2998046875,-7.550989016846266,2026-11-05,27
+2026-09-28,2026-10-05,ABDL.NS,Allied Blenders and Distillers Limited,ATH breakout,True,93.4,True,Small,53.0,21.3,True,True,False,False,679.4500122070312,699.0499877929688,2.884682498168134,2026-11-05,28
+2026-09-28,2026-10-05,CUBEXTUB.NS,Cubex Tubings Limited,ATH breakout,True,97.5,True,Micro,70.0,19.9,True,True,False,False,166.10000610351562,187.67999267578125,12.99216482798724,2026-11-05,28
+2026-09-28,2026-09-30,SUNFLAG.NS,Sunflag Iron and Steel Company Limited,ATH breakout,True,96.9,True,Micro,45.0,29.9,True,True,False,False,456.0499877929688,389.8500061035156,-14.515948571739845,2026-11-05,28
+2026-09-28,2026-10-05,SOUTHBANK.NS,The South Indian Bank Limited,ATH breakout,False,75.4,True,Small,68.0,7.0,True,True,False,False,47.43999862670898,56.31999969482422,18.718383906351455,2026-11-05,28
+2026-09-28,2026-09-30,ZYDUSLIFE.NS,Zydus Lifesciences Limited,52W breakout,False,77.4,True,Large,43.0,3.8,True,True,False,False,1162.0,1193.0,2.6678141135972444,2026-11-05,28
+2026-09-25,2026-10-09,ABDL.NS,Allied Blenders and Distillers Limited,52W breakout,True,92.3,True,Small,53.0,20.6,True,True,False,False,711.5499877929688,699.0499877929688,-1.7567282994089495,2026-11-05,29
+2026-09-25,2026-09-30,ASAHISONG.NS,Asahi Songwon Colors Limited,52W breakout,True,95.2,True,Micro,81.0,2.1,False,True,False,False,389.1499938964844,368.70001220703125,-5.2550384196827,2026-11-05,29
+2026-09-25,2026-09-30,LLOYDSENGG.NS,Lloyds Engineering Works Limited,ATH breakout,True,98.0,True,Small,64.0,8.2,True,True,False,False,98.63999938964844,85.29000091552734,-13.53406179716794,2026-11-05,29
+2026-09-25,2026-10-07,SHRIPISTON.NS,SPR Auto Technologies Limited,ATH breakout,False,75.4,False,Small,34.0,1.9,False,True,False,False,4411.60009765625,4302.2998046875,-2.4775657482376534,2026-11-05,29
+2026-09-25,2026-10-09,SOUTHBANK.NS,The South Indian Bank Limited,52W breakout,False,78.7,True,Small,68.0,6.9,True,True,False,False,47.90999984741211,56.31999969482422,17.55374634564184,2026-11-05,29
+2026-09-24,2026-09-30,ABDL.NS,Allied Blenders and Distillers Limited,ATH breakout,True,93.4,True,Small,53.0,21.3,True,True,False,False,718.9000244140625,699.0499877929688,-2.7611678880206547,2026-11-05,30
+2026-09-24,2026-09-30,CUBEXTUB.NS,Cubex Tubings Limited,ATH breakout,True,97.4,True,Micro,70.0,19.9,True,True,False,False,174.83999633789062,187.67999267578125,7.343855300177671,2026-11-05,30
+2026-09-24,2026-09-30,SOUTHBANK.NS,The South Indian Bank Limited,ATH breakout,False,76.2,True,Small,68.0,7.0,True,True,False,False,48.2400016784668,56.31999969482422,16.74958071148689,2026-11-05,30
+2026-09-23,2026-09-30,GNA.NS,G N A Axles Limited,ATH breakout,True,90.1,True,Micro,66.0,11.7,True,True,False,False,598.3499755859375,556.4500122070312,-7.002584622465391,2026-11-05,31
+2026-09-23,2026-09-30,INNOVACAP.NS,Innova Captab Limited,ATH breakout,True,92.3,True,Micro,43.0,10.3,True,True,False,False,1159.800048828125,1036.5999755859375,-10.622526992188885,2026-11-05,31
+2026-09-23,2026-09-30,PGIL.NS,Pearl Global Industries Limited,ATH breakout,True,93.1,True,Micro,34.0,5.5,True,True,False,False,1282.0999755859375,1338.800048828125,4.422437744472685,2026-11-05,31
+2026-09-23,2026-09-30,SONACOMS.NS,Sona BLW Precision Forgings Limited,ATH breakout,True,90.8,True,Mid,66.0,1.6,False,True,False,False,830.0,915.25,10.2710843373494,2026-11-05,31
+2026-09-23,2026-09-30,APOLLOHOSP.NS,Apollo Hospitals Enterprise Limited,ATH breakout,False,54.6,False,Large,21.0,1.6,False,True,False,False,8165.5,8371.0,2.5166860571918415,2026-11-05,31
+2026-09-23,2026-09-30,CARBORUNIV.NS,Carborundum Universal Limited,52W breakout,False,85.0,True,Small,62.0,3.3,True,True,False,False,1252.5,1084.5999755859375,-13.405191569985032,2026-11-05,31
+2026-09-23,2026-09-30,DYNAMATECH.NS,Dynamatic Technologies Limited,ATH breakout,False,84.4,True,Micro,66.0,2.9,False,True,False,False,13611.0,12929.0,-5.010653148188959,2026-11-05,31
+2026-09-23,2026-09-30,IKS.NS,Inventurus Knowledge Solutions Limited,52W breakout,False,69.0,False,Small,92.0,7.9,True,True,False,False,1747.5,1757.199951171875,0.5550758896638142,2026-11-05,31
+2026-09-23,2026-09-30,TI.NS,Tilaknagar Industries Ltd.,ATH breakout,False,74.1,True,Small,77.0,2.2,False,True,False,False,540.6500244140625,487.04998779296875,-9.913998742381192,2026-11-05,31
+2026-09-22,2026-10-05,APARINDS.NS,APAR Industries Limited,ATH breakout,True,94.3,True,Mid,51.0,2.2,False,True,False,False,17648.0,15613.0,-11.531051677243875,2026-11-05,32
+2026-09-22,2026-10-05,EMIL.NS,Electronics Mart India Limited,52W breakout,True,97.9,True,Micro,42.0,9.8,True,True,False,False,204.0500030517578,156.13999938964844,-23.4795407721493,2026-11-05,32
+2026-09-22,2026-09-30,OPTIEMUS.NS,Optiemus Infracom Limited,52W breakout,True,99.0,True,Micro,74.0,46.8,True,True,False,False,767.75,831.0,8.23835884076849,2026-11-05,32
+2026-09-22,2026-09-30,ADROITINFO.NS,Adroit Infotech Limited,52W breakout,False,89.6,True,Micro,92.0,12.6,False,True,False,False,14.670000076293944,13.569999694824219,-7.498298403196846,2026-11-05,32
+2026-09-22,2026-09-30,BLUESTONE.NS,BlueStone Jewellery and Lifestyle Limited,52W breakout,False,95.6,False,Small,34.0,3.5,True,True,False,False,794.8499755859375,726.0499877929688,-8.655719935356565,2026-11-05,32
+2026-09-22,2026-10-05,CASTROLIND.NS,Castrol India Limited,52W breakout,False,65.2,True,Small,94.0,7.3,True,True,False,False,199.0399932861328,194.2100067138672,-2.426641245572292,2026-11-05,32
+2026-09-22,2026-09-30,GANDHITUBE.NS,Gandhi Special Tubes Limited,ATH breakout,False,65.0,True,Micro,72.0,62.2,True,True,False,False,951.5499877929688,902.75,-5.128473377016773,2026-11-05,32
+2026-09-22,2026-10-05,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,52W breakout,False,87.8,True,Micro,81.0,3.5,True,True,False,False,589.1500244140625,460.3999938964844,-21.85352205418749,2026-11-05,32
+2026-09-22,2026-09-30,JSWINFRA.NS,JSW Infrastructure Limited,ATH breakout,False,87.6,True,Mid,11.0,6.7,True,True,False,False,356.6000061035156,346.29998779296875,-2.888395438657654,2026-11-05,32
+2026-09-22,2026-10-05,JYOTICNC.NS,Jyoti CNC Automation Limited,52W breakout,False,77.4,True,Small,72.0,5.1,True,True,False,False,1032.0999755859375,1022.2000122070312,-0.9592058534141468,2026-11-05,32
+2026-09-22,2026-09-30,ORCHPHARMA.NS,Orchid Pharma Limited,52W breakout,False,96.7,False,Micro,43.0,8.5,False,True,False,False,997.0,902.1500244140625,-9.51353817311309,2026-11-05,32
+2026-09-21,2026-09-30,AEGISLOG.NS,Aegis Logistics Limited,ATH breakout,True,98.8,True,Mid,94.0,2.0,False,True,False,False,1380.0999755859375,1185.800048828125,-14.078684892036186,2026-11-05,33
+2026-09-21,2026-10-05,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,52W breakout,True,90.5,True,Mid,96.0,5.7,True,True,False,False,290.75,236.6300048828125,-18.61392781330611,2026-11-05,33
+2026-09-21,2026-10-05,ACE.NS,Action Construction Equipment Limited,52W breakout,False,85.6,True,Small,58.0,2.3,False,True,False,False,1212.300048828125,1127.6500244140625,-6.982596799850816,2026-11-05,33
+2026-09-21,2026-09-30,ASHIANA.NS,Ashiana Housing Limited,52W breakout,False,70.2,True,Micro,55.0,27.8,True,True,False,False,386.0,348.04998779296875,-9.831609380059913,2026-11-05,33
+2026-09-21,2026-09-30,EMCURE.NS,Emcure Pharmaceuticals Limited,ATH breakout,False,70.6,True,Mid,43.0,1.4,False,True,False,False,1943.0,2245.0,15.542974781266071,2026-11-05,33
+2026-09-21,2026-10-05,GOCLCORP.NS,GOCL Corporation Limited,52W breakout,False,85.4,False,Micro,81.0,22.3,True,True,False,False,351.6499938964844,334.0,-5.019193573960368,2026-11-05,33
+2026-09-21,2026-10-05,SHAREINDIA.NS,Share India Securities Limited,52W breakout,False,88.6,True,Micro,13.0,47.2,True,True,False,False,205.08999633789065,187.33999633789062,-8.654737099295906,2026-11-05,33
+2026-09-21,2026-09-30,TEGA.NS,Tega Industries Limited,52W breakout,False,68.1,True,Small,64.0,42.9,True,True,False,False,2106.699951171875,1729.199951171875,-17.919020683985465,2026-11-05,33
+2026-09-21,2026-09-30,USHAMART.NS,Usha Martin Limited,ATH breakout,False,69.3,False,Small,85.0,8.4,True,True,False,False,498.6499938964844,487.6499938964844,-2.2059561084209145,2026-11-05,33
+2026-09-18,2026-09-30,APARINDS.NS,APAR Industries Limited,ATH breakout,True,94.3,True,Mid,51.0,2.2,False,True,False,False,17384.0,15613.0,-10.187528762080078,2026-11-05,34
+2026-09-18,2026-09-30,EMIL.NS,Electronics Mart India Limited,52W breakout,True,97.9,True,Micro,42.0,9.8,True,True,False,False,205.3600006103516,156.13999938964844,-23.967667060000053,2026-11-05,34
+2026-09-18,2026-09-30,CASTROLIND.NS,Castrol India Limited,52W breakout,False,60.6,True,Small,94.0,7.3,True,True,False,False,200.5200042724609,194.2100067138672,-3.1468169879050434,2026-11-05,34
+2026-09-18,2026-09-30,GNFC.NS,Gujarat Narmada Valley Fertilizers & Chemicals Limited,52W breakout,False,88.4,True,Micro,81.0,3.5,True,True,False,False,604.4000244140625,460.3999938964844,-23.825285357521185,2026-11-05,34
+2026-09-18,2026-09-30,JKPAPER.NS,JK Paper Limited,52W breakout,False,64.0,False,Micro,87.0,1.5,False,True,False,False,393.7000122070313,371.3500061035156,-5.676912728100881,2026-11-05,34
+2026-09-18,2026-09-30,JYOTICNC.NS,Jyoti CNC Automation Limited,52W breakout,False,79.3,True,Small,72.0,5.1,True,True,False,False,1039.8499755859375,1022.2000122070312,-1.6973567142664736,2026-11-05,34
+2026-09-17,2026-09-30,AEGISVOPAK.NS,Aegis Vopak Terminals Limited,52W breakout,True,93.8,True,Mid,96.0,5.7,True,True,False,False,296.79998779296875,236.6300048828125,-20.272906126979862,2026-11-05,35
+2026-09-17,2026-09-30,ACE.NS,Action Construction Equipment Limited,52W breakout,False,85.9,True,Small,58.0,2.3,False,True,False,False,1232.0,1127.6500244140625,-8.469965550806613,2026-11-05,35
+2026-09-17,2026-09-30,GOCLCORP.NS,GOCL Corporation Limited,52W breakout,False,83.8,False,Micro,81.0,22.3,True,True,False,False,362.4500122070313,334.0,-7.849361635772456,2026-11-05,35
+2026-09-17,2026-09-30,SHAREINDIA.NS,Share India Securities Limited,52W breakout,False,88.8,True,Micro,13.0,47.2,True,True,False,False,205.009994506836,187.33999633789062,-8.619091089413288,2026-11-05,35
+2026-09-16,2026-09-30,FOSECOIND.NS,Foseco India Limited,ATH breakout,False,82.4,True,Micro,81.0,37.9,True,True,False,False,6462.5,6063.0,-6.181818181818177,2026-11-05,36
