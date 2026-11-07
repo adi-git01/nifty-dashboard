@@ -330,9 +330,13 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
         # ✅ FIX: threads=False prevents 20-thread storm that triggers Yahoo 401s on CI
         # Batch download is still fast (single HTTP session, vectorized)
         print(f"[ENGINE] Starting yf.download for {len(tickers)} tickers...", flush=True)
+        # ~14 months, not 1y: SIMBA's Ghoomega dormancy test needs the 150-day
+        # average 120 bars back and Mansfield RS a 250-bar mean (utils/simba.py).
+        from utils.simba import HISTORY_DAYS
+        _hist_start = (pd.Timestamp.today().normalize() - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d")
         history_data = safe_download(
             tickers,
-            period="1y",
+            start=_hist_start,
             interval="1d",
             group_by='ticker',
             threads=False,      # <-- KEY FIX: avoid parallel request storm
@@ -356,7 +360,22 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
         return fundamental_df
 
     processed_rows = []
-    
+
+    # Nifty 500 for SIMBA's Mansfield RS (the document's benchmark); Nifty 50 if unavailable.
+    simba_bench = None
+    try:
+        from utils.simba import BENCH, HISTORY_DAYS
+        _b = safe_history(BENCH, start=(pd.Timestamp.today().normalize()
+                                        - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"))
+        if _b is None or _b.empty:
+            _b = nifty
+        if _b is not None and not _b.empty:
+            simba_bench = _b["Close"].copy()
+            if getattr(simba_bench.index, "tz", None) is not None:
+                simba_bench.index = simba_bench.index.tz_localize(None)
+    except Exception as e:
+        print(f"[ENGINE] SIMBA benchmark unavailable ({e}) -- Mansfield RS will be blank")
+
     # Pre-calculate sector medians for scoring
     # NB: 'pe' can carry non-numeric junk (e.g. Yahoo's literal 'Infinity'
     # sentinel for near-zero EPS); coerce so groupby().median() can't raise.
@@ -452,6 +471,17 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 from utils.breakout_tags import hi52_breakout, squeeze_release
                 base_data.update(hi52_breakout(df))
                 base_data.update(squeeze_release(df))
+            except Exception:
+                pass
+            # 2b'. SIMBA Ghoomega / Machayega / Bachayega fields (Trend Scanner
+            # SIMBA tab; utils/simba.py)
+            try:
+                from utils.simba import chart_signals as _simba_signals
+                _sdf = df
+                if getattr(_sdf.index, "tz", None) is not None:
+                    _sdf = _sdf.copy()
+                    _sdf.index = _sdf.index.tz_localize(None)
+                base_data.update(_simba_signals(_sdf, simba_bench))
             except Exception:
                 pass
             # 2c. Structural forensics (Technicals tab; utils/forensics.py,
