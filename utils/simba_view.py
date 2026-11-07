@@ -46,6 +46,40 @@ def _ok(b) -> str:
     return "✅" if b else "❌"
 
 
+def _how_graded() -> None:
+    with st.expander("ℹ️ How the grade is decided"):
+        st.markdown(
+            "**1. Ghoomega — has it turned?** All 7 must be true: it was dormant (150-day average flat for "
+            "~5 months), the 150-day average now curves up, price is above it, the 50-day is above the "
+            "150-day and rising, no new low in 40 sessions, Mansfield RS above 0 and rising, and price no "
+            "more than 25% above the 150-day. Shown as **G1-G7**, e.g. `1111111` = all pass.\n\n"
+            "**2. Machayega — is it breaking out?** All 5 on the same day: close above the 50-day high, a "
+            "tight base (≤ 15% range over the prior 15 days), volume ≥ 2× average, a wide day (≥ 1.2× ATR), "
+            "and a close in the top 30% of the day's range. Shown as **M1-M5**.\n\n"
+            "**3. SI Opportunity** = a Machayega within 30 sessions of a Ghoomega, with daily/weekly/monthly "
+            "RSI above 55/55/50 and the stock not overextended. This is the buy signal.\n\n"
+            "**4. Score (out of 100):**\n"
+            "| Block | Points |\n|---|---|\n"
+            "| Top-down: regime (Normal bull 8 · Washout 6 · Correction 4 · Froth 3) + industry "
+            "(Leading 12 · Improving 10 · Neutral 4 · Stage 4 0) | 20 |\n"
+            "| Ghoomega active or in the last 30 days 14 · tight volatility +3 · RS rating ≥ 80 or "
+            "Mansfield crossing 0 +3 | 20 |\n"
+            "| Machayega in the last 10 days 12 · volume ≥ 3× +3 · volume dry-up before +2 · good weekly "
+            "close +2 | 20 |\n"
+            "| Earnings reversal 10 (profit outran sales 12) · ROCE ≥ 20% +4 · stable margins +4 · "
+            "P/E ≤ 2× sector +4 | 25 |\n"
+            "| Promoters ≥ 60% (low float) +4 · insider buying +6 (not in our data) | 10 |\n"
+            "| RSI daily/weekly/monthly: all 3 aligned 5 · two 3 | 5 |\n\n"
+            "**5. Grade:** **A+ ≥ 80** buy a starter now and add on confirmation · **A 65–79** starter now, "
+            "add after the next result · **B 50–64** watchlist · below 50 reject. "
+            "**Hard gates** override the score (marked *gated*): turnover < ₹5 cr/day, price < ₹20, debt/"
+            "equity > 1 or cash conversion < 60%, bear-contraction regime (unless RS ≥ 90 + earnings "
+            "reversal), overextended, or no stop within 15% of price.\n\n"
+            "**6. Size and exit:** starter 2.5% of the portfolio, full size from the Risk Scale; exit at 15% "
+            "below entry, at the 20/25/30% trail from the peak close, or on a close below a flat/falling "
+            "150-day average.")
+
+
 def render(df: pd.DataFrame) -> None:
     st.markdown("### 🦁 SIMBA — Ghoomega · Machayega · Bachayega")
     st.caption(
@@ -107,10 +141,43 @@ def render(df: pd.DataFrame) -> None:
                    "next run (3:45 pm IST), or now with **Bypass Master Cache (Live Mode)** in the sidebar. "
                    "Until then, the fundamental leg alone:")
         x = df[["ticker", "name", "currentPrice"]].merge(fund, on="ticker", how="left")
-        x = x[x["er"] == True].assign(industry=lambda d: d.ticker.map(lambda t: IND_ICON[ind.get(t, "NEUTRAL")]))
-        st.dataframe(x[["name", "ticker", "industry", "quarter", "sales_g", "np_g", "er_oplev", "er_accel",
-                        "er_margin", "er_turn", "roce", "promoters"]],
-                     hide_index=True, use_container_width=True)
+        x = x[x["er"] == True].copy()
+        x["industry"] = x.ticker.map(lambda t: IND_ICON[ind.get(t, "NEUTRAL")])
+        x["legs"] = x.apply(lambda r: ", ".join(k for k, f in [("profit outran sales", "er_oplev"),
+                                                               ("accelerating", "er_accel"),
+                                                               ("margin jump", "er_margin"),
+                                                               ("turnaround", "er_turn")] if r.get(f) is True), axis=1)
+        num = lambda c: pd.to_numeric(x.get(c), errors="coerce")
+        # The scorecard's 25-point "Earnings + quality" block, plus the 12 industry points, as far as
+        # fundamentals alone can take it (pe-vs-sector needs the full table, so it is left out here)
+        x["quality_pts"] = (np.where(x["er_oplev"] == True, 12, 10) + np.where(num("roce") >= 20, 4, 0)
+                            + np.where(num("opm_cv") <= 0.25, 4, 0)).clip(max=25)
+        x["industry_pts"] = x.ticker.map(lambda t: simba.INDUSTRY_PTS[ind.get(t, "NEUTRAL")])
+        x["forensics"] = np.where((num("de") > 1) | (num("cfo_ebitda") < 0.6), "⛔ fails", "✅ ok")
+        x["cfo_ebitda"] = num("cfo_ebitda") * 100
+        x = x.sort_values(["quality_pts", "industry_pts", "np_g"], ascending=False)
+        st.caption(f"{len(x)} stocks show an earnings reversal. Sorted by the earnings + quality points they "
+                   "would bring to the score (max 25), then industry. 'Forensics' is a hard gate: debt/equity "
+                   "above 1 or 5-year cash conversion below 60% rules a stock out whatever its score.")
+        st.dataframe(x[["name", "ticker", "quality_pts", "industry", "forensics", "legs", "quarter", "sales_g",
+                        "np_g", "roce", "opm_cv", "de", "cfo_ebitda", "promoters"]],
+                     hide_index=True, use_container_width=True,
+                     column_config={
+                         "name": "Company", "ticker": "Ticker",
+                         "quality_pts": st.column_config.ProgressColumn("Earnings + quality", min_value=0,
+                                                                        max_value=25, format="%d / 25"),
+                         "industry": "Industry", "forensics": "Forensics", "legs": "Earnings reversal",
+                         "quarter": "Quarter",
+                         "sales_g": st.column_config.NumberColumn("Sales YoY", format="%+.0f%%"),
+                         "np_g": st.column_config.NumberColumn("Profit YoY", format="%+.0f%%"),
+                         "roce": st.column_config.NumberColumn("ROCE", format="%.0f%%"),
+                         "opm_cv": st.column_config.NumberColumn("Margin variability", format="%.2f",
+                                                                 help="Annual OPM std ÷ mean; ≤ 0.25 = stable"),
+                         "de": st.column_config.NumberColumn("Debt/equity", format="%.2f"),
+                         "cfo_ebitda": st.column_config.NumberColumn("Cash conversion", format="%.0f%%",
+                                                                     help="5-year CFO ÷ EBITDA; ≥ 60% passes"),
+                         "promoters": st.column_config.NumberColumn("Promoter %", format="%.0f%%")})
+        _how_graded()
         return
 
     S = simba.score_table(df, reg, fund, ind)
@@ -132,6 +199,7 @@ def render(df: pd.DataFrame) -> None:
         st.caption("⚠️ Fewer than ~290 sessions of history in this snapshot: G1 (dormancy) and Mansfield RS "
                    "fill in from the next EOD run.")
 
+    _how_graded()
     n_si = int((S.simba_si_since <= 5).sum())
     n_g = int(S.simba_g.fillna(False).sum())
     n_m = int((S.simba_m_since <= 5).sum())
