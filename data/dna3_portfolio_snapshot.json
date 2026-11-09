@@ -7,23 +7,23 @@
             "entry_price": 1027.550048828125,
             "entry_date": "2026-09-15",
             "shares": 62,
-            "peak_price": 1101.199951171875
+            "peak_price": 1118.9000244140625
         }
     },
-    "equity": 1101029.331462897,
-    "cash_pct": 94.0,
+    "equity": 1103999.1329765688,
+    "cash_pct": 93.7,
     "count": 1,
     "portfolio": [
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 1071.0,
-            "RS_Score": 6.5,
+            "Price": 1118.9000244140625,
+            "RS_Score": 11.0,
             "Entry": 1027.550048828125,
-            "PnL%": 4.228499742803548,
-            "Dist_MA50": 5.86121240260499,
-            "MA50": 1011.7,
-            "Trail_Stop": 969.06,
+            "PnL%": 8.890075543290381,
+            "Dist_MA50": 9.99035924231647,
+            "MA50": 1017.27,
+            "Trail_Stop": 984.63,
             "Danger": ""
         }
     ],
