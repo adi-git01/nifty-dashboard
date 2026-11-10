@@ -1320,11 +1320,16 @@ elif page == "🌊 Trend Scanner":
 
     # SIMBA sits beside the scanner; key + on_change keeps the chosen tab across reruns, and
     # .open lets the hidden tab skip its work (the scanner body is heavy).
-    _ts_main, _ts_simba = st.tabs(["🌊 Scanner", "🦁 SIMBA"], key="ts_tab", on_change="rerun")
+    _ts_main, _ts_simba, _ts_agree = st.tabs(["🌊 Scanner", "🦁 SIMBA", "🤝 Agreement"], key="ts_tab",
+                                             on_change="rerun")
     with _ts_simba:
         if _ts_simba.open:
             from utils.simba_view import render as _simba_render
             _simba_render(df)
+    with _ts_agree:
+        if _ts_agree.open:
+            from utils.consensus_view import render as _agree_render
+            _agree_render(df)
     with _ts_main:
         if _ts_main.open is not False:
     
@@ -1859,6 +1864,9 @@ elif page == "🌊 Trend Scanner":
                         del st.session_state[key]
                     st.rerun()
 
+            from utils.ui_search import search_box as _search_box
+            filtered_df = _search_box(filtered_df, "scan_search",
+                                      label="🔎 Search name or ticker in the results below")
             _nifty_hdr, _nifty_dl = st.columns([3, 1])
             with _nifty_hdr:
                 st.subheader(f"Found {len(filtered_df)} Momentum Stocks")

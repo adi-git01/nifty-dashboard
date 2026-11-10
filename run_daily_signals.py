@@ -182,6 +182,28 @@ def main():
     except Exception as e:
         print(f"  Breakout log failed: {e}")
 
+    # ── 3c. Agreement log: SIMBA + Trend Scanner + Technicals (utils/consensus.py) ──
+    print("\n[AGREE] Updating agreement log...")
+    try:
+        from utils import consensus, simba
+        from utils.yf_safe import safe_history
+        _snap = snapshot_date() or pd.Timestamp.today().normalize()
+        _n = safe_history("^NSEI", start=(_snap - pd.Timedelta(days=simba.HISTORY_DAYS)).strftime("%Y-%m-%d"))
+        _nclose, _reg = None, None
+        if _n is not None and not _n.empty:
+            _n.index = _n.index.tz_localize(None) if getattr(_n.index, "tz", None) is not None else _n.index
+            _n = _n[_n.index <= _snap + pd.Timedelta(days=1)]
+            _nclose = float(_n["Close"].iloc[-1])
+            _px = pd.to_numeric(today_df.get("currentPrice"), errors="coerce")
+            _m2 = pd.to_numeric(today_df.get("twoHundredDayAverage"), errors="coerce")
+            _ok = _px.notna() & _m2.notna()
+            _reg = simba.market_regime(_n, float((_px[_ok] > _m2[_ok]).mean() * 100) if _ok.sum() >= 50 else None)
+        ag_log, ag_new = consensus.update_log(today_df, _snap, _nclose, _reg)
+        print(f"  {len(ag_new)} new agreement(s) ({int((ag_new.votes == 3).sum()) if len(ag_new) else 0} with all "
+              f"three); log {len(ag_log)} rows.")
+    except Exception as e:
+        print(f"  Agreement log failed: {e}")
+
     # ── 4. Telegram Summary ───────────────────────────────────────────────
     date_str = datetime.now().strftime("%d %b %Y")
     lines = [f"<b>📡 Daily Signal Logger — {date_str}</b>\n"]
