@@ -973,27 +973,69 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
                                      f"{c_['mid_eps']:.1f}; trailing {spot_pe:.1f}x is {price / c_['mid_eps']:.1f}x on "
                                      f"mid-cycle earnings") if c_.get("mid_eps") else ""
 
-    # ---- P4 knob sensitivity -------------------------------------------------------------------------
+    # ---- P4 knob sensitivity + percentile band ---------------------------------------------------------
+    # The point percentile hides how much it depends on choices the data cannot settle. Each run below
+    # changes ONE such choice by an amount this stock's own evidence supports; the band is the range of
+    # CMP percentiles across them. Narrow when the stock's history and peers agree, wide when they don't.
+    #   knobs    hurdle +/-1pp, the other rho, anchor weight 65/35 and 35/65 (when both anchors exist)
+    #   peers    peer-median multiple moved +/- one standard error of that median (few or scattered
+    #            peers -> a big move)
+    #   growth   base growth set to the lowest / highest of its own ingredients (3y CAGR, 5y CAGR, TTM)
     if knobs:
-        sens = {}
-        def pct_with(lever_=lever, mult_=mult, rho_=rho, r_=r):
+        sens, kfac = {}, {}
+        base_p50 = float(np.median(V))
+        def pct_with(lever_=lever, mult_=mult, rho_=rho, r_=r, lab=None):
             V2, _ = simulate(lever_, mult_, probs, rho_, w, r_, n=4000, mult_floor=mult_floor)
+            if lab:
+                kfac[lab] = float(np.median(V2) / base_p50) if base_p50 > 0 else 1.0
             return float((V2 < price).mean() * 100)
         for lab, rr in (("hurdle -1pp", r - 0.01), ("hurdle +1pp", r + 0.01)):
-            sens[lab] = pct_with(r_=rr)
+            sens[lab] = pct_with(r_=rr, lab=lab)
         for lab, rh_ in (("rho 0.25", 0.25), ("rho 0.50", 0.50)):
             if abs(rh_ - rho) > 1e-9:
-                sens[lab] = pct_with(rho_=rh_)
+                sens[lab] = pct_with(rho_=rh_, lab=lab)
         if diverge > 0.25 and np.isfinite(own_med) and np.isfinite(peer_med):
             for lab, wo in (("anchor 65/35 own/peer", 0.65), ("anchor 35/65 own/peer", 0.35)):
                 k = (wo * own_med + (1 - wo) * peer_med) / neutral
-                sens[lab] = pct_with(mult_={s: mult[s] * k for s in mult})
+                sens[lab] = pct_with(mult_={s: mult[s] * k for s in mult}, lab=lab)
         cuts = [c for c, _ in LADDER[:-1]]
         band = lambda x: sum(x >= c for c in cuts)
-        out["sensitivity"] = sens
+        out["sensitivity"] = dict(sens)
         out["knob_dependent"] = any(band(x) != band(pct) for x in sens.values())
         if out["knob_dependent"]:
             note("verdict is KNOB-DEPENDENT: a plausible knob setting moves CMP across a verdict boundary (P4)")
+
+        extra = {}
+        if np.isfinite(own_med) and np.isfinite(peer_med) and diverge <= 0.25:
+            for lab, wo in (("anchor 65/35 own/peer", 0.65), ("anchor 35/65 own/peer", 0.35)):
+                k = (wo * own_med + (1 - wo) * peer_med) / neutral
+                extra[lab] = pct_with(mult_={s: mult[s] * k for s in mult}, lab=lab)
+        if np.isfinite(peer_med) and len(peer_vals) >= 3 and peer_med > 0:
+            # standard error of a median ~ 1.25 x robust sd / sqrt(n)
+            se_med = 1.25 * float((peer_vals.quantile(0.75) - peer_vals.quantile(0.25)) / 1.35) / np.sqrt(len(peer_vals))
+            w_peer = (1 - w_own) if np.isfinite(own_med) else 1.0
+            for lab, sgn in (("peer multiple -1 s.e.", -1), ("peer multiple +1 s.e.", 1)):
+                k = max(0.5, (neutral + sgn * w_peer * se_med) / neutral)
+                extra[lab] = pct_with(mult_={s: mult[s] * k for s in mult}, lab=lab)
+        g_parts = [v for _, v in parts] if ident != "BFSI" else []
+        if len(g_parts) >= 2:
+            for lab, g_alt in (("growth = lowest of 3y/5y/TTM", min(g_parts)), ("growth = highest of 3y/5y/TTM", max(g_parts))):
+                g_alt = float(np.clip(g_alt, -0.05, 0.35))
+                if abs(g_alt - base_g) < 0.005:
+                    continue
+                f = (1 + g_alt) / (1 + base_g)
+                extra[lab] = pct_with(lever_={s: [lever[s][j] * f ** (j + 1) for j in range(3)] for s in lever}, lab=lab)
+        runs = {**sens, **extra}
+        lo_lab = min(runs, key=runs.get) if runs else None
+        hi_lab = max(runs, key=runs.get) if runs else None
+        p_lo = min([pct] + list(runs.values()))
+        p_hi = max([pct] + list(runs.values()))
+        ks = [1.0] + list(kfac.values())
+        out["band"] = dict(p_lo=float(p_lo), p_hi=float(p_hi), width=float(p_hi - p_lo),
+                           k_lo=float(min(ks)), k_hi=float(max(ks)), runs={k_: float(v_) for k_, v_ in runs.items()},
+                           widest=[lo_lab, hi_lab],
+                           bucket_lo=val_bucket(p_lo), bucket_hi=val_bucket(p_hi),
+                           firmness="FIRM" if p_hi - p_lo <= 10 else "SOFT" if p_hi - p_lo <= 25 else "WIDE")
     out["quality"] = quality_profile(out, gates, Q, bl, mass, target, indeterminate, conf, ident)
     out["status"] = "OK"
     out["engine_line"] = (f"{ENGINE}, rho={rho:.2f}, hurdle={r:.0%}, N={n}, seed={SEED}"
@@ -1109,8 +1151,26 @@ def summary_row(res: dict) -> dict:
                q_note=res["quality"]["note"], q_lean=res["quality"]["lean"],
                q_issues=json.dumps([[i["sev"], i["title"], i["lean"]] for i in res["quality"]["issues"]]),
                e_widened=round(res.get("e_widened", 1.0), 2),
+               band_k_lo=round(res.get("band", {}).get("k_lo", 1.0), 4),
+               band_k_hi=round(res.get("band", {}).get("k_hi", 1.0), 4),
+               band_lo_why=(res.get("band", {}).get("widest") or [None, None])[0],
+               band_hi_why=(res.get("band", {}).get("widest") or [None, None])[1],
                grid=json.dumps([round(x, 2) for x in res["grid"]]))
     return row
+
+
+def band_from_grid(grid, price, k_lo=1.0, k_hi=1.0):
+    """
+    Percentile band at today's price from a stored distribution. Each band run moved the fair-value
+    distribution by a factor k (ratio of medians); a fair value k times higher puts today's price at
+    the percentile of price / k. Returns (p_lo, p, p_hi).
+    """
+    g = np.asarray(grid, float)
+    at = lambda x: float(np.interp(x, g, np.arange(1, 100), left=0.5, right=99.5))
+    k_lo = k_lo if np.isfinite(k_lo) and k_lo > 0 else 1.0
+    k_hi = k_hi if np.isfinite(k_hi) and k_hi > 0 else 1.0
+    p = at(price)
+    return min(p, at(price / max(k_hi, 1.0))), p, max(p, at(price / min(k_lo, 1.0)))
 
 
 def rating_from_grid(grid, price, gates_ok, confidence, identity, label_if_unrated=None):

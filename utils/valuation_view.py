@@ -20,7 +20,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from utils.valuation import (KNOWN_LIMITS, QUALITY, REFERENCE, VAL_BUCKETS, combined_signal, load_context,
+from utils.valuation import (KNOWN_LIMITS, QUALITY, REFERENCE, VAL_BUCKETS, band_from_grid, combined_signal,
+                             load_context,
                              rating_from_grid, signal_bucket, val_bucket, value_stock)
 
 QUALITY_LEVELS = [f"{i} {g}" for i, g in QUALITY.values()]
@@ -71,7 +72,9 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
     tick = out["ticker"].str.replace(".NS", "", regex=False)
     price = pd.to_numeric(out.get("price", out.get("currentPrice")), errors="coerce")
     rat, buck, note, pct, cagr, p50 = [], [], [], [], [], []
+    band_txt, band_w = [], []
     for t, p in zip(tick, price):
+        band_txt.append(""); band_w.append(np.nan)
         if S.empty or t not in S.index:
             rat.append(""); buck.append("NOT VALUED"); note.append("no valuation data")
             pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan); sevs.append(np.nan)
@@ -96,12 +99,26 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
         icon = QUALITY[sev][0]
         lean = str(r.q_lean) if "q_lean" in r and pd.notna(r.q_lean) and str(r.q_lean) else ""
         why = str(r.q_note) if "q_note" in r and pd.notna(r.q_note) else ""
-        rat.append(f"{RATING_ICON[vb]} {vb} {icon}")
+        # percentile band at today's price (utils.valuation: knobs, peer spread, growth disagreement)
+        rng = vb
+        try:
+            lo, _, hi = band_from_grid(json.loads(r.grid), px_, float(r.get("band_k_lo", 1.0) or 1.0),
+                                       float(r.get("band_k_hi", 1.0) or 1.0))
+            band_txt[-1], band_w[-1] = f"P{lo:.0f}–{hi:.0f}", hi - lo
+            b_lo, b_hi = val_bucket(lo), val_bucket(hi)
+            if b_lo and b_hi and b_lo != b_hi:
+                rng = f"{b_lo}–{b_hi}"
+                why = " · ".join(x for x in (f"range {band_txt[-1]}: {r.get('band_lo_why', '')} ↔ "
+                                             f"{r.get('band_hi_why', '')}", why) if x)
+        except Exception:
+            pass
+        rat.append(f"{RATING_ICON[vb]} {rng} {icon}")
         buck.append(vb)
         note.append(" · ".join(x for x in (why, lean) if x))
         sevs.append(sev)
         pct.append(q); cagr.append(r.cagr_base * 100 if pd.notna(r.cagr_base) else np.nan); p50.append(r.p50)
     out["val_rating"], out["val_bucket"], out["val_note"], out["val_pct"] = rat, buck, note, pct
+    out["val_band"], out["val_band_width"] = band_txt, band_w
     out["val_sev"] = sevs
     out["val_quality"] = [f"{QUALITY[int(x)][0]} {QUALITY[int(x)][1]}" if pd.notna(x) else "" for x in sevs]
     out["val_cagr_base"], out["val_fv_p50"] = cagr, p50
@@ -183,7 +200,17 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                 help="v4.1 ladder on the CMP percentile: <P20 BUY · P20-40 ACCUMULATE · P40-70 HOLD · P70-88 REDUCE "
                      "· >P88 SELL. Quality: ✅ clean · 🟡 caution (read the reason) · 🟠 weak (counts one notch less in "
                      "the signal) · 🔴 unreliable (ignored in the signal). Reasons below.")
-    k[1].metric("CMP percentile", f"P{d['cmp_pct']:.0f}", res["label"], delta_color="off")
+    bd = res.get("band")
+    if bd:
+        k[1].metric("CMP percentile", f"P{bd['p_lo']:.0f}–{bd['p_hi']:.0f}",
+                    f"point P{d['cmp_pct']:.0f} · {bd['firmness'].lower()}", delta_color="off",
+                    help="Where today's price sits in the fair-value distribution, as a range. Each end comes "
+                         "from changing one assumption the data cannot settle: the hurdle rate, how much weight "
+                         "own history gets vs peers, the peer multiple (± its standard error), and which growth "
+                         "record to trust (3-year, 5-year or the last 12 months). Firm ≤ 10 points wide, soft "
+                         "≤ 25, wide beyond that.")
+    else:
+        k[1].metric("CMP percentile", f"P{d['cmp_pct']:.0f}", res["label"], delta_color="off")
     k[2].metric("Fair value P50", f"₹{d['P50']:,.0f}", f"P10 ₹{d['P10']:,.0f} · P90 ₹{d['P90']:,.0f}", delta_color="off")
     k[3].metric("3y CAGR at CMP (base)", f"{res['cagr']['base']:+.1%}",
                 f"hurdle {res['hurdle']:.0%} · bear {res['cagr']['bear']:+.0%} · bull {res['cagr']['bull']:+.0%}",
@@ -202,6 +229,23 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
             + "\n\n" + "\n".join(lines))
     else:
         st.success("**Valuation reliability: ✅ Clean** — every v4.1 gate passes.")
+    if bd:
+        same = bd["bucket_lo"] == bd["bucket_hi"]
+        msg = (f"**Percentile range P{bd['p_lo']:.0f}–{bd['p_hi']:.0f}** ({bd['firmness'].lower()}): "
+               + (f"**{bd['bucket_lo']}** across every assumption tested." if same else
+                  f"anywhere from **{bd['bucket_lo']}** to **{bd['bucket_hi']}** depending on the assumption — "
+                  f"the single rating above is the middle case, not a firm call."))
+        (st.success if same and bd["firmness"] == "FIRM" else st.info if same else st.warning)(msg)
+        with st.expander("What moves the percentile (one assumption changed at a time)"):
+            R = pd.DataFrame([{"Assumption changed": k_, "CMP percentile": v_, "vs point": v_ - d["cmp_pct"]}
+                              for k_, v_ in sorted(bd["runs"].items(), key=lambda kv: kv[1])])
+            st.dataframe(R, hide_index=True, use_container_width=True,
+                         column_config={"CMP percentile": st.column_config.NumberColumn(format="P%.0f"),
+                                        "vs point": st.column_config.NumberColumn(format="%+.0f")})
+            st.caption("Lower percentile = cheaper. 'Peer multiple ± 1 s.e.' moves the peer-median multiple by "
+                       "its standard error (few or scattered peers → a bigger move). 'Growth = lowest/highest' "
+                       "replaces the blended base growth with the weakest or strongest of the 3-year CAGR, "
+                       "5-year CAGR and last-12-month growth.")
     if res["gates"]["D"]["triggered"]:
         st.warning(f"**This is a multiple-de-rating call.** {res['gates']['D']['detail']}")
     elif res["gates"]["D"]["near"]:

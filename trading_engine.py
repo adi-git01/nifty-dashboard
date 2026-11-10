@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+import sys
 import logging
 
 # ✅ Silence streamlit "missing ScriptRunContext" spam in headless CI mode
@@ -40,6 +41,13 @@ def generate_daily_master_cache():
     # This also auto-saves the Parquet inside the function
     df = fetch_and_process_market_data(tickers, fundamentals, live_mode=True, update_ath=True)
     _log(f"END: generate_daily_master_cache — result shape={df.shape}, columns={list(df.columns[:8])}{'...' if len(df.columns)>8 else ''}")
+
+    # The fetch failed its coverage gate and handed back an older snapshot. Recording that as
+    # today's mood / breadth / rotation wrote a phantom copy of Friday on 9 Nov 2026.
+    if df.attrs.get("stale_fallback"):
+        _log(f"STALE: today's fetch failed; got {df.attrs['stale_fallback']}. Not recording mood, breadth "
+             f"or rotation for today.")
+        return df
 
     # Save daily mood snapshot so the Market Mood History chart stays current
     try:
@@ -420,6 +428,11 @@ if __name__ == "__main__":
     try:
         if args.mode in ['daily_cache', 'full']:
             df = generate_daily_master_cache()
+            if df.attrs.get("stale_fallback"):
+                # Non-zero exit: the workflow retries once after 3 minutes, and the health check
+                # at the end turns the run red if today's snapshot is still missing.
+                print("[ENGINE] No fresh data today -- exiting with an error so the run is retried.", flush=True)
+                sys.exit(1)
             generate_sub_industry_rotation(df, db)
         else:
             # Just load existing parquet cache for fast ops if daily scan already ran

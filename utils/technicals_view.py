@@ -208,7 +208,7 @@ def _table(df: pd.DataFrame):
             "shares", "buy_value", "sized_by", "fx_t1", "fx_t2", "edge_3m", "edge_6m", "edge_years",
             "fx_dist_hi", "fx_adx", "fx_bbp", "fx_rsi"]
     cols[5:5] = ["signal"]
-    cols[7:7] = ["val_rating", "val_pct", "val_cagr_base", "val_note"]
+    cols[7:7] = ["val_rating", "val_band", "val_pct", "val_cagr_base", "val_note"]
     st.caption(f"Showing **{len(v)}** stocks. Sorted by action, then the backtested 6-month edge of the row's cell.")
     st.dataframe(
         v[cols],
@@ -255,6 +255,10 @@ def _table(df: pd.DataFrame):
             "val_note": st.column_config.TextColumn("Val note", help="Main reason behind the quality grade and which "
                                                     "way it bends the verdict (may be too optimistic / too harsh), "
                                                     "or why the stock is not valued"),
+            "val_band": st.column_config.TextColumn(
+                "Val range", help="CMP percentile as a range across the assumptions the data cannot settle "
+                                  "(hurdle, own-vs-peer weight, peer multiple ± its standard error, 3y/5y/TTM "
+                                  "growth). A rating shown as BUY–HOLD means the range spans those ratings."),
             "val_pct": st.column_config.NumberColumn("Val pct", format="P%.0f",
                                                      help="Where today's price sits in the stock's own fair-value "
                                                           "distribution (P50 = fair, <P20 BUY zone, >P88 SELL zone)"),

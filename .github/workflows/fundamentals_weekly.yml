@@ -1,0 +1,47 @@
+name: Weekly Valuation Inputs Refresh (Screener annual + quarterly)
+
+# The valuation engine and SIMBA's earnings-reversal test read data/fundamentals_annual.csv.gz
+# and data/fundamentals_quarterly.csv.gz. Until Nov 2026 these were refreshed only by hand, so
+# they went a quarter stale without anyone noticing.
+on:
+  schedule:
+    - cron: '30 20 * * 6'   # Sunday 2:00 am IST
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Scrape annual + quarterly fundamentals and monthly prices
+        run: |
+          set -o pipefail
+          python fundamentals_annual.py 2>&1 | tee fundamentals_output.txt
+      - name: Re-run the valuation
+        run: python valuation_run.py 2>&1 | tee -a fundamentals_output.txt
+      - name: Commit
+        if: always()
+        run: |
+          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv
+      - name: Notify on failure
+        if: failure()
+        run: |
+          python -c "
+          import os, requests
+          t, c = os.environ.get('TELEGRAM_TOKEN'), os.environ.get('TELEGRAM_CHAT_ID')
+          if t and c:
+              requests.post(f'https://api.telegram.org/bot{t}/sendMessage', json={'chat_id': c, 'text': '🚨 Weekly valuation-inputs refresh failed. Fundamentals and valuations are going stale; check GitHub Actions.'}, timeout=10)
+          "
