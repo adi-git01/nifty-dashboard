@@ -217,6 +217,11 @@ def main():
 
     existing_mood_dates    = set(mood_df["date"].tolist()) if not mood_df.empty else set()
     existing_breadth_dates = set(breadth_df["date"].tolist()) if not breadth_df.empty else set()
+    # Fill gaps only, never extend the history backwards: the download starts 2024-01-01, so the
+    # first ~200 sessions have no 200-day average (150 rows with 0% above it were added on
+    # 10 Nov 2026) and the older universe differs from the one the live rows use.
+    first_mood    = min(existing_mood_dates | redo) if (existing_mood_dates or redo) else "0000"
+    first_breadth = min(existing_breadth_dates | redo) if (existing_breadth_dates or redo) else "0000"
 
     close, high, low = download_prices(tickers)
 
@@ -240,10 +245,10 @@ def main():
             skipped += 1
             continue
 
-        if d_str not in existing_mood_dates:
+        if d_str not in existing_mood_dates and d_str >= first_mood:
             mood_new.append(build_mood_row(d_str, row))
 
-        if d_str not in existing_breadth_dates:
+        if d_str not in existing_breadth_dates and d_str >= first_breadth:
             breadth_new.append(build_breadth_row(d_str, row))
 
     print(f"\n[BACKFILL] Skipped {skipped} dates with < {MIN_STOCKS} valid stocks")

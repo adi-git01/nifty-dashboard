@@ -102,6 +102,14 @@ def calculate_breadth_from_df(df):
         # Score >= 65 is a more reliable "above MA50" proxy
         above_50dma = len(df[df['trend_score'] >= 50])
     
+    # The snapshot now carries the 50-day average itself, so count it directly. The trend-score
+    # proxy above read 40.8% on 6 Nov 2026 when 33.8% of stocks were actually above their MA50.
+    if 'fiftyDayAverage' in df.columns and ('currentPrice' in df.columns or 'price' in df.columns):
+        _px = pd.to_numeric(df['currentPrice'] if 'currentPrice' in df.columns else df['price'], errors='coerce')
+        _m50 = pd.to_numeric(df['fiftyDayAverage'], errors='coerce')
+        if (_px.notna() & _m50.notna()).sum() >= 0.5 * total:
+            above_50dma = int((_px > _m50).sum())
+
     pct_above_50dma = round(above_50dma / total * 100, 1) if total > 0 else 0
     pct_above_200dma = round(above_200dma / total * 100, 1) if total > 0 else 0
     
