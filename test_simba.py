@@ -106,3 +106,30 @@ def test_score_table_grades_and_gates():
     # X: top-down 20 + Ghoomega 14+3(RS) + Machayega 12+3+2+2 + quality 12+4+4+4 + float 4 + MTF 5 = 89
     assert S.at["X.NS", "score"] == 89 and S.at["X.NS", "grade"] == "A+" and S.at["X.NS", "gates"] == ""
     assert "liquidity" in S.at["Y.NS", "gates"] and S.at["Y.NS", "grade"].endswith("(gated)")
+
+
+# ---------------------------------------------------------------- search + agreement log
+def test_search_matches_name_or_ticker_any_term():
+    from utils.ui_search import match
+    d = pd.DataFrame({"name": ["Cummins India", "Hindustan Copper", "Tata Motors"],
+                      "ticker": ["CUMMINSIND.NS", "HINDCOPPER.NS", "TATAMOTORS.NS"]})
+    assert match(d, "cummins, hindcopper").ticker.tolist() == ["CUMMINSIND.NS", "HINDCOPPER.NS"]
+    assert match(d, "TATA").ticker.tolist() == ["TATAMOTORS.NS"] and len(match(d, "")) == 3
+
+
+def test_agreement_log_adds_once_tracks_return_and_reentry(tmp_path, monkeypatch):
+    from utils import consensus
+    monkeypatch.setattr(consensus, "LOG_FILE", str(tmp_path / "log.csv"))
+    snap = lambda px, a_buy=True: pd.DataFrame({
+        "ticker": ["A.NS", "B.NS", "C.NS"], "name": ["A", "B", "C"], "currentPrice": px,
+        "dna_signal": ["BUY" if a_buy else "HOLD", "BUY", "HOLD"], "fx_action": ["BUY NOW", "WATCH", "BUY NOW"]})
+    d1, d2, d3 = pd.Timestamp("2026-11-09"), pd.Timestamp("2026-11-10"), pd.Timestamp("2026-12-10")
+    log, new = consensus.update_log(snap([100, 50, 10]), d1, nifty_close=25000)
+    assert new.ticker.tolist() == ["A.NS"] and log.loc[log.ticker == "A.NS", "votes"].iloc[0] == 2   # no SIMBA data
+    log, new = consensus.update_log(snap([110, 50, 10], a_buy=False), d2, nifty_close=25250)
+    r = log.set_index("ticker").loc["A.NS"]
+    assert len(new) == 0 and len(log) == 1
+    assert round(r.return_pct, 1) == 10.0 and round(r.excess_pct, 1) == 9.0 and not r.active and r.max_votes == 2
+    log, new = consensus.update_log(snap([120, 50, 10]), d3, nifty_close=25250)   # back after a month: new row
+    assert len(log) == 2 and new.signal_price.iloc[0] == 120
+    assert consensus.summary(log).stocks.sum() == 2

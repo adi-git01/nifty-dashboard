@@ -9,6 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from utils import simba
+from utils.ui_search import search_box
 
 FUND_FILES = ("data/fundamentals_quarterly.csv.gz", "data/fundamentals_annual.csv.gz")
 STAGE_ICON = {1: "1 · base", 2: "2 · advancing", 3: "3 · top", 4: "4 · declining"}
@@ -159,6 +160,7 @@ def render(df: pd.DataFrame) -> None:
         st.caption(f"{len(x)} stocks show an earnings reversal. Sorted by the earnings + quality points they "
                    "would bring to the score (max 25), then industry. 'Forensics' is a hard gate: debt/equity "
                    "above 1 or 5-year cash conversion below 60% rules a stock out whatever its score.")
+        x = search_box(x, "simba_fund_search")
         st.dataframe(x[["name", "ticker", "quality_pts", "industry", "forensics", "legs", "quarter", "sales_g",
                         "np_g", "roce", "opm_cv", "de", "cfo_ebitda", "promoters"]],
                      hide_index=True, use_container_width=True,
@@ -200,6 +202,25 @@ def render(df: pd.DataFrame) -> None:
                    "fill in from the next EOD run.")
 
     _how_graded()
+    ALL = S
+    S = search_box(S, "simba_search", label="🔎 Search name or ticker — filters every SIMBA table below")
+    searching = len(S) < len(ALL)
+    if searching and len(S):
+        st.markdown("**Scores for your search**")
+        st.dataframe(S[["name", "ticker", "grade", "score", "gates", "pts_topdown", "pts_ghoomega", "pts_machayega",
+                        "pts_quality", "pts_float", "pts_mtf", "stage", "industry", "simba_g_bits", "simba_m_bits",
+                        "er_legs", "caution"]], hide_index=True, use_container_width=True,
+                     column_config={"name": "Company", "ticker": "Ticker", "grade": "Grade",
+                                    "score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100,
+                                                                             format="%d"),
+                                    "gates": "Gates hit", "pts_topdown": "Top-down /20", "pts_ghoomega": "Ghoomega /20",
+                                    "pts_machayega": "Machayega /20", "pts_quality": "Earnings+quality /25",
+                                    "pts_float": "Float /10", "pts_mtf": "MTF /5", "stage": "Stage",
+                                    "industry": "Industry", "simba_g_bits": "G1-G7", "simba_m_bits": "M1-M5 today",
+                                    "er_legs": "Earnings reversal", "caution": "Caution"})
+    elif searching:
+        st.info("No stock in the SIMBA universe matches that search.")
+        return
     n_si = int((S.simba_si_since <= 5).sum())
     n_g = int(S.simba_g.fillna(False).sum())
     n_m = int((S.simba_m_since <= 5).sum())
@@ -268,8 +289,8 @@ def render(df: pd.DataFrame) -> None:
         g_sel = a.multiselect("Grade", ["A+", "A", "B"], default=["A+", "A"], key="simba_grades")
         show_gated = b.toggle("Include gated", value=False, key="simba_gated")
         ind_sel = c.multiselect("Industry", list(IND_ICON.values()), default=[], key="simba_ind")
-        v = S[S.grade.str.replace(" (gated)", "", regex=False).isin(g_sel)]
-        if not show_gated:
+        v = S if searching else S[S.grade.str.replace(" (gated)", "", regex=False).isin(g_sel)]
+        if not show_gated and not searching:
             v = v[v.gates.fillna("") == ""]
         if ind_sel:
             v = v[v.industry.isin(ind_sel)]
@@ -300,7 +321,7 @@ def render(df: pd.DataFrame) -> None:
         else:
             st.caption("No active positions in the Position Manager.")
         st.markdown(f"**Stage breach across the universe** ({int((S.simba_caution == 3).sum())})")
-        st.dataframe(S[S.simba_caution == 3][["name", "ticker", "stage", "simba_ext_ma150", "simba_mrs"]].head(200),
+        st.dataframe(S[S.simba_caution == 3][["name", "ticker", "stage", "simba_ext_ma150", "simba_mrs"]],
                      hide_index=True, use_container_width=True,
                      column_config={"simba_ext_ma150": st.column_config.NumberColumn("vs 150-DMA", format="%+.1f%%")})
 

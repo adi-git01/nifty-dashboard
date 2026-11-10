@@ -150,7 +150,13 @@ def _table(df: pd.DataFrame):
         v = v[v.signal_raw.isin(sigs)]
     if vals:
         v = v[v.val_bucket.isin(vals)]
-    if acts:
+    from utils.ui_search import match
+    q = st.text_input("🔎 Search name or ticker", key="tx_search", placeholder="e.g. cummins, HINDCOPPER",
+                      help="Part of a company name or ticker; separate several with commas. A search shows "
+                           "the stock whatever its action.")
+    if q:
+        v = match(v, q)
+    if acts and not q:
         v = v[v.fx_action.isin(acts)]
     if absorb:
         v = v[v.fx_signature == "ABSORPTION"]
