@@ -318,7 +318,9 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     # everything downstream (parquet cache, portfolio engine, sector
     # rotation, breadth/mood history) trusted it as if it were a full fetch.
     try:
-        nifty = safe_history("^NSEI", period="1y")
+        from utils.simba import HISTORY_DAYS
+        nifty = safe_history("^NSEI", start=(pd.Timestamp.today().normalize()
+                                             - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"))
         nifty_3m_ret = 0
         if not nifty.empty:
             nifty.index = nifty.index.tz_localize(None)
@@ -398,6 +400,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     except Exception:
         ath_rows, ath_updates = {}, {}
 
+    _loop_errors: dict = {}
     for ticker in tickers:
         try:
             # Extract Ticker Data
@@ -548,8 +551,14 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 
             rs_1w = _calc_rs(base_data.get('return_1w', 0), 0) # Simplification: Assume Nifty 1W ret ~ 0 for fast calc, ideally pass nifty_1w_ret
             # We'll calculate true RS vs Nifty directly here
-            idx = df.index.searchsorted(df.index[-1])
-            nifty_idx = nifty.index.searchsorted(df.index[-1])
+            idx = len(df) - 1
+            # Last Nifty bar on or before the stock's last bar. A plain searchsorted
+            # returned len(nifty) whenever the index series ended a day earlier than the
+            # stocks, and the IndexError below then dropped every ticker (9 Nov 2026).
+            _last = df.index[-1]
+            if getattr(_last, "tzinfo", None) is not None:
+                _last = _last.tz_localize(None)
+            nifty_idx = min(int(nifty.index.searchsorted(_last, side="right")) - 1, len(nifty) - 1)
             
             if nifty_idx >= 63 and idx >= 63:
                 n_ret_1w = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-5]) / nifty['Close'].iloc[nifty_idx-5] * 100
@@ -608,7 +617,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             processed_rows.append(base_data)
 
         except Exception as e:
-            # print(f"Error processing {ticker}: {e}")
+            _loop_errors[type(e).__name__ + ": " + str(e)[:120]] = _loop_errors.get(type(e).__name__ + ": " + str(e)[:120], 0) + 1
             continue
             
     # Roll the stored all-time-high bases forward -- only from the EOD engine
@@ -619,6 +628,11 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             print(f"[ENGINE] ATH table rolled forward for {len(ath_updates)}/{len(ath_rows)} tickers", flush=True)
         except Exception as e:
             print(f"[ENGINE] ATH table not saved: {e}", flush=True)
+
+    # A per-ticker failure used to be swallowed silently; on 9 Nov 2026 one bug failed
+    # 1,171 of 1,174 tickers and the log showed only "0% coverage".
+    for _msg, _n in sorted(_loop_errors.items(), key=lambda kv: -kv[1])[:5]:
+        print(f"[ENGINE] {_n} ticker(s) failed: {_msg}", flush=True)
 
     # Convert to DataFrame
     final_df = pd.DataFrame(processed_rows)
