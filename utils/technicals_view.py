@@ -311,6 +311,43 @@ def _deep_dive(df: pd.DataFrame):
     _visual_report(h, t.replace(".NS", ""), hp if held else None, hd if held else None, risk)
 
 
+def _trade_plan_card(P: dict, name: str, h: pd.DataFrame):
+    """Entry, stop, targets and value zones in one place, with the dates the data is from."""
+    from utils import trade_plan
+    from utils.valuation import _series, value_stock
+    from utils.valuation_view import ctx as _val_ctx
+    r, val, c = P["r"], None, None
+    try:
+        c = _val_ctx()
+        if not c.annual.empty:
+            hh = h.tail(252)
+            val = value_stock(name, c, price=float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))
+    except Exception:
+        val = None
+    tp = trade_plan.build(P, val)
+    st.markdown("#### 🎯 Trade plan")
+    (st.success if tp["valid"] and P["action"] == "BUY NOW" else st.info if tp["valid"] else st.error)(
+        f"**{P['action']}** — {tp['summary']}" if tp["summary"] else f"**{P['action']}** — no tradable plan today.")
+    for f in tp["flags"]:
+        st.warning(f)
+    st.dataframe(tp["levels"], hide_index=True, use_container_width=True,
+                 column_config={"level": "Level", "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
+                                "vs_now": st.column_config.NumberColumn("vs now", format="%+.1f%%"),
+                                "source": "From", "note": "What it means"})
+    fresh = [f"prices to {pd.Timestamp(h.index[-1]):%d %b %Y}"]
+    try:
+        t = name if name.endswith(".NS") else name + ".NS"
+        q = _series(c.quarterly, t, "np")
+        if len(q):
+            age = (pd.Timestamp.today() - q.index.max()).days
+            fresh.append(f"latest quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
+        import os as _os
+        fresh.append(f"fundamentals file refreshed {pd.Timestamp(_os.path.getmtime('data/fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
+    except Exception:
+        pass
+    st.caption("Data used: " + " · ".join(fresh) + ". Targets and stops are computed levels, not advice.")
+
+
 def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: float):
     from utils.forensics import SUPPLY_LABEL, events, plan, report
     from utils.forensics_chart import levels_ladder, price_chart, retention_chart
@@ -344,6 +381,7 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     k[5].metric("Size", f"{P['shares']:,} sh", f"₹{P['shares'] * r['close']:,.0f}", delta_color="off",
                 help=f"Risk ₹{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
 
+    _trade_plan_card(P, name, h)
     st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
 
     c1, c2 = st.columns([1, 1])

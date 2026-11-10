@@ -74,3 +74,32 @@ def test_health_check_fails_without_todays_snapshot_and_passes_with_it(tmp_path,
     df.head(100).to_parquet("data/cache/market_master_2026_11_10.parquet")
     pd.DataFrame({"t": range(1000)}).to_csv("data/nifty1000_list.csv", index=False)
     assert any("under 80%" in f for f in hc.check("2026_11_10")[0])
+
+
+def test_screener_peer_multiples_replace_yahoo():
+    ctx = V.load_context()
+    pm = ctx.peer_mult
+    assert pm["pe"].notna().sum() > 800 and pm["pb"].notna().sum() > 900
+    idx = pm.index[:50]
+    got = V._peer_col(ctx, idx, "pe")
+    has = pm["pe"].reindex(idx).notna()
+    assert (got[has] == pm["pe"].reindex(idx)[has]).all()        # Screener wins where it exists
+
+
+def test_trade_plan_orders_levels_and_flags_conflicts():
+    from test_simba import _bars
+    from utils import trade_plan
+    from utils.forensics import plan
+    h, _ = _bars(breakout=True, n=500, seed=0)
+    P = plan(h, None, None, 1.0)
+    px = float(P["r"]["close"])
+    val = {"status": "OK", "dist": {"P10": px * 0.4, "P25": px * 0.5, "P50": px * 0.6, "P90": px * 0.8, "cmp_pct": 97.0},
+           "band": {"p_lo": 90.0, "p_hi": 99.0, "bucket_lo": "SELL", "bucket_hi": "SELL", "firmness": "FIRM"}}
+    tp = trade_plan.build(P, val)
+    assert tp["levels"].price.is_monotonic_decreasing
+    assert tp["valid"] and tp["stop"] < tp["entry"] < tp["t1"]
+    assert any("above the valuation's trim level" in f for f in tp["flags"])
+    assert any("stop is above fair value" in f for f in tp["flags"])
+    assert "Stop ₹" in tp["summary"] and "Target 1 ₹" in tp["summary"]
+    none = trade_plan.build(P, {"status": "OUT OF SCOPE", "reason": "loss-making"})
+    assert any("No valuation" in f for f in none["flags"]) and "Valuation" not in set(none["levels"].source)

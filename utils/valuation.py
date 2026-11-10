@@ -112,6 +112,7 @@ def load_context(root: str = ".") -> Context:
         ov.setdefault(str(r["ticker"]).strip(), {})[str(r["key"]).strip()] = r["value"]
     ctx = Context(A, Q, M, F, ov)
     ctx.peer_cagr3 = _all_cagr3(A)
+    ctx.peer_mult = _screener_multiples(A, Q)
     ctx.features = _features(A, F, M, Q)
     return ctx
 
@@ -262,6 +263,39 @@ def business_peers(ctx: "Context", t: str, ident: str, k: int = 8, with_fit: boo
 
 
 _GROUPS: dict = {}
+
+
+def _screener_multiples(A, Q) -> pd.DataFrame:
+    """
+    P/E and P/B per stock from the same Screener figures the rest of the valuation uses:
+    market cap / last-four-quarter net profit, and market cap / (equity capital + reserves).
+    Peer anchors used Yahoo's P/E until Nov 2026 -- a different earnings definition (and a
+    bi-weekly cache) from the stock's own Screener-based multiple it was compared against.
+    """
+    if A is None or A.empty:
+        return pd.DataFrame(columns=["pe", "pb"])
+    a = A[A.field.isin(["mcap_cr", "eq_cap", "reserves"])].sort_values("period")
+    last = a.groupby(["ticker", "field"])["value"].last().unstack()
+    out = pd.DataFrame(index=last.index, columns=["pe", "pb"], dtype=float)
+    if Q is not None and not Q.empty:
+        q = Q[(Q.field == "np") & Q.period.dt.month.isin([3, 6, 9, 12])].sort_values("period")
+        fresh = q.period.max() - pd.Timedelta(days=270)
+        ttm = q.groupby("ticker").apply(
+            lambda g: g["value"].iloc[-4:].sum() if len(g) >= 4 and g["period"].iloc[-1] >= fresh else np.nan)
+        out["pe"] = (last.get("mcap_cr") / ttm.reindex(last.index)).where(lambda x: x > 0)
+    if {"eq_cap", "reserves", "mcap_cr"} <= set(last.columns):
+        book = last["eq_cap"].fillna(0) + last["reserves"]
+        out["pb"] = (last["mcap_cr"] / book).where(book > 0)
+    return out
+
+
+def _peer_col(ctx, idx, col):
+    """Screener multiple for each ticker in `idx`, Yahoo's cached one where Screener has none."""
+    yh = pd.to_numeric(ctx.funda[col].reindex(idx), errors="coerce") if col in ctx.funda.columns else pd.Series(np.nan, index=idx)
+    pm = getattr(ctx, "peer_mult", None)
+    if pm is None or pm.empty:
+        return yh
+    return pm[col].reindex(idx).astype(float).fillna(yh)
 
 
 def _series(df, ticker, fld):
@@ -566,9 +600,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     else:
         pool = ctx.funda[(ctx.funda.sector_granular == gran) & (ctx.funda.index != t)] if gran else ctx.funda.iloc[:0]
         note("business-model peers unavailable -- peer anchor falls back to the sub-industry")
-    peer_vals = pd.to_numeric(pool[col], errors="coerce")
+    peer_vals = _peer_col(ctx, pool.index, col)
     peer_vals = peer_vals[(peer_vals > 0) & (peer_vals < cap_)]
-    sec_vals = pd.to_numeric(ctx.funda[ctx.funda.sector == out["sector"]][col], errors="coerce")
+    sec_vals = _peer_col(ctx, ctx.funda.index[ctx.funda.sector == out["sector"]], col)
     sec_vals = sec_vals[(sec_vals > 0) & (sec_vals < cap_)]
     peer_med = float(peer_vals.median()) if len(peer_vals) >= 3 else (float(sec_vals.median()) if len(sec_vals) >= 3 else np.nan)
     # v4.1 cap uses the "applicable-sector median" -- the business-model peer set, not the broad sector
