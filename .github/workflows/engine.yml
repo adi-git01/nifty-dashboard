@@ -91,6 +91,13 @@ jobs:
         python run_daily_signals.py
       continue-on-error: true
 
+    - name: "Valuation snapshot (fair-value distributions + percentile bands)"
+      # Offline, about a minute: re-runs the valuation on the stored fundamentals so the
+      # Technicals table never reads a weeks-old run.
+      run: |
+        python valuation_run.py
+      continue-on-error: true
+
     - name: "Step 7/7: Composite-RS Crossing Alerts (Telegram)"
       # Reads the master snapshot Step 1 just wrote — no Yahoo call, so this
       # cannot fail on a rate limit. If Step 1 failed, the snapshot is stale and
@@ -125,6 +132,12 @@ jobs:
         "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
         'data/*.csv' 'data/*.json' 'data/cache/*.parquet' positions.json
 
+
+    - name: Data health check (fails the run if today's snapshot is missing)
+      # Runs after the commit so good data is saved either way. Not continue-on-error:
+      # a failure here turns the run red and fires the crash notification below.
+      run: |
+        python scripts/health_check.py
 
     - name: 🚨 Notify on Crash (Telegram & Email)
       if: failure()

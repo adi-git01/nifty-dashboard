@@ -2,6 +2,11 @@ name: Backfill Market Mood & Breadth History
 
 on:
   workflow_dispatch:  # Manual trigger only
+    inputs:
+      redo_dates:
+        description: "Dates to rebuild even though they exist (YYYY-MM-DD, comma-separated)"
+        required: false
+        default: ""
 
 jobs:
   backfill:
@@ -29,7 +34,12 @@ jobs:
       run: pip install -r requirements.txt
 
     - name: Run backfill
-      run: python backfill_mood_breadth.py
+      run: |
+        if [ -n "${{ github.event.inputs.redo_dates }}" ]; then
+          python backfill_mood_breadth.py --redo "${{ github.event.inputs.redo_dates }}"
+        else
+          python backfill_mood_breadth.py
+        fi
       # Downloads 2 years of price history for 750 tickers (~2 min),
       # then computes trend scores for all missing dates (~30 sec).
       timeout-minutes: 30

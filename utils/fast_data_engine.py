@@ -444,8 +444,10 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             
             # 1b. Multi-period Returns
             def calc_return(days):
-                if len(df) >= days:
-                    old_price = float(df['Close'].iloc[-days])
+                # `days` sessions back is iloc[-(days + 1)]; iloc[-days] made every period one
+                # session short (the "1-week" return covered 4 sessions).
+                if len(df) > days:
+                    old_price = float(df['Close'].iloc[-(days + 1)])
                     return ((current_price - old_price) / old_price) * 100
                 return 0.0
             
@@ -453,7 +455,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             base_data['return_1m'] = calc_return(21)
             base_data['return_3m'] = calc_return(63)
             base_data['return_6m'] = calc_return(126)
-            base_data['return_1y'] = calc_return(252) if len(df) >= 252 else calc_return(len(df) - 1)
+            base_data['return_1y'] = calc_return(252) if len(df) > 252 else calc_return(len(df) - 1)
             
             # 2. Moving Averages & Highs
             if len(df) >= 50:
@@ -665,6 +667,8 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             try:
                 fallback_df = pd.read_parquet(prior_files[-1])
                 print(f"[ENGINE] Using fallback cache: {prior_files[-1]} ({len(fallback_df)} rows)", flush=True)
+                # Callers must not record this as today's reading (mood, breadth, rotation).
+                fallback_df.attrs["stale_fallback"] = os.path.basename(prior_files[-1])
                 return fallback_df
             except Exception as e:
                 print(f"[ENGINE] Fallback parquet unreadable ({e}); returning degraded result anyway.", flush=True)

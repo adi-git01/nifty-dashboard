@@ -200,6 +200,21 @@ def main():
     mood_df    = load_existing(MOOD_FILE)
     breadth_df = load_existing(BREADTH_FILE)
 
+    # --redo 2026-11-09[,2026-11-10]: drop those dates first so they are rebuilt from prices.
+    # For days the engine recorded from a stale snapshot (9 Nov 2026 is a copy of 6 Nov).
+    redo = set()
+    for i, a in enumerate(sys.argv):
+        if a == "--redo" and i + 1 < len(sys.argv):
+            redo = {d.strip() for d in sys.argv[i + 1].split(",") if d.strip()}
+    if redo:
+        for name, d_ in (("mood", mood_df), ("breadth", breadth_df)):
+            n = int(d_["date"].isin(redo).sum()) if not d_.empty else 0
+            print(f"[BACKFILL] --redo: dropping {n} {name} row(s) for {sorted(redo)}")
+        if not mood_df.empty:
+            mood_df = mood_df[~mood_df["date"].isin(redo)].reset_index(drop=True)
+        if not breadth_df.empty:
+            breadth_df = breadth_df[~breadth_df["date"].isin(redo)].reset_index(drop=True)
+
     existing_mood_dates    = set(mood_df["date"].tolist()) if not mood_df.empty else set()
     existing_breadth_dates = set(breadth_df["date"].tolist()) if not breadth_df.empty else set()
 

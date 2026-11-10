@@ -2349,6 +2349,18 @@ elif page == "📊 Return Tracker":
     
     # Get positions with P&L
     positions = get_positions_with_pnl(df)
+    # A position whose symbol is not in the market data gets no price, so its stop-loss and
+    # target are never checked -- say so instead of showing it as quietly fine.
+    _known = set(df['ticker'])
+    _orphans = [p.get('ticker', '') for p in positions if p.get('ticker') not in _known]
+    if _orphans:
+        import difflib as _dl
+        _hints = []
+        for _t in _orphans:
+            _m = _dl.get_close_matches(_t, list(_known), n=1, cutoff=0.8)
+            _hints.append(f"**{_t.replace('.NS', '')}**" + (f" (did you mean {_m[0].replace('.NS', '')}?)" if _m else ""))
+        st.error("⚠️ No market data for " + ", ".join(_hints) + ". These positions have no live price, so "
+                 "their stop-loss and target alerts cannot fire. Delete and re-add them with the correct NSE symbol.")
     active_positions = [p for p in positions if p.get('status') == 'active']
     watching_positions = [p for p in positions if p.get('status') == 'watching']
     triggered_alerts = check_position_alerts(df)

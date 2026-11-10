@@ -208,6 +208,23 @@ def main():
     na, nq = A.ticker.nunique(), Q.ticker.nunique()
     if na < 0.6 * len(tickers):
         sys.exit(f"[screener] only {na}/{len(tickers)} stocks parsed -- keeping the previous files")
+    # A stock Screener did not serve this time keeps its previous rows; a partial scrape used to
+    # overwrite the file and silently drop up to 40% of the universe.
+    for new, path, lab in ((A, ANNUAL, "annual"), (Q, QUARTERLY, "quarterly")):
+        if os.path.exists(path):
+            try:
+                old = pd.read_csv(path)
+                keep = old[~old.ticker.isin(set(new.ticker))]
+                keep = keep[keep.ticker.isin(set(tickers))] if not args.max_tickers else keep
+                if len(keep):
+                    print(f"[{lab}] {keep.ticker.nunique()} stocks not parsed this run -- previous rows kept")
+                    merged = pd.concat([new, keep.reindex(columns=new.columns)], ignore_index=True)
+                    if lab == "annual":
+                        A = merged
+                    else:
+                        Q = merged
+            except Exception as e:
+                print(f"[{lab}] could not read the previous file ({e}) -- writing this run only")
     A.to_csv(ANNUAL, index=False)
     Q.to_csv(QUARTERLY, index=False)
     yrs = A[A.field == "np"].groupby("ticker").size()
