@@ -40,16 +40,33 @@ def check_alerts():
     print(f"⏰ Starting Alert Check: {datetime.now()}")
     
     # --- 1. POSITION & PRICE ALERTS (Runs Every Time) ---
-    # 1. Load active positions
+    # Positions and price alerts come from the GitHub-backed store (alert-state branch), the same
+    # copy the dashboard edits. Symbols are resolved against the universe first: FEDERALBANK.NS
+    # (NSE symbol FEDERALBNK) used to get "Price not found" on every run.
+    from utils.positions import STORE as POS_STORE, resolve_ticker
+    from utils.alerts import load_alerts
+    from utils.nifty1000_list import TICKERS_1000
     positions = get_all_positions(status='active')
-    
-    alerts_triggered = [] # Initialize for position alerts
+    try:
+        price_alerts = [a for a in load_alerts() if a.get('stop_loss') or a.get('target')]
+    except Exception as e:
+        print(f"⚠️ Price alerts unreadable: {e}")
+        price_alerts = []
 
-    if not positions:
-        print("ℹ️ No active positions to check.")
+    alerts_triggered = [] # Initialize for position alerts
+    today = now_ist().strftime('%Y-%m-%d')
+
+    if not positions and not price_alerts:
+        print("ℹ️ No active positions or price alerts to check.")
     else:
-        tickers = [p['ticker'] for p in positions]
-        print(f"📋 Checking {len(tickers)} positions: {tickers}")
+        sym = {}
+        for item in positions + price_alerts:
+            t = item['ticker']
+            sym[t] = resolve_ticker(t, TICKERS_1000) or t
+            if sym[t] != t:
+                print(f"   {t} priced as {sym[t]}")
+        tickers = sorted(set(sym.values()))
+        print(f"📋 Checking {len(positions)} position(s) and {len(price_alerts)} price alert(s): {tickers}")
 
         # 2. Fetch live prices — retry-with-backoff instead of a single
         # unguarded attempt (a transient Yahoo blip here used to just
@@ -73,34 +90,49 @@ def check_alerts():
                 except Exception:
                     pass
 
-        # 3. Check conditions
-        if current_prices: # Only proceed if prices were fetched
-            for pos in positions:
+        # 3. Check conditions. An alert that already went out is not repeated for 5 days: the
+        # daemon used to resend the same stop-loss message on every run while price stayed below.
+        def recently_sent(item, kind):
+            last = item.get('last_alert') or {}
+            try:
+                return last.get('type') == kind and (pd.Timestamp(today) - pd.Timestamp(last.get('date'))).days < 5
+            except Exception:
+                return False
+
+        missing, patches = [], {}
+        try:
+            from utils import corp_actions
+            ca = corp_actions.load()
+        except Exception:
+            ca = None
+        for kind_label, items in (("position", positions), ("price alert", price_alerts)):
+            for pos in items:
                 ticker = pos['ticker']
-                # Handle ticker formatting differences in yfinance result
-                # YF might return "HDFCBANK.NS" or just "HDFCBANK"
-                price = current_prices.get(ticker)
-                
+                price = current_prices.get(sym[ticker])
                 if not price:
-                    # Try removing suffix
-                    simple_ticker = ticker.replace('.NS', '').replace('.BO', '')
-                    price = current_prices.get(simple_ticker)
-                    
-                if not price:
+                    missing.append(ticker)
                     print(f"Price not found for {ticker}")
                     continue
-                    
-                # SL Check
+                fac = 1.0
+                if ca is not None and pos.get('entry_date'):
+                    fac = corp_actions.cumulative_factor(ca, sym[ticker], pos['entry_date'])
+                name = ticker.replace('.NS', '')
                 sl = pos.get('stop_loss')
-                if sl and price <= sl:
-                    msg = f"🔴 STOP LOSS HIT: {ticker}\nPrice: ₹{price:.2f}\nSL: ₹{sl:.2f}"
-                    alerts_triggered.append(msg)
-                    
-                # Target Check
                 target = pos.get('target')
-                if target and price >= target:
-                    msg = f"🎯 TARGET HIT: {ticker}\nPrice: ₹{price:.2f}\nTarget: ₹{target:.2f}"
-                    alerts_triggered.append(msg)
+                hit = None
+                if sl and price <= sl * fac:
+                    hit = ('STOP_LOSS', f"🔴 STOP LOSS HIT: {name} ({kind_label})\nPrice: ₹{price:.2f}\nSL: ₹{sl * fac:.2f}")
+                elif target and price >= target * fac:
+                    hit = ('TARGET', f"🎯 TARGET HIT: {name} ({kind_label})\nPrice: ₹{price:.2f}\nTarget: ₹{target * fac:.2f}")
+                if hit and not recently_sent(pos, hit[0]):
+                    alerts_triggered.append(hit[1])
+                    if kind_label == "position" and pos.get('id'):
+                        patches[pos['id']] = {'last_alert': {'type': hit[0], 'date': today, 'price': round(float(price), 2)}}
+                elif hit:
+                    print(f"   {name}: {hit[0]} still in force (already sent {pos['last_alert']['date']})")
+        if missing:
+            alerts_triggered.append("⚠️ NO PRICE for: " + ", ".join(t.replace('.NS', '') for t in missing)
+                                    + "\nStop-loss and target could not be checked. Fix the symbol in the Position Manager.")
 
         # 4. Send Notifications for positions
         if alerts_triggered:
@@ -111,6 +143,8 @@ def check_alerts():
                 success, err = send_telegram_message(full_msg)
                 if success:
                     print("Telegram sent successfully for position alerts.")
+                    if patches:
+                        POS_STORE.commit({"patches": patches}, f"{len(patches)} alert(s) sent")
                 else:
                     print(f"❌ Telegram failed for position alerts: {err}")
             else:

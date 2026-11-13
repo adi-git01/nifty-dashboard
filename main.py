@@ -2351,16 +2351,20 @@ elif page == "📊 Return Tracker":
     positions = get_positions_with_pnl(df)
     # A position whose symbol is not in the market data gets no price, so its stop-loss and
     # target are never checked -- say so instead of showing it as quietly fine.
-    _known = set(df['ticker'])
-    _orphans = [p.get('ticker', '') for p in positions if p.get('ticker') not in _known]
+    _orphans = [p.get('ticker', '') for p in positions if not p.get('has_data')]
     if _orphans:
-        import difflib as _dl
-        _hints = []
-        for _t in _orphans:
-            _m = _dl.get_close_matches(_t, list(_known), n=1, cutoff=0.8)
-            _hints.append(f"**{_t.replace('.NS', '')}**" + (f" (did you mean {_m[0].replace('.NS', '')}?)" if _m else ""))
-        st.error("⚠️ No market data for " + ", ".join(_hints) + ". These positions have no live price, so "
-                 "their stop-loss and target alerts cannot fire. Delete and re-add them with the correct NSE symbol.")
+        st.error("⚠️ No market data for " + ", ".join(f"**{t.replace('.NS', '')}**" for t in _orphans)
+                 + ". These positions have no live price, so their stop-loss and target alerts cannot fire. "
+                 "Delete and re-add them with the correct NSE symbol.")
+    _aliased = [f"{p['ticker'].replace('.NS', '')} → {p['resolved_ticker'].replace('.NS', '')}"
+                for p in positions if p.get('resolved_ticker')]
+    if _aliased:
+        st.info("Symbol corrected for pricing: " + ", ".join(_aliased) + ". Stop-loss and target are now checked.")
+    for _p in positions:
+        if _p.get('adj_note'):
+            st.info(f"**{_p['ticker'].replace('.NS', '')}**: {_p['adj_note']}.")
+    from utils.positions import storage_status as _pos_status, sync_positions as _pos_sync
+    _alert_sync_banner(_pos_status(), _pos_sync, "pos")
     active_positions = [p for p in positions if p.get('status') == 'active']
     watching_positions = [p for p in positions if p.get('status') == 'watching']
     triggered_alerts = check_position_alerts(df)
