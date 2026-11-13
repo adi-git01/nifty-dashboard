@@ -310,11 +310,12 @@ def save_rs_divergence_signals(rs_list, signal_date=None):
     _append_to_log(RS_LOG_FILE, pd.DataFrame(rows), ["signal_date", "ticker"], RS_LOG_COLS)
 
 
-def save_earnings_shock_signals(shock_list):
-    """Append today's earnings shock signals to the log."""
+def save_earnings_shock_signals(shock_list, signal_date=None):
+    """Append earnings shock signals to the log, dated by the session they were computed from."""
     if not shock_list:
         return
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = (pd.Timestamp(signal_date).strftime("%Y-%m-%d") if signal_date is not None
+             else datetime.now().strftime("%Y-%m-%d"))
     rows = []
     for r in shock_list:
         rows.append({
@@ -366,12 +367,43 @@ def refresh_signal_log_prices(log_file, cols, price_map):
     live_price = df["ticker"].map(price_map)
     live_price = pd.to_numeric(live_price, errors="coerce")
 
+    # Splits and bonuses: put the signal price on the same basis as the price it is compared with
+    # (utils/corp_actions.py). For a closed row only actions up to its close count -- its stored
+    # closing price predates anything later.
+    try:
+        from utils import corp_actions
+        ca = corp_actions.load()
+        until = df["signal_date"] + pd.Timedelta(days=22)
+        fac_open = corp_actions.factor_map(ca, df["ticker"], df["signal_date"]).values
+        fac_closed = corp_actions.factor_map(ca, df["ticker"], df["signal_date"], until).values
+        fac = pd.Series(np.where(is_open, fac_open, fac_closed), index=df.index)
+    except Exception:
+        fac = pd.Series(1.0, index=df.index)
+    adj_sig = sig_price * fac
+
     has_live = (is_open & live_price.notna() & (live_price > 0)
                 & sig_price.notna() & (sig_price > 0))
     if has_live.any():
         df.loc[has_live, "current_price"] = live_price[has_live].round(2)
-        ret = (live_price[has_live] / sig_price[has_live] - 1) * 100
+        ret = (live_price[has_live] / adj_sig[has_live] - 1) * 100
         df.loc[has_live, "return_since_signal"] = ret.round(2)
+    # Closed rows that straddled an action were frozen on the wrong basis: recompute from the
+    # stored closing price. Idempotent -- the factor is applied to the raw signal price each time.
+    fix = (~is_open) & (fac != 1.0) & sig_price.gt(0) & pd.to_numeric(df["current_price"], errors="coerce").gt(0)
+    if fix.any():
+        cur = pd.to_numeric(df.loc[fix, "current_price"], errors="coerce")
+        df.loc[fix, "return_since_signal"] = ((cur / adj_sig[fix] - 1) * 100).round(2)
+
+    # 5- and 21-day returns (earnings-shock log): stamped once, when the row first reaches that
+    # age. They were declared as columns and never filled.
+    if "return_5d" in df.columns:
+        r5 = pd.to_numeric(df["return_5d"], errors="coerce")
+        hit = r5.isna() & has_live & df["days_held"].between(7, 9)        # 5 sessions = 7 calendar days
+        df.loc[hit, "return_5d"] = df.loc[hit, "return_since_signal"]
+    if "return_21d" in df.columns:
+        r21 = pd.to_numeric(df["return_21d"], errors="coerce")
+        done = r21.isna() & (~is_open) & pd.to_numeric(df["return_since_signal"], errors="coerce").notna()
+        df.loc[done, "return_21d"] = df.loc[done, "return_since_signal"]   # a closed row's return IS its ~21-day return
 
     df["signal_date"] = df["signal_date"].dt.strftime("%Y-%m-%d")
     df.to_csv(log_file, index=False)
@@ -466,11 +498,12 @@ def find_turnaround_catalysts(market_df, prev_scores_map=None, prev_rs21_map=Non
     return sorted(results, key=lambda x: x["TS_Gain"], reverse=True)
 
 
-def save_turnaround_catalyst_signals(tc_list, log_file=TC_LOG_FILE):
-    """Append today's turnaround catalyst signals to log."""
+def save_turnaround_catalyst_signals(tc_list, log_file=TC_LOG_FILE, signal_date=None):
+    """Append turnaround catalyst signals to the log, dated by the session they were computed from."""
     if not tc_list:
         return
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = (pd.Timestamp(signal_date).strftime("%Y-%m-%d") if signal_date is not None
+             else datetime.now().strftime("%Y-%m-%d"))
     rows = []
     for r in tc_list:
         rows.append({

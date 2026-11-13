@@ -36,6 +36,12 @@ jobs:
       run: |
         pip install -r requirements.txt
         
+    - name: Log hygiene (repair mis-dated and phantom rows)
+      # Idempotent: a no-op once each repair has been applied (scripts/repair_logs.py).
+      run: |
+        python scripts/repair_logs.py
+      continue-on-error: true
+
     - name: "Step 1/5: Trading Engine (Cache + Sub-Industry Rotation)"
       # ✅ FIX #4: This used to be the ONLY step without continue-on-error,
       # despite being the one most exposed to Yahoo Finance flakiness (the

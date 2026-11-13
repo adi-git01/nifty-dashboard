@@ -2860,7 +2860,10 @@ elif page == "📊 Return Tracker":
                                 direction=_ind_dir, notes=_ind_notes, df=df, background=True)
                             _msg = (f"Watching {_ind_name}: now {ind_alerts.ICONS[_rd['status']]} "
                                     f"{_rd['status']}, score {_rd['score']:.0f}")
-                            st.success(_msg + ". Syncing to GitHub in the background.")
+                            if _new.get("duplicate"):
+                                st.info(f"You are already watching {_ind_name} with these settings.")
+                            else:
+                                st.success(_msg + ". Syncing to GitHub in the background.")
 
             with _ind_c1:
                 st.markdown("#### Active Industry Alerts")
