@@ -282,7 +282,10 @@ def can_write() -> Optional[bool]:
             return None
         else:
             # Fine-grained PATs report push from their Contents permission.
-            val = bool((r.json().get("permissions") or {}).get("push"))
+            perms = r.json().get("permissions")
+            if perms is None:
+                return None      # app tokens (the workflow's GITHUB_TOKEN) get no permissions block
+            val = bool(perms.get("push"))
     except Exception:
         return None
     _perm["push"] = (time.time(), val)

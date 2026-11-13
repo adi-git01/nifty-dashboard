@@ -4,22 +4,38 @@ import os
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-ALERTS_FILE = "alerts.json"
+ALERTS_FILE = "data/price_alerts.json"
+LEGACY_ALERTS_FILE = "alerts.json"
+
+# Price alerts lived in alerts.json on the dashboard's own disk (never in the repo), so they were
+# lost on every redeploy and only checked while the dashboard happened to be open. They now use
+# the GitHub-backed store (utils/alert_store.py) and the EOD alert daemon checks them too.
+from utils.alert_store import AlertStore
+STORE = AlertStore(ALERTS_FILE, "Price alerts", legacy=LEGACY_ALERTS_FILE)
+_BG = not os.environ.get("GITHUB_ACTIONS")
+
+
+def storage_status() -> Dict[str, Any]:
+    return STORE.status()
+
+
+def sync_alerts() -> bool:
+    return STORE.flush("retry sync")
+
 
 def load_alerts() -> List[Dict[str, Any]]:
-    """Load alerts from JSON file."""
-    if os.path.exists(ALERTS_FILE):
-        try:
-            with open(ALERTS_FILE, 'r') as f:
-                return json.load(f)
-        except:
-            return []
-    return []
+    """Load all saved alerts."""
+    return STORE.load()
+
 
 def save_alerts(alerts: List[Dict[str, Any]]) -> None:
-    """Save alerts to JSON file."""
-    with open(ALERTS_FILE, 'w') as f:
-        json.dump(alerts, f, indent=2)
+    """Kept for old callers: whole-list saves are what let alerts overwrite each other, so this
+    only adds alerts the store does not have yet."""
+    have = {a.get("id") for a in STORE.load()}
+    new = [a for a in alerts if a.get("id") not in have]
+    if new:
+        STORE.commit({"adds": new}, f"add {len(new)} alert(s)", background=_BG)
+
 
 def add_alert(
     ticker: str, 
@@ -45,7 +61,7 @@ def add_alert(
     alerts = load_alerts()
     
     new_alert = {
-        "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+        "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
         "ticker": ticker.upper(),
         "metric": metric,
         "condition": condition,
@@ -60,8 +76,7 @@ def add_alert(
         "trigger_type": None  # "METRIC", "STOP_LOSS", "TARGET"
     }
     
-    alerts.append(new_alert)
-    save_alerts(alerts)
+    STORE.commit({"adds": [new_alert]}, f"add {new_alert.get('ticker', '')}", background=_BG)
     return new_alert
 
 
@@ -85,7 +100,7 @@ def add_price_alert(
     alerts = load_alerts()
     
     new_alert = {
-        "id": datetime.now().strftime("%Y%m%d%H%M%S"),
+        "id": datetime.now().strftime("%Y%m%d%H%M%S%f"),
         "ticker": ticker.upper(),
         "metric": "price",  # Special type for price alerts
         "condition": "range",  # Between SL and Target
@@ -100,27 +115,21 @@ def add_price_alert(
         "trigger_type": None
     }
     
-    alerts.append(new_alert)
-    save_alerts(alerts)
+    STORE.commit({"adds": [new_alert]}, f"add {new_alert.get('ticker', '')}", background=_BG)
     return new_alert
 
 
 def update_alert_notes(alert_id: str, notes: str) -> bool:
     """Update notes for an existing alert."""
-    alerts = load_alerts()
-    for alert in alerts:
-        if alert.get('id') == alert_id:
-            alert['notes'] = notes
-            save_alerts(alerts)
-            return True
-    return False
+    if not any(a.get('id') == alert_id for a in load_alerts()):
+        return False
+    STORE.commit({"patches": {alert_id: {"notes": notes}}}, "edit notes", background=_BG)
+    return True
 
 
 def remove_alert(alert_id: str) -> None:
-    """Remove an alert by ID."""
-    alerts = load_alerts()
-    alerts = [a for a in alerts if a.get('id') != alert_id]
-    save_alerts(alerts)
+    """Remove an alert by ID (only that alert)."""
+    STORE.commit({"removes": [alert_id]}, "remove alert", background=_BG)
 
 
 def check_alerts(market_data_df) -> List[Dict[str, Any]]:
@@ -219,9 +228,8 @@ def check_alerts(market_data_df) -> List[Dict[str, Any]]:
             alert['last_triggered'] = datetime.now().isoformat()
             alert['trigger_type'] = 'METRIC'
     
-    # Save updated alerts
-    save_alerts(alerts)
-    
+    # The triggered flags are recomputed on every check, so nothing is written back: saving the
+    # whole list on each page render is what made alerts overwrite each other.
     return triggered
 
 

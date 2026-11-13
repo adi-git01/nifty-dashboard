@@ -30,28 +30,52 @@ import os
 import uuid
 from datetime import datetime
 from typing import Optional, List, Dict
-from utils.atomic_io import atomic_json_dump
+from utils.alert_store import AlertStore
 
 POSITIONS_FILE = "positions.json"
 
-def _load_positions() -> List[Dict]:
-    """Load all positions from file."""
-    if not os.path.exists(POSITIONS_FILE):
-        return []
-    try:
-        with open(POSITIONS_FILE, 'r') as f:
-            return json.load(f)
-    except:
-        return []
+# Positions and the watchlist used to be written only to the dashboard's own disk. On Streamlit
+# Cloud that disk is replaced on every redeploy (daily, after the EOD commit), so anything added
+# since the last git commit of positions.json (5 May 2026) was lost, and the EOD alert daemon
+# only ever saw the committed copy. They now live in the same GitHub-backed store as the RS and
+# industry alerts (utils/alert_store.py): one operation per change, on the alert-state branch.
+STORE = AlertStore(POSITIONS_FILE, "Positions")
+_BG = not os.environ.get("GITHUB_ACTIONS")       # dashboard: save in the background; CI: save now
 
-def _save_positions(positions: List[Dict]):
+
+def storage_status() -> Dict:
+    return STORE.status()
+
+
+def sync_positions() -> bool:
+    return STORE.flush("retry sync")
+
+
+def _load_positions() -> List[Dict]:
+    """All positions: last synced state plus anything still waiting to sync."""
+    out = STORE.load()
+    for p in out:                                 # legacy rows without an id cannot be edited by id
+        if not p.get("id"):
+            p["id"] = f"legacy-{p.get('ticker', '')}"
+    return out
+
+
+def resolve_ticker(ticker: str, known) -> Optional[str]:
     """
-    Save positions to file. Atomic write: _load_positions() silently
-    returns [] on any parse failure, so a truncated write from an
-    interrupted process would wipe every active position/watchlist entry
-    on the next load instead of just failing loudly.
+    The symbol market data is filed under. A position saved as FEDERALBANK.NS (the NSE symbol is
+    FEDERALBNK) had no price for ten months, so its stop-loss and target were never checked.
+    Returns `ticker` when it is known, a single near-identical known symbol otherwise, else None.
     """
-    atomic_json_dump(positions, POSITIONS_FILE, indent=2, default=str)
+    known = set(known)
+    if ticker in known:
+        return ticker
+    import difflib
+    m = difflib.get_close_matches(ticker, list(known), n=2, cutoff=0.9)
+    if len(m) == 1 or (len(m) == 2 and difflib.SequenceMatcher(None, ticker, m[0]).ratio()
+                       - difflib.SequenceMatcher(None, ticker, m[1]).ratio() > 0.03):
+        return m[0]
+    return None
+
 
 def get_all_positions(status: Optional[str] = None) -> List[Dict]:
     """Get all positions, optionally filtered by status."""
@@ -84,66 +108,49 @@ def add_position(
 ) -> Dict:
     """Add a new position or update existing."""
     positions = _load_positions()
-    
-    # Check if position exists
-    existing = None
-    for i, p in enumerate(positions):
-        if p.get('ticker') == ticker:
-            existing = (i, p)
-            break
-    
+    existing = next((p for p in positions if p.get('ticker') == ticker), None)
     now = datetime.now().isoformat()
-    
+
     if existing:
-        # Update existing
-        idx, pos = existing
-        if entry_price: pos['entry_price'] = entry_price
-        if stop_loss: pos['stop_loss'] = stop_loss
-        if target: pos['target'] = target
-        if notes: pos['notes'] = notes
-        if quantity: pos['quantity'] = quantity
-        pos['status'] = status
-        pos['alerts_enabled'] = alerts_enabled
-        pos['updated_at'] = now
-        positions[idx] = pos
-        _save_positions(positions)
-        return pos
-    else:
-        # Create new
-        position = {
-            'id': str(uuid.uuid4()),
-            'ticker': ticker,
-            'name': name or ticker.replace('.NS', ''),
-            'sector': sector,
-            'status': status,
-            'entry_price': entry_price,
-            'entry_date': datetime.now().strftime('%Y-%m-%d'),
-            'stop_loss': stop_loss,
-            'target': target,
-            'quantity': quantity,
-            'notes': notes,
-            'alerts_enabled': alerts_enabled,
-            'entry_signal': entry_signal,
-            'entry_score': entry_score,
-            'exit_price': None,
-            'exit_date': None,
-            'created_at': now
-        }
-        positions.append(position)
-        _save_positions(positions)
-        return position
+        fields = {'status': status, 'alerts_enabled': alerts_enabled, 'updated_at': now}
+        if entry_price: fields['entry_price'] = entry_price
+        if stop_loss: fields['stop_loss'] = stop_loss
+        if target: fields['target'] = target
+        if notes: fields['notes'] = notes
+        if quantity: fields['quantity'] = quantity
+        STORE.commit({"patches": {existing['id']: fields}}, f"update {ticker}", background=_BG)
+        return {**existing, **fields}
+
+    position = {
+        'id': str(uuid.uuid4()),
+        'ticker': ticker,
+        'name': name or ticker.replace('.NS', ''),
+        'sector': sector,
+        'status': status,
+        'entry_price': entry_price,
+        'entry_date': datetime.now().strftime('%Y-%m-%d'),
+        'stop_loss': stop_loss,
+        'target': target,
+        'quantity': quantity,
+        'notes': notes,
+        'alerts_enabled': alerts_enabled,
+        'entry_signal': entry_signal,
+        'entry_score': entry_score,
+        'exit_price': None,
+        'exit_date': None,
+        'created_at': now
+    }
+    STORE.commit({"adds": [position]}, f"add {ticker} ({status})", background=_BG)
+    return position
 
 def update_position(ticker: str, **updates) -> Optional[Dict]:
-    """Update a position's fields."""
-    positions = _load_positions()
-    for i, p in enumerate(positions):
-        if p.get('ticker') == ticker:
-            p.update(updates)
-            p['updated_at'] = datetime.now().isoformat()
-            positions[i] = p
-            _save_positions(positions)
-            return p
-    return None
+    """Update a position's fields (only those fields: other positions are untouched)."""
+    pos = get_position(ticker)
+    if not pos:
+        return None
+    updates['updated_at'] = datetime.now().isoformat()
+    STORE.commit({"patches": {pos['id']: updates}}, f"update {ticker}", background=_BG)
+    return {**pos, **updates}
 
 def close_position(ticker: str, exit_price: float) -> Optional[Dict]:
     """Close a position with exit price."""
@@ -156,13 +163,11 @@ def close_position(ticker: str, exit_price: float) -> Optional[Dict]:
 
 def remove_position(ticker: str) -> bool:
     """Remove a position completely."""
-    positions = _load_positions()
-    initial_len = len(positions)
-    positions = [p for p in positions if p.get('ticker') != ticker]
-    if len(positions) < initial_len:
-        _save_positions(positions)
-        return True
-    return False
+    ids = [p['id'] for p in _load_positions() if p.get('ticker') == ticker]
+    if not ids:
+        return False
+    STORE.commit({"removes": ids}, f"remove {ticker}", background=_BG)
+    return True
 
 def add_to_watchlist(ticker: str, name: str = None, sector: str = "Unknown") -> Dict:
     """Quick add to watchlist (no price info needed)."""
@@ -177,33 +182,60 @@ def get_positions_with_pnl(market_df) -> List[Dict]:
     positions = get_all_positions()
     result = []
     
+    known = set(market_df['ticker']) if market_df is not None and 'ticker' in market_df else set()
+    by_ticker = market_df.drop_duplicates('ticker').set_index('ticker') if known else None
+    try:
+        from utils import corp_actions
+        ca = corp_actions.load()
+    except Exception:
+        ca = None
+    pcol = 'price' if (by_ticker is not None and 'price' in by_ticker.columns) else 'currentPrice'
+
     for pos in positions:
         ticker = pos.get('ticker')
-        entry = pos.get('entry_price', 0)
-        
-        # Get current price from market data
-        row = market_df[market_df['ticker'] == ticker]
-        if not row.empty:
-            current_price = row.iloc[0].get('price', 0)
+        use = resolve_ticker(ticker, known) if known else None
+        pos['has_data'] = use is not None
+        if use and use != ticker:
+            pos['resolved_ticker'] = use
+            pos['ticker_note'] = f"priced as {use.replace('.NS', '')}"
+
+        # Splits and bonuses since the entry date: put entry, stop and target on today's basis
+        fac = 1.0
+        if ca is not None and use and pos.get('entry_date'):
+            try:
+                fac = corp_actions.cumulative_factor(ca, use, pos['entry_date'])
+            except Exception:
+                fac = 1.0
+        entry = pos.get('entry_price') or 0
+        sl, tgt = pos.get('stop_loss'), pos.get('target')
+        if fac != 1.0:
+            pos['adj_factor'] = fac
+            pos['adj_note'] = f"entry, stop and target adjusted ×{fac:.3g} for a split or bonus since {pos['entry_date']}"
+            entry = entry * fac
+            sl = sl * fac if sl else sl
+            tgt = tgt * fac if tgt else tgt
+            pos['entry_price_adj'], pos['stop_loss_adj'], pos['target_adj'] = entry, sl, tgt
+
+        if use:
+            row = by_ticker.loc[use]
+            current_price = row.get(pcol, 0)
             pos['current_price'] = current_price
-            
+
             if entry and entry > 0:
                 pos['pnl_pct'] = ((current_price - entry) / entry) * 100
-                pos['pnl_abs'] = (current_price - entry) * pos.get('quantity', 1)
+                pos['pnl_abs'] = (current_price - entry) * (pos.get('quantity', 1) / fac if fac else pos.get('quantity', 1))
             else:
                 pos['pnl_pct'] = 0
                 pos['pnl_abs'] = 0
-                
+
             # Check alert triggers
-            sl = pos.get('stop_loss')
-            tgt = pos.get('target')
-            pos['sl_triggered'] = sl and current_price <= sl
-            pos['target_triggered'] = tgt and current_price >= tgt
-            
+            pos['sl_triggered'] = bool(sl and current_price <= sl)
+            pos['target_triggered'] = bool(tgt and current_price >= tgt)
+
             # Current trend
-            pos['current_signal'] = row.iloc[0].get('trend_signal', 'N/A')
-            pos['current_score'] = row.iloc[0].get('trend_score', 0)
-        
+            pos['current_signal'] = row.get('trend_signal', 'N/A')
+            pos['current_score'] = row.get('trend_score', 0)
+
         result.append(pos)
     
     return result

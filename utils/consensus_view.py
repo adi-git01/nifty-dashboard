@@ -24,7 +24,8 @@ def render(df: pd.DataFrame) -> None:
     breadth = float((px[ok] > m200[ok]).mean() * 100) if ok.sum() >= 50 else None
     reg = simba.market_regime(st.session_state.get("nifty_data"), breadth)
     try:
-        v = consensus.votes(df, reg)
+        from utils.simba_view import _fundamentals      # cached: reading the fundamentals files takes ~5 s
+        v = consensus.votes(df, reg, fund=_fundamentals())
     except Exception as e:
         st.error(f"Could not compute today's votes: {e}")
         return

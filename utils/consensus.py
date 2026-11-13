@@ -52,7 +52,7 @@ def votes(df: pd.DataFrame, regime: Optional[Dict[str, Any]] = None, fund: Optio
         S = simba.score_table(df, regime or {"regime": "UNKNOWN"}, fund, ind).set_index("ticker")
         si = pd.to_numeric(S["simba_si_since"], errors="coerce") <= 5
         ok = S["grade"].isin(["A+", "A"]) | si
-        x["simba"] = x["ticker"].map(ok).fillna(False).astype(bool)
+        x["simba"] = x["ticker"].map(ok.to_dict()).eq(True)
         x["simba_score"] = x["ticker"].map(S["score"])
         x["simba_grade"] = x["ticker"].map(S["grade"]).fillna("")
     x["votes"] = x[["simba", "scanner", "technicals"]].sum(axis=1).astype(int)
@@ -98,7 +98,13 @@ def update_log(df: pd.DataFrame, snap: pd.Timestamp, nifty_close: Optional[float
         cur = log.ticker.map(v["_px"])
         ok = cur.notna()
         log.loc[ok, "current_price"] = cur[ok]
-        log["return_pct"] = (pd.to_numeric(log.current_price) / pd.to_numeric(log.signal_price) - 1) * 100
+        try:                               # splits / bonuses since the stock was added
+            from utils import corp_actions
+            fac = corp_actions.factor_map(corp_actions.load(), log.ticker, pd.to_datetime(log.first_seen))
+            fac.index = log.index
+        except Exception:
+            fac = 1.0
+        log["return_pct"] = (pd.to_numeric(log.current_price) / (pd.to_numeric(log.signal_price) * fac) - 1) * 100
         ns = pd.to_numeric(log.nifty_signal, errors="coerce")
         if nifty_close:
             log["nifty_return_pct"] = (nifty_close / ns - 1) * 100

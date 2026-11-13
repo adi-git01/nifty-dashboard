@@ -143,10 +143,21 @@ def _send_email(subject: str, html_body: str) -> tuple[bool, str]:
         msg.attach(html_part)
         
         # Connect to Gmail SMTP
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(gmail_address, app_password)
-            server.send_message(msg)
-        
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
+                server.login(gmail_address, app_password)
+                server.send_message(msg)
+        except (smtplib.SMTPServerDisconnected, ConnectionError, TimeoutError, OSError) as e:
+            # The SSL port has been closing the connection from GitHub's runners ("Connection
+            # unexpectedly closed" on every run in Nov 2026). Retry once over STARTTLS.
+            print(f"[EMAIL] port 465 failed ({e}); retrying on 587/STARTTLS")
+            with smtplib.SMTP('smtp.gmail.com', 587, timeout=30) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(gmail_address, app_password)
+                server.send_message(msg)
+
         return True, "Email sent successfully!"
     
     except smtplib.SMTPAuthenticationError:

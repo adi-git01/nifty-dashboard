@@ -91,7 +91,13 @@ def update_log(df: pd.DataFrame, snap: pd.Timestamp, save: bool = True) -> tuple
     cur = log.ticker.map(px)
     ok = cur.notna()
     log.loc[ok, "current_price"] = cur[ok]
-    log.loc[ok, "return_pct"] = (cur[ok] / pd.to_numeric(log.loc[ok, "signal_price"]) - 1) * 100
+    try:                                   # splits / bonuses since the breakout (utils/corp_actions.py)
+        from utils import corp_actions
+        fac = corp_actions.factor_map(corp_actions.load(), log.ticker, pd.to_datetime(log.first_seen))
+        fac.index = log.index
+    except Exception:
+        fac = pd.Series(1.0, index=log.index)
+    log.loc[ok, "return_pct"] = (cur[ok] / (pd.to_numeric(log.loc[ok, "signal_price"]) * fac[ok]) - 1) * 100
     log.loc[ok, "last_seen"] = snap
     log["sessions_since"] = [len(pd.bdate_range(b, snap)) - 1 for b in pd.to_datetime(log.breakout_date)]
     log = log.sort_values(["breakout_date", "momentum", "ticker"], ascending=[False, False, True]).drop_duplicates(key)

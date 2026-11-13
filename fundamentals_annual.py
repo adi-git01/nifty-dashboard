@@ -53,7 +53,11 @@ BS = {"equity capital": "eq_cap", "reserves": "reserves", "borrowings": "borrowi
       "investments": "investments"}
 CF = {"cash from operating activity": "cfo", "cash from investing activity": "cfi",
       "cash from financing activity": "cff"}
-RT = {"roce %": "roce", "roe %": "roe"}
+RT = {"roce %": "roce", "roe %": "roe", "debtor days": "debtor_days", "inventory days": "inventory_days",
+      "days payable": "payable_days", "cash conversion cycle": "ccc_days", "working capital days": "wc_days"}
+# quarterly rows beyond sales / net profit, for the business-trend view (utils/fund_trends.py)
+QEXTRA = {"operating profit": "op", "financing profit": "op", "opm %": "opm", "financing margin %": "opm",
+          "interest": "interest", "other income": "other_income", "eps in rs": "eps"}
 
 
 def _section(html: str, sid: str) -> str:
@@ -90,7 +94,7 @@ def parse_annual(html: str) -> dict:
 
 
 def parse_quarterly(html: str) -> dict:
-    q = _records(_table(_section(html, "quarters")), QROWS)
+    q = _records(_table(_section(html, "quarters")), {**QROWS, **QEXTRA})
     i = html.find('id="quarterly-shp"')
     frag = html[i:] if i >= 0 else _section(html, "shareholding")
     q.update(_records(_table(frag), SROWS))

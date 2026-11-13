@@ -49,9 +49,24 @@ def generate_daily_master_cache():
              f"or rotation for today.")
         return df
 
+    # Rows are dated by the session the prices are from, and a run on a market holiday (same
+    # session as the previous snapshot) records nothing.
+    from utils import snapshots as _snaps
+    _bar = _snaps.bar_date(df)
+    _files = [f for f in _snaps.latest(3) if _snaps.file_date(f) != pd.Timestamp(datetime.now().date())]
+    _prev = pd.read_parquet(_files[-1]) if _files else None
+    if not _snaps.is_new_session(df, _prev):
+        _log(f"HOLIDAY: prices are still from {_bar.date() if _bar is not None else 'the previous session'}. "
+             f"Not recording mood, breadth or rotation.")
+        df.attrs["no_new_session"] = True
+        return df
+    _bar_str = _bar.strftime("%Y-%m-%d") if _bar is not None else None
+
     # Save daily mood snapshot so the Market Mood History chart stays current
     try:
         mood_metrics = calculate_mood_metrics(df)
+        if mood_metrics and _bar_str:
+            mood_metrics['date'] = _bar_str
         if mood_metrics:
             save_mood_snapshot(mood_metrics)
             _log(f"Mood snapshot saved: avg_trend={mood_metrics.get('avg_trend_score')}, uptrends={mood_metrics.get('total_uptrends')}")
@@ -61,6 +76,8 @@ def generate_daily_master_cache():
     # Save daily breadth snapshot so the Market Breadth chart stays current
     try:
         breadth_metrics = calculate_breadth_from_df(df)
+        if breadth_metrics and _bar_str:
+            breadth_metrics['date'] = _bar_str
         if breadth_metrics:
             save_breadth_snapshot(breadth_metrics)
             _log(f"Breadth snapshot saved: {breadth_metrics.get('pct_above_50dma')}% above 50DMA, {breadth_metrics.get('pct_above_200dma')}% above 200DMA")
@@ -106,7 +123,9 @@ def generate_sub_industry_rotation(df, db):
     work['_pctile'] = work['comp_rs'].rank(pct=True) * 100
 
     MIN_MEMBERS = 3  # below this it's a stock bet, not industry rotation
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    from utils import snapshots as _snaps
+    _bar = _snaps.bar_date(df)
+    today_str = (_bar or pd.Timestamp(datetime.now().date())).strftime("%Y-%m-%d")
     rotation_rows = []
 
     for sector, group in work.groupby('_grp'):
@@ -286,35 +305,59 @@ def run_rebalance(df, db):
         return
     # Find active buys
     buyers = df[df['dna_signal'] == 'BUY']
+
+    # Retire watchlist rows whose stock is no longer a BUY, so it can alert again on a fresh
+    # signal. The list used to keep every ticker ACTIVE forever: once a name had alerted (since
+    # Feb 2026) it never could again, and the daily "top 5 new" shrank to whatever was left --
+    # 98% of the last 60 alerts had RS below the engine's own entry floor (median 2.3 vs 17).
+    today_s = (pd.Timestamp(df['bar_date'].dropna().iloc[0]).strftime("%Y-%m-%d")
+               if 'bar_date' in df.columns and df['bar_date'].notna().any() else datetime.now().strftime("%Y-%m-%d"))
+    still = set(buyers['ticker'])
+    db.cursor.execute("SELECT ticker, added_date FROM watchlist WHERE status = 'ACTIVE'")
+    stale = [(t, d) for t, d in db.cursor.fetchall() if t not in still]
+    for t, d in stale:
+        db.cursor.execute("UPDATE watchlist SET status = 'EXITED' WHERE ticker = ? AND added_date = ?", (t, d))
+    if stale:
+        db.conn.commit()
+        print(f"Watchlist: {len(stale)} name(s) no longer a BUY -- marked EXITED.")
+
     if buyers.empty:
         print("No BUY signals generated today.")
         return
-        
-    # Filter out stocks we already own or are already tracking
-    db.cursor.execute("SELECT ticker FROM watchlist UNION SELECT ticker FROM portfolio")
+
+    # Only names that clear the live engine's entry floor are worth a message.
+    from utils.regime_manager import REGIME_PARAMS
+    floor = 100 * min(v.get("min_comp_rs", 0.17) for v in REGIME_PARAMS.values())
+    buyers = buyers[pd.to_numeric(buyers['comp_rs'], errors='coerce') >= floor]
+
+    # Skip what we own, what is still on the watchlist, and anything alerted in the last 30 days
+    cutoff = (pd.Timestamp(today_s) - pd.Timedelta(days=30)).strftime("%Y-%m-%d")
+    db.cursor.execute("SELECT ticker FROM watchlist WHERE status = 'ACTIVE' OR added_date >= ? "
+                      "UNION SELECT ticker FROM portfolio", (cutoff,))
     existing_tickers = {row[0] for row in db.cursor.fetchall()}
     buyers = buyers[~buyers['ticker'].isin(existing_tickers)]
-    
+
     if buyers.empty:
-        print("No NEW, unalerted BUY signals generated today.")
+        print(f"No new BUY signals above the entry floor (RS >= {floor:.0f}) today.")
         return
-        
+
     top_buys = buyers.sort_values(by='comp_rs', ascending=False).head(5)
     alerts = []
-    
+
     for _, row in top_buys.iterrows():
         ticker = row['ticker']
         price = row['currentPrice']
         rs = row['comp_rs']
-        msg = f"🟢 *NEW BUY SIGNAL* 🟢\\n*{ticker}*\\nPrice: ₹{price:,.2f}\\nRS Score: {rs}"
+        msg = (f"🟢 *SCANNER BUY* 🟢\\n*{ticker}*\\nPrice: ₹{price:,.2f}\\nRS vs Nifty: {rs:+.1f} "
+               f"(entry floor {floor:.0f})\\n_Scanner signal, not a model-portfolio trade_")
         alerts.append(msg)
-        
+
         # Add to watchlist natively
         db.cursor.execute("""
             INSERT OR REPLACE INTO watchlist (ticker, added_date, v3_score, rs_score, sector, status) 
             VALUES (?, ?, ?, ?, ?, ?)
-        """, (ticker, datetime.now().strftime("%Y-%m-%d"), row.get('overall', 0), rs, row.get('sector', ''), 'ACTIVE'))
-        
+        """, (ticker, today_s, row.get('overall', 0), rs, row.get('sector', ''), 'ACTIVE'))
+
     if alerts:
         send_telegram_message("\\n\\n".join(alerts))
         for alert in alerts:
@@ -433,7 +476,8 @@ if __name__ == "__main__":
                 # at the end turns the run red if today's snapshot is still missing.
                 print("[ENGINE] No fresh data today -- exiting with an error so the run is retried.", flush=True)
                 sys.exit(1)
-            generate_sub_industry_rotation(df, db)
+            if not df.attrs.get("no_new_session"):
+                generate_sub_industry_rotation(df, db)
         else:
             # Just load existing parquet cache for fast ops if daily scan already ran
             parquet_path = get_parquet_cache_path()

@@ -194,6 +194,9 @@ def add_industry_alert(name: str, sub_industry: Optional[str] = None,
         "last_score": None, "last_date": None, "score_side": None, "recent": [],
         "history": [],
     }
+    for existing in load_industry_alerts():           # same watch already set: do not add it twice
+        if _signature(existing) == _signature(alert):
+            return {**existing, "duplicate": True, "synced": STORE.pending() == 0}
     r = basket_reading(df, basket_members(alert)) if df is not None else None
     if r:                                   # seed: never fire on the first observation
         thr = alert["score_threshold"]
@@ -283,7 +286,21 @@ def evaluate(alert: Dict[str, Any], df, asof: str) -> List[str]:
     return out
 
 
+def _signature(a: Dict[str, Any]) -> tuple:
+    return (a.get("sub_industry"), tuple(sorted(a.get("tickers") or [])), bool(a.get("on_status", True)),
+            a.get("notify", "all"), a.get("score_threshold"), a.get("direction", "above"))
+
+
 def _evaluate_all(alerts: List[Dict[str, Any]], df, asof: str) -> List[str]:
+    # Two alerts with the same definition send every message twice (Hotels and Healthcare
+    # Services were each stored twice in Nov 2026): keep the oldest of each.
+    seen, keep = set(), []
+    for a in alerts:
+        sig = _signature(a)
+        if sig not in seen:
+            seen.add(sig)
+            keep.append(a)
+    alerts[:] = keep
     msgs: List[str] = []
     for a in alerts:
         msgs += evaluate(a, df, asof)

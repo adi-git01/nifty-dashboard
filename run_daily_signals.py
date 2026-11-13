@@ -74,6 +74,17 @@ def snapshot_date():
     return pd.Timestamp(f"{m.group(1)}-{m.group(2)}-{m.group(3)}") if m else None
 
 
+def nifty_bars_from_snapshot(df, bar_date):
+    """Two-row Nifty frame from the snapshot's own stamp (same download as the stock prices)."""
+    if df is None or not {"nifty_close", "nifty_prev_close", "bar_date"} <= set(df.columns):
+        return None
+    c, p = pd.to_numeric(df["nifty_close"], errors="coerce").dropna(), pd.to_numeric(df["nifty_prev_close"], errors="coerce").dropna()
+    if c.empty or p.empty:
+        return None
+    return pd.DataFrame({"Close": [float(p.iloc[0]), float(c.iloc[0])]},
+                        index=[bar_date - pd.Timedelta(days=1), bar_date])
+
+
 def nifty_bars_for(bar_date):
     """
     Two-row Nifty frame ending ON bar_date, or (None, reason).
@@ -131,10 +142,27 @@ def main():
 
     price_map = today_df.set_index("ticker")["price"].dropna().to_dict() if "price" in today_df.columns else {}
 
+    # Everything below is dated by the session the prices are from (the snapshot's bar_date
+    # stamp), not the run's clock.
+    from utils import snapshots as _snaps
+    files = sorted(glob.glob(os.path.join(CACHE_DIR, "market_master_*.parquet")))
+    bar_date = _snaps.bar_date(today_df, files[-1]) or pd.Timestamp.today().normalize()
+    print(f"  Session:   {bar_date.date()}")
+
+    # Corporate actions seen between snapshots: returns in every log are computed on today's
+    # price basis (utils/corp_actions.py).
+    try:
+        from utils import corp_actions
+        _ca = corp_actions.build()
+        print(f"  Corporate actions on record: {len(_ca)}")
+    except Exception as e:
+        print(f"  Corporate-action table not updated: {e}")
+
     # Holiday guard: a snapshot that copies the previous one would re-fire every
     # scanner on yesterday's move under today's date.
-    files = sorted(glob.glob(os.path.join(CACHE_DIR, "market_master_*.parquet")))
-    if len(files) >= 2 and is_duplicate_snapshot(today_df, pd.read_parquet(files[-2])):
+    _prev_df = pd.read_parquet(files[-2]) if len(files) >= 2 else None
+    if len(files) >= 2 and (is_duplicate_snapshot(today_df, _prev_df)
+                            or not _snaps.is_new_session(today_df, _prev_df)):
         print("\n⏸  Snapshot is a copy of the previous session (market holiday) — "
               "no signals logged.")
         return
@@ -142,23 +170,23 @@ def main():
     # ── 1. Turnaround Catalyst ─────────────────────────────────────────────
     print("\n[TC] Running Turnaround Catalyst scanner...")
     tc_list = find_turnaround_catalysts(today_df, prev_scores_map, prev_rs21_map)
-    save_turnaround_catalyst_signals(tc_list)
+    save_turnaround_catalyst_signals(tc_list, signal_date=bar_date)
     refresh_signal_log_prices(TC_LOG_FILE, TC_LOG_COLS, price_map)
     print(f"  Found {len(tc_list)} TC signals today.")
 
     # ── 2. Earnings Shock (cache-based) ───────────────────────────────────
     print("\n[ES] Running Earnings Shock scanner (cache-based)...")
     shock_list = find_earnings_shocks_from_cache(today_df)
-    save_earnings_shock_signals(shock_list)
+    save_earnings_shock_signals(shock_list, signal_date=bar_date)
     refresh_signal_log_prices(SHOCK_LOG_FILE, SHOCK_LOG_COLS, price_map)
     print(f"  Found {len(shock_list)} Earnings Shock signals today.")
 
     # ── 3. RS Divergence (green in a sea of red) ──────────────────────────
     print("\n[RS] Running RS Divergence scanner...")
     rs_list = []
-    bar_date = snapshot_date()
-    nifty2, why = (nifty_bars_for(bar_date) if bar_date is not None
-                   else (None, "no snapshot date"))
+    nifty2, why = nifty_bars_from_snapshot(today_df, bar_date), None
+    if nifty2 is None:
+        nifty2, why = nifty_bars_for(bar_date)
     if nifty2 is None:
         print(f"  Skipped: {why}")
     else:
@@ -176,7 +204,7 @@ def main():
     bo_new = pd.DataFrame()
     try:
         from utils.breakout_log import update_log
-        bo_log, bo_new = update_log(today_df, snapshot_date() or pd.Timestamp.today().normalize())
+        bo_log, bo_new = update_log(today_df, bar_date)
         print(f"  {len(bo_new)} new breakout/squeeze events ({int(bo_new.momentum.sum()) if len(bo_new) else 0} "
               f"momentum entries); log {len(bo_log)} rows.")
     except Exception as e:
@@ -187,7 +215,7 @@ def main():
     try:
         from utils import consensus, simba
         from utils.yf_safe import safe_history
-        _snap = snapshot_date() or pd.Timestamp.today().normalize()
+        _snap = bar_date
         _n = safe_history("^NSEI", start=(_snap - pd.Timedelta(days=simba.HISTORY_DAYS)).strftime("%Y-%m-%d"))
         _nclose, _reg = None, None
         if _n is not None and not _n.empty:

@@ -162,6 +162,14 @@ def load_base_fundamentals(live_mode=False):
     without a live yfinance fetch.
     """
     parquet_path = get_parquet_cache_path()
+    # No snapshot for today's date yet? Use the newest one there is. The EOD run lands around
+    # 11:30 pm IST, so for the whole trading day "today's" file did not exist and every new
+    # dashboard session fell through to a full Yahoo download of ~1,170 stocks x 14 months
+    # (several minutes) just to show the page.
+    if not live_mode and not os.path.exists(parquet_path):
+        _all = sorted(glob.glob("data/cache/market_master_*.parquet"))
+        if _all:
+            parquet_path = _all[-1]
 
     # Try Parquet unless in Live Mode
     if not live_mode and os.path.exists(parquet_path):
@@ -401,6 +409,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
         ath_rows, ath_updates = {}, {}
 
     _loop_errors: dict = {}
+    _last_bars: list = []
     for ticker in tickers:
         try:
             # Extract Ticker Data
@@ -421,6 +430,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             # single bad Yahoo bar produced absurd RS like ARIHANT +759%.
             df = _sanitize_price_bars(df)
 
+            _last_bars.append(df.index[-1])
             # Get existing fundamentals (Sector, PE, Name, etc.)
             base_data = fund_lookup.get(ticker, {})
             # Ensure ticker and name exist
@@ -638,6 +648,20 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
 
     # Convert to DataFrame
     final_df = pd.DataFrame(processed_rows)
+    # Stamp the snapshot with the session its prices are from. Files are named by the run's wall
+    # clock, which is a different day on market holidays and after a late or failed run; loggers
+    # that dated rows by the clock filed Monday 9 Nov's signals under the 10 Nov holiday.
+    if len(final_df) and _last_bars:
+        try:
+            _bd = pd.Series([pd.Timestamp(x).tz_localize(None) if getattr(x, "tzinfo", None) is not None
+                             else pd.Timestamp(x) for x in _last_bars]).dt.normalize()
+            _bar_date = _bd.mode().iloc[0]
+            final_df["bar_date"] = _bar_date.strftime("%Y-%m-%d")
+            _nc = nifty["Close"][nifty.index.normalize() <= _bar_date] if not nifty.empty else pd.Series(dtype=float)
+            if len(_nc) >= 2 and _nc.index[-1].normalize() == _bar_date:
+                final_df["nifty_close"], final_df["nifty_prev_close"] = float(_nc.iloc[-1]), float(_nc.iloc[-2])
+        except Exception as e:
+            print(f"[ENGINE] bar_date stamp failed: {e}", flush=True)
     coverage = len(processed_rows) / max(total_tickers, 1)
     # 🕵️ BOOBY TRAP: log how many tickers made it through
     print(f"[ENGINE] Processing complete: {len(processed_rows)}/{total_tickers} "

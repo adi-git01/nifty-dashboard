@@ -51,11 +51,9 @@ def check(today: str | None = None) -> tuple[list, list]:
             warns.append("today's prices equal the previous snapshot for over 95% of stocks "
                          "(a market holiday, or the fetch returned old bars)")
     try:
-        import json
-        with open("positions.json") as fh:
-            pos = json.load(fh)
-        items = pos if isinstance(pos, list) else pos.get("positions", [])
-        lost = [p.get("ticker") for p in items if p.get("ticker") not in set(df["ticker"])]
+        from utils.positions import get_all_positions, resolve_ticker
+        known = set(df["ticker"])
+        lost = [p.get("ticker") for p in get_all_positions() if not resolve_ticker(p.get("ticker", ""), known)]
         if lost:
             warns.append(f"positions with no market data (stop-loss and target never checked): {', '.join(map(str, lost))}")
     except Exception:
