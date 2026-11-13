@@ -1,41 +1,290 @@
 {
     "strategy": "OptComp-V22",
-    "date": "2026-11-12",
-    "cash": 1034627.3314628968,
+    "date": "2026-11-13",
+    "cash": 13079.543941549651,
     "holdings": {
         "BIL.NS": {
             "entry_price": 1027.550048828125,
             "entry_date": "2026-09-15",
             "shares": 62,
             "peak_price": 1181.0
+        },
+        "ATHERENERG.NS": {
+            "entry_price": 1945.0,
+            "entry_date": "2026-11-13",
+            "shares": 37,
+            "peak_price": 1945.0
+        },
+        "ICIL.NS": {
+            "entry_price": 547.4000244140625,
+            "entry_date": "2026-11-13",
+            "shares": 134,
+            "peak_price": 547.4000244140625
+        },
+        "WELSPUNLIV.NS": {
+            "entry_price": 250.13999938964844,
+            "entry_date": "2026-11-13",
+            "shares": 294,
+            "peak_price": 250.13999938964844
+        },
+        "MSTCLTD.NS": {
+            "entry_price": 783.3499755859375,
+            "entry_date": "2026-11-13",
+            "shares": 93,
+            "peak_price": 783.3499755859375
+        },
+        "PCJEWELLER.NS": {
+            "entry_price": 15.5,
+            "entry_date": "2026-11-13",
+            "shares": 4747,
+            "peak_price": 15.5
+        },
+        "SAILIFE.NS": {
+            "entry_price": 1928.800048828125,
+            "entry_date": "2026-11-13",
+            "shares": 38,
+            "peak_price": 1928.800048828125
+        },
+        "EIMCOELECO.NS": {
+            "entry_price": 2714.60009765625,
+            "entry_date": "2026-11-13",
+            "shares": 27,
+            "peak_price": 2714.60009765625
+        },
+        "DIVISLAB.NS": {
+            "entry_price": 11442.0,
+            "entry_date": "2026-11-13",
+            "shares": 6,
+            "peak_price": 11442.0
+        },
+        "ENTERO.NS": {
+            "entry_price": 1968.699951171875,
+            "entry_date": "2026-11-13",
+            "shares": 37,
+            "peak_price": 1968.699951171875
+        },
+        "SOUTHBANK.NS": {
+            "entry_price": 61.86000061035156,
+            "entry_date": "2026-11-13",
+            "shares": 1188,
+            "peak_price": 61.86000061035156
+        },
+        "DCMSRIND.NS": {
+            "entry_price": 61.15999984741211,
+            "entry_date": "2026-11-13",
+            "shares": 1202,
+            "peak_price": 61.15999984741211
+        },
+        "ACUTAAS.NS": {
+            "entry_price": 4039.10009765625,
+            "entry_date": "2026-11-13",
+            "shares": 18,
+            "peak_price": 4039.10009765625
+        },
+        "TANLA.NS": {
+            "entry_price": 732.9000244140625,
+            "entry_date": "2026-11-13",
+            "shares": 100,
+            "peak_price": 732.9000244140625
+        },
+        "APLLTD.NS": {
+            "entry_price": 1030.1500244140625,
+            "entry_date": "2026-11-13",
+            "shares": 71,
+            "peak_price": 1030.1500244140625
         }
     },
-    "equity": 1107849.331462897,
-    "cash_pct": 93.4,
-    "count": 1,
+    "equity": 1102313.5124092621,
+    "cash_pct": 1.2,
+    "count": 15,
     "portfolio": [
+        {
+            "Ticker": "DCMSRIND.NS",
+            "Sector": "Food Products",
+            "Price": 61.15999984741211,
+            "RS_Score": 35.3,
+            "Entry": 61.15999984741211,
+            "PnL%": 0.0,
+            "Dist_MA50": 31.955951143621608,
+            "MA50": 46.35,
+            "Trail_Stop": 53.82,
+            "Danger": ""
+        },
+        {
+            "Ticker": "EIMCOELECO.NS",
+            "Sector": "Agricultural, Commercial & Construction Vehicles",
+            "Price": 2714.60009765625,
+            "RS_Score": 25.1,
+            "Entry": 2714.60009765625,
+            "PnL%": 0.0,
+            "Dist_MA50": 18.71494814732934,
+            "MA50": 2286.65,
+            "Trail_Stop": 2388.85,
+            "Danger": ""
+        },
+        {
+            "Ticker": "SAILIFE.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 1928.800048828125,
+            "RS_Score": 24.0,
+            "Entry": 1928.800048828125,
+            "PnL%": 0.0,
+            "Dist_MA50": 23.284609802949486,
+            "MA50": 1564.51,
+            "Trail_Stop": 1697.34,
+            "Danger": ""
+        },
+        {
+            "Ticker": "TANLA.NS",
+            "Sector": "IT - Services",
+            "Price": 732.9000244140625,
+            "RS_Score": 23.4,
+            "Entry": 732.9000244140625,
+            "PnL%": 0.0,
+            "Dist_MA50": 33.99873448006665,
+            "MA50": 546.95,
+            "Trail_Stop": 644.95,
+            "Danger": ""
+        },
+        {
+            "Ticker": "PCJEWELLER.NS",
+            "Sector": "Consumer Durables",
+            "Price": 15.5,
+            "RS_Score": 21.5,
+            "Entry": 15.5,
+            "PnL%": 0.0,
+            "Dist_MA50": 7.8230861640833425,
+            "MA50": 14.38,
+            "Trail_Stop": 13.64,
+            "Danger": ""
+        },
+        {
+            "Ticker": "SOUTHBANK.NS",
+            "Sector": "Banks",
+            "Price": 61.86000061035156,
+            "RS_Score": 21.3,
+            "Entry": 61.86000061035156,
+            "PnL%": 0.0,
+            "Dist_MA50": 22.168944038749547,
+            "MA50": 50.63,
+            "Trail_Stop": 54.44,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ENTERO.NS",
+            "Sector": "Healthcare Services",
+            "Price": 1968.699951171875,
+            "RS_Score": 20.9,
+            "Entry": 1968.699951171875,
+            "PnL%": 0.0,
+            "Dist_MA50": 14.082693748753167,
+            "MA50": 1725.68,
+            "Trail_Stop": 1732.46,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ICIL.NS",
+            "Sector": "Textiles & Apparels",
+            "Price": 547.4000244140625,
+            "RS_Score": 19.6,
+            "Entry": 547.4000244140625,
+            "PnL%": 0.0,
+            "Dist_MA50": 20.764212614695108,
+            "MA50": 453.28,
+            "Trail_Stop": 481.71,
+            "Danger": ""
+        },
+        {
+            "Ticker": "DIVISLAB.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 11442.0,
+            "RS_Score": 19.4,
+            "Entry": 11442.0,
+            "PnL%": 0.0,
+            "Dist_MA50": 19.357833574997663,
+            "MA50": 9586.3,
+            "Trail_Stop": 10068.96,
+            "Danger": ""
+        },
+        {
+            "Ticker": "WELSPUNLIV.NS",
+            "Sector": "Textiles & Apparels",
+            "Price": 250.13999938964844,
+            "RS_Score": 19.0,
+            "Entry": 250.13999938964844,
+            "PnL%": 0.0,
+            "Dist_MA50": 11.963446505739475,
+            "MA50": 223.41,
+            "Trail_Stop": 220.12,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ATHERENERG.NS",
+            "Sector": "Automobiles",
+            "Price": 1945.0,
+            "RS_Score": 18.8,
+            "Entry": 1945.0,
+            "PnL%": 0.0,
+            "Dist_MA50": 22.2394004937114,
+            "MA50": 1591.14,
+            "Trail_Stop": 1711.6,
+            "Danger": ""
+        },
+        {
+            "Ticker": "ACUTAAS.NS",
+            "Sector": "Chemicals & Petrochemicals",
+            "Price": 4039.10009765625,
+            "RS_Score": 18.8,
+            "Entry": 4039.10009765625,
+            "PnL%": 0.0,
+            "Dist_MA50": 18.823976268360802,
+            "MA50": 3399.23,
+            "Trail_Stop": 3554.41,
+            "Danger": ""
+        },
+        {
+            "Ticker": "APLLTD.NS",
+            "Sector": "Pharmaceuticals & Biotechnology",
+            "Price": 1030.1500244140625,
+            "RS_Score": 18.3,
+            "Entry": 1030.1500244140625,
+            "PnL%": 0.0,
+            "Dist_MA50": 23.08455429109027,
+            "MA50": 836.95,
+            "Trail_Stop": 906.53,
+            "Danger": ""
+        },
+        {
+            "Ticker": "MSTCLTD.NS",
+            "Sector": "Commercial Services & Supplies",
+            "Price": 783.3499755859375,
+            "RS_Score": 18.1,
+            "Entry": 783.3499755859375,
+            "PnL%": 0.0,
+            "Dist_MA50": 16.63515754055056,
+            "MA50": 671.62,
+            "Trail_Stop": 689.35,
+            "Danger": ""
+        },
         {
             "Ticker": "BIL.NS",
             "Sector": "Consumer Durables",
-            "Price": 1181.0,
-            "RS_Score": 14.0,
+            "Price": 1124.5999755859375,
+            "RS_Score": 11.6,
             "Entry": 1027.550048828125,
-            "PnL%": 14.933574412932765,
-            "Dist_MA50": 14.688922405809135,
-            "MA50": 1029.74,
-            "Trail_Stop": 1003.85,
+            "PnL%": 9.444788297026857,
+            "Dist_MA50": 8.637059821322227,
+            "MA50": 1035.19,
+            "Trail_Stop": 1039.28,
             "Danger": ""
         }
     ],
-    "last_rebalance_date": "2026-10-26",
-    "rebalance_count": 13,
-    "regime": "BULL",
+    "last_rebalance_date": "2026-11-13",
+    "rebalance_count": 14,
+    "regime": "CAUTION",
     "circuit_breaker": false,
-    "recently_exited": {
-        "GMMPFAUDLR.NS": "2026-10-09",
-        "CYIENTDLM.NS": "2026-10-16"
-    },
-    "last_dd_alert_date": "2026-11-12",
+    "recently_exited": {},
+    "last_dd_alert_date": "2026-11-13",
     "config": {
         "initial_capital": 1000000,
         "rs_weights": [
@@ -56,8 +305,8 @@
         "rebalance_days": 13,
         "max_positions": 15,
         "breadth_threshold": 30,
-        "trailing_stop": 0.15,
+        "trailing_stop": 0.12,
         "min_comp_rs": 17.0,
-        "min_liquidity_cr": 1.0
+        "min_liquidity_cr": 1.2
     }
 }
