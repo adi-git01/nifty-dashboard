@@ -600,11 +600,11 @@ except Exception as e:
 st.sidebar.markdown("---")
 
 _NAV = {
-    "🔍 Market Specs": ("page_market_specs", ["☀️ Morning Pulse", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk",
+    "🔍 Market Specs": ("page_market_specs", ["☀️ Morning Pulse", "🧭 Investment Funnel", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk",
                                              "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex",
                                              "🇺🇸 US AI Play", "🇺🇸 US Scanner"]),
     "📋 Portfolio Manager": ("page_portfolio", ["📊 Return Tracker", "📝 Notes"]),
-    "⚖️ Analysis Lab": ("page_analysis", ["⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
+    "⚖️ Analysis Lab": ("page_analysis", ["📋 Stock Report", "⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
 }
 
 # Shortcut buttons ("Open Position Manager", Deep Dive "Report", ...) leave a
@@ -5183,9 +5183,17 @@ elif page == "📊 Sector Pulse":
         
     st.markdown("---")
     
+    # === INDUSTRY LEADERSHIP BOARD (breadth + trend + change; utils/industry_board.py) ===
+    try:
+        from utils import industry_board_view
+        industry_board_view.render(df)
+    except Exception as _e:
+        st.warning(f"Industry leadership board unavailable: {_e}")
+    st.markdown("---")
+
     # === SUB-INDUSTRY ROTATION HEATMAP ===
-    st.markdown("### 🧬 Sub-Industry Rotation Matrix")
-    st.caption("Granular tracking of capital flow across the 58 Sub-Industries of the Nifty 1000. Score 0–100 (percentile rank). 🟢 Leaders → 🟡 Mid → 🔴 Laggards.")
+    st.markdown("### 🧬 Sub-Industry Rotation Matrix — short-term RS history")
+    st.caption("Daily history of the short-term score (1-week / 1-month / 3-month RS blend only). Use it to see how a ranking moved over the year; use the Leadership Board above to judge who leads today.")
     
     sub_ind_file = "data/sub_industry_rotation.csv"
     if os.path.exists(sub_ind_file):
@@ -6041,6 +6049,16 @@ elif page == "⏳ Time Trends":
                     st.error(f"No history found for {trend_ticker}")
 
 # --- VIEW 4: DEEP DIVE ---
+elif page == "🧭 Investment Funnel":
+    st.markdown(page_header("🧭 Investment Funnel", "Market → Industry → Trend → Business → Setup → Value → Plan: one path from the universe to a short list"), unsafe_allow_html=True)
+    from utils import funnel_view
+    funnel_view.render(df)
+
+elif page == "📋 Stock Report":
+    st.markdown(page_header("📋 Stock Report", "One-shot report: funnel checklist, industry, trend, entry plan, business trends and valuation"), unsafe_allow_html=True)
+    from utils import stock_report_view
+    stock_report_view.render(df)
+
 elif page == "📉 Deep Dive":
 
     st.sidebar.markdown("---")
