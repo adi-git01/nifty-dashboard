@@ -297,8 +297,8 @@ def render_breadth_widget(df):
         st.caption("Unable to calculate breadth metrics.")
         return
     
-    # Save snapshot
-    save_breadth_snapshot(breadth)
+    # (not saved here: the EOD engine records the day's breadth; saving on every page view wrote
+    # weekend and holiday rows into the history)
     
     pct_50 = breadth['pct_above_50dma']
     pct_200 = breadth['pct_above_200dma']

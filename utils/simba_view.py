@@ -328,7 +328,7 @@ def render(df: pd.DataFrame) -> None:
     with t_check:
         opts = S.ticker.tolist()
         t = st.selectbox("Stock", opts, index=0, key="simba_check_ticker",
-                         format_func=lambda x: f"{x.replace('.NS', '')} — {S.set_index('ticker').at[x, 'name']}")
+                         format_func=lambda x, _nm=dict(zip(S['ticker'], S['name'])): f"{x.replace('.NS', '')} — {_nm.get(x, '')}")
         r = S.set_index("ticker").loc[t]
         st.markdown(f"#### {r['name']} · score **{int(r['score'])}** · grade **{r['grade']}**"
                     + (f"  \n⛔ {r['gates']}" if r['gates'] else ""))

@@ -162,6 +162,14 @@ def load_base_fundamentals(live_mode=False):
     without a live yfinance fetch.
     """
     parquet_path = get_parquet_cache_path()
+    # No snapshot for today's date yet? Use the newest one there is. The EOD run lands around
+    # 11:30 pm IST, so for the whole trading day "today's" file did not exist and every new
+    # dashboard session fell through to a full Yahoo download of ~1,170 stocks x 14 months
+    # (several minutes) just to show the page.
+    if not live_mode and not os.path.exists(parquet_path):
+        _all = sorted(glob.glob("data/cache/market_master_*.parquet"))
+        if _all:
+            parquet_path = _all[-1]
 
     # Try Parquet unless in Live Mode
     if not live_mode and os.path.exists(parquet_path):

@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import glob
 import json
 import time
 import subprocess
@@ -230,8 +231,95 @@ AUTO_REFRESH_MINUTES = 30  # Auto-refresh data after 30 minutes
 # the heartbeat was placed here at the top and called st.rerun()
 # unconditionally).
 
+@st.cache_resource
+def _market_store() -> dict:
+    return {}
+
+
+def _load_market_data(live: bool, key: str) -> pd.DataFrame:
+    """
+    Market data shared by every session. `key` is the snapshot file + mtime, or "live".
+    A plain process-wide store, not st.cache_data: the loaders draw Streamlit elements
+    (progress, errors), and a cached function replaying those in another session raises
+    CacheReplayClosureError.
+    """
+    store = _market_store()
+    hit = store.get((live, key))
+    if hit and time.time() - hit[0] < AUTO_REFRESH_MINUTES * 60:
+        return hit[1].copy()
+    fundamentals = load_base_fundamentals(live_mode=live)
+    out = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live)
+    if out is not None and not out.empty:
+        store.clear()                                   # keep one entry: frames are ~1,170 x 125
+        store[(live, key)] = (time.time(), out)
+        return out.copy()
+    return out
+
+
+@st.cache_data(ttl=AUTO_REFRESH_MINUTES * 60, show_spinner=False, max_entries=2)
+def _load_nifty(start: str) -> pd.DataFrame:
+    """Nifty history, shared across sessions. Raises on an empty fetch so a failure is not cached."""
+    from utils.yf_safe import safe_history
+    d = safe_history("^NSEI", start=start)
+    if d is None or d.empty:
+        raise RuntimeError("empty Nifty fetch")
+    return d
+
+
+@st.cache_data(ttl=900, show_spinner=False, max_entries=8)
+def _yf_download_cached(tickers, **kw) -> pd.DataFrame:
+    """yf.download shared across reruns and sessions for 15 minutes (these calls used to run on
+    every widget click). Raises on an empty result so a failed fetch is not cached."""
+    d = yf.download(list(tickers) if isinstance(tickers, tuple) else tickers, **kw)
+    if d is None or d.empty:
+        raise RuntimeError("empty download")
+    return d
+
+
+@st.cache_data(ttl=900, show_spinner=False, max_entries=4)
+def _nifty_recent(period: str = "100d") -> pd.DataFrame:
+    d = yf.Ticker("^NSEI").history(period=period)
+    if d is None or d.empty:
+        raise RuntimeError("empty Nifty fetch")
+    return d
+
+
+@st.cache_data(ttl=12 * 3600, show_spinner=False, max_entries=600)
+def _cycle_position_ok(ticker: str) -> dict:
+    r = calculate_cycle_position(ticker)
+    if "error" in r:
+        raise ValueError(r.get("error", "no data"))
+    return r
+
+
+@st.cache_resource
+def _cycle_err_store() -> dict:
+    return {}        # survives reruns (a module-level dict is rebuilt on every script run)
+
+
+def _cycle_position(ticker: str) -> dict:
+    """
+    Margin-cycle read for one stock, cached. Each call downloads a quarterly income statement
+    from Yahoo; Sector Pulse made ~23 of them on every widget click. Results are kept 12 hours
+    (quarterly data), failures 30 minutes so a stock with no statement is not retried per click.
+    """
+    _CYCLE_ERR = _cycle_err_store()
+    hit = _CYCLE_ERR.get(ticker)
+    if hit and time.time() - hit[0] < 1800:
+        return hit[1]
+    try:
+        return _cycle_position_ok(ticker)
+    except ValueError as e:
+        r = {"phase": "UNKNOWN", "phase_num": 0, "error": str(e)}
+        _CYCLE_ERR[ticker] = (time.time(), r)
+        return r
+
+
 # Check if data needs refresh (stale data)
 _needs_refresh = 'market_data' not in st.session_state
+# switching Live Mode on or off must reload, not wait for the 30-minute timer
+if st.session_state.get('_loaded_live_mode') is not None and st.session_state['_loaded_live_mode'] != bool(live_mode_toggle):
+    _needs_refresh = True
 if not _needs_refresh and 'data_loaded_at' in st.session_state:
     _minutes_old = (datetime.now() - st.session_state['data_loaded_at']).total_seconds() / 60
     if _minutes_old > AUTO_REFRESH_MINUTES:
@@ -243,13 +331,15 @@ if _needs_refresh:
     load_status = st.empty()
     progress_bar = st.progress(0, text="Initializing...")
     
-    # Step 1: Load fundamentals
-    progress_bar.progress(10, text="Step 1/4: Loading fundamentals...")
-    fundamentals = load_base_fundamentals(live_mode=live_mode_toggle)
-    
-    # Step 2: Fetch live stock data
-    progress_bar.progress(30, text=f"Step 2/4: Fetching live prices for {len(fundamentals)} stocks...")
-    df = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live_mode_toggle)
+    # Steps 1-2: market data. Shared across sessions and reruns (st.cache_data), so a second
+    # browser tab or a reload within the refresh window costs nothing. Without Live Mode this
+    # reads the newest EOD snapshot (well under a second); Live Mode downloads from Yahoo.
+    progress_bar.progress(20, text=("Fetching live prices from Yahoo (a few minutes)..." if live_mode_toggle
+                                    else "Loading the latest end-of-day snapshot..."))
+    _snap_files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+    _snap_key = (f"{_snap_files[-1]}:{os.path.getmtime(_snap_files[-1])}" if _snap_files and not live_mode_toggle
+                 else "live")
+    df = _load_market_data(bool(live_mode_toggle), _snap_key)
     
     if df.empty:
         progress_bar.empty()
@@ -269,7 +359,10 @@ if _needs_refresh:
         # Divergence scan compares today's stock change against
         # nifty_df.Close[-1] vs [-2], so a stale index series makes it compare
         # today's stock move to a days-old Nifty move.
-        _nifty_data = safe_history("^NSEI", start=_nifty_start)
+        try:
+            _nifty_data = _load_nifty(_nifty_start)
+        except Exception:
+            _nifty_data = pd.DataFrame()
         if _nifty_data is not None and not _nifty_data.empty:
             st.session_state['nifty_data'] = _nifty_data
             st.session_state['nifty_fetched_at'] = datetime.now()
@@ -296,6 +389,11 @@ if _needs_refresh:
     progress_bar.progress(95, text="Step 4/4: Calculating scores...")
     st.session_state['market_data'] = df
     st.session_state['data_loaded_at'] = datetime.now()
+    st.session_state['_loaded_live_mode'] = bool(live_mode_toggle)
+    # what the prices are: a live pull, or the EOD snapshot of a given session
+    from utils import snapshots as _snaps
+    _asof = _snaps.bar_date(df, _snap_files[-1] if _snap_files else None)
+    st.session_state['data_asof'] = None if live_mode_toggle else _asof
     
     # Cache sector PE for scoring consistency
     # 'pe' can arrive object-dtype / carry junk (Yahoo 'Infinity' sentinels in
@@ -305,7 +403,6 @@ if _needs_refresh:
          st.session_state['sector_pe_cache'] = df.assign(pe=_pe_num).groupby('sector')['pe'].median().to_dict()
     
     progress_bar.progress(100, text="✅ Ready!")
-    time.sleep(0.5)
     progress_bar.empty()
     load_status.empty()
 
@@ -350,7 +447,14 @@ if 'data_loaded_at' in st.session_state:
         freshness_text = f"🟡 {minutes_ago // 60}h ago"
     else:
         freshness_text = f"🔴 {minutes_ago // 60}h ago (stale)"
-    st.sidebar.caption(f"📊 {len(df)} stocks • Updated: {freshness_text}")
+    _asof = st.session_state.get('data_asof')
+    if _asof is not None:
+        _age = len(pd.bdate_range(_asof, pd.Timestamp.today().normalize())) - 1
+        st.sidebar.caption(f"📊 {len(df)} stocks • 📅 End-of-day prices for **{_asof:%d %b}**"
+                           + (f" ({_age} sessions old ⚠️)" if _age > 1 else "")
+                           + "  \nTick **Live Mode** above for today's prices (takes a few minutes).")
+    else:
+        st.sidebar.caption(f"📊 {len(df)} stocks • Live prices, updated: {freshness_text}")
     
     # One regime read for the whole app (utils/regime_badge.py): Nifty 5-state market regime, breadth, and
     # the engine's own mode. Computed per data load; the pages render the same object.
@@ -695,9 +799,11 @@ elif page == "🚀 Live Trading Desk":
         if 'nifty_data' in st.session_state:
             nifty_live = st.session_state['nifty_data']
         else:
-            from utils.yf_safe import safe_history
             start_date = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
-            nifty_live = safe_history("^NSEI", start=start_date)
+            try:
+                nifty_live = _load_nifty(start_date)
+            except Exception:
+                nifty_live = pd.DataFrame()
 
         # The divergence scan pairs today's stock change against the index's
         # last-vs-previous bar, so both sides must describe the same session.
@@ -836,13 +942,14 @@ elif page == "🚀 Live Trading Desk":
                     else:
                         price_map = {}
 
-                    save_rs_divergence_signals(rs_list)
-                    save_earnings_shock_signals(shock_list)
-                    save_turnaround_catalyst_signals(tc_list)
-
-                    rs_log_df    = refresh_signal_log_prices(RS_LOG_FILE,    RS_LOG_COLS,    price_map)
-                    shock_log_df = refresh_signal_log_prices(SHOCK_LOG_FILE, SHOCK_LOG_COLS, price_map)
-                    tc_log_df    = refresh_signal_log_prices(TC_LOG_FILE,    TC_LOG_COLS,    price_map)
+                    # The logs belong to the EOD run (run_daily_signals.py), which dates rows by the
+                    # trading session. The dashboard used to append to them on every page view under
+                    # the wall-clock date -- with end-of-day data that files yesterday's signals as
+                    # today's -- and rewrote three CSVs per rerun. It only reads them now.
+                    from utils.advanced_scanners import load_signal_log as _load_log
+                    rs_log_df    = _load_log(RS_LOG_FILE,    RS_LOG_COLS)
+                    shock_log_df = _load_log(SHOCK_LOG_FILE, SHOCK_LOG_COLS)
+                    tc_log_df    = _load_log(TC_LOG_FILE,    TC_LOG_COLS)
 
                 col_adv1, col_adv2, col_adv3 = st.columns(3)
 
@@ -1379,7 +1486,7 @@ elif page == "🌊 Trend Scanner":
                             # Fetch Nifty data for same period
                             start_str = eq_chart_df['Date'].iloc[0].strftime('%Y-%m-%d')
                             try:
-                                nifty_eq = yf.download("^NSEI", start=start_str, progress=False,
+                                nifty_eq = _yf_download_cached("^NSEI", start=start_str, progress=False,
                                                        threads=False, auto_adjust=True)
                                 if isinstance(nifty_eq.columns, pd.MultiIndex):
                                     nifty_eq.columns = nifty_eq.columns.get_level_values(0)
@@ -1502,9 +1609,9 @@ elif page == "🌊 Trend Scanner":
                                     # Fast inline refresh: only fetch held tickers (~10 stocks)
                                     held_tickers = [p['Ticker'] for p in dna3_data.get('portfolio', [])]
                                     if held_tickers:
-                                        live_prices = yf.download(held_tickers, period="100d", group_by='ticker',
+                                        live_prices = _yf_download_cached(tuple(held_tickers), period="100d", group_by='ticker',
                                                                  threads=False, progress=False, auto_adjust=True)
-                                        nifty_hist = yf.Ticker("^NSEI").history(period="100d")
+                                        nifty_hist = _nifty_recent("100d").copy()
                                         if nifty_hist.index.tz is not None:
                                             nifty_hist.index = nifty_hist.index.tz_localize(None)
                                         nifty_price = float(nifty_hist['Close'].iloc[-1])
@@ -1654,8 +1761,8 @@ elif page == "🌊 Trend Scanner":
     
             # Save today's snapshot
             mood_metrics = calculate_mood_metrics(df)
-            if mood_metrics:
-                save_mood_snapshot(mood_metrics)
+            # (not saved here: the EOD run records the day's mood; saving on page views is what
+            # put weekend and holiday rows into the history)
     
             # Check and send mood-based alerts (if threshold crossed)
             try:
@@ -2275,7 +2382,9 @@ elif page == "🌊 Trend Scanner":
                     selected_for_dive = st.selectbox(
                         "Select a stock to analyze",
                         options=filtered_df['ticker'].tolist(),
-                        format_func=lambda x: f"{x} - {filtered_df[filtered_df['ticker']==x]['name'].values[0]}" if len(filtered_df[filtered_df['ticker']==x]['name'].values) > 0 else x
+                        # one dict lookup per option; filtering the frame per option cost ~5 s a rerun
+                        format_func=lambda x, _nm=dict(zip(filtered_df['ticker'], filtered_df['name'])): (
+                            f"{x} - {_nm[x]}" if x in _nm else x)
                     )
                 else:
                     selected_for_dive = None
@@ -2943,10 +3052,10 @@ elif page == "📊 Return Tracker":
             ticker_options = [""] + sorted(TICKERS)
             # Build display names from df where available
             ticker_display = {}
+            _names = dict(zip(df['ticker'], df['name']))        # was one frame filter per ticker, twice
             for t in ticker_options:
-                if t and not df[df['ticker']==t].empty:
-                    name = df[df['ticker']==t]['name'].values[0]
-                    ticker_display[t] = f"{t.replace('.NS', '')} - {name}"
+                if t and t in _names:
+                    ticker_display[t] = f"{t.replace('.NS', '')} - {_names[t]}"
                 elif t:
                     ticker_display[t] = t.replace('.NS', '')
             
@@ -5352,7 +5461,7 @@ elif page == "📊 Sector Pulse":
     with st.spinner("Analyzing sector margin cycles..."):
         for sector_name, tickers in cyclical_sectors.items():
             if tickers:
-                cycle = calculate_cycle_position(tickers[0])
+                cycle = _cycle_position(tickers[0])
                 if "error" not in cycle:
                     phase_emoji = {"EARLY_RECOVERY": "🟢", "MID_CYCLE": "🟡", "LATE_CYCLE": "🟠", "DOWNTURN": "🔴"}.get(cycle["phase"], "⚪")
                     sector_cycles.append({
@@ -5462,7 +5571,7 @@ elif page == "📊 Sector Pulse":
         
         with st.spinner(f"Analyzing margin cycles for {len(sample_tickers)} stocks..."):
             for ticker in sample_tickers:
-                cycle = calculate_cycle_position(ticker)
+                cycle = _cycle_position(ticker)
                 if "error" not in cycle:
                     cycle_data.append({
                         "Ticker": ticker.replace(".NS", ""),
@@ -6823,7 +6932,7 @@ elif page == "🖥️ AI Capex":
     @st.cache_data(ttl=3600)
     def _nifty_rs_refs():
         try:
-            close = yf.Ticker("^NSEI").history(period="100d")['Close'].dropna()
+            close = _nifty_recent("100d")['Close'].dropna()
             if len(close) < 65:
                 return 0.0, 0.0, 0.0
             n_1w = (close.iloc[-1] - close.iloc[-6])  / close.iloc[-6]  * 100
