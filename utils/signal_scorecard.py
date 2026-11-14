@@ -13,7 +13,7 @@ A scanner earns its place only if it beats that. Verdict per row:
   LIKE MOMENTUM    positive, but no better than the yardstick
   NO EDGE          around zero, or positive at one horizon only
   LAGS MARKET      negative at both 21 and 63 sessions
-  TOO NEW          fewer than 100 signals with a 21-session outcome
+  TOO NEW          fewer than 100 signals, or fewer than 60 signal days, with a 21-session outcome
 
 One regime and under a year of data: read it as "what has this done so far", not proof.
 build() is run by the EOD job (run_daily_signals.py) and written to data/signal_scorecard.csv;
@@ -33,6 +33,7 @@ BENCH_OUT = "data/model_portfolio_benchmark.csv"
 HORIZONS = (5, 21, 63)
 YARDSTICK = "Scanner BUY, any day (yardstick)"
 MIN_N = 100
+MIN_DAYS = 60              # distinct signal days with a 21-session outcome: about three months of signals
 # name, file, date column, where it shows, what it claims
 LOGS = [
     ("Turnaround Radar (IAS watchlist)", "data/ias_signal_log.csv", "signal_date", "Turnaround Radar", "accumulation in beaten-down stocks"),
@@ -108,6 +109,7 @@ def _score(name: str, sig: pd.DataFrame, F: Dict[int, pd.DataFrame], idx: pd.Dat
         v = pd.DataFrame({"x": x, "s": d.s.values}).dropna()
         m = v.groupby("s").x.mean()
         row[f"n_{h}d"] = len(v)
+        row[f"days_{h}d"] = int(v.s.nunique())
         row[f"avg_{h}d"] = round(float(m.mean()), 2) if len(m) else np.nan
         row[f"median_{h}d"] = round(float(v.x.median()), 2) if len(v) else np.nan
         row[f"hit_{h}d"] = round(float((v.x > 0).mean() * 100), 0) if len(v) else np.nan
@@ -115,7 +117,7 @@ def _score(name: str, sig: pd.DataFrame, F: Dict[int, pd.DataFrame], idx: pd.Dat
 
 
 def _verdict(r: pd.Series, base: Optional[pd.Series]) -> str:
-    if r["n_21d"] < MIN_N:
+    if r["n_21d"] < MIN_N or r.get("days_21d", MIN_DAYS) < MIN_DAYS:
         return "TOO NEW"
     a21, a63 = r["avg_21d"], r["avg_63d"]
     has63 = r["n_63d"] >= MIN_N and pd.notna(a63)

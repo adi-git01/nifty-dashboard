@@ -1,14 +1,14 @@
-signal,signals,first,n_5d,avg_5d,median_5d,hit_5d,n_21d,avg_21d,median_21d,hit_21d,n_63d,avg_63d,median_63d,hit_63d,where,claim,verdict,as_of,sessions
-Turnaround Radar (IAS watchlist),564,2026-04-22,553,-0.59,-0.43,43.0,434,-0.27,-2.21,39.0,236,-1.52,-1.63,46.0,Turnaround Radar,accumulation in beaten-down stocks,LAGS MARKET,2026-11-13,169
-   …ALERT tier only,116,2026-04-22,114,-1.25,-0.83,41.0,99,-0.52,-2.46,40.0,64,-2.06,-4.38,42.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-13,169
-   …READY tier only,163,2026-04-22,161,-1.6,-0.87,40.0,134,-1.11,-2.6,35.0,86,-0.96,-3.19,44.0,Turnaround Radar,the radar's highest-conviction tiers,LAGS MARKET,2026-11-13,169
-Turnaround Catalyst,962,2026-06-03,871,-0.75,-1.09,40.0,577,0.29,-1.36,43.0,368,-0.36,-3.36,42.0,Live Desk / Morning Pulse,big up day or trend-score jump off the lows,NO EDGE,2026-11-13,169
-Earnings Shock,2001,2026-05-18,1825,0.42,-0.49,46.0,1303,0.9,-0.89,45.0,708,3.91,1.04,53.0,Live Desk,4%+ jump on 2.5x volume,LIKE MOMENTUM,2026-11-13,169
-RS Divergence,719,2026-05-18,560,-0.52,-0.37,46.0,388,-1.6,-1.56,44.0,22,4.33,7.2,59.0,Live Desk,"up on a red market day, near highs",LAGS MARKET,2026-11-13,169
-Breakouts (52W / ATH / squeeze),317,2026-09-16,253,0.47,-0.79,45.0,91,-0.71,-4.62,34.0,0,,,,Trend Scanner,new high or squeeze release,TOO NEW,2026-11-13,169
-V2.2 watchlist BUY alert,810,2026-02-24,781,0.16,-0.47,46.0,667,0.63,-0.99,45.0,442,4.11,0.98,52.0,Live Desk / Telegram,trend score 70+ with accumulation,LIKE MOMENTUM,2026-11-13,169
-"Agreement (2+ of SIMBA, Scanner, Technicals)",63,2026-11-10,0,,,,0,,,,0,,,,Trend Scanner → Agreement,three tools agree,TOO NEW,2026-11-13,169
-"Scanner BUY, any day (yardstick)",57455,2026-02-24,55353,0.34,-0.0,50.0,48514,1.2,0.04,50.0,31639,4.17,0.97,52.0,Trend Scanner,"plain momentum: RS > 0, above the 50-day, liquid",YARDSTICK,2026-11-13,169
-Morning Pulse: top-10 trend-score gainers,1680,2026-02-27,1605,-0.16,-0.46,46.0,1362,0.61,-1.08,45.0,903,1.93,-1.16,48.0,Morning Pulse,labelled 'turnaround candidates',LIKE MOMENTUM,2026-11-13,169
-Morning Pulse: top-10 trend-score losers,1680,2026-02-27,1607,-0.04,-0.36,46.0,1364,1.01,-0.4,48.0,913,3.6,-0.71,47.0,Morning Pulse,labelled 'caution / exit watch',LIKE MOMENTUM,2026-11-13,169
-Morning Pulse: accumulation leaders (top 10),1690,2026-02-24,1625,-0.08,-0.33,47.0,1422,0.07,-1.11,45.0,988,3.75,2.22,56.0,Morning Pulse,highest volume-accumulation score,NO EDGE,2026-11-13,169
+signal,signals,first,n_5d,days_5d,avg_5d,median_5d,hit_5d,n_21d,days_21d,avg_21d,median_21d,hit_21d,n_63d,days_63d,avg_63d,median_63d,hit_63d,where,claim,verdict,as_of,sessions
+Turnaround Radar (IAS watchlist),564,2026-04-22,553,117,-0.59,-0.43,43.0,434,101,-0.27,-2.21,39.0,236,68,-1.52,-1.63,46.0,Turnaround Radar,accumulation in beaten-down stocks,LAGS MARKET,2026-11-13,169
+   …ALERT tier only,116,2026-04-22,114,56,-1.25,-0.83,41.0,99,47,-0.52,-2.46,40.0,64,36,-2.06,-4.38,42.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-13,169
+   …READY tier only,163,2026-04-22,161,61,-1.6,-0.87,40.0,134,51,-1.11,-2.6,35.0,86,42,-0.96,-3.19,44.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-13,169
+Turnaround Catalyst,962,2026-06-03,871,100,-0.75,-1.09,40.0,577,82,0.29,-1.36,43.0,368,44,-0.36,-3.36,42.0,Live Desk / Morning Pulse,big up day or trend-score jump off the lows,NO EDGE,2026-11-13,169
+Earnings Shock,2001,2026-05-18,1825,104,0.42,-0.49,46.0,1303,88,0.9,-0.89,45.0,708,46,3.91,1.04,53.0,Live Desk,4%+ jump on 2.5x volume,LIKE MOMENTUM,2026-11-13,169
+RS Divergence,719,2026-05-18,560,11,-0.52,-0.37,46.0,388,6,-1.6,-1.56,44.0,22,1,4.33,7.2,59.0,Live Desk,"up on a red market day, near highs",TOO NEW,2026-11-13,169
+Breakouts (52W / ATH / squeeze),317,2026-09-16,253,32,0.47,-0.79,45.0,91,16,-0.71,-4.62,34.0,0,0,,,,Trend Scanner,new high or squeeze release,TOO NEW,2026-11-13,169
+V2.2 watchlist BUY alert,810,2026-02-24,781,159,0.16,-0.47,46.0,667,140,0.63,-0.99,45.0,442,103,4.11,0.98,52.0,Live Desk / Telegram,trend score 70+ with accumulation,LIKE MOMENTUM,2026-11-13,169
+"Agreement (2+ of SIMBA, Scanner, Technicals)",63,2026-11-10,0,0,,,,0,0,,,,0,0,,,,Trend Scanner → Agreement,three tools agree,TOO NEW,2026-11-13,169
+"Scanner BUY, any day (yardstick)",57455,2026-02-24,55353,164,0.34,-0.0,50.0,48514,148,1.2,0.04,50.0,31639,106,4.17,0.97,52.0,Trend Scanner,"plain momentum: RS > 0, above the 50-day, liquid",YARDSTICK,2026-11-13,169
+Morning Pulse: top-10 trend-score gainers,1680,2026-02-27,1605,163,-0.16,-0.46,46.0,1362,147,0.61,-1.08,45.0,903,105,1.93,-1.16,48.0,Morning Pulse,labelled 'turnaround candidates',LIKE MOMENTUM,2026-11-13,169
+Morning Pulse: top-10 trend-score losers,1680,2026-02-27,1607,163,-0.04,-0.36,46.0,1364,147,1.01,-0.4,48.0,913,105,3.6,-0.71,47.0,Morning Pulse,labelled 'caution / exit watch',LIKE MOMENTUM,2026-11-13,169
+Morning Pulse: accumulation leaders (top 10),1690,2026-02-24,1625,164,-0.08,-0.33,47.0,1422,148,0.07,-1.11,45.0,988,106,3.75,2.22,56.0,Morning Pulse,highest volume-accumulation score,NO EDGE,2026-11-13,169

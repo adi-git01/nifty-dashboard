@@ -176,3 +176,43 @@ def test_signal_scorecard_measures_excess_and_verdicts(tmp_path):
     assert sc._verdict(r.replace({-1.0: 2.5, -2.0: 6.0, 40: 55}), base) == "BEATS MOMENTUM"
     assert sc._verdict(r.replace({-1.0: 0.9, -2.0: 3.9}), base) == "LIKE MOMENTUM"
     assert sc._verdict(r.replace({-1.0: 0.2, -2.0: 3.0}), base) == "NO EDGE"
+
+
+def test_book_diff_status_and_funnel_label():
+    from utils import book_view as bv
+    known = {"CUMMINSIND.NS", "FEDERALBNK.NS", "SBIN.NS"}
+    assert bv.norm("cumminsind", known) == "CUMMINSIND.NS" and bv.norm("FEDERALBANK", known) == "FEDERALBNK.NS"
+    assert bv.norm("", known) is None and bv.norm(None, known) is None
+    before = pd.DataFrame({"Stock": ["CUMMINSIND", "FEDERALBANK"], "Entry": [4000.0, 270.0], "Stop": [3850.0, 230.0], "Notes": ["", ""]})
+    after = pd.DataFrame({"Stock": ["CUMMINSIND", "SBIN", "NOSUCH", None], "Entry": [4000.0, 1000.0, 5.0, None],
+                          "Stop": [3900.0, 950.0, None, None], "Notes": ["", "new", "", ""]})
+    d = bv.diff(before, after, known, ["Stock", "Entry", "Stop", "Notes"])
+    assert [t for t, _ in d["add"]] == ["SBIN.NS"] and [t for t, _ in d["update"]] == ["CUMMINSIND.NS"]
+    assert d["remove"] == ["FEDERALBNK.NS"] and [t for t, _ in d["unknown"]] == ["NOSUCH.NS"]
+    same = bv.diff(before, before.copy(), known, ["Stock", "Entry", "Stop", "Notes"])
+    assert not same["add"] and not same["update"] and not same["remove"]
+    assert bv.status(100, 110, None, "BUY", False, 0) == "🔴 stop hit" and bv.status(120, 100, 115, "BUY", False, 0) == "🎯 target hit"
+    assert bv.status(102, 100, 150, "BUY", False, 0).startswith("⚠️") and bv.status(120, 100, 150, "HOLD", True, 0) == "🟣 trend weakening"
+    assert bv.status(120, 100, 150, "BUY", False, 0) == "✅ on track" and bv.status(None, 100, 150, "BUY", False, 0) == "❔ no price"
+    r = pd.Series(dict(s_industry=True, s_trend=True, s_business=True, s_setup=False))
+    assert bv.funnel_label(r) == "Missing: entry" and bv.funnel_label(r.replace({False: True})) == "✅ Buyable now"
+    assert bv.funnel_label(None) == "—"
+
+
+def test_strong_names_group_and_label(tmp_path, monkeypatch):
+    from utils import strong_names as sn
+    rs = pd.DataFrame({"signal_date": ["2026-11-02", "2026-11-05", "2026-11-05", "2026-09-01"], "ticker": ["A.NS", "A.NS", "B.NS", "C.NS"],
+                       "name": ["A", "A", "B", "C"], "signal_price": [100.0, 104.0, 50.0, 10.0], "delta_rs": [1.0, 3.0, 2.0, 5.0]})
+    es = pd.DataFrame({"signal_date": ["2026-11-03", "2026-11-06", "2026-11-04"], "ticker": ["A.NS", "A.NS", "B.NS"], "name": ["A", "A", "B"],
+                       "signal_price": [100.0, 108.0, 50.0], "jump_pct": [6.0, 5.0, 9.0], "vol_mult": [3.0, 2.6, 4.0]})
+    rs.to_csv(tmp_path / "rs.csv", index=False), es.to_csv(tmp_path / "es.csv", index=False)
+    monkeypatch.setattr(sn, "RS_LOG", str(tmp_path / "rs.csv")), monkeypatch.setattr(sn, "ES_LOG", str(tmp_path / "es.csv"))
+    T = pd.DataFrame({"ticker": ["A.NS", "B.NS"], "industry": ["X", "Y"], "ind_group": ["LEADING", "LAGGING"], "scanner": ["BUY", "HOLD"],
+                      "technicals": ["BUY NOW", "WATCH"], "comp_rs": [5.0, -2.0], "dist_52w": [-2.0, -30.0], "price": [110.0, 45.0],
+                      "s_industry": [True, False], "s_trend": [True, False], "s_business": [True, np.nan], "s_setup": [True, False],
+                      "risk_pct": [8.0, np.nan]})
+    R = sn.rs_divergence(T, 30).set_index("ticker")
+    assert list(R.index) == ["A.NS", "B.NS"] and R.at["A.NS", "red_days"] == 2 and round(R.at["A.NS", "since_first"], 0) == 10
+    assert R.at["A.NS", "funnel"] == "✅ Buyable" and R.at["B.NS", "funnel"] == "— Not in uptrend" and R.today.all()
+    E = sn.earnings_drift(T, 45).set_index("ticker")
+    assert E.at["A.NS", "jump_pct"] == 6.0 and E.at["A.NS", "holds"] and not E.at["B.NS", "holds"]      # first jump in the window

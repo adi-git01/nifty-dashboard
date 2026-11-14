@@ -2501,8 +2501,16 @@ elif page == "📊 Return Tracker":
     # key + on_change: the selected tab is kept in session state, so saving or
     # deleting an alert (which reruns the script) no longer drops you back on
     # Active Positions.
-    tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(
-        ["📋 Active Positions", "👀 Watchlist", "➕ Add New", "⚙️ Settings"], key="desk_tab", on_change="rerun")
+    tab_book, tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(
+        ["📒 My Book", "📋 Positions (classic)", "🔔 Alerts", "➕ Add (classic)", "⚙️ Settings"], key="desk_tab", on_change="rerun")
+
+    # TAB 0: holdings + watchlist as editable tables, one Save (utils/book_view.py)
+    with tab_book:
+        try:
+            from utils import book_view
+            book_view.render(df)
+        except Exception as _e:
+            st.error(f"My Book failed to load: {_e}")
     
     # ========================================
     # TAB 1: ACTIVE POSITIONS (Using unified positions.json)
