@@ -600,11 +600,13 @@ except Exception as e:
 st.sidebar.markdown("---")
 
 _NAV = {
-    "🔍 Market Specs": ("page_market_specs", ["☀️ Morning Pulse", "🧭 Investment Funnel", "🌊 Trend Scanner", "🔬 Technicals", "🚀 Live Trading Desk",
-                                             "🔍 Market Explorer", "📊 Sector Pulse", "🎯 Turnaround Radar", "🖥️ AI Capex",
+    "🔍 Market Specs": ("page_market_specs", ["☀️ Daily Brief", "🧭 Investment Funnel", "🌊 Trend Scanner", "🔬 Technicals",
+                                             "📊 Sector Pulse", "🧪 Signal Lab", "🔍 Market Explorer", "🖥️ AI Capex",
                                              "🇺🇸 US AI Play", "🇺🇸 US Scanner"]),
     "📋 Portfolio Manager": ("page_portfolio", ["📊 Return Tracker", "📝 Notes"]),
     "⚖️ Analysis Lab": ("page_analysis", ["📋 Stock Report", "⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
+    # Replaced by Daily Brief + Signal Lab (analysis/PAGE_AUDIT_2026_11.md); kept, unchanged, for reference.
+    "🗄️ Archive": ("page_archive", ["☀️ Morning Pulse", "🚀 Live Trading Desk", "🎯 Turnaround Radar"]),
 }
 
 # Shortcut buttons ("Open Position Manager", Deep Dive "Report", ...) leave a
@@ -628,7 +630,8 @@ if 'active_workspace' not in st.session_state:
 active_workspace = st.sidebar.selectbox("📂 Workspace", [
     "🔍 Market Specs", 
     "📋 Portfolio Manager", 
-    "⚖️ Analysis Lab"
+    "⚖️ Analysis Lab",
+    "🗄️ Archive"
 ], key="active_workspace")
 
 page = "🌊 Trend Scanner" # Default
@@ -6049,6 +6052,16 @@ elif page == "⏳ Time Trends":
                     st.error(f"No history found for {trend_ticker}")
 
 # --- VIEW 4: DEEP DIVE ---
+elif page == "☀️ Daily Brief":
+    st.markdown(page_header("☀️ Daily Brief", "Market, leading industries, today's funnel picks, your positions and the model portfolio — the one page to read each day"), unsafe_allow_html=True)
+    from utils import daily_brief_view
+    daily_brief_view.render(df)
+
+elif page == "🧪 Signal Lab":
+    st.markdown(page_header("🧪 Signal Lab", "Every scanner's signals in one place, with a scorecard of how each has done against the market"), unsafe_allow_html=True)
+    from utils import signal_lab_view
+    signal_lab_view.render(df)
+
 elif page == "🧭 Investment Funnel":
     st.markdown(page_header("🧭 Investment Funnel", "Market → Industry → Trend → Business → Setup → Value → Plan: one path from the universe to a short list"), unsafe_allow_html=True)
     from utils import funnel_view
