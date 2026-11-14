@@ -80,5 +80,24 @@
       "date": "2026-11-13",
       "price": 4369.0
     }
+  },
+  {
+    "id": "eaf34357-d807-4562-859f-1486e69f8318",
+    "ticker": "MANKIND.NS",
+    "name": "Mankind Pharma Limited",
+    "sector": "Unknown",
+    "status": "watching",
+    "entry_price": 2640.0,
+    "entry_date": "2026-11-14",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 1,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-14T11:32:54.782125"
   }
 ]
