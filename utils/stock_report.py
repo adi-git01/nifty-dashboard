@@ -146,8 +146,11 @@ def markdown(R: Dict[str, Any]) -> str:
     else:
         L.append("- No valid stop below the price in today's data: no plan.")
     tr = R["trends"]
-    L += ["", f"## Business trends: {tr['verdict']} ({tr['up']} improving, {tr['down']} worsening)"]
-    L += [f"- {fund_trends.ICON[f['way']]} **{f['metric']}** — {f['text']}" for f in tr["findings"]] or ["- no fundamentals on file"]
+    L += ["", f"## Business: {fund_trends.headline(tr)}"]
+    if tr.get("pillars"):
+        L.append("Pillars: " + " · ".join(f"{k} {v['score']}" for k, v in tr["pillars"].items()))
+    L += [f"- {fund_trends.ICON[f['way']]} **{f['metric']}** — {f['text']}" + ("" if f.get("scored", True) else " _(shown, not scored)_")
+          for f in tr["findings"] + tr.get("ownership", [])] or ["- no fundamentals on file"]
     L += ["", "### Yearly", _md_table(annual_view(R["annual"])), "### Quarterly", _md_table(quarterly_view(R["quarterly"]))]
     L += ["## Valuation"]
     if v and v.get("status") == "OK":

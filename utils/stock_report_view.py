@@ -77,7 +77,8 @@ def render(df: pd.DataFrame):
     h[1].metric("Price", f"₹{R['price']:,.1f}", f"{f(tech['ret']['1m'], '{:+.1f}')}% 1M")
     h[2].metric("RS vs Nifty", f(tech["comp_rs"], "{:+.1f}"))
     h[3].metric("SIMBA", f"{f(srow.get('score'), '{:.0f}')} · {srow.get('grade', '—')}" if srow else "—")
-    h[4].metric("Business", tr["verdict"].title())
+    h[4].metric("Business", f"{tr['verdict'].title()} {tr['score']}" if tr.get("score") is not None else "—",
+                tr["direction"].lower() + (" · investing" if tr.get("investing") else "") if tr.get("direction") else None, delta_color="off")
     getattr(st, R["verdict"]["tone"])(f"**{R['verdict']['tag']}** — {R['verdict']['why']}")
     st.download_button("⬇️ Download this report (Markdown)", sr.markdown(R), file_name=f"{t.replace('.NS', '')}_report.md",
                        mime="text/markdown", key="sr_dl")
@@ -139,7 +140,7 @@ def render(df: pd.DataFrame):
     else:
         st.info("No valid stop below the price in today's data, so no entry plan.")
 
-    st.markdown(f"#### 5 · Business trends — {tr['verdict'].title()} ({tr['up']} improving, {tr['down']} worsening)")
+    st.markdown(f"#### 5 · Business — {fund_trends.headline(tr)}")
     if not tr["findings"]:
         st.info("No fundamentals on file for this stock.")
     else:
@@ -148,10 +149,22 @@ def render(df: pd.DataFrame):
             st.markdown(f"**Latest quarter ({lq['quarter']}):** sales ₹{f(lq['sales'], '{:,.0f}')} cr ({f(lq['sales_yoy'], '{:+.0f}')}% YoY), "
                         f"net profit ₹{f(lq['np'], '{:,.0f}')} cr ({f(lq['np_yoy'], '{:+.0f}')}% YoY), net margin {f(lq['npm'])}%"
                         + (f", OPM {f(lq['opm'], '{:.0f}')}%" if pd.notna(lq.get("opm")) else ""))
-        a, b = st.columns(2)
-        half = (len(tr["findings"]) + 1) // 2
-        for col, part in ((a, tr["findings"][:half]), (b, tr["findings"][half:])):
-            col.markdown("\n".join(f"- {fund_trends.ICON[x['way']]} **{x['metric']}** — {x['text']}" for x in part))
+        if tr.get("investing"):
+            st.info(f"🏗️ **Investment phase** — {tr['investing']['text']}. The fall in ROCE, net margin and asset turnover that a "
+                    "larger capital base causes is shown but not counted against the business; what to watch is whether returns "
+                    "recover as the new assets start earning.")
+        cols = st.columns(len(tr["pillars"]) or 1)
+        arrow = lambda d: "improving" if d > 0.25 else "slipping" if d < -0.25 else "steady"
+        for col, (k, v) in zip(cols, tr["pillars"].items()):
+            col.metric(f"{k} ({fund_trends.WEIGHTS[k] * 100:.0f}%)", f"{v['score']}/100", arrow(v["dir"]), delta_color="off")
+            col.progress(int(v["score"]))
+            col.markdown("\n".join(f"- {fund_trends.ICON[x['way']]} **{x['metric']}** — {x['text']}" + ("" if x["scored"] else " *(not scored)*")
+                                   for x in tr["findings"] if x["pillar"] == k))
+        if tr.get("ownership"):
+            st.markdown("**Ownership** (shown for context, not part of the score): " + " · ".join(
+                f"{fund_trends.ICON[x['way']]} {x['metric']} {x['text']}" for x in tr["ownership"]))
+        st.caption("Score = growth 30%, margins 25%, cash and balance sheet 25%, returns on capital 20%; each mixes the level with "
+                   "its direction. Strong 70+, Healthy 55+, Mixed 40+, Weak below. The weights are judgement, not fitted to returns.")
         A, Q = R["annual"].tail(8), R["quarterly"].tail(12)
         if not A.empty:
             a, b = st.columns(2)

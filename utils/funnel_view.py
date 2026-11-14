@@ -59,7 +59,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Stock": P.ticker.str.replace(".NS", "", regex=False), "Name": P.name, **{c: P[c] for c in extra},
         "Industry": P.industry, "Ind.": P.ind_group.str.title(), "Price": P.price, "RS": P.comp_rs,
         "Technicals": P.technicals, "Stop": P.stop, "Risk %": P.risk_pct, "Target 1": P.t1,
-        "Business": P.biz_verdict.str.title(), "Latest qtr profit YoY": P.np_yoy, "Flags": P.biz_flags,
+        "Business": P.biz_headline, "Latest qtr profit YoY": P.np_yoy, "Flags": P.biz_flags,
         "Value pctile": P.val_pct, "To mid value": P.val_upside})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
