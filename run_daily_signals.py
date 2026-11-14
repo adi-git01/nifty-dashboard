@@ -232,6 +232,14 @@ def main():
     except Exception as e:
         print(f"  Agreement log failed: {e}")
 
+    # ── 3d. Signal scorecard + model-portfolio benchmark (utils/signal_scorecard.py) ──
+    try:
+        from utils import signal_scorecard
+        _sc = signal_scorecard.build()
+        print(f"  Scorecard: {len(_sc)} rows -> {signal_scorecard.OUT}")
+    except Exception as e:
+        print(f"  Scorecard failed: {e}")
+
     # ── 4. Telegram Summary ───────────────────────────────────────────────
     date_str = datetime.now().strftime("%d %b %Y")
     lines = [f"<b>📡 Daily Signal Logger — {date_str}</b>\n"]

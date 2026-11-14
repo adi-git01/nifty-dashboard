@@ -148,3 +148,31 @@ def test_scraper_collects_working_capital_days_and_quarterly_margin():
     a, q = {k[0] for k in fa.parse_annual(html)}, {k[0] for k in fa.parse_quarterly(html)}
     assert {"debtor_days", "inventory_days", "ccc_days", "wc_days", "roce", "sales"} <= a
     assert {"opm", "op", "sales", "np", "promoters"} <= q
+
+
+def test_signal_scorecard_measures_excess_and_verdicts(tmp_path):
+    from utils import signal_scorecard as sc
+    (tmp_path / "data" / "cache").mkdir(parents=True)
+    days = pd.bdate_range("2026-01-05", periods=120)
+    tick = [f"S{i}.NS" for i in range(40)]
+    for k, d in enumerate(days):                       # S0-S9 rise 0.5% a day, the rest are flat
+        px = [100 * 1.005 ** k if i < 10 else 100 + 0.01 * ((k + i) % 3) for i in range(40)]
+        pd.DataFrame({"ticker": tick, "currentPrice": px, "dna_signal": ["BUY" if i < 20 else "HOLD" for i in range(40)],
+                      "trend_score": 50, "volume_signal_score": 5}).to_parquet(
+            tmp_path / "data" / "cache" / f"market_master_{d:%Y_%m_%d}.parquet")
+    sig = [(d.strftime("%Y-%m-%d"), t) for d in days[:60:1] for t in tick[:4]]           # winners
+    pd.DataFrame(sig, columns=["signal_date", "ticker"]).to_csv(tmp_path / "data" / "tc_log.csv", index=False)
+    los = [(d.strftime("%Y-%m-%d"), t) for d in days[:60] for t in tick[30:34]]
+    pd.DataFrame(los, columns=["signal_date", "ticker"]).to_csv(tmp_path / "data" / "rs_divergence_log.csv", index=False)
+    S = sc.build(str(tmp_path), save=True).set_index("signal")
+    tc = S.loc["Turnaround Catalyst"]
+    assert tc.signals == 16 and round(tc.avg_21d, 1) == round((1.005 ** 21 - 1) * 100, 1)   # a re-signal within 21 days does not count again
+    assert S.loc[sc.YARDSTICK].verdict == "YARDSTICK" and S.loc[sc.YARDSTICK].avg_21d > 0
+    assert tc.verdict == "TOO NEW" and abs(S.loc["RS Divergence"].avg_21d) < 0.1
+    assert (tmp_path / "data" / "signal_scorecard.csv").exists()
+    r = pd.Series(dict(n_21d=500, n_63d=300, avg_21d=-1.0, avg_63d=-2.0, hit_21d=40))
+    base = pd.Series(dict(avg_21d=1.0, avg_63d=4.0))
+    assert sc._verdict(r, base) == "LAGS MARKET"
+    assert sc._verdict(r.replace({-1.0: 2.5, -2.0: 6.0, 40: 55}), base) == "BEATS MOMENTUM"
+    assert sc._verdict(r.replace({-1.0: 0.9, -2.0: 3.9}), base) == "LIKE MOMENTUM"
+    assert sc._verdict(r.replace({-1.0: 0.2, -2.0: 3.0}), base) == "NO EDGE"
