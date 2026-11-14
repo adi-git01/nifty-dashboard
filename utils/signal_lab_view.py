@@ -133,8 +133,51 @@ def _strong(df: pd.DataFrame, kind: str):
         st.caption(f"{len(V)} stock(s). Check the quarter itself under **Stock Report → Business trends** before acting.")
 
 
+def _lookup(df: pd.DataFrame):
+    from utils import funnel_view as fv, strong_names as sn
+    st.caption("Pick one or more stocks to see every signal they have triggered, across all scanners.")
+    names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    pick = st.multiselect("Stocks", df["ticker"].tolist(), key="sl_lookup", placeholder="Type a name or ticker…",
+                          format_func=lambda t: f"{t.replace('.NS', '')} — {names.get(t, '')}", label_visibility="collapsed")
+    if not pick:
+        st.info("Type a company name or ticker above.")
+        return
+    px = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce")
+    S = sn.signals_for(pick, px.to_dict())
+    T = fv.get_table(df).drop_duplicates("ticker").set_index("ticker")
+    for t in pick:
+        g = S[S.ticker == t]
+        r = T.loc[t] if t in T.index else None
+        st.markdown(f"##### {names.get(t, t)} ({t.replace('.NS', '')})")
+        c = st.columns(5)
+        c[0].metric("Price", f"₹{px.get(t, float('nan')):,.1f}")
+        c[1].metric("Signals logged", len(g))
+        c[2].metric("Last 30 days", int((g.date >= pd.Timestamp.today() - pd.Timedelta(days=30)).sum()))
+        c[3].metric("Scanner", str(r.scanner) if r is not None else "—")
+        c[4].metric("Technicals", str(r.technicals) if r is not None else "—")
+        if r is not None:
+            stages = [("Industry", r.s_industry), ("Trend", r.s_trend), ("Business", r.s_business), ("Entry", r.s_setup)]
+            st.markdown("Funnel today: " + " · ".join(
+                f"{'➖' if pd.isna(v) else '✅' if bool(v) else '❌'} {lab}" for lab, v in stages)
+                + f" · {r.industry or 'Unclassified'} ({str(r.ind_group).title() or '—'})")
+        if g.empty:
+            st.caption("No scanner has flagged this stock in the logs.")
+            continue
+        cnt = g.groupby("signal").agg(times=("date", "size"), first=("date", "min"), latest=("date", "max")).reset_index()
+        st.markdown(" · ".join(f"**{x.signal}** ×{x.times}" for x in cnt.sort_values("times", ascending=False).itertuples()))
+        st.dataframe(g.drop(columns="ticker"), hide_index=True, use_container_width=True, height=min(len(g) * 35 + 40, 420), column_config={
+            "date": st.column_config.DateColumn("Date", format="DD MMM YYYY"), "signal": "Signal", "detail": "What triggered",
+            "price_then": st.column_config.NumberColumn("Price then", format="₹%.1f"),
+            "return_since": st.column_config.NumberColumn("Since then", format="%+.1f%%")})
+    st.caption("Returns are from the signal-day price to the latest close. For the full picture on a stock open "
+               "**Analysis Lab → Stock Report**.")
+
+
 def render(df: pd.DataFrame):
-    t1, t2, t3, t4 = st.tabs(["💪 RS Divergence", "⚡ Earnings Drift", "📏 Scorecard", "🗂 All signal logs"], key="sl_tab", on_change="rerun")
+    t0, t1, t2, t3, t4 = st.tabs(["🔎 Stock lookup", "💪 RS Divergence", "⚡ Earnings Drift", "📏 Scorecard", "🗂 All signal logs"],
+                                 key="sl_tab", on_change="rerun")
+    with t0:
+        _lookup(df)
     with t1:
         _strong(df, "rs")
     with t2:

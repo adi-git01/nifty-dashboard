@@ -216,3 +216,18 @@ def test_strong_names_group_and_label(tmp_path, monkeypatch):
     assert R.at["A.NS", "funnel"] == "✅ Buyable" and R.at["B.NS", "funnel"] == "— Not in uptrend" and R.today.all()
     E = sn.earnings_drift(T, 45).set_index("ticker")
     assert E.at["A.NS", "jump_pct"] == 6.0 and E.at["A.NS", "holds"] and not E.at["B.NS", "holds"]      # first jump in the window
+
+
+def test_signals_for_collects_every_log(tmp_path, monkeypatch):
+    from utils import strong_names as sn
+    pd.DataFrame({"signal_date": ["2026-11-05", "2026-10-01"], "ticker": ["A.NS", "B.NS"], "signal_price": [100.0, 50.0],
+                  "return_since_signal": [np.nan, 4.0], "stock_ret_on_day": [1.2, 0.5], "nifty_ret_on_day": [-0.8, -0.6]}).to_csv(tmp_path / "rs.csv", index=False)
+    pd.DataFrame({"breakout_date": ["2026-11-10"], "ticker": ["A.NS"], "kind": ["52W breakout"], "vol_x": [3.2], "signal_price": [105.0],
+                  "return_pct": [2.0]}).to_csv(tmp_path / "bo.csv", index=False)
+    src = [(l, {"💪 RS Divergence": str(tmp_path / "rs.csv"), "🚀 Breakout": str(tmp_path / "bo.csv")}.get(l, str(tmp_path / "none.csv")), *rest)
+           for l, _, *rest in sn.SOURCES]
+    monkeypatch.setattr(sn, "SOURCES", src)
+    S = sn.signals_for("A.NS", {"A.NS": 110.0})
+    assert S.signal.tolist() == ["🚀 Breakout", "💪 RS Divergence"] and S.return_since.round(1).tolist() == [4.8, 10.0]      # to the latest close
+    assert "52W breakout" in S.detail.iloc[0] and "v Nifty -0.8%" in S.detail.iloc[1]
+    assert len(sn.signals_for(["A.NS", "B.NS"])) == 3 and sn.signals_for("Z.NS").empty
