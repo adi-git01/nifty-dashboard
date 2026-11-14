@@ -74,13 +74,121 @@ def _scorecard():
         (f"- 🟢 **Beating plain momentum:** {', '.join(beat)}.\n" if beat else "- **Nothing here beats plain momentum so far.** "
          "Earnings Shock and the V2.2 alerts are positive only because they are momentum lists; they add nothing to the Scanner BUY list.\n")
         + (f"- 🔴 **Behind the market:** {', '.join(lag)}.\n" if lag else "")
+        + "- **RS Divergence** has clean data only since September 2026: too short to judge either way.\n"
         + "- One market regime and under a year of data. Treat these lists as ideas to check in the **Stock Report**, not as buy signals.")
 
 
+def _strong(df: pd.DataFrame, kind: str):
+    from utils import funnel_view as fv, strong_names as sn
+    T = fv.get_table(df)
+    pc = lambda f="%+.1f%%": st.column_config.NumberColumn(format=f)
+    if kind == "rs":
+        st.caption("Stocks that **rose on days the Nifty fell**. One row per stock; more red days held = more persistent "
+                   "strength. The Funnel column says whether it is buyable today.")
+        a, b, c = st.columns([1, 1, 2])
+        days = a.selectbox("Window", [10, 30, 60], index=1, format_func=lambda d: f"Last {d} days", key="sn_rs_days")
+        mn = b.selectbox("Held up on at least", [1, 2, 3, 4], index=1, format_func=lambda n: f"{n} red day(s)", key="sn_rs_min")
+        only = c.checkbox("Only stocks in an uptrend (Scanner BUY)", value=False, key="sn_rs_buy")
+        X = sn.rs_divergence(T, days)
+        if X.empty:
+            st.info("No RS divergence signals in this window.")
+            return
+        X = X[X.red_days >= mn]
+        X = X[X.s_trend.eq(True)] if only else X
+        X = search_box(X, "sn_rs_q")
+        V = pd.DataFrame({"": X.today.map({True: "🆕", False: ""}), "Stock": X.ticker.str.replace(".NS", "", regex=False), "Name": X.name,
+                          "Red days held": X.red_days, "Avg beat": X.avg_gap, "Latest": X.latest, "Since first": X.since_first,
+                          "Funnel": X.funnel, "Technicals": X.technicals, "From high": X.dist_52w, "RS": X.comp_rs,
+                          "Industry": X.industry, "Ind.": X.ind_group.astype(str).str.title()})
+        st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 620), column_config={
+            "": st.column_config.TextColumn("", width="small", help="🆕 = flagged on the latest red day"),
+            "Avg beat": st.column_config.NumberColumn(format="%+.1f pp", help="Average of (stock move − Nifty move) on those days"),
+            "Latest": st.column_config.DateColumn(format="DD MMM"), "Since first": pc(), "From high": pc("%.0f%%"),
+            "RS": st.column_config.NumberColumn(format="%+.1f")})
+        st.caption(f"{len(V)} stock(s). The log has clean data only since September 2026, so its track record is too short to "
+                   "judge (see Scorecard). Use it to find names, then check them in **Stock Report**.")
+    else:
+        st.caption("Stocks that **jumped 4%+ on 2.5× volume**, usually on results. One row per stock, from its first jump in "
+                   "the window. So far the drift has continued only when the stock was already in an uptrend "
+                   "(+5.6 pp over 63 sessions v +0.8 pp when not); a bigger jump did not help.")
+        a, b, c = st.columns([1, 1.6, 1.6])
+        days = a.selectbox("Window", [15, 45, 90], index=1, format_func=lambda d: f"Last {d} days", key="sn_es_days")
+        only = b.checkbox("Only stocks in an uptrend (Scanner BUY)", value=True, key="sn_es_buy")
+        hold = c.checkbox("Only still above the jump-day close", value=False, key="sn_es_hold")
+        X = sn.earnings_drift(T, days)
+        if X.empty:
+            st.info("No earnings jumps in this window.")
+            return
+        X = X[X.s_trend.eq(True)] if only else X
+        X = X[X.holds] if hold else X
+        X = search_box(X, "sn_es_q")
+        V = pd.DataFrame({"Stock": X.ticker.str.replace(".NS", "", regex=False), "Name": X.name, "Jump day": X.jump_date,
+                          "Jump": X.jump_pct, "Volume": X.vol_mult, "Since": X.since, "Holds jump": X.holds.map({True: "✅", False: "❌"}),
+                          "Sessions": X.sessions, "Funnel": X.funnel, "Technicals": X.technicals, "From high": X.dist_52w,
+                          "Industry": X.industry, "Ind.": X.ind_group.astype(str).str.title()})
+        st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 620), column_config={
+            "Jump day": st.column_config.DateColumn(format="DD MMM"), "Jump": pc(), "Since": pc(), "From high": pc("%.0f%%"),
+            "Volume": st.column_config.NumberColumn(format="%.1f×"),
+            "Holds jump": st.column_config.TextColumn(help="Price still at or above the close of the jump day")})
+        st.caption(f"{len(V)} stock(s). Check the quarter itself under **Stock Report → Business trends** before acting.")
+
+
+def _lookup(df: pd.DataFrame):
+    from utils import funnel_view as fv, strong_names as sn
+    st.caption("Pick one or more stocks to see every signal they have triggered, across all scanners.")
+    names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    pick = st.multiselect("Stocks", df["ticker"].tolist(), key="sl_lookup", placeholder="Type a name or ticker…",
+                          format_func=lambda t: f"{t.replace('.NS', '')} — {names.get(t, '')}", label_visibility="collapsed")
+    if not pick:
+        st.info("Type a company name or ticker above.")
+        return
+    px = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce")
+    S = sn.signals_for(pick, px.to_dict())
+    T = fv.get_table(df).drop_duplicates("ticker").set_index("ticker")
+    for t in pick:
+        g = S[S.ticker == t]
+        r = T.loc[t] if t in T.index else None
+        st.markdown(f"##### {names.get(t, t)} ({t.replace('.NS', '')})")
+        c = st.columns(5)
+        c[0].metric("Price", f"₹{px.get(t, float('nan')):,.1f}")
+        c[1].metric("Signals logged", len(g))
+        c[2].metric("Last 30 days", int((g.date >= pd.Timestamp.today() - pd.Timedelta(days=30)).sum()))
+        c[3].metric("Scanner", str(r.scanner) if r is not None else "—")
+        c[4].metric("Technicals", str(r.technicals) if r is not None else "—")
+        if r is not None:
+            stages = [("Industry", r.s_industry), ("Trend", r.s_trend), ("Business", r.s_business), ("Entry", r.s_setup)]
+            st.markdown("Funnel today: " + " · ".join(
+                f"{'➖' if pd.isna(v) else '✅' if bool(v) else '❌'} {lab}" for lab, v in stages)
+                + f" · {r.industry or 'Unclassified'} ({str(r.ind_group).title() or '—'})")
+        if g.empty:
+            st.caption("No scanner has flagged this stock in the logs.")
+            continue
+        cnt = g.groupby("signal").agg(times=("date", "size"), first=("date", "min"), latest=("date", "max")).reset_index()
+        st.markdown(" · ".join(f"**{x.signal}** ×{x.times}" for x in cnt.sort_values("times", ascending=False).itertuples()))
+        st.dataframe(g.drop(columns="ticker"), hide_index=True, use_container_width=True, height=min(len(g) * 35 + 40, 420), column_config={
+            "date": st.column_config.DateColumn("Date", format="DD MMM YYYY"), "signal": "Signal", "detail": "What triggered",
+            "price_then": st.column_config.NumberColumn("Price then", format="₹%.1f"),
+            "return_since": st.column_config.NumberColumn("Since then", format="%+.1f%%")})
+    st.caption("Returns are from the signal-day price to the latest close. For the full picture on a stock open "
+               "**Analysis Lab → Stock Report**.")
+
+
 def render(df: pd.DataFrame):
-    _scorecard()
-    st.markdown("---")
-    st.markdown("#### Signals")
+    t0, t1, t2, t3, t4 = st.tabs(["🔎 Stock lookup", "💪 RS Divergence", "⚡ Earnings Drift", "📏 Scorecard", "🗂 All signal logs"],
+                                 key="sl_tab", on_change="rerun")
+    with t0:
+        _lookup(df)
+    with t1:
+        _strong(df, "rs")
+    with t2:
+        _strong(df, "es")
+    with t3:
+        _scorecard()
+    with t4:
+        _logs()
+
+
+def _logs():
     a, b = st.columns([2, 1])
     which = a.selectbox("List", list(BROWSE), key="sl_which")
     path, dcol, cols = BROWSE[which]
