@@ -97,68 +97,43 @@ def calculate_stock_trend_history(ticker, hist_df=None):
     return df
 
 
+BENCH = "Market (Eq Wt)"
+
+
+def sector_indices(prices: pd.DataFrame, sector_map: dict) -> pd.DataFrame:
+    """Equal-weight index (base 100) per sector plus BENCH, from a dates x tickers close panel."""
+    if prices is None or prices.empty:
+        return pd.DataFrame()
+    r = prices.pct_change(fill_method=None).clip(-0.25, 0.25)
+    out = {}
+    for sec in sorted({v for v in sector_map.values() if isinstance(v, str) and v}):
+        cols = [t for t in r.columns if sector_map.get(t) == sec]
+        if len(cols) >= 3:                                   # a 1-2 stock "sector" is just those stocks
+            out[sec] = (1 + r[cols].mean(axis=1).fillna(0)).cumprod() * 100
+    out[BENCH] = (1 + r.mean(axis=1).fillna(0)).cumprod() * 100
+    return pd.DataFrame(out)
+
+
 @st.cache_data(ttl=3600*4)
 def calculate_sector_history(nifty500_df):
     """
-    Constructs equal-weighted historical indices for each sector using cached price history.
-    
-    Args:
-        nifty500_df: DataFrame containing at least 'ticker' and 'sector' columns
-        
-    Returns:
-        DataFrame index=Date, columns=Sectors (values are normalized 100 start)
+    Equal-weight sector indices (base 100) with a market benchmark column (BENCH).
+
+    Built from the stored daily snapshots (no download, split-adjusted). Falls back to a one-year
+    Yahoo download only when there are fewer than 30 snapshots.
     """
+    sector_map = nifty500_df.drop_duplicates('ticker').set_index('ticker')['sector'].to_dict()
     try:
-        # Get unique tickers
-        tickers = nifty500_df['ticker'].unique().tolist()
-        
-        # Batch fetch history (optimized)
-        # We'll valid tickers only
-        valid_tickers = [t for t in tickers if t.endswith(('.NS', '.BO'))]
-        
-        # Download in one massive batch for speed
-        data = yf.download(valid_tickers, period="1y", interval="1d", progress=False)['Close']
-        
-        if data.empty:
-            return pd.DataFrame()
-            
-        # Group tickers by sector
-        sector_map = nifty500_df.set_index('ticker')['sector'].to_dict()
-        
-        # Calculate daily returns
-        returns = data.pct_change()
-        
-        # Aggregated Sector Returns
-        sector_indices = pd.DataFrame()
-        
-        unique_sectors = nifty500_df['sector'].unique()
-        
-        for sector in unique_sectors:
-            if not sector: continue
-                
-            # Find tickers in this sector
-            sector_tickers = [t for t in valid_tickers if sector_map.get(t) == sector]
-            
-            # Filter returns for these tickers
-            # Handle potential missing columns if fetch failed for some
-            avail_tickers = [t for t in sector_tickers if t in returns.columns]
-            
-            if not avail_tickers:
-                continue
-                
-            # Average daily return of the sector (Equal Weight)
-            sector_daily_ret = returns[avail_tickers].mean(axis=1)
-            
-            # Construct Index (Base 100)
-            sector_index = (1 + sector_daily_ret).cumprod() * 100
-            sector_indices[sector] = sector_index
-            
-        # Also add Market Benchmark (Approximate using mean of all)
-        market_ret = returns.mean(axis=1)
-        sector_indices['Market (Eq Wt)'] = (1 + market_ret).cumprod() * 100
-        
-        return sector_indices.dropna()
-        
+        from utils.signal_scorecard import price_panel
+        P, _ = price_panel()
+        if len(P) >= 30:
+            return sector_indices(P, sector_map)
+    except Exception as e:
+        print(f"Sector history from snapshots failed: {e}")
+    try:
+        tickers = [t for t in nifty500_df['ticker'].unique().tolist() if t.endswith(('.NS', '.BO'))]
+        data = yf.download(tickers, period="1y", interval="1d", progress=False)['Close']
+        return sector_indices(data, sector_map)
     except Exception as e:
         print(f"Error calculating sector history: {e}")
         return pd.DataFrame()

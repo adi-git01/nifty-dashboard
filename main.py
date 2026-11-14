@@ -5720,8 +5720,8 @@ elif page == "⏳ Time Trends":
     
     # 1. Sector Rotation Tab
     with tab_sector:
-        st.markdown("### Sector Rotation: Relative Strength vs Nifty 500")
-        st.caption("Tracks how sectors have performed relative to the market over the last year. Lines going UP are outperforming.")
+        st.markdown("### Sector Rotation: Relative Strength vs the Market")
+        st.caption("Each sector's equal-weight index against the equal-weight market, built from the stored daily snapshots (since Feb 2026). Lines going UP are outperforming. Click a legend name to hide or isolate a sector.")
         
         with st.spinner("Calculating Sector Histories... (This may take a moment)"):
             sector_hist = calculate_sector_history(df)

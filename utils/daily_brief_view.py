@@ -93,7 +93,7 @@ def _funnel(df: pd.DataFrame, B: pd.DataFrame):
     V = pd.DataFrame({
         "": ["🆕" if t not in old else "" for t in P.ticker], "Stock": P.ticker.str.replace(".NS", "", regex=False),
         "Name": P.name, "Industry": P.industry, "Price": P.price, "RS": P.comp_rs, "Technicals": P.technicals,
-        "Stop": P.stop, "Risk %": P.risk_pct, "Target 1": P.t1, "Business": P.biz_verdict.str.title()})
+        "Stop": P.stop, "Risk %": P.risk_pct, "Target 1": P.t1, "Business": P.biz_headline})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 420), column_config={
         "": st.column_config.TextColumn("", width="small", help="🆕 = did not have both an uptrend and an entry yesterday"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),

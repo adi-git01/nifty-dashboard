@@ -71,10 +71,13 @@ def test_business_trends_direction_and_tables(tmp_path):
     assert len(a) == 6 and round(a.sales_g.iloc[-1], 0) == 15 and round(a.cash_conv.iloc[-1], 0) == 130
     assert round(a.debt_eq.iloc[-1], 2) == round(100 / 750, 2) and a.inventory_days.iloc[-1] == 65
     r = fund_trends.read("X.NS", root)
-    way = {f["metric"]: f["way"] for f in r["findings"]}
+    way = {f["metric"]: f["way"] for f in r["findings"] + r["ownership"]}
     assert way["Operating margin"] == "IMPROVING" and way["ROCE"] == "IMPROVING" and way["Sales growth"] == "STABLE"
     assert way["Inventory days"] == "IMPROVING" and way["Promoter holding"] == "IMPROVING"      # fewer days = better
-    assert r["verdict"] == "IMPROVING" and r["latest"]["quarter"] == "Sep 2026" and r["has_wc_days"] and not r["has_q_opm"]
+    assert set(r["pillars"]) == set(fund_trends.WEIGHTS) and r["verdict"] in ("STRONG", "HEALTHY") and r["score"] >= 60
+    assert r["direction"] == "IMPROVING" and r["investing"] is None and not r["hard_flags"]
+    assert all(not f["scored"] for f in r["ownership"]) and fund_trends.headline(r).startswith(r["verdict"].title())
+    assert r["latest"]["quarter"] == "Sep 2026" and r["has_wc_days"] and not r["has_q_opm"]
     assert round(r["latest"]["sales_yoy"], 0) == round((1.04 ** 4 - 1) * 100, 0)
     assert "OPM %" in stock_report.annual_view(a).index and "Sales YoY %" in stock_report.quarterly_view(fund_trends.quarterly("X.NS", root)).index
 
@@ -85,7 +88,26 @@ def test_poor_cash_conversion_is_flagged_and_fails_business(tmp_path):
     cc = next(f for f in r["findings"] if f["metric"] == "Cash conversion")
     assert cc["way"] == "WORSENING" and "not turning into cash" in cc["text"]
     b = fund_trends.brief("X.NS", root)
-    assert not b["ok"] and any(f.startswith("cash conversion") for f in b["flags"])
+    assert not b["ok"] and any(f.startswith("cash conversion") for f in b["flags"]) and b["score"] is not None
+
+
+def test_investment_phase_does_not_count_roce_dilution_against_the_business(tmp_path):
+    root = _files(tmp_path)
+    f = tmp_path / "data" / "fundamentals_annual.csv.gz"
+    A = pd.read_csv(f)
+    late = A.period >= "2025-03-31"
+    A.loc[late & (A.field == "borrowings"), "value"] = 550.0            # an acquisition: capital employed up about 70%
+    A.loc[late & (A.field == "fixed_assets"), "value"] = 1400.0
+    A.loc[A.field == "roce", "value"] = A.loc[A.field == "roce", "period"].map(
+        dict(zip(sorted(A.period.unique()), [30, 30, 30, 28, 16, 14]))).values
+    A.to_csv(f, index=False)
+    fund_trends._load.cache_clear()
+    r = fund_trends.read("X.NS", root)
+    way = {x["metric"]: x["way"] for x in r["findings"]}
+    assert r["investing"] and "FY25" in r["investing"]["text"] and way["ROCE"] == "INVESTING" and way["Investment phase"] == "INVESTING"
+    assert way["Fixed-asset turnover"] == "INVESTING" and r["down"] == 0 and r["verdict"] in ("STRONG", "HEALTHY")
+    assert r["pillars"]["Returns on capital"]["dir"] == 0 and "investment phase" in fund_trends.headline(r)
+    assert fund_trends.brief("X.NS", root)["ok"]
 
 
 def test_lenders_skip_cash_and_debt_tests(tmp_path):
@@ -93,6 +115,7 @@ def test_lenders_skip_cash_and_debt_tests(tmp_path):
     r = fund_trends.read("X.NS", root)
     names = {f["metric"] for f in r["findings"]}
     assert r["financial"] and "Cash conversion" not in names and "Debt / equity" not in names and "ROE" in names
+    assert "Cash & balance sheet" not in r["pillars"] and not r["hard_flags"]
     assert fund_trends.read("NOPE.NS", root)["verdict"] == "NO DATA"
 
 
@@ -129,7 +152,7 @@ def test_stock_report_verdicts_and_markdown(tmp_path, monkeypatch):
     assert R["verdict"]["tag"] == "ACTIONABLE" and round(R["plan"]["risk_pct"], 1) == 8.0 and R["plan"]["t1"] == 116.0
     assert round(R["plan"]["size_pct"], 1) == 12.5                                     # 1% risk / 8% stop
     md = stock_report.markdown(R)
-    for part in ("## Verdict: ACTIONABLE", "## Funnel checklist", "## Industry", "## Entry plan", "## Business trends: IMPROVING",
+    for part in ("## Verdict: ACTIONABLE", "## Funnel checklist", "## Industry", "## Entry plan", "## Business: ", "Pillars: Growth",
                  "### Quarterly", "## Valuation"):
         assert part in md
     assert stock_report.gather(df.ticker.iloc[1], df, B)["verdict"]["tag"] == "WAIT FOR A TIGHTER ENTRY" or \
@@ -231,3 +254,17 @@ def test_signals_for_collects_every_log(tmp_path, monkeypatch):
     assert S.signal.tolist() == ["🚀 Breakout", "💪 RS Divergence"] and S.return_since.round(1).tolist() == [4.8, 10.0]      # to the latest close
     assert "52W breakout" in S.detail.iloc[0] and "v Nifty -0.8%" in S.detail.iloc[1]
     assert len(sn.signals_for(["A.NS", "B.NS"])) == 3 and sn.signals_for("Z.NS").empty
+
+
+def test_sector_history_has_a_benchmark_the_chart_accepts():
+    from utils import trend_engine as te
+    from utils.visuals import chart_sector_rotation
+    idx = pd.bdate_range("2026-01-05", periods=40)
+    P = pd.DataFrame({f"A{i}.NS": 100 * 1.01 ** np.arange(40) for i in range(3)} | {f"B{i}.NS": 100.0 for i in range(3)} | {"C0.NS": 50.0},
+                     index=idx)
+    smap = {**{f"A{i}.NS": "Up" for i in range(3)}, **{f"B{i}.NS": "Flat" for i in range(3)}, "C0.NS": "Tiny"}
+    H = te.sector_indices(P, smap)
+    assert set(H.columns) == {"Up", "Flat", te.BENCH} and H["Up"].iloc[-1] > H[te.BENCH].iloc[-1] > H["Flat"].iloc[-1] == 100
+    assert len(chart_sector_rotation(H).data) == 2                                        # benchmark is the baseline, not a line
+    assert len(chart_sector_rotation(H.rename(columns={te.BENCH: "Nifty 500 (Eq Wt)"})).data) == 2   # the old name still works
+    assert chart_sector_rotation(H.drop(columns=[te.BENCH])) is None                      # no benchmark: no crash

@@ -10,7 +10,8 @@ Each stage reuses a tool the dashboard already has, in the order a top-down inve
                trend status is UPTREND / TURNING UP (utils/industry_board.py)
   2 TREND      Trend Scanner BUY (RS vs Nifty > 0, above the 50-day, liquid) and not in a
                Stage 3 / 4 chart (SIMBA stage)
-  3 BUSINESS   business trends not WORSENING, 3-year cash conversion >= 50%, debt / equity <= 1.5
+  3 BUSINESS   business score >= 45 of 100 (growth, margins, cash and balance sheet, returns on
+               capital), 3-year cash conversion >= 50%, debt / equity <= 1.5
                (utils/fund_trends.py; lenders skip the cash and debt tests)
   4 SETUP      an entry exists now: Technicals BUY NOW / BUY ON TRIGGER, or a SIMBA Machayega
                breakout / SI Opportunity in the last 5 sessions, AND the stop is within 15% of the
@@ -41,7 +42,7 @@ MAX_RISK_PCT = 15         # a stop further away than this is not a tradable entr
 WHAT = {
     "industry": "Sub-industry is Leading / Improving on the leadership board, or in an Uptrend / Turning up",
     "trend": "Trend Scanner BUY (RS > 0, above 50-day, liquid) and not a Stage 3 / 4 chart",
-    "business": "Business trends not worsening; cash conversion ≥ 50%; debt/equity ≤ 1.5",
+    "business": "Business score ≥ 45/100 (growth, margins, cash, returns); cash conversion ≥ 50%; debt/equity ≤ 1.5",
     "setup": f"Technicals BUY NOW / BUY ON TRIGGER, or a SIMBA breakout / SI Opportunity within {SETUP_DAYS} sessions, with the stop within {MAX_RISK_PCT}%",
     "value": f"Price in the lower {VALUE_MAX_PCT}% of the valuation range (unvalued stocks pass as n/a)",
 }
@@ -112,6 +113,7 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     from utils import fund_trends
     todo = set(x.ticker[x.s_trend]) if business_for is None else set(business_for)
     x["s_business"], x["biz_verdict"], x["biz_flags"], x["quarter"] = np.nan, "", "", ""
+    x["biz_score"], x["biz_headline"] = np.nan, ""
     x["sales_yoy"], x["np_yoy"], x["roce"] = np.nan, np.nan, np.nan
     x["s_business"] = x["s_business"].astype(object)
     for i, t in zip(x.index, x.ticker):
@@ -123,6 +125,7 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
             continue
         x.at[i, "s_business"] = bool(b["ok"])
         x.at[i, "biz_verdict"], x.at[i, "biz_flags"] = b["verdict"], "; ".join(b["flags"])
+        x.at[i, "biz_score"], x.at[i, "biz_headline"] = b.get("score"), b.get("headline", b["verdict"].title())
         x.at[i, "quarter"] = b["quarter"] or ""
         x.at[i, "sales_yoy"], x.at[i, "np_yoy"], x.at[i, "roce"] = b["sales_yoy"], b["np_yoy"], b["roce"]
     return x
@@ -155,7 +158,7 @@ def checklist(row: pd.Series) -> List[Dict[str, Any]]:
         dict(stage="🌊 Trend", ok=bool(row.s_trend),
              why=f"Scanner {row.scanner or '—'}, chart stage {f(row.stage)}, RS {f(row.comp_rs, '{:+.1f}')}, {f(row.dist_52w)}% from 52-week high"),
         dict(stage="🏢 Business", ok=None if pd.isna(row.s_business) else bool(row.s_business),
-             why=(f"Trends {row.biz_verdict.title()}" + (f"; flags: {row.biz_flags}" if row.biz_flags else "")
+             why=(f"{row.biz_headline or row.biz_verdict.title()}" + (f"; flags: {row.biz_flags}" if row.biz_flags else "")
                   + (f"; {row.quarter}: sales {f(row.sales_yoy, '{:+.0f}')}%, profit {f(row.np_yoy, '{:+.0f}')}% YoY" if row.quarter else ""))
              if row.biz_verdict else "Not evaluated"),
         dict(stage="🎯 Setup", ok=bool(row.s_setup),

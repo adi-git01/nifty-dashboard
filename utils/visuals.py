@@ -193,10 +193,14 @@ def chart_sector_rotation(sector_history):
     
     # Calculate Relative Strength (Sector / Nifty500 * 100)
     rel_strength = sector_history.copy()
-    benchmark = rel_strength['Nifty 500 (Eq Wt)']
+    # the benchmark column has been named both ways; a mismatch here used to crash the whole page
+    bench_col = next((c for c in ('Market (Eq Wt)', 'Nifty 500 (Eq Wt)') if c in rel_strength.columns), None)
+    if bench_col is None:
+        return None
+    benchmark = rel_strength[bench_col]
     
     for col in rel_strength.columns:
-        if col != 'Nifty 500 (Eq Wt)':
+        if col != bench_col:
             rel_strength[col] = (rel_strength[col] / benchmark) * 100
             
     # Visualize top performing sectors
@@ -204,7 +208,7 @@ def chart_sector_rotation(sector_history):
     
     # Add traces for sectors
     for col in rel_strength.columns:
-        if col == 'Nifty 500 (Eq Wt)': continue
+        if col == bench_col: continue
         
         # Highlight if it ends > 100 (Outperforming)
         last_val = rel_strength[col].iloc[-1]
@@ -221,10 +225,10 @@ def chart_sector_rotation(sector_history):
         ))
         
     # Add Baseline (100)
-    fig.add_hline(y=100, line_dash="dash", line_color="white", annotation_text="Market Perform")
+    fig.add_hline(y=100, line_dash="dash", line_color="gray", annotation_text="Market")
     
     fig.update_layout(
-        title="Sector Relative Strength (vs Nifty 500)",
+        title="Sector strength vs the equal-weight market (100 = in line)",
         template="plotly_white",
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
