@@ -254,3 +254,17 @@ def test_signals_for_collects_every_log(tmp_path, monkeypatch):
     assert S.signal.tolist() == ["🚀 Breakout", "💪 RS Divergence"] and S.return_since.round(1).tolist() == [4.8, 10.0]      # to the latest close
     assert "52W breakout" in S.detail.iloc[0] and "v Nifty -0.8%" in S.detail.iloc[1]
     assert len(sn.signals_for(["A.NS", "B.NS"])) == 3 and sn.signals_for("Z.NS").empty
+
+
+def test_sector_history_has_a_benchmark_the_chart_accepts():
+    from utils import trend_engine as te
+    from utils.visuals import chart_sector_rotation
+    idx = pd.bdate_range("2026-01-05", periods=40)
+    P = pd.DataFrame({f"A{i}.NS": 100 * 1.01 ** np.arange(40) for i in range(3)} | {f"B{i}.NS": 100.0 for i in range(3)} | {"C0.NS": 50.0},
+                     index=idx)
+    smap = {**{f"A{i}.NS": "Up" for i in range(3)}, **{f"B{i}.NS": "Flat" for i in range(3)}, "C0.NS": "Tiny"}
+    H = te.sector_indices(P, smap)
+    assert set(H.columns) == {"Up", "Flat", te.BENCH} and H["Up"].iloc[-1] > H[te.BENCH].iloc[-1] > H["Flat"].iloc[-1] == 100
+    assert len(chart_sector_rotation(H).data) == 2                                        # benchmark is the baseline, not a line
+    assert len(chart_sector_rotation(H.rename(columns={te.BENCH: "Nifty 500 (Eq Wt)"})).data) == 2   # the old name still works
+    assert chart_sector_rotation(H.drop(columns=[te.BENCH])) is None                      # no benchmark: no crash
