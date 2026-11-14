@@ -1525,7 +1525,7 @@ elif page == "🌊 Trend Scanner":
                                 ))
                         
                                 # 100 baseline
-                                fig.add_hline(y=100, line_dash="dash", line_color="rgba(255,255,255,0.2)", line_width=1)
+                                fig.add_hline(y=100, line_dash="dash", line_color="rgba(128,128,128,0.5)", line_width=1)
                         
                                 fig.update_layout(
                                     title=None,
@@ -5972,7 +5972,7 @@ elif page == "⏳ Time Trends":
                         # Main: Price & Trend
                         # Price Line
                         fig.add_trace(go.Scatter(x=full_hist.index, y=full_hist['Close'], name="Price", 
-                                                line=dict(color='white', width=1)), row=1, col=1)
+                                                line=dict(color='#1F2937', width=1.5)), row=1, col=1)
                         
                         # Divergence Signals
                         div_data = detect_divergences(full_hist)
@@ -6905,7 +6905,7 @@ DROPPED stocks are tracked in the Signal Log for post-mortem analysis.
                     legend=dict(bgcolor="rgba(0,0,0,0)"),
                     margin=dict(l=0, r=0, t=10, b=0),
                 )
-                fig_ret.add_vline(x=0, line_dash="dash", line_color="white", opacity=0.4)
+                fig_ret.add_vline(x=0, line_dash="dash", line_color="gray", opacity=0.6)
                 st.plotly_chart(fig_ret, use_container_width=True, key="log_fwd_ret_hist")
 
                 # Summary table
