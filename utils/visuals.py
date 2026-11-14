@@ -38,7 +38,7 @@ def chart_market_heatmap(df):
         height=600,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white')
+        font=dict(color='#1F2937')
     )
     return fig
 
@@ -84,7 +84,7 @@ def chart_score_radar(scores):
         plot_bgcolor='rgba(0,0,0,0)',
         margin=dict(l=20, r=20, t=20, b=20),
         height=300,
-        font=dict(color='white', family='Inter')
+        font=dict(color='#1F2937', family='Inter')
     )
     return fig
 
@@ -163,7 +163,7 @@ def chart_gauge(score):
         value = score,
         domain = {'x': [0, 1], 'y': [0, 1]},
         gauge = {
-            'axis': {'range': [0, 10], 'tickwidth': 1, 'tickcolor': "white"},
+            'axis': {'range': [0, 10], 'tickwidth': 1, 'tickcolor': "#1F2937"},
             'bar': {'color': "#00F0FF"},
             'bgcolor': "rgba(0,0,0,0)",
             'borderwidth': 2,
@@ -176,7 +176,7 @@ def chart_gauge(score):
     ))
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)', 
-        font={'color': "white", 'family': "Inter"},
+        font={'color': "#1F2937", 'family': "Inter"},
         margin=dict(l=20, r=20, t=30, b=20),
         height=200
     )
@@ -325,7 +325,7 @@ def chart_stock_cycle(trend_df):
         if 'MA200' in trend_df.columns:
             fig.add_trace(go.Scatter(
                 x=trend_df.index, y=trend_df['MA200'], 
-                line=dict(color='white', width=1, dash='dot'), 
+                line=dict(color='#6B7280', width=1.5, dash='dot'), 
                 name='200 DMA'
             ), row=2, col=1)
 
@@ -427,7 +427,7 @@ def chart_score_history(hist_df, current_scores=None):
     fig = go.Figure()
     
     # Add lines for each pillar
-    colors = {'quality': '#00F0FF', 'value': '#34C759', 'growth': '#FF9500', 'momentum': '#AF52DE', 'overall': '#FFFFFF'}
+    colors = {'quality': '#00F0FF', 'value': '#34C759', 'growth': '#FF9500', 'momentum': '#AF52DE', 'overall': '#1F2937'}
     
     for col in ['quality', 'value', 'growth', 'momentum', 'overall']:
         if col in hist_df.columns:
@@ -500,7 +500,7 @@ def chart_volume_analysis(trend_df):
         elif is_surge:
             vol_colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
         else:
-            vol_colors.append('rgba(255, 255, 255, 0.1)' if not is_up else 'rgba(255, 255, 255, 0.1)') # Dim/Neutral
+            vol_colors.append('rgba(107, 114, 128, 0.35)')  # ordinary volume: grey, visible on a light page
 
     # 1. Volume Bars
     fig.add_trace(go.Bar(
@@ -527,7 +527,7 @@ def chart_volume_analysis(trend_df):
             y=trend_df['Close'],
             name='Price',
             mode='lines',
-            line=dict(color='white', width=2),
+            line=dict(color='#1F2937', width=2),
             yaxis='y2'
         ))
 
