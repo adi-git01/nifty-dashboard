@@ -506,3 +506,77 @@ def test_hot_reload_picks_up_a_changed_module(tmp_path, monkeypatch):
     for n in ("hrpkg.base", "hrpkg.user_view", "hrpkg"):
         sys.modules.pop(n, None)
         hot_reload._SEEN.pop(n, None)
+
+
+class _Resp:
+    def __init__(self, code, body):
+        self.status_code, self._b = code, body
+
+    def json(self):
+        if isinstance(self._b, Exception):
+            raise self._b
+        return self._b
+
+
+def test_broker_sync_kite_and_dhan_read_holdings_only(monkeypatch):
+    import hashlib
+    from utils import broker_sync as bs
+    calls = []
+
+    class H:
+        @staticmethod
+        def post(url, **k):
+            calls.append(("POST", url, k))
+            if url.endswith("/session/token"):
+                ok = k["data"]["checksum"] == hashlib.sha256(b"KEYreqSECRET").hexdigest()
+                return _Resp(200, {"status": "success", "data": {"access_token": "ATOK"}}) if ok else _Resp(403, {"message": "Invalid `checksum`"})
+            if url.endswith("/app/generate-consent"):
+                return _Resp(200, {"consentAppId": "CID-1"})
+            if url.endswith("/app/consumeApp-consent"):
+                return _Resp(200, {"accessToken": "DTOK"})
+            return _Resp(404, {})
+
+        @staticmethod
+        def get(url, **k):
+            calls.append(("GET", url, k))
+            if url.endswith("/portfolio/holdings"):
+                if k["headers"]["Authorization"] != "token KEY:ATOK":
+                    return _Resp(403, {"status": "error", "message": "Incorrect `api_key` or `access_token`."})
+                return _Resp(200, {"status": "success", "data": [
+                    {"tradingsymbol": "CUMMINSIND", "exchange": "NSE", "quantity": 6, "t1_quantity": 2, "collateral_quantity": 0, "average_price": 4198.5},
+                    {"tradingsymbol": "SBIN-BE", "exchange": "BSE", "quantity": 0, "t1_quantity": 0, "collateral_quantity": 10, "average_price": 800},
+                    {"tradingsymbol": "NIFTY26DECFUT", "exchange": "NFO", "quantity": 50, "average_price": 1},
+                    {"tradingsymbol": "SOLD", "exchange": "NSE", "quantity": 0, "average_price": 5}]})
+            if url.endswith("/v2/holdings"):
+                if k["headers"]["access-token"] == "EMPTY":
+                    return _Resp(500, {"errorCode": "DH-1111", "errorMessage": "No holdings available"})
+                if k["headers"]["access-token"] != "DTOK":
+                    return _Resp(401, {"errorCode": "DH-901", "errorMessage": "Client ID or user generated access token is invalid or expired."})
+                return _Resp(200, [{"exchange": "ALL", "tradingSymbol": "HDFCBANK", "totalQty": 1000, "avgCostPrice": 780.5},
+                                   {"exchange": "NSE_EQ", "tradingSymbol": "TCS", "totalQty": 0, "avgCostPrice": 3000}])
+            return _Resp(404, {})
+
+    monkeypatch.setattr(bs, "_http", lambda: H)
+    assert bs.kite_login_url("KEY") == "https://kite.zerodha.com/connect/login?v=3&api_key=KEY"
+    assert bs.kite_session("KEY", "SECRET", "req") == "ATOK"
+    with pytest.raises(bs.BrokerError, match="checksum"):
+        bs.kite_session("KEY", "WRONG", "req")
+    Z = bs.kite_holdings("KEY", "ATOK")
+    assert Z.symbol.tolist() == ["CUMMINSIND", "SBIN"] and Z.qty.tolist() == [8, 10] and Z.avg.iloc[0] == 4198.5   # T1 and pledged counted, F&O and zero rows dropped
+    with pytest.raises(bs.BrokerError, match="expired"):
+        bs.kite_holdings("KEY", "STALE")
+    assert bs.dhan_login_url(bs.dhan_consent("1000", "APP", "SEC")).endswith("consentApp-login?consentAppId=CID-1")
+    assert bs.dhan_session("tid", "APP", "SEC") == "DTOK"
+    Dn = bs.dhan_holdings("DTOK")
+    assert Dn.symbol.tolist() == ["HDFCBANK"] and Dn.qty.iloc[0] == 1000 and Dn.avg.iloc[0] == 780.5
+    assert bs.dhan_holdings("EMPTY").empty
+    with pytest.raises(bs.BrokerError, match="24 hours"):
+        bs.dhan_holdings("BAD")
+    urls = {u for _, u, _ in calls}
+    assert all("order" not in u and "/positions" not in u and "/funds" not in u and "/margins" not in u for u in urls)   # holdings and login only
+    assert {u for m, u, _ in calls if m == "GET"} == {"https://api.kite.trade/portfolio/holdings", "https://api.dhan.co/v2/holdings"}
+    from utils import portfolio_import as pi
+    C = pi.combine([Z, Dn]).set_index("symbol")
+    assert set(C.index) == {"CUMMINSIND", "SBIN", "HDFCBANK"}                                # both brokers feed one portfolio
+    assert bs.config({"kite": {"api_key": "a", "api_secret": "b"}, "dhan": {"client_id": "1"}}) == {"kite": {"api_key": "a", "api_secret": "b"}}
+    assert bs.config({}) == {}
