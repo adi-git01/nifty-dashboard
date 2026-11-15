@@ -129,13 +129,14 @@ def chart_price_history(hist_df):
             elif is_surge:
                 colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
             else:
-                colors.append('rgba(255, 82, 82, 0.3)' if not is_up else 'rgba(0, 200, 83, 0.3)') # Dim
+                colors.append('rgba(229, 57, 53, 0.75)' if not is_up else 'rgba(46, 160, 87, 0.75)') # Dim
 
         fig.add_trace(go.Bar(
             x=hist_df.index,
             y=hist_df['Volume'],
             name='Smart Volume',
             marker_color=colors,
+            marker_line_width=0,          # the theme's white bar outline hid thin bars
             yaxis='y2',
             opacity=0.8
         ))
@@ -251,7 +252,7 @@ def chart_stock_cycle(trend_df):
     fig = make_subplots(rows=3, cols=1, shared_xaxes=True, 
                         vertical_spacing=0.05, 
                         row_heights=[0.50, 0.30, 0.20],
-                        subplot_titles=("📊 Trend Score Evolution", "📈 Price Action", "b📊 Smart Volume"))
+                        subplot_titles=("📊 Trend Score Evolution", "📈 Price Action", "📊 Smart Volume"))
 
     # 1. MAIN CHART: Trend Score Area with gradient coloring
     # Color the area based on trend score zones
@@ -350,13 +351,14 @@ def chart_stock_cycle(trend_df):
             elif is_surge:
                 vol_colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
             else:
-                vol_colors.append('rgba(255, 82, 82, 0.3)' if not is_up else 'rgba(0, 200, 83, 0.3)') # Dim
+                vol_colors.append('rgba(229, 57, 53, 0.75)' if not is_up else 'rgba(46, 160, 87, 0.75)') # Dim
 
         fig.add_trace(go.Bar(
             x=trend_df.index,
             y=trend_df['Volume'],
             name='Smart Volume',
             marker_color=vol_colors,
+        marker_line_width=0,          # the theme's white bar outline hid thin bars
             hovertemplate='Volume: %{y:.2s}<extra></extra>'
         ), row=3, col=1)
 
@@ -500,7 +502,7 @@ def chart_volume_analysis(trend_df):
         elif is_surge:
             vol_colors.append('#FF1744' if not is_up else '#69F0AE') # Bright
         else:
-            vol_colors.append('rgba(107, 114, 128, 0.35)')  # ordinary volume: grey, visible on a light page
+            vol_colors.append('rgba(107, 114, 128, 0.7)')  # ordinary volume: grey, visible on a light page
 
     # 1. Volume Bars
     fig.add_trace(go.Bar(
@@ -508,6 +510,7 @@ def chart_volume_analysis(trend_df):
         y=trend_df['Volume'],
         name='Volume',
         marker_color=vol_colors,
+        marker_line_width=0,          # the theme's white bar outline hid thin bars
         yaxis='y'
     ))
     

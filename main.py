@@ -16,6 +16,15 @@ if sys.stdout.encoding.lower() != 'utf-8':
 if sys.stderr.encoding.lower() != 'utf-8':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+# Pick up code that Streamlit Cloud pulled into this running app (utils/hot_reload.py). Must run
+# before the utils imports below so they bind to the reloaded modules.
+try:
+    from utils import hot_reload as _hot_reload
+    if _hot_reload.refresh():
+        st.cache_data.clear()
+except Exception as _e:
+    print(f"[hot_reload] skipped: {_e}", flush=True)
+
 import yfinance as yf
 import plotly.graph_objects as go
 import plotly.express as px
