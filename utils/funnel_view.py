@@ -10,7 +10,6 @@ from utils import funnel, simba
 from utils.industry_board_view import get_board
 from utils.ui_search import search_box
 
-REG_ICON = {"WASHOUT": "🟣", "BEAR CONTRACTION": "🔴", "CORRECTION": "🟠", "NORMAL BULL": "🟢", "FROTH": "🟡", "UNKNOWN": "⚪"}
 VAL_FILE = "data/valuation_snapshot.csv"
 FUND_FILES = ("data/fundamentals_quarterly.csv.gz", "data/fundamentals_annual.csv.gz")
 
@@ -29,7 +28,29 @@ def valuation() -> pd.DataFrame:
     return _valuation(os.path.getmtime(VAL_FILE) if os.path.exists(VAL_FILE) else 0.0)
 
 
+LADDER = ["BEAR", "MILD BEAR", "CHOPPY", "MILD BULL", "BULL"]
+GUIDE = {"BEAR": "No new positions; protect what you hold", "MILD BEAR": "Half-size positions, only the best setups",
+         "CHOPPY": "Normal size, be selective", "MILD BULL": "Full size", "BULL": "Full size", "UNKNOWN": "—"}
+ICON = {"BEAR": "🔴", "MILD BEAR": "🟠", "CHOPPY": "🟡", "MILD BULL": "🟢", "BULL": "🟢", "UNKNOWN": "⚪"}
+
+
 def regime(df: pd.DataFrame) -> dict:
+    """
+    The dashboard's one market read: the same Nifty and breadth regimes as the sidebar
+    (utils/regime_badge.py, tested in analysis/REGIME_VERDICT.md). Risk guidance follows the weaker
+    of the two. SIMBA keeps its own regime only for its own score (simba_regime).
+    """
+    from utils import regime_badge as rb
+    info = st.session_state.get("regime_info") or rb.compute(st.session_state.get("nifty_data"), df)
+    n, b = info["nifty"].get("regime", "UNKNOWN"), info["breadth"].get("regime", "UNKNOWN")
+    known = [x for x in (n, b) if x in LADDER]
+    weak = min(known, key=LADDER.index) if known else "UNKNOWN"
+    return dict(regime=n, breadth_regime=b, breadth=info["breadth"].get("pct"), engine=info["engine"].get("mode", "UNKNOWN"),
+                risk=weak, guidance=GUIDE[weak], info=info)
+
+
+def simba_regime(df: pd.DataFrame) -> dict:
+    """SIMBA's own regime, used only to compute the SIMBA score."""
     px = pd.to_numeric(df.get("currentPrice", df.get("price")), errors="coerce")
     m200 = pd.to_numeric(df.get("twoHundredDayAverage"), errors="coerce")
     ok = px.notna() & m200.notna()
@@ -74,30 +95,31 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
 
 def render(df: pd.DataFrame):
     reg = regime(df)
-    name = reg.get("regime", "UNKNOWN")
-    c = st.columns([2, 1, 1, 2])
-    c[0].metric("0 · Market regime (SIMBA)", f"{REG_ICON.get(name, '⚪')} {name.title()}")
-    c[1].metric("Risk scale", f"{reg['risk_scale']}/10" if reg.get("risk_scale") else "—")
-    c[2].metric("Above 200-day", f"{reg['breadth']:.0f}%" if reg.get("breadth") is not None else "—")
-    h = reg.get("holdings")
-    c[3].metric("Suggested positions", f"{h[0]}–{h[1]}" if h else "—")
-    if "BEAR" in name or name == "WASHOUT":
-        st.warning("Bear regime: momentum entries lagged the typical stock here in the 10-year regime study. "
-                   "Treat the list as a watchlist and keep new positions small.")
+    c = st.columns([1.2, 1.2, 1, 2.2])
+    c[0].metric("0 · Nifty regime", f"{ICON.get(reg['regime'], '⚪')} {reg['regime'].title()}")
+    c[1].metric("Breadth regime", f"{ICON.get(reg['breadth_regime'], '⚪')} {reg['breadth_regime'].title()}",
+                f"{reg['breadth']:.0f}% above 200-day" if reg.get("breadth") is not None else None, delta_color="off")
+    c[2].metric("Engine mode", reg["engine"].title())
+    c[3].metric("Risk guidance", reg["guidance"])
+    st.caption("One market read for the whole dashboard, the same as the sidebar. Guidance follows the weaker of the Nifty and "
+               "breadth regimes; in the 10-year regime study momentum entries lagged the typical stock only in BEAR.")
+    if reg["risk"] == "BEAR":
+        st.warning("Bear regime: treat the list as a watchlist.")
 
     with st.expander("How the funnel works, and what is and is not tested"):
         st.markdown(
             "| Stage | Question | Test | Tool | Evidence |\n|---|---|---|---|---|\n"
-            "| 0 Market | How much risk? | Regime and risk scale | SIMBA regime | Momentum failed only in BEAR (10 yrs) |\n"
-            f"| 1 Industry | Is money going here? | {funnel.WHAT['industry']} | Sector Pulse → Leadership Board | Small edge, 9 months only |\n"
+            "| 0 Market | How much risk? | Nifty and breadth regimes | Regime badge (sidebar) | Momentum failed only in BEAR (10 yrs) |\n"
+            f"| 1 Industry | Is money going here? | {funnel.WHAT['industry']} | Sector Pulse → Leadership Board | Scanner BUY in a leading industry beat plain Scanner BUY (Signal Lab scorecard, 9 months) |\n"
             f"| 2 Trend | Is the stock leading? | {funnel.WHAT['trend']} | Trend Scanner | RS + Gate 1 beat the typical stock over 10 yrs |\n"
-            f"| 3 Business | Is the business sound? | {funnel.WHAT['business']} | Business trends (Stock Report) | Judgement; untested |\n"
+            f"| 3 Business | Is the business sound? | {funnel.WHAT['business']} | Business score (Stock Report) | A quality screen: no return edge in the 2021–25 test |\n"
             f"| 4 Setup | Is there an entry now? | {funnel.WHAT['setup']} | Technicals, SIMBA | Stops and state tested; SIMBA untested |\n"
             f"| 5 Value | Am I overpaying? | {funnel.WHAT['value']} | Valuation | Off by default: expensive momentum beat cheap |\n"
             "| 6 Plan | Where am I wrong? | Stop, targets, size from the stop | Stock Report → Entry plan | — |\n"
             "| 7 Track | Is it working? | Position, alerts, Agreement log | Return Tracker, RS alerts | — |\n\n"
-            "The funnel **as a whole has not been backtested**. It is a checklist that applies the dashboard's tools in a fixed "
-            "order so nothing is skipped. Stocks that pass are logged in the Agreement tab's record over time.")
+            "The funnel **as a whole has not been backtested**. Every day's passes and near misses are now logged "
+            "(`data/funnel_log.csv`) and scored against the market on **Signal Lab → Scorecard**, so this will be answered "
+            "with evidence over the coming months.")
 
     T = get_table(df)
     st.markdown("#### Stages")

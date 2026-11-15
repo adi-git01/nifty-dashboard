@@ -76,7 +76,7 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
                 industry=T.industry, mcap=n("marketCap"), pe=n("pe"), checks=checks, passes=c, verdict=_verdict(c, tech["caution"], bool(T.signal) and pd.notna(T.risk_pct) and T.risk_pct > funnel.MAX_RISK_PCT),
                 regime=regime or {}, ind=industry_board.stock_industry_view(board, ticker) if board is not None else None,
                 tech=tech, plan=plan, simba=simba_row, val=vrow, trends=fund_trends.read(ticker),
-                annual=fund_trends.annual(ticker), quarterly=fund_trends.quarterly(ticker))
+                annual=fund_trends.annual(ticker), quarterly=fund_trends.quarterly(ticker), roa_tree=fund_trends.roa_tree(ticker))
 
 
 # ------------------------------------------------------------------------------------------ tables
@@ -92,6 +92,20 @@ def annual_view(a: pd.DataFrame, years: int = 7) -> pd.DataFrame:
     out = pd.DataFrame({lab: t[c] for c, lab in cols if c in t and t[c].notna().any()})
     out.index = [d.strftime("FY%y") if d.month == 3 else d.strftime("%b %y") for d in t.index]
     return out.T.round(1)
+
+
+def roa_tree_view(T: pd.DataFrame, years: int = 6) -> pd.DataFrame:
+    """The lender's ROA tree, years across, every line as % of average assets."""
+    if T is None or T.empty:
+        return pd.DataFrame()
+    rows = [("int_income", "Interest earned"), ("int_cost", "− Interest paid"), ("nii", "= Net interest income"),
+            ("other_income", "+ Other income"), ("costs", "− Costs (opex + provisions)"), ("pretax_roa", "= Pre-tax ROA"),
+            ("tax", "− Tax"), ("roa", "= ROA %"), ("leverage", "× Leverage (assets / equity)"), ("roe", "= ROE %"),
+            ("cost_income", "Costs / income %"), ("asset_g", "Asset growth %")]
+    t = T.tail(years)
+    out = pd.DataFrame({lab: t[c] for c, lab in rows if c in t})
+    out.index = [d.strftime("FY%y") if d.month == 3 else d.strftime("%b %y") for d in t.index]
+    return out.T.round(2)
 
 
 def quarterly_view(q: pd.DataFrame, n: int = 9) -> pd.DataFrame:
@@ -124,7 +138,8 @@ def markdown(R: Dict[str, Any]) -> str:
     L += [f"- {icon[c['ok']]} **{c['stage']}** — {c['why']}" for c in R["checks"]]
     if R["regime"].get("regime"):
         g = R["regime"]
-        L += ["", "## Market", f"Regime **{g['regime']}**" + (f", risk scale {g['risk_scale']}/10" if g.get("risk_scale") else "") + "."]
+        L += ["", "## Market", f"Nifty regime **{g['regime']}**" + (f", breadth {g['breadth_regime']}" if g.get("breadth_regime") else "")
+              + (f": {g['guidance'].lower()}" if g.get("guidance") else "") + "."]
     if ind:
         L += ["", "## Industry", f"**{ind['industry']}** ranks {ind['rank']} of {ind['of']} (score {_f(ind['score'], '{:.0f}')}, "
               f"{_f(ind['change'], '{:+.0f}')} in a month): {ind['group'].title()}, {ind['status'].title()}. "
@@ -151,6 +166,11 @@ def markdown(R: Dict[str, Any]) -> str:
         L.append("Pillars: " + " · ".join(f"{k} {v['score']}" for k, v in tr["pillars"].items()))
     L += [f"- {fund_trends.ICON[f['way']]} **{f['metric']}** — {f['text']}" + ("" if f.get("scored", True) else " _(shown, not scored)_")
           for f in tr["findings"] + tr.get("ownership", [])] or ["- no fundamentals on file"]
+    if R.get("roa_tree") is not None and not R["roa_tree"].empty:
+        tv = roa_tree_view(R["roa_tree"])
+        L += ["", f"### ROA tree ({tr.get('lender_kind', 'lender').title()}; % of average assets)",
+              "| | " + " | ".join(tv.columns) + " |\n|---|" + "---:|" * len(tv.columns) + "\n"
+              + "".join(f"| {i} | " + " | ".join(_f(v, "{:.2f}") for v in row) + " |\n" for i, row in zip(tv.index, tv.values))]
     L += ["", "### Yearly", _md_table(annual_view(R["annual"])), "### Quarterly", _md_table(quarterly_view(R["quarterly"]))]
     L += ["## Valuation"]
     if v and v.get("status") == "OK":

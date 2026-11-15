@@ -35,6 +35,9 @@ BROWSE = {
     "Breakouts": ("data/breakout_log.csv", "breakout_date",
                   ["breakout_date", "ticker", "name", "kind", "vol_x", "ind_score", "signal_price", "current_price", "return_pct",
                    "sessions_since"]),
+    "Funnel passes and near misses": ("data/funnel_log.csv", "first_seen",
+                                      ["first_seen", "ticker", "name", "kind", "missed", "industry", "signal_price", "biz_score", "technicals",
+                                       "risk_pct", "last_seen", "active"]),
     "V2.2 watchlist BUY alerts": ("data/watchlist_history.csv", "added_date", ["added_date", "ticker", "sector", "v3_score", "rs_score", "status"]),
 }
 

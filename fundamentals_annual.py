@@ -57,7 +57,8 @@ RT = {"roce %": "roce", "roe %": "roe", "debtor days": "debtor_days", "inventory
       "days payable": "payable_days", "cash conversion cycle": "ccc_days", "working capital days": "wc_days"}
 # quarterly rows beyond sales / net profit, for the business-trend view (utils/fund_trends.py)
 QEXTRA = {"operating profit": "op", "financing profit": "op", "opm %": "opm", "financing margin %": "opm",
-          "interest": "interest", "other income": "other_income", "eps in rs": "eps"}
+          "interest": "interest", "other income": "other_income", "eps in rs": "eps",
+          "gross npa %": "gnpa", "net npa %": "nnpa"}
 
 
 def _section(html: str, sid: str) -> str:

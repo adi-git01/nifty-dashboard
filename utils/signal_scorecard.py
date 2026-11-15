@@ -66,7 +66,9 @@ def price_panel(root: str = ".") -> tuple[pd.DataFrame, Dict[pd.Timestamp, pd.Da
             if len(j) > 100 and (px[j] == prev[j]).mean() > 0.9:
                 continue
         P[dt], prev = px, px
-        extra[dt] = d[[c for c in ("dna_signal", "trend_score", "volume_signal_score", "marketCap") if c in d.columns]]
+        extra[dt] = d[[c for c in ("dna_signal", "trend_score", "volume_signal_score", "marketCap", "currentPrice", "fiftyDayAverage",
+                                   "twoHundredDayAverage", "dist_52w", "comp_rs", "rs_3m", "fx_action", "fx_stop", "simba_stage")
+                       if c in d.columns]]
     P = pd.DataFrame(P).T.sort_index()
     try:
         from utils import corp_actions
@@ -152,14 +154,39 @@ def build(root: str = ".", save: bool = True) -> pd.DataFrame:
                     rows.append(r)
         except Exception as e:
             print(f"[scorecard] {name}: {e}")
+    # the funnel's own log (utils/funnel_log.py): full passes and near misses
+    p = os.path.join(root, "data/funnel_log.csv")
+    if os.path.exists(p):
+        try:
+            L = pd.read_csv(p).rename(columns={"first_seen": "date"})
+            for kind, name, claim in (("PASS", "Funnel: passes all four stages (live log)", "industry + trend + business + entry"),
+                                      ("NEAR", "Funnel: near miss, one stage short (live log)", "the funnel's control group")):
+                r = _score(name, L[L.kind == kind], F, idx)
+                r.update(where="Investment Funnel", claim=claim)
+                rows.append(r)
+        except Exception as e:
+            print(f"[scorecard] funnel log: {e}")
     # derived lists the Morning Pulse page shows, and the yardstick
     der = {YARDSTICK: [], "Morning Pulse: top-10 trend-score gainers": [], "Morning Pulse: top-10 trend-score losers": [],
            "Morning Pulse: accumulation leaders (top 10)": []}
+    F12, F124 = "Funnel stages 1+2: Scanner BUY in a leading industry (rebuilt)", "Funnel stages 1+2+4: …with an entry setup (rebuilt)"
+    der[F12], der[F124] = [], []
     dates = [d for d in extra if d in idx]
     for i, dt in enumerate(dates):
         d = extra[dt]
         if "dna_signal" in d:
             der[YARDSTICK] += [(t, dt) for t in d.index[d.dna_signal.astype(str) == "BUY"]]
+        try:                                   # the price-only funnel stages, rebuilt for every past session
+            from utils import funnel, industry_board
+            snap = d.reset_index()
+            prev = extra[dates[i - 21]].reset_index() if i >= 21 else None
+            T = funnel.table(snap, industry_board.board(snap, prev), None, business_for=[])
+            ok = T.s_industry & T.s_trend
+            der[F12] += [(t, dt) for t in T.ticker[ok]]
+            if "fx_action" in d:
+                der[F124] += [(t, dt) for t in T.ticker[ok & T.s_setup]]
+        except Exception:
+            pass
         if i and "trend_score" in d and "trend_score" in extra[dates[i - 1]]:
             ch = (pd.to_numeric(d.trend_score, errors="coerce")
                   - pd.to_numeric(extra[dates[i - 1]].trend_score, errors="coerce").reindex(d.index)).dropna()
@@ -172,10 +199,13 @@ def build(root: str = ".", save: bool = True) -> pd.DataFrame:
               "Morning Pulse: top-10 trend-score gainers": "labelled 'turnaround candidates'",
               "Morning Pulse: top-10 trend-score losers": "labelled 'caution / exit watch'",
               "Morning Pulse: accumulation leaders (top 10)": "highest volume-accumulation score"}
+    claims[F12] = "does the industry stage add to plain momentum? (all sessions)"
+    claims[F124] = "…and the entry stage? (since Technicals data began, 30 Sep 2026)"
     for name, lst in der.items():
         if lst:
             r = _score(name, pd.DataFrame(lst, columns=["ticker", "date"]), F, idx, first_days=0)
-            r.update(where="Trend Scanner" if name == YARDSTICK else "Morning Pulse", claim=claims[name])
+            r.update(where="Trend Scanner" if name == YARDSTICK else "Investment Funnel" if name in (F12, F124) else "Morning Pulse",
+                     claim=claims[name])
             rows.append(r)
     S = pd.DataFrame(rows)
     if S.empty:
