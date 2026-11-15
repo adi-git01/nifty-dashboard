@@ -25,10 +25,12 @@ from mcp.server.mcpserver import MCPServer
 # config that silently fails on someone else's machine.
 try:
     from . import data_access as D
+    from . import insight as I
 except ImportError:  # pragma: no cover - direct-script execution
     import os
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from mcp_server import data_access as D
+    from mcp_server import insight as I
 
 mcp = MCPServer(
     name="alpha-trend",
@@ -103,6 +105,67 @@ def get_valuation(ticker: str) -> dict:
     return D.get_valuation(ticker)
 
 
+# ---- decision-level tools (mcp_server/insight.py): what the dashboard concludes ----------------
+@mcp.tool(description="START HERE for 'what should I look at today'. Market breadth regime, leading / improving / "
+                      "weakening industries, stocks passing the investment funnel, and the user's own holdings that "
+                      "need attention plus watchlist names that became buyable.")
+def get_daily_brief(limit: int = 10) -> dict:
+    return I.get_daily_brief(limit)
+
+
+@mcp.tool(description="The investment funnel: Industry -> Trend -> Business -> Setup (-> Value if include_value_stage). "
+                      "Returns stage counts, stocks passing every stage with stop and target, and near misses that fail "
+                      "exactly one stage.")
+def get_funnel(limit: int = 25, include_value_stage: bool = False) -> dict:
+    return I.get_funnel(limit, include_value_stage)
+
+
+@mcp.tool(description="One-shot report on a stock: verdict (ACTIONABLE / WATCHLIST / NOT NOW ...), funnel checklist with "
+                      "reasons, entry plan (stop, targets, position size), business score, and the full report as markdown. "
+                      "Use this for 'should I buy / what about X'.")
+def get_stock_report(ticker: str) -> dict:
+    return I.get_stock_report(ticker)
+
+
+@mcp.tool(description="Business fundamentals for a stock: 0-100 score by pillar, every finding with its direction, yearly "
+                      "and quarterly tables, and for banks, NBFCs and gold-loan companies the ROA tree (NII, costs, ROA, "
+                      "leverage, ROE as % of assets).")
+def get_business(ticker: str, years: int = 6) -> dict:
+    return I.get_business(ticker, years)
+
+
+@mcp.tool(description="Industry leadership board: score 0-100, one-month change, breadth, trend status and strongest "
+                      "stocks per sub-industry. group filters to LEADING, IMPROVING, WEAKENING or LAGGING.")
+def get_industry_board(group: Optional[str] = None, limit: int = 60) -> dict:
+    return I.get_industry_board(group, limit)
+
+
+@mcp.tool(description="The user's own book: each holding's P&L, status (on track, near stop, stop hit, trend weakening), "
+                      "exit level and guide; portfolio risk (money at risk if every stop is hit, concentration, missing "
+                      "stops); and the watchlist with which funnel stage each stock still lacks. capital is optional total "
+                      "capital in rupees.")
+def get_my_book(capital: Optional[float] = None) -> dict:
+    return I.get_my_book(capital)
+
+
+@mcp.tool(description="Every scanner signal one stock has triggered (RS divergence, earnings shock, breakout, funnel pass, "
+                      "turnaround ...), newest first, with the price then and the return since.")
+def get_signals_for(ticker: str) -> dict:
+    return I.get_signals_for(ticker)
+
+
+@mcp.tool(description="Idea lists with funnel context. kind='rs_divergence': stocks that rose on days the Nifty fell. "
+                      "kind='earnings_drift': stocks that jumped 4%+ on heavy volume. uptrend_only keeps Scanner BUY stocks.")
+def get_strong_names(kind: str = "rs_divergence", days: int = 30, uptrend_only: bool = True, limit: int = 40) -> dict:
+    return I.get_strong_names(kind, days, uptrend_only, limit)
+
+
+@mcp.tool(description="Scorecard: how each scanner's signals have performed against the market, with a verdict per "
+                      "scanner. Check this before trusting any signal list.")
+def get_scorecard() -> dict:
+    return I.get_scorecard()
+
+
 def _selftest() -> int:
     import json
     checks = [
@@ -114,6 +177,15 @@ def _selftest() -> int:
         ("get_signals",        lambda: D.get_signals("ias", limit=3)),
         ("get_rotation",       lambda: D.get_rotation(limit=3)),
         ("get_valuation",      lambda: D.get_valuation("CUB")),
+        ("get_daily_brief",    lambda: I.get_daily_brief(5)),
+        ("get_funnel",         lambda: I.get_funnel(5)),
+        ("get_stock_report",   lambda: I.get_stock_report("SAREGAMA")),
+        ("get_business",       lambda: I.get_business("MUTHOOTFIN")),
+        ("get_industry_board", lambda: I.get_industry_board("LEADING", 5)),
+        ("get_my_book",        lambda: I.get_my_book()),
+        ("get_signals_for",    lambda: I.get_signals_for("SAREGAMA")),
+        ("get_strong_names",   lambda: I.get_strong_names("earnings_drift", 45, True, 5)),
+        ("get_scorecard",      lambda: I.get_scorecard()),
     ]
     bad = 0
     for name, fn in checks:
@@ -126,7 +198,9 @@ def _selftest() -> int:
     tools = [n for n, f in globals().items()
              if callable(f) and not n.startswith("_") and n in
              {"list_datasets", "list_snapshot_dates", "get_stock", "screen",
-              "get_portfolio", "get_signals", "get_rotation", "get_valuation"}]
+              "get_portfolio", "get_signals", "get_rotation", "get_valuation", "get_daily_brief", "get_funnel",
+              "get_stock_report", "get_business", "get_industry_board", "get_my_book", "get_signals_for",
+              "get_strong_names", "get_scorecard"}]
     print(f"\n{len(tools)} tools registered, {bad} failure(s)")
     return 1 if bad else 0
 

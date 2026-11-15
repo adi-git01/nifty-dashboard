@@ -1,68 +1,73 @@
 # Alpha Trend MCP server
 
-Read-only access to the dashboard's data so an MCP client can query the
-pipeline directly instead of being handed pasted CSVs.
-
-Everything is served from the committed data files — the repo is this system's
-database, so a checkout is a complete point-in-time dataset with no server to
-host and no credential to manage.
+Read-only access to the dashboard's data and conclusions for any MCP client (OpenCode, Claude
+Desktop / Code, Cursor). The model picks a tool; every number comes from the dashboard's own
+files, with the data date attached. Nothing is written and nothing is fetched from the internet.
 
 ## Tools
 
-| tool | what it returns |
+Start with the decision-level ones:
+
+| Tool | Answers |
 |---|---|
-| `list_datasets` | every dataset, row counts, date ranges — call first |
-| `list_snapshot_dates` | dates with a daily market snapshot |
-| `get_stock` | all metrics for one ticker (price, CompRS + components, PE/ROE, 52w) |
-| `screen` | filter the universe on CompRS, sector, MA50 position/extension, liquidity |
-| `get_portfolio` | OptComp-V22 holdings, equity curve, return/drawdown, recent trades |
-| `get_signals` | `ias`, `turnaround`, `rs_divergence`, `earnings_shock`, `tc` |
-| `get_rotation` | sub-industry rotation matrix |
-| `get_valuation` | Monte Carlo card, or the Phase-0 dossier + research brief if none exists |
+| `get_daily_brief` | What matters today: breadth, leading industries, funnel passes, your holdings needing attention |
+| `get_funnel` | Which stocks pass Industry → Trend → Business → Setup, with stop and target; near misses |
+| `get_stock_report` | Should I buy X: verdict, checklist, entry plan, business score, full report as markdown |
+| `get_business` | Fundamentals: score by pillar, findings, yearly and quarterly tables, ROA tree for lenders |
+| `get_industry_board` | Which industries lead, improve, weaken or lag |
+| `get_my_book` | Your holdings (status, exit level), portfolio risk, watchlist readiness |
+| `get_signals_for` | Every scanner signal a stock has triggered, with the return since |
+| `get_strong_names` | RS-divergence and earnings-drift idea lists with funnel context |
+| `get_scorecard` | How each scanner has done against the market |
 
-No tool writes. A client cannot alter portfolio state, alerts or logs here.
+Raw-data tools: `list_datasets`, `list_snapshot_dates`, `get_stock`, `screen`, `get_portfolio`
+(the paper model portfolio), `get_signals`, `get_rotation`, `get_valuation`.
 
-## Install
+## Run
 
-```bash
-pip install -r mcp_server/requirements.txt
-python -m mcp_server.server --selftest    # exercises every tool, no protocol
-```
+    pip install -r mcp_server/requirements.txt
+    python -m mcp_server.server --selftest     # every tool, no protocol
+    python -m mcp_server.server                # stdio, for an MCP client
 
-## Client config
+Keep the repo up to date (`git pull`): the tools read the committed daily snapshot.
 
-Use the **absolute path to `server.py`**. It works from any working directory,
-so no client needs a `cwd` setting:
+## Connect a client
 
-**Claude Desktop** — `claude_desktop_config.json`
-(macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`):
+OpenCode (`opencode.json`), with any model you have a key for, e.g. DeepSeek:
 
-```json
-{
-  "mcpServers": {
-    "alpha-trend": {
-      "command": "python",
-      "args": ["C:/path/to/nifty-dashboard/mcp_server/server.py"]
+    {
+      "mcp": {
+        "alpha-trend": {
+          "type": "local",
+          "command": ["python", "/abs/path/to/nifty-dashboard/mcp_server/server.py"],
+          "environment": {"GITHUB_TOKEN": "<token>", "GITHUB_REPO": "owner/nifty-dashboard"}
+        }
+      }
     }
-  }
-}
-```
 
-**Claude Code**
+Claude Desktop (`claude_desktop_config.json`):
 
-```bash
-claude mcp add alpha-trend -- python /absolute/path/to/nifty-dashboard/mcp_server/server.py
-```
+    {
+      "mcpServers": {
+        "alpha-trend": {
+          "command": "python",
+          "args": ["/abs/path/to/nifty-dashboard/mcp_server/server.py"],
+          "env": {"GITHUB_TOKEN": "<token>", "GITHUB_REPO": "owner/nifty-dashboard"}
+        }
+      }
+    }
 
-**OpenCode** — same command and args under its MCP section.
+Check the exact config keys against your client's own documentation; they change between versions.
 
-On Windows use `python`; on macOS/Linux use `python3` if `python` is not on PATH.
+## Your book
 
-## Notes
+`get_my_book` and `get_daily_brief` read your holdings and watchlist. With `GITHUB_TOKEN` and
+`GITHUB_REPO` set (the same values as the dashboard's Streamlit secrets) they read the live book
+from the `alert-state` branch; without them they fall back to the local `positions.json`, which
+may be stale. The result's `source` field says which was used. A token with read access is enough.
 
-- Every response carries an `as_of` date. Snapshots are end-of-day, not live
-  quotes — say so when quoting a figure.
-- `screen` drops rows with `|CompRS| > 200`, the same corrupt-bar guard the
-  dashboard applies at display time.
-- CompRS is `0.10*RS5 + 0.50*RS21 + 0.40*RS63` vs Nifty, in percentage points.
-  The strategy's entry floor is ~17.
+## What the model is told
+
+Each result carries an `evidence` note where the dashboard has measured how well something works
+(for example: the business score did not predict returns in the 2021-25 test), so the model can
+report a signal without overselling it. Snapshot figures are end-of-day, never live quotes.
