@@ -101,7 +101,8 @@ def exit_facts(df: pd.DataFrame, p: Dict[str, Any], t: str) -> Dict[str, Any]:
         return {}
 
 
-def journal(df: pd.DataFrame, changes: list, source: str, before: list, known: set, notes: Optional[Dict[str, str]] = None) -> int:
+def journal(df: pd.DataFrame, changes: list, source: str, before: list, known: set, notes: Optional[Dict[str, str]] = None,
+            tags: str = "", extra: Optional[Dict[str, Dict[str, Any]]] = None) -> int:
     """
     Write buys and sells to the trade journal with today's metrics. `changes` are
     (action, ticker, qty, price, estimated) tuples; `before` is the book as it was before the change
@@ -127,7 +128,8 @@ def journal(df: pd.DataFrame, changes: list, source: str, before: list, known: s
             m = dict(M.get(t) or {})
             if a in tj.SELLS and t in held:
                 m.update(exit_facts(df, held[t], t))
-            evs.append(tj.event(a, t, q, px, source=source, estimated=est, notes=(notes or {}).get(t, ""), metrics=m))
+            m.update((extra or {}).get(t) or {})
+            evs.append(tj.event(a, t, q, px, source=source, estimated=est, notes=(notes or {}).get(t, ""), metrics=m, tags=tags))
         return tj.record(evs)
     except Exception as e:                                   # the journal must never block a save
         st.warning(f"Saved, but the trade journal could not be updated: {e}")

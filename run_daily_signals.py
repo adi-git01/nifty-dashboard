@@ -266,6 +266,14 @@ def main():
         print(f"  Daily message failed ({e}); sending counts only.")
         msg = (f"<b>📋 Daily Brief — {bar_date:%d %b %Y}</b>\n{len(shock_list or [])} earnings jumps, {len(rs_list or [])} red-day "
                f"gainers, {len(tc_list or [])} turnaround catalysts. Details in Signal Lab.")
+    try:                                                     # real-money copy of the model: today's order ticket, if any
+        from utils import model_book
+        _px = pd.to_numeric(today_df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
+        _mo = model_book.telegram_line(_px)
+        if _mo:
+            msg += "\n\n" + _mo
+    except Exception as e:
+        print(f"  Model orders line failed: {e}")
     print(f"\nTelegram:\n{msg}\n")
     send_telegram(msg)
 

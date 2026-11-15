@@ -1,6 +1,7 @@
 """
 Read holdings straight from Zerodha (Kite Connect) and Dhan (DhanHQ v2). Read-only: the only
-account endpoints called are the two holdings endpoints. Nothing here can place or change an order.
+account endpoints called are the two holdings endpoints. Nothing here can place or change an order
+(orders, only when you switch them on, are in utils/dhan_orders.py).
 
 Both brokers issue a login token that lasts about a day and needs you to log in on the broker's
 own page, so a sync is one tap plus a login, not something the nightly job can do unattended.

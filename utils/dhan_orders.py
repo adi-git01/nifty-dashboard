@@ -1,0 +1,170 @@
+"""
+Send the model's order ticket to Dhan (DhanHQ v2 orders API). This is the ONLY module that can
+place an order, and it is off until you switch it on:
+
+    [dhan]
+    client_id      = "..."        # already there for holdings sync
+    orders_enabled = true         # the switch; without it every call here refuses
+    order_proxy    = "http://user:pass@host:port"   # optional: a fixed-IP exit, see below
+
+Why a fixed IP: SEBI's retail algo rules make brokers accept API orders only from an IP address
+registered with them (Dhan: web.dhan.co -> Profile -> DhanHQ Trading APIs -> Add IP; it can be changed
+once in 7 days). Streamlit Cloud has no fixed address, so orders sent from the hosted dashboard are
+rejected with an "invalid IP" error unless they leave through `order_proxy`, or the dashboard runs
+on a machine with a fixed address. Holdings sync is not affected.
+
+Guard rails, checked here whatever the caller does:
+    - delivery (CNC) limit orders on NSE only, valid for the day; no market orders, no intraday, no F&O
+    - one order per order id (the id is model date + stock + side), so a double tap cannot double an order
+    - a rupee cap per order and per day, and a cap on the number of orders in a day
+    - a sale is never larger than what the model book holds
+Outside market hours an order goes in as an after-market order for the next open.
+"""
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+
+from utils.broker_sync import DHAN_API, TIMEOUT, BrokerError, _http, _json
+
+SCRIP_MASTER = "https://images.dhan.co/api-data/api-scrip-master.csv"
+MAX_ORDERS_DAY = 40
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def settings(secrets: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """{'enabled', 'client_id', 'proxy'} from Streamlit secrets."""
+    if secrets is None:
+        try:
+            import streamlit as st
+            secrets = dict(st.secrets["dhan"]) if "dhan" in st.secrets else {}
+        except Exception:
+            secrets = {}
+    return dict(enabled=str(secrets.get("orders_enabled", "")).strip().lower() in ("true", "1", "yes"),
+                client_id=str(secrets.get("client_id") or "").strip(), proxy=str(secrets.get("order_proxy") or "").strip())
+
+
+def market_open(now: Optional[datetime] = None) -> bool:
+    now = (now or datetime.now(IST)).astimezone(IST)
+    return now.weekday() < 5 and (9, 15) <= (now.hour, now.minute) < (15, 30)
+
+
+def parse_master(df: pd.DataFrame) -> Dict[str, str]:
+    """NSE cash-equity trading symbol -> Dhan security id, from the scrip master (column names matched loosely)."""
+    col = lambda *keys: next((c for c in df.columns if all(k in c.upper() for k in keys)), None)
+    exch, seg, sid, sym, ser = (col("EXCH", "ID") or col("EXCH"), col("SEGMENT"), col("SECURITY", "ID"),
+                                col("TRADING", "SYMBOL"), col("SERIES"))
+    if not (sid and sym):
+        raise BrokerError("Dhan's instrument list has an unexpected layout; orders cannot be sent until this is updated.")
+    d = df
+    if exch:
+        d = d[d[exch].astype(str).str.upper().str.startswith("NSE")]
+    if seg:
+        d = d[d[seg].astype(str).str.upper().isin(["E", "EQ", "NSE_EQ", "EQUITY"])]
+    if ser:
+        d = d[d[ser].astype(str).str.upper().isin(["EQ", "BE"])]
+    return dict(zip(d[sym].astype(str).str.upper().str.strip(), d[sid].astype(str).str.strip()))
+
+
+def security_ids() -> Dict[str, str]:
+    """Downloaded once a day (the file is large)."""
+    try:
+        import streamlit as st
+
+        @st.cache_data(ttl=24 * 3600, show_spinner="Loading Dhan's instrument list…", max_entries=1)
+        def _load():
+            return parse_master(pd.read_csv(SCRIP_MASTER, low_memory=False))
+        return _load()
+    except BrokerError:
+        raise
+    except Exception as e:
+        raise BrokerError(f"Could not load Dhan's instrument list ({type(e).__name__}).")
+
+
+def check(order: Dict[str, Any], held: Dict[str, float], log: List[Dict[str, Any]], max_order: float, max_day: float,
+          today: Optional[str] = None) -> Optional[str]:
+    """A sentence saying why this order must not be sent, or None when it may."""
+    today = today or datetime.now(IST).strftime("%Y-%m-%d")
+    q, lim = int(order.get("qty") or 0), float(order.get("limit") or 0)
+    if order.get("side") not in ("BUY", "SELL") or q <= 0 or lim <= 0:
+        return "not a valid limit order"
+    prior = next((r for r in log if r.get("id") == order["id"]), None)
+    if prior and prior.get("status") in ("SENT", "FILLED"):
+        return "already sent"
+    if q * lim > max_order * 1.0001:
+        return f"₹{q * lim:,.0f} is over the per-order cap of ₹{max_order:,.0f}"
+    sent = [r for r in log if str(r.get("ts", ""))[:10] == today and r.get("status") in ("SENT", "FILLED") and r.get("mode") == "dhan"]
+    if len(sent) >= MAX_ORDERS_DAY:
+        return f"{MAX_ORDERS_DAY} orders already sent today"
+    bought = sum(float(r.get("qty") or 0) * float(r.get("limit") or 0) for r in sent if r.get("side") == "BUY")
+    if order["side"] == "BUY" and bought + q * lim > max_day * 1.0001:
+        return f"would take today's buying over the cap of ₹{max_day:,.0f}"
+    if order["side"] == "SELL" and q > float(held.get(order["ticker"], 0)) + 1e-9:
+        return "more shares than the model book holds"
+    return None
+
+
+def body(order: Dict[str, Any], client_id: str, security_id: str, amo: bool) -> Dict[str, Any]:
+    return {"dhanClientId": client_id, "correlationId": str(order["id"])[:25], "transactionType": order["side"],
+            "exchangeSegment": "NSE_EQ", "productType": "CNC", "orderType": "LIMIT", "validity": "DAY",
+            "securityId": str(security_id), "quantity": int(order["qty"]), "disclosedQuantity": 0,
+            "price": float(order["limit"]), "triggerPrice": 0, "afterMarketOrder": bool(amo), "amoTime": "OPEN"}
+
+
+def _proxies(cfg: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    return {"http": cfg["proxy"], "https": cfg["proxy"]} if cfg.get("proxy") else None
+
+
+def _error(d: Any, code: int) -> str:
+    msg = ""
+    if isinstance(d, dict):
+        msg = str(d.get("errorMessage") or d.get("message") or d.get("omsErrorDescription") or d.get("errorCode") or "")
+    if "ip" in msg.lower():
+        msg += (" — Dhan only accepts orders from a registered IP address. Register this server's address on web.dhan.co "
+                "(Profile → DhanHQ Trading APIs → Add IP), or set [dhan] order_proxy to a fixed-IP exit.")
+    return msg or f"HTTP {code}"
+
+
+def place(token: str, order: Dict[str, Any], cfg: Optional[Dict[str, Any]] = None, ids: Optional[Dict[str, str]] = None,
+          now: Optional[datetime] = None) -> Dict[str, Any]:
+    """Send one order. Returns {'order_id', 'status'}; raises BrokerError with a message safe to show."""
+    cfg = cfg or settings()
+    if not cfg.get("enabled"):
+        raise BrokerError("Order placement is switched off (set orders_enabled = true under [dhan] in the app's secrets).")
+    if not cfg.get("client_id") or not token:
+        raise BrokerError("Dhan client id or the day's login token is missing: sync Dhan on the Import tab first.")
+    sym = str(order["ticker"]).replace(".NS", "").upper()
+    sid = (ids if ids is not None else security_ids()).get(sym)
+    if not sid:
+        raise BrokerError(f"{sym} was not found in Dhan's instrument list.")
+    r = _http().post(f"{DHAN_API}/orders", json=body(order, cfg["client_id"], sid, not market_open(now)), timeout=TIMEOUT,
+                     headers={"access-token": token, "Content-Type": "application/json", "Accept": "application/json"},
+                     proxies=_proxies(cfg))
+    d = _json(r)
+    if r.status_code not in (200, 201, 202) or not isinstance(d, dict) or not d.get("orderId"):
+        raise BrokerError(f"Dhan refused the order: {_error(d, r.status_code)}")
+    return dict(order_id=str(d["orderId"]), status=str(d.get("orderStatus") or "PENDING").upper())
+
+
+def status(token: str, order_id: str, cfg: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """{'status', 'filled', 'price', 'message'} for one order (status: TRADED, PENDING, TRANSIT, PART_TRADED, REJECTED, CANCELLED, EXPIRED)."""
+    cfg = cfg or settings()
+    r = _http().get(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
+                    proxies=_proxies(cfg))
+    d = _json(r)
+    if isinstance(d, list):
+        d = d[0] if d else {}
+    if r.status_code != 200 or not isinstance(d, dict) or not d.get("orderStatus"):
+        raise BrokerError(f"Dhan did not return the order: {_error(d, r.status_code)}")
+    g = lambda *ks: next((d[k] for k in ks if d.get(k) not in (None, "")), 0)
+    return dict(status=str(d["orderStatus"]).upper(), filled=float(g("filledQty", "filled_qty", "tradedQuantity") or 0),
+                price=float(g("averageTradedPrice", "tradedPrice", "price") or 0), message=str(d.get("omsErrorDescription") or ""))
+
+
+def cancel(token: str, order_id: str, cfg: Optional[Dict[str, Any]] = None) -> bool:
+    cfg = cfg or settings()
+    r = _http().delete(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
+                       proxies=_proxies(cfg))
+    return r.status_code in (200, 202)
