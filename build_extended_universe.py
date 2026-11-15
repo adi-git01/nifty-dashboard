@@ -105,6 +105,9 @@ def main() -> int:
     track = set(extended.tracked(core))
     first = [t for t in list(track) + prev.Ticker.tolist() if t not in core]
     rest = sorted(set(names) - core - set(first))
+    if rest:                                      # start somewhere new each week: the time budget must not starve the same tail
+        k = (pd.Timestamp.today().isocalendar()[1] * 211) % len(rest)
+        rest = rest[k:] + rest[:k]
     order = list(dict.fromkeys(first + rest))
     print(f"[extended] {len(order)} candidates ({len(track)} tracked, {len(prev)} already listed); budget {args.minutes:.0f} min")
     industries: dict = {}

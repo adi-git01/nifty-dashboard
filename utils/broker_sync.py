@@ -14,7 +14,9 @@ Zerodha (secrets: [kite] api_key, api_secret; redirect URL in the Kite developer
 
 Dhan, either
   (a) paste the 24-hour access token from web.dhan.co (My Profile -> Access DhanHQ APIs), or
-  (b) secrets: [dhan] client_id, app_id, app_secret (redirect URL = this app's URL)
+  (b) secrets: [dhan] client_id, api_key, api_secret (redirect URL = this app's URL). api_key / api_secret are the
+      "API key" and "API secret" Dhan shows when you create the key (its API calls them app_id / app_secret);
+      the app NAME is only a label and is not used
     dhan_consent(client_id, app_id, app_secret) -> consentAppId;  dhan_login_url(consentAppId)
     ... Dhan redirects back with ?tokenId=...
     dhan_session(token_id, app_id, app_secret)  -> access_token
@@ -132,7 +134,9 @@ def dhan_consent(client_id: str, app_id: str, app_secret: str) -> str:
     d = _json(r)
     cid = d.get("consentAppId") if isinstance(d, dict) else None
     if not cid:
-        raise BrokerError(f"Dhan did not start a login session: {(d or {}).get('errorMessage') or (d or {}).get('message') or f'HTTP {r.status_code}'}.")
+        why = (d.get("errorMessage") or d.get("message") or d.get("error") or d.get("status")) if isinstance(d, dict) else None
+        raise BrokerError(f"Dhan did not start a login session: {why or f'HTTP {r.status_code}'}. Check that api_key is the API KEY "
+                          "(not the app name), api_secret is the API secret, client_id is your Dhan client ID, and the key is active.")
     return cid
 
 
@@ -165,6 +169,10 @@ def config(secrets: Optional[Dict[str, Any]] = None) -> Dict[str, Dict[str, str]
     if k.get("api_key") and k.get("api_secret"):
         out["kite"] = dict(api_key=str(k["api_key"]), api_secret=str(k["api_secret"]))
     d = secrets.get("dhan") or {}
-    if d.get("client_id") and d.get("app_id") and d.get("app_secret"):
-        out["dhan"] = dict(client_id=str(d["client_id"]), app_id=str(d["app_id"]), app_secret=str(d["app_secret"]))
+    # Dhan calls them "API key" and "API secret" on its site and app_id / app_secret in its API: accept either name.
+    # The app NAME you typed when creating the key is only a label and is not used.
+    key = d.get("api_key") or d.get("app_id")
+    sec = d.get("api_secret") or d.get("app_secret")
+    if d.get("client_id") and key and sec:
+        out["dhan"] = dict(client_id=str(d["client_id"]).strip(), app_id=str(key).strip(), app_secret=str(sec).strip())
     return out

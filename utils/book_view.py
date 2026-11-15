@@ -50,8 +50,16 @@ def diff(before: pd.DataFrame, after: pd.DataFrame, known: set, cols: List[str])
 
 
 def _context(df: pd.DataFrame, tickers: List[str]) -> pd.DataFrame:
+    """Funnel facts for the book's stocks; cached per snapshot and book so a click does not recompute it."""
+    from utils import funnel_view as fv
+    return _context_cached(fv.snap_key(df), tuple(sorted(tickers)), df)
+
+
+@st.cache_data(ttl=6 * 3600, show_spinner=False, max_entries=8)
+def _context_cached(key: str, tickers: tuple, _df: pd.DataFrame) -> pd.DataFrame:
     from utils import funnel_view as fv
     from utils.industry_board_view import get_board
+    df, tickers = _df, list(tickers)
     sub = df[df.ticker.isin(tickers)]
     if sub.empty:
         return pd.DataFrame()
@@ -166,7 +174,10 @@ def _sync_panel():
             "this dashboard's address, then add to the app's secrets:\n\n```toml\n[kite]\napi_key = \"…\"\napi_secret = \"…\"\n```\n\n"
             "**Dhan** — simplest is to paste a 24-hour access token above. For one-tap login instead, create an API key at "
             "web.dhan.co (My Profile → Access DhanHQ APIs) with this dashboard's address as the redirect URL, then add:\n\n"
-            "```toml\n[dhan]\nclient_id = \"…\"\napp_id = \"…\"\napp_secret = \"…\"\n```\n\n"
+            "```toml\n[dhan]\nclient_id = \"your Dhan client ID (the number in your profile)\"\n"
+            "api_key = \"the API key Dhan shows — not the app name\"\napi_secret = \"the API secret shown with it\"\n```\n\n"
+            "The app *name* you typed when creating the key is only a label and goes nowhere. "
+            "(`app_id` / `app_secret` are accepted as other names for the same two values.)\n\n"
             "Both brokers make you log in again each day; the sync only reads holdings and cannot place orders. Login tokens stay in "
             "this browser session and are never saved.")
 
@@ -251,6 +262,13 @@ def _px(df: pd.DataFrame, t: str) -> Optional[float]:
 
 def _known(df: pd.DataFrame):
     """Tickers the book accepts: the snapshot plus any other NSE equity (tracked nightly once added). -> (set, names)"""
+    from utils import funnel_view as fv
+    return _known_cached(fv.snap_key(df), df)
+
+
+@st.cache_data(ttl=6 * 3600, show_spinner=False, max_entries=4)
+def _known_cached(key: str, _df: pd.DataFrame):
+    df = _df
     names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
     try:
         from utils import extended

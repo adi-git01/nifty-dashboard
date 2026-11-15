@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import os
 import re
+from functools import lru_cache
 from typing import Dict, Iterable, List, Optional
 
 import pandas as pd
@@ -47,14 +48,22 @@ def universe() -> pd.DataFrame:
 
 
 def eq_symbols() -> Dict[str, str]:
-    """Every NSE equity-series symbol -> company name, from the exchange's list (EQUITY_L.csv)."""
+    """Every NSE equity-series symbol -> company name, from the exchange's list (EQUITY_L.csv). Cached by file time."""
+    try:
+        return dict(_eq_cached(os.path.getmtime(EQ_LIST)))
+    except Exception:
+        return {}
+
+
+@lru_cache(maxsize=2)
+def _eq_cached(mtime: float) -> tuple:
     try:
         e = pd.read_csv(EQ_LIST)
         e.columns = [c.strip() for c in e.columns]
         e = e[e["SERIES"].astype(str).str.strip() == "EQ"]
-        return {f"{s.strip()}.NS": n.strip() for s, n in zip(e["SYMBOL"].astype(str), e["NAME OF COMPANY"].astype(str))}
+        return tuple((f"{s.strip()}.NS", n.strip()) for s, n in zip(e["SYMBOL"].astype(str), e["NAME OF COMPANY"].astype(str)))
     except Exception:
-        return {}
+        return ()
 
 
 def known_outside_core(core: Iterable[str]) -> Dict[str, str]:
@@ -78,13 +87,26 @@ def tracked(core: Optional[Iterable[str]] = None, positions: Optional[List[dict]
             positions = pos.get_all_positions()
         except Exception:
             positions = []
+    # Only real NSE equity symbols outside the universe count. A misspelt holding (FEDERALBANK for
+    # FEDERALBNK) resolves to a universe stock and is not an extra; an unknown symbol is skipped
+    # rather than downloaded -- trying one stalled every cold start by ~25 s of retries.
+    try:
+        from utils.positions import resolve_ticker
+    except Exception:
+        resolve_ticker = lambda t, known: t if t in known else None
+    valid = set(eq_symbols()) | set(universe().get("Ticker", []))
     out = []
     for p in positions:
         if p.get("status") not in ("active", "watching"):
             continue
         t = norm(p.get("ticker"))
-        if t and t not in core and _SYM.match(t) and t not in out:
-            out.append(t)
+        if not t or t in core or not _SYM.match(t) or t in out:
+            continue
+        if resolve_ticker(t, core):
+            continue
+        if valid and t not in valid:
+            continue
+        out.append(t)
     return out[:MAX_TRACKED]
 
 
