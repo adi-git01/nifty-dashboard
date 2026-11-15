@@ -144,7 +144,7 @@ def test_stock_report_verdicts_and_markdown(tmp_path, monkeypatch):
     df, groups = _snap()
     root = _files(tmp_path)
     for fn in ("read", "annual", "quarterly"):
-        monkeypatch.setattr(fund_trends, fn, (lambda f: lambda t, r=".": f("X.NS", root))(getattr(fund_trends, fn)))
+        monkeypatch.setattr(fund_trends, fn, (lambda f: lambda t, r=".", as_of=None: f("X.NS", root))(getattr(fund_trends, fn)))
     monkeypatch.setattr(fund_trends, "brief", lambda t, r=".": dict(ok=True, verdict="IMPROVING", flags=[], roce=20.0,
                                                                       quarter="Sep 2026", sales_yoy=12.0, np_yoy=15.0))
     B = industry_board.board(df)
@@ -268,3 +268,69 @@ def test_sector_history_has_a_benchmark_the_chart_accepts():
     assert len(chart_sector_rotation(H).data) == 2                                        # benchmark is the baseline, not a line
     assert len(chart_sector_rotation(H.rename(columns={te.BENCH: "Nifty 500 (Eq Wt)"})).data) == 2   # the old name still works
     assert chart_sector_rotation(H.drop(columns=[te.BENCH])) is None                      # no benchmark: no crash
+
+
+def test_funnel_log_adds_once_and_reenters(tmp_path, monkeypatch):
+    from utils import funnel_log
+    df, groups = _snap()
+    monkeypatch.setattr(fund_trends, "brief", lambda t, root=".": dict(ok=True, verdict="STRONG", score=75, headline="Strong 75/100",
+                                                                         flags=[], roce=20.0, quarter="Sep 2026", sales_yoy=12.0, np_yoy=15.0))
+    monkeypatch.setattr(funnel_log, "LOG_FILE", str(tmp_path / "fl.csv"))
+    B = industry_board.board(df)
+    d1, d2, d3 = pd.Timestamp("2026-11-09"), pd.Timestamp("2026-11-10"), pd.Timestamp("2026-12-10")
+    log, new = funnel_log.update(df, d1, B, pd.DataFrame())
+    assert new.kind.value_counts().to_dict() == {"NEAR": 5, "PASS": 1} and set(new.missed) == {"", "🎯 Setup"}
+    assert new[new.kind == "PASS"].ticker.tolist() == [df.ticker.iloc[0]] and log.active.all()
+    log, new = funnel_log.update(df, d2, B, pd.DataFrame())
+    assert len(new) == 0 and len(log) == 6 and (pd.to_datetime(log.last_seen) == d2).all()
+    log, new = funnel_log.update(df, d3, B, pd.DataFrame())                 # a month later: fresh rows
+    assert len(new) == 6 and len(log) == 12 and int(log.active.sum()) == 6
+
+
+def test_exit_guide_and_portfolio_risk():
+    from utils import book_view as bv
+    g = bv.exit_guide(100, 90, 120, 0.12, 80)                               # 12% below a 120 peak = 105.6 > 50-day 90
+    assert g["hit"] and round(g["level"], 1) == 105.6 and "peak" in g["text"]
+    g = bv.exit_guide(100, 95, 105, 0.12, 80)
+    assert not g["hit"] and g["level"] == 95 and g["text"].startswith("Raise stop to ₹95.0")
+    assert bv.exit_guide(100, 90, 100, 0.12, 93)["text"].startswith("Stop is at or above") and bv.exit_guide(None, 90, 100, 0.12, 80)["level"] is None
+    H = pd.DataFrame({"Stock": ["A", "B", "C"], "Price": [100.0, 200.0, 50.0], "Qty": [10, 5, 20], "Stop": [90.0, None, 45.0],
+                      "Exit below": [92.0, 180.0, 46.0], "Sector": ["Banks", "Banks", "IT"], "Daily traded": [1e7, 1e4, 1e7]})
+    K = bv.risk_summary(H, capital=10000)
+    assert K["invested"] == 3000 and K["risk"] == 100 + 100 + 100 and K["risk_pct"] == 3.0     # B uses its exit level
+    assert K["no_stop"] == ["B"] and K["thin"] == ["B"] and K["largest"][0] in ("A", "B", "C")
+    assert round(K["by_industry"]["Banks"], 1) == 66.7 and bv.risk_summary(H.assign(Price=np.nan)) == {}
+
+
+def test_daily_message_leads_with_the_book(monkeypatch):
+    from utils import book_view as bv, daily_message
+    df, groups = _snap()
+    monkeypatch.setattr(fund_trends, "brief", lambda t, root=".": dict(ok=True, verdict="STRONG", score=75, headline="Strong 75/100",
+                                                                         flags=[], roce=20.0, quarter="Sep 2026", sales_yoy=12.0, np_yoy=15.0))
+    monkeypatch.setattr(bv, "peak_since", lambda t, d, px: px)
+    a, b, c = df.ticker.iloc[0], df.ticker.iloc[1], df.ticker.iloc[-1]
+    pos = [dict(ticker=a, status="active", entry_price=80.0, stop_loss=95.0, target=150.0),       # on track, stop above exit level
+           dict(ticker=c, status="active", entry_price=120.0, stop_loss=90.0, target=None),       # below its 50-day: exit rule
+           dict(ticker=a, status="watching"), dict(ticker=b, status="watching")]
+    new = pd.DataFrame({"kind": ["PASS", "NEAR"], "ticker": [a, b], "industry": ["X", "X"], "signal_price": [100.0, 100.0], "risk_pct": [8.0, 30.0]})
+    msg = daily_message.build(df, pd.Timestamp("2026-11-13"), None, new, [{"Ticker": a, "Jump_Pct": 5.0}, {"Ticker": c, "Jump_Pct": 6.0}],
+                              [{"Ticker": c}], 3, pos)
+    t = lambda x: x.replace(".NS", "")
+    assert "Holdings (2)</b>: 1 need a look" in msg and f"🔴 {t(c)}" in msg and "exit rule hit" in msg
+    assert f"{t(a)} now buyable" in msg and "New funnel passes (1)" in msg
+    assert f"Earnings jumps in an uptrend (1)</b>: {t(a)}" in msg and "Up on a red day" not in msg     # c is not in an uptrend
+    assert "2 earnings jumps, 1 red-day gainers, 3 turnaround catalysts" in msg
+    assert msg.index("Holdings") < msg.index("funnel passes") < msg.index("Other scanners")
+
+
+def test_lender_ceiling_is_not_below_the_banks_own_trough():
+    import os
+    from utils import valuation as V
+    if not os.path.exists("data/fundamentals_annual.csv.gz"):
+        pytest.skip("no fundamentals on disk")
+    ctx = V.load_context()
+    o = V.value_stock("ICICIBANK", ctx, price=1500.0)
+    if o.get("status", "OK") != "OK" or o["multiple"]["kind"] != "P/B":
+        pytest.skip("ICICIBANK not valued on P/B in this data")
+    m = o["multiple"]
+    assert m["ceiling"] >= m["own_5y_p10"] - 1e-9 or m["ceiling"] >= 1.6 * m["sector_median"] - 1e-9

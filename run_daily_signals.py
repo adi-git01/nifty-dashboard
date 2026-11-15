@@ -232,6 +232,16 @@ def main():
     except Exception as e:
         print(f"  Agreement log failed: {e}")
 
+    # ── 3c2. Funnel log: today's passes and near misses (utils/funnel_log.py) ──
+    fn_new = None
+    try:
+        from utils import funnel_log
+        _fl, fn_new = funnel_log.update(today_df, bar_date)
+        print(f"  Funnel log: {int((fn_new.kind == 'PASS').sum())} new pass(es), {int((fn_new.kind == 'NEAR').sum())} new near miss(es); "
+              f"{len(_fl)} rows.")
+    except Exception as e:
+        print(f"  Funnel log failed: {e}")
+
     # ── 3d. Signal scorecard + model-portfolio benchmark (utils/signal_scorecard.py) ──
     try:
         from utils import signal_scorecard
@@ -240,52 +250,15 @@ def main():
     except Exception as e:
         print(f"  Scorecard failed: {e}")
 
-    # ── 4. Telegram Summary ───────────────────────────────────────────────
-    date_str = datetime.now().strftime("%d %b %Y")
-    lines = [f"<b>📡 Daily Signal Logger — {date_str}</b>\n"]
-
-    if tc_list:
-        lines.append(f"<b>🔄 Turnaround Catalysts ({len(tc_list)})</b>")
-        for r in tc_list[:8]:
-            vel_flag = " 🚀" if r["RS21_Vel"] >= 5 else ""
-            lines.append(
-                f"  {r['Ticker'].replace('.NS','')} [{r['Pattern']}] "
-                f"↑{r['Jump%']}% Vol:{r['Vol_Score']:.0f} "
-                f"TS:{r['TS_Pre']}→{r['TS_Now']}(+{r['TS_Gain']}){vel_flag}"
-            )
-        if len(tc_list) > 8:
-            lines.append(f"  ...+{len(tc_list)-8} more")
-    else:
-        lines.append("🔄 No Turnaround Catalysts today.")
-
-    lines.append("")
-
-    if shock_list:
-        lines.append(f"<b>⚡ Earnings Shocks ({len(shock_list)})</b>")
-        for r in shock_list[:5]:
-            lines.append(
-                f"  {r['Ticker'].replace('.NS','')} ↑{r['Jump_Pct']}% "
-                f"Vol:{r['Vol_Mult']:.1f}x  {r['PEAD_Action']}"
-            )
-        if len(shock_list) > 5:
-            lines.append(f"  ...+{len(shock_list)-5} more")
-    else:
-        lines.append("⚡ No Earnings Shocks today.")
-
-    lines.append("")
-    if rs_list:
-        lines.append(f"<b>🟢 RS Divergence ({len(rs_list)})</b>")
-        for r in rs_list[:5]:
-            lines.append(
-                f"  {r['Ticker'].replace('.NS','')} {r['Stock_Ret']:+.2f}% "
-                f"vs Nifty {r['Nifty_Ret']:+.2f}%  ΔRS {r['Delta_RS']:+.2f}"
-            )
-        if len(rs_list) > 5:
-            lines.append(f"  ...+{len(rs_list)-5} more")
-    else:
-        lines.append("🟢 No RS Divergence today.")
-
-    msg = "\n".join(lines)
+    # ── 4. Telegram: one message, in the order you would act (utils/daily_message.py) ──
+    try:
+        from utils import daily_message
+        msg = daily_message.build(today_df, bar_date, nifty=locals().get("_n"), funnel_new=fn_new, shocks=shock_list, rs=rs_list,
+                                  tc_count=len(tc_list or []))
+    except Exception as e:
+        print(f"  Daily message failed ({e}); sending counts only.")
+        msg = (f"<b>📋 Daily Brief — {bar_date:%d %b %Y}</b>\n{len(shock_list or [])} earnings jumps, {len(rs_list or [])} red-day "
+               f"gainers, {len(tc_list or [])} turnaround catalysts. Details in Signal Lab.")
     print(f"\nTelegram:\n{msg}\n")
     send_telegram(msg)
 

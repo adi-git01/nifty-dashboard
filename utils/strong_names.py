@@ -91,6 +91,8 @@ SOURCES = [
      lambda r: str(r.get('kind', '')) + (f", {r.get('vol_x'):.1f}× volume" if pd.notna(r.get('vol_x')) else "")),
     ("🤝 Agreement", "data/consensus_log.csv", "first_seen", "signal_price", "return_pct",
      lambda r: " + ".join(k for k in ("simba", "scanner", "technicals") if str(r.get(k)) == "True") or f"{r.get('votes', '')} votes"),
+    ("🧭 Funnel", "data/funnel_log.csv", "first_seen", "signal_price", None,
+     lambda r: "passes all four stages" if r.get("kind") == "PASS" else f"near miss — {r.get('missed', '')}"),
     ("📅 V2.2 BUY alert", "data/watchlist_history.csv", "added_date", None, None,
      lambda r: f"RS score {_f(r.get('rs_score'), '{:.1f}')}"),
 ]

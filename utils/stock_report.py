@@ -124,7 +124,8 @@ def markdown(R: Dict[str, Any]) -> str:
     L += [f"- {icon[c['ok']]} **{c['stage']}** — {c['why']}" for c in R["checks"]]
     if R["regime"].get("regime"):
         g = R["regime"]
-        L += ["", "## Market", f"Regime **{g['regime']}**" + (f", risk scale {g['risk_scale']}/10" if g.get("risk_scale") else "") + "."]
+        L += ["", "## Market", f"Nifty regime **{g['regime']}**" + (f", breadth {g['breadth_regime']}" if g.get("breadth_regime") else "")
+              + (f": {g['guidance'].lower()}" if g.get("guidance") else "") + "."]
     if ind:
         L += ["", "## Industry", f"**{ind['industry']}** ranks {ind['rank']} of {ind['of']} (score {_f(ind['score'], '{:.0f}')}, "
               f"{_f(ind['change'], '{:+.0f}')} in a month): {ind['group'].title()}, {ind['status'].title()}. "

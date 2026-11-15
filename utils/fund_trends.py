@@ -70,12 +70,15 @@ def _div(a, b):
     return (a / b).where(b > 0)
 
 
-def annual(ticker: str, root: str = ".") -> pd.DataFrame:
+def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
+    """as_of: use only fiscal years ending on or before this date (for point-in-time tests)."""
     A, _ = _data(root)
     k = _key(ticker, A)
     if k is None:
         return pd.DataFrame()
     w = A[k].pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+    if as_of is not None:
+        w = w[w.index <= pd.Timestamp(as_of)]
     if "sales" not in w:
         return pd.DataFrame()
     fy = w[w["sales"].notna()].copy()          # fiscal-year rows; half-year balance sheets and the price row drop out
@@ -113,10 +116,10 @@ def annual(ticker: str, root: str = ".") -> pd.DataFrame:
     return out
 
 
-def quarterly(ticker: str, root: str = ".") -> pd.DataFrame:
+def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     _, Q = _data(root)
     k = _key(ticker, Q)
-    if k is None:
+    if k is None or as_of is not None:        # quarterly history is too short for point-in-time tests
         return pd.DataFrame()
     w = Q[k].pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
     w = w[w.index.month.isin([3, 6, 9, 12])]
@@ -183,7 +186,7 @@ def investment_phase(a: pd.DataFrame) -> Optional[Dict[str, Any]]:
     return None
 
 
-def read(ticker: str, root: str = ".") -> Dict[str, Any]:
+def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
     """
     Score the business 0-100 on four pillars and describe what is changing.
 
@@ -202,7 +205,7 @@ def read(ticker: str, root: str = ".") -> Dict[str, Any]:
     direction IMPROVING / STEADY / SLIPPING from the scored pillars' directions
     The weights and break-points are judgement, not fitted to returns.
     """
-    a, q = annual(ticker, root), quarterly(ticker, root)
+    a, q = annual(ticker, root, as_of), quarterly(ticker, root, as_of)
     F: List[Dict[str, Any]] = []
     add = lambda pillar, m, way, text, scored=True: F.append(dict(pillar=pillar, metric=m, way=way, text=text, scored=scored))
     P: Dict[str, Dict[str, Any]] = {}

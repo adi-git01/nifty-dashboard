@@ -96,7 +96,11 @@ jobs:
         python alert_daemon.py --force-volume
       continue-on-error: true  # Don't let alert failures block the commit
 
-    - name: "Step 6/7: Daily Signal Logger (Earnings Shock + Turnaround Catalyst)"
+    - name: "Step 6/7: Daily Signal Logger (signal logs, funnel log, scorecard, daily Telegram brief)"
+      env:
+        # the daily brief reads positions and the watchlist from the GitHub store
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
       run: |
         python run_daily_signals.py
       continue-on-error: true

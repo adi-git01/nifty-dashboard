@@ -808,6 +808,22 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     ceiling = 1.3 * sector_med if np.isfinite(sector_med) else np.inf
     if ident != "BFSI" and np.isfinite(roce_now) and roce_now >= 0.25 and g["base"] >= 0.15:
         ceiling = max(ceiling, 1.6 * sector_med)
+    if ident == "BFSI" and np.isfinite(sector_med):
+        # Lenders: the peer pool mixes PSU / small banks (P/B ~1) with high-return franchises, so 1.3x its
+        # median can sit below a strong bank's own 5-year TROUGH (ICICI: ceiling 2.4x v lowest 2.6x), which
+        # made such banks "expensive" at any price they have traded at. Two lender rules, mirroring the
+        # ROCE exception above: a 15%+ base ROE earns the 1.6x ceiling, and with 3+ years of own history
+        # the ceiling is never below the stock's own 5Y P10 (the trough anchor the bear case already uses).
+        try:
+            roe_b = float(roe["base"]) if isinstance(roe, dict) else np.nan
+        except Exception:
+            roe_b = np.nan
+        if np.isfinite(roe_b) and roe_b >= 0.15:
+            ceiling = max(ceiling, 1.6 * sector_med)
+        if len(own) >= 36 and np.isfinite(own_p10) and own_p10 > ceiling:
+            ceiling = own_p10
+            note(f"lender ceiling raised to the stock's own 5Y P10 ({own_p10:.2f}x): 1.3x the peer median sat below "
+                 "its own trough")
     capped = base_m_ > ceiling
     base_m_ = min(base_m_, ceiling)
     bear_m = own_p10 if np.isfinite(own_p10) else 0.7 * base_m_

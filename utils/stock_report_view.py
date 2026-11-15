@@ -61,7 +61,7 @@ def render(df: pd.DataFrame):
     srow = None
     if with_simba:
         try:
-            S = _simba(fv.snap_key(df), reg.get("regime", "UNKNOWN"), df)
+            S = _simba(fv.snap_key(df), fv.simba_regime(df).get("regime", "UNKNOWN"), df)
             srow = S.loc[t].to_dict() if t in S.index else None
         except Exception:
             srow = None
@@ -90,7 +90,8 @@ def render(df: pd.DataFrame):
 
     st.markdown("#### 2 · Market and industry")
     g = R["regime"]
-    line = f"Market regime **{g.get('regime', 'UNKNOWN').title()}**" + (f", risk scale {g['risk_scale']}/10" if g.get("risk_scale") else "") + "."
+    line = (f"Market: Nifty **{g.get('regime', 'UNKNOWN').title()}**, breadth **{g.get('breadth_regime', 'UNKNOWN').title()}**"
+            + (f" — {g['guidance'].lower()}" if g.get("guidance") else "") + ".")
     if ind:
         line += (f" **{ind['industry']}** ranks **{ind['rank']} of {ind['of']}** industries (score {f(ind['score'], '{:.0f}')}, "
                  f"{f(ind['change'], '{:+.0f}')} in a month) — {ind['group'].title()}, {ind['status'].title()}.")
@@ -152,7 +153,8 @@ def render(df: pd.DataFrame):
         if tr.get("investing"):
             st.info(f"🏗️ **Investment phase** — {tr['investing']['text']}. The fall in ROCE, net margin and asset turnover that a "
                     "larger capital base causes is shown but not counted against the business; what to watch is whether returns "
-                    "recover as the new assets start earning.")
+                    "recover as the new assets start earning. A caution from the 2021–25 test: stocks in this state lagged the "
+                    "median stock over the following year in each of the five yearly cohorts (about 5 pp on average).")
         cols = st.columns(len(tr["pillars"]) or 1)
         arrow = lambda d: "improving" if d > 0.25 else "slipping" if d < -0.25 else "steady"
         for col, (k, v) in zip(cols, tr["pillars"].items()):
@@ -164,7 +166,8 @@ def render(df: pd.DataFrame):
             st.markdown("**Ownership** (shown for context, not part of the score): " + " · ".join(
                 f"{fund_trends.ICON[x['way']]} {x['metric']} {x['text']}" for x in tr["ownership"]))
         st.caption("Score = growth 30%, margins 25%, cash and balance sheet 25%, returns on capital 20%; each mixes the level with "
-                   "its direction. Strong 70+, Healthy 55+, Mixed 40+, Weak below. The weights are judgement, not fitted to returns.")
+                   "its direction. Strong 70+, Healthy 55+, Mixed 40+, Weak below. The weights are judgement. Tested on 2021–25 the score did not predict "
+                   "the next year's return (it worked in 2024–25 and was inverted in 2021–23): read it as business quality, not a buy signal.")
         A, Q = R["annual"].tail(8), R["quarterly"].tail(12)
         if not A.empty:
             a, b = st.columns(2)
