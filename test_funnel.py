@@ -459,3 +459,26 @@ def test_mcp_insight_tools_return_json_with_dates():
     f = I.get_funnel(3)
     assert f["as_of"] == D.snapshot_dates()[-1] and f["counts"][0]["stage"] == "Universe" and "evidence" in f
     assert I.get_business("HDFCBANK")["lender_kind"] == "BANK" and "error" in I.get_stock_report("NOSUCHSTOCK")
+
+
+def test_remote_mcp_needs_a_long_token_and_hides_behind_it(monkeypatch):
+    pytest.importorskip("mcp")
+    from starlette.testclient import TestClient
+    from mcp_server import remote
+    monkeypatch.delenv("MCP_TOKEN", raising=False)
+    with pytest.raises(SystemExit):
+        remote.token()
+    monkeypatch.setenv("MCP_TOKEN", "short")
+    with pytest.raises(SystemExit):
+        remote.token()
+    tok = "test-token-0123456789abcdefgh"
+    monkeypatch.setenv("MCP_TOKEN", tok)
+    assert remote.token() == tok
+    with TestClient(remote.build_app(tok)) as c:
+        assert c.get("/").text.startswith("ok")
+        h = {"content-type": "application/json", "accept": "application/json, text/event-stream"}
+        body = {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
+        assert c.post("/mcp", json=body, headers=h).status_code == 404                      # no token: nothing there
+        assert c.post("/wrong-token-0123456789abcdef/mcp", json=body, headers=h).status_code == 404
+        r = c.post(f"/{tok}/mcp", json=body, headers=h)
+        assert r.status_code == 200 and len(r.json()["result"]["tools"]) == 17
