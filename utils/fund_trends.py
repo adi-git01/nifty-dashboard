@@ -28,8 +28,11 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-FILES = ("data/fundamentals_annual.csv.gz", "data/fundamentals_annual_extra.csv.gz")
+# core, then the extended list's weekly files (build_extended_universe.py), then the older one-off extra file;
+# the first file that has a (ticker, field, period) wins
+FILES = ("data/fundamentals_annual.csv.gz", "data/fundamentals_ext_annual.csv.gz", "data/fundamentals_annual_extra.csv.gz")
 QFILE = "data/fundamentals_quarterly.csv.gz"
+QFILES = (QFILE, "data/fundamentals_ext_quarterly.csv.gz")
 UP, FLAT, DOWN, BUILD = "IMPROVING", "STABLE", "WORSENING", "INVESTING"
 ICON = {UP: "🟢", FLAT: "⚪", DOWN: "🔴", BUILD: "🏗️"}
 WEIGHTS = {"Growth": 0.30, "Margins": 0.25, "Cash & balance sheet": 0.25, "Returns on capital": 0.20}
@@ -49,14 +52,16 @@ def _load(root: str, stamp: float):
     A = [pd.read_csv(p(f)) for f in FILES if os.path.exists(p(f))]
     A = pd.concat(A, ignore_index=True).drop_duplicates(["ticker", "field", "period"]) if A else pd.DataFrame(
         columns=["ticker", "field", "period", "value"])
-    Q = pd.read_csv(p(QFILE)) if os.path.exists(p(QFILE)) else pd.DataFrame(columns=["ticker", "field", "period", "value"])
+    Q = [pd.read_csv(p(f)) for f in QFILES if os.path.exists(p(f))]
+    Q = pd.concat(Q, ignore_index=True).drop_duplicates(["ticker", "field", "period"]) if Q else pd.DataFrame(
+        columns=["ticker", "field", "period", "value"])
     for d in (A, Q):
         d["period"] = pd.to_datetime(d["period"], errors="coerce")
     return {t: g for t, g in A.groupby("ticker")}, {t: g for t, g in Q.groupby("ticker")}
 
 
 def _data(root: str = "."):
-    return _load(root, _mtime([os.path.join(root, f) for f in FILES + (QFILE,)]))
+    return _load(root, _mtime([os.path.join(root, f) for f in FILES + QFILES]))
 
 
 def _key(ticker: str, d: dict) -> Optional[str]:
@@ -570,4 +575,4 @@ def _brief(ticker: str, root: str, stamp: float) -> Dict[str, Any]:
 
 def brief(ticker: str, root: str = ".") -> Dict[str, Any]:
     """Score, verdict, red flags, latest quarter and a pass / fail for the funnel's business stage. Cached."""
-    return _brief(ticker, root, _mtime([os.path.join(root, f) for f in FILES + (QFILE,)]))
+    return _brief(ticker, root, _mtime([os.path.join(root, f) for f in FILES + QFILES]))

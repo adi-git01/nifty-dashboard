@@ -35,6 +35,13 @@ def generate_daily_master_cache():
     """
     _log("START: generate_daily_master_cache")
     fundamentals = get_nifty1000_universe()
+    # Stocks you hold or watch that are outside the ranked universe ride along, so My Book, exit
+    # levels and the Telegram brief cover them from the snapshot (utils/extended.py).
+    try:
+        from utils import extended as _ext
+        fundamentals = _ext.add_tracked(fundamentals)
+    except Exception as _e:
+        _log(f"tracked extras skipped: {_e}")
     tickers = fundamentals['ticker'].dropna().tolist()
     _log(f"Universe loaded: {len(tickers)} tickers, fundamentals shape={fundamentals.shape}")
     

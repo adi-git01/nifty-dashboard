@@ -291,9 +291,11 @@ def fetch_missing_fundamentals(df):
 
     return df
 
-def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, update_ath=False):
+def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, update_ath=False, save=True):
     """
     Vectorized fetch of price data for all tickers + merging with fundamentals.
+    save=False: compute rows for a few tickers on demand (utils/extended.py) -- no coverage gate, no
+    parquet write, so it can never replace or pollute the day's snapshot.
     """
     # 0. Ensure Fundamentals (Accuracy Mode) - checking/fetching missing PE/Sector
     # ✅ OPTIMIZATION: In live_mode (CI/GitHub Actions), skip the per-ticker .info fetch.
@@ -419,7 +421,12 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                     continue
                 df = history_data[ticker].dropna()
             else:
-                df = history_data.dropna()
+                # one ticker: newer yfinance still returns [Ticker, Field] columns for a list input
+                _h = history_data
+                if isinstance(_h.columns, pd.MultiIndex):
+                    _lv0 = _h.columns.get_level_values(0)
+                    _h = _h[ticker] if ticker in _lv0 else _h.droplevel(1 if "Close" in _lv0 else 0, axis=1)
+                df = _h.dropna()
                 
             if df.empty or len(df) < 20:
                 continue
@@ -680,6 +687,8 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     # prior day's parquet (known-good, just stale) instead of persisting
     # garbage, and skip the write entirely so tomorrow's file listing isn't
     # polluted with an empty/degraded entry for today's date.
+    if not save:
+        return final_df
     MIN_UNIVERSE_COVERAGE = 0.5
     if coverage < MIN_UNIVERSE_COVERAGE:
         print(f"[ENGINE] ⚠️  Coverage {coverage*100:.0f}% is below the "

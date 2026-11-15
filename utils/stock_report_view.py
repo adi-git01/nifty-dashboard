@@ -47,25 +47,99 @@ def _lines(t: pd.DataFrame, cols: dict, title: str) -> go.Figure:
     return fig
 
 
+@st.cache_data(ttl=6 * 3600, show_spinner="Fetching 14 months of prices and computing signals…")
+def _extended_rows(key: str, ticker: str) -> pd.DataFrame:
+    """Snapshot row for a stock outside the daily snapshot (utils/extended.py). Cached for the session's data day."""
+    from utils import extended
+    return extended.rows_for([ticker])
+
+
+@st.cache_resource(show_spinner=False)
+def _ext_val_ctx(stamp: float):
+    from utils import valuation as V
+    return V.load_context(extended=True)
+
+
+def _extended_valuation(ticker: str, row: pd.Series, val: pd.DataFrame) -> pd.DataFrame:
+    """Value an extended stock on request and return `val` with its row added (best effort)."""
+    import os
+    from utils import valuation as V
+    try:
+        stamp = max([os.path.getmtime(f) for f in ("data/fundamentals_ext_annual.csv.gz", "data/fundamentals_ext_quarterly.csv.gz",
+                                                   "data/fundamentals_annual_extra.csv.gz") if os.path.exists(f)] or [0.0])
+        o = V.value_stock(ticker.replace(".NS", ""), _ext_val_ctx(stamp), price=float(row["currentPrice"]),
+                          hi52=float(row.get("fiftyTwoWeekHigh")) if pd.notna(row.get("fiftyTwoWeekHigh")) else None,
+                          lo52=float(row.get("fiftyTwoWeekLow")) if pd.notna(row.get("fiftyTwoWeekLow")) else None)
+        r = V.summary_row(o)
+        r["ticker"] = ticker
+        return pd.concat([val, pd.DataFrame([r]).set_index("ticker").reindex(columns=val.columns)]) if len(val) else pd.DataFrame([r]).set_index("ticker")
+    except Exception:
+        return val
+
+
 def render(df: pd.DataFrame):
-    tickers = df["ticker"].dropna().tolist()
+    from utils import extended
+    from utils.nifty1000_list import EXTENDED
+    core = df["ticker"].dropna().tolist()
+    have = set(core)
+    ext = [t for t in EXTENDED if t not in have]
+    tickers = core + ext
     names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    names.update({t: f"{EXTENDED[t]['name']}  · extended" for t in ext})
     want = st.session_state.pop("report_ticker", None) or st.session_state.get("quick_dive_ticker")
     if want in tickers and st.session_state.get("sr_pick") != want and "sr_seeded" not in st.session_state:
         st.session_state["sr_pick"] = want
     st.session_state["sr_seeded"] = True
-    t = st.selectbox("Stock", tickers, key="sr_pick", format_func=lambda x: f"{x.replace('.NS', '')} — {names.get(x, '')}",
-                     help="Type part of the name or ticker.")
+    a, b = st.columns([3, 1.4])
+    t = a.selectbox("Stock", tickers, key="sr_pick", format_func=lambda x: f"{x.replace('.NS', '')} — {names.get(x, '')}",
+                    help=f"Type part of the name or ticker. {len(core):,} ranked stocks plus {len(ext):,} extended ones "
+                         f"(market cap ₹{extended.MIN_MCAP_CR:,} cr and above, analysed on request).")
+    other = b.text_input("…or any other NSE symbol", key="sr_any", placeholder="e.g. TATACAP",
+                         help="For a stock in neither list. Type the NSE symbol and press Enter.")
+    if other and other.strip():
+        t = extended.norm(other)
+    is_ext = t not in have
+    val = fv.valuation()
+    if is_ext:
+        try:
+            rows = _extended_rows(fv.snap_key(df), t)
+        except Exception as e:
+            rows = pd.DataFrame()
+            st.caption(f"({type(e).__name__})")
+        if rows.empty:
+            st.error(f"No price data found for {t.replace('.NS', '')}. Check the NSE symbol; newly listed stocks need about "
+                     "eight months of history.")
+            return
+        rows = rows.copy()
+        for c in ("bar_date", "nifty_close", "nifty_prev_close"):
+            if c in df.columns and c not in rows.columns:
+                rows[c] = df[c].iloc[0]
+        df = pd.concat([df, rows.reindex(columns=list(dict.fromkeys(list(df.columns) + ["extended"])))], ignore_index=True)
+        val = _extended_valuation(t, rows.iloc[0], val)
+        c1, c2 = st.columns([4, 1.3])
+        c1.info("🔭 **Extended coverage.** This stock is outside the ranked universe, so its report was computed just now "
+                "from 14 months of prices and the weekly fundamentals. It is not ranked against other stocks and does not "
+                "appear in the funnel list, industry board or scanners. Add it to your watchlist and it joins the nightly "
+                "run, so alerts, exit levels and the daily brief cover it.")
+        from utils import positions as _pos
+        if _pos.get_position(t) is None:
+            if c2.button("👀 Add to watchlist", key="sr_watch", use_container_width=True):
+                _pos.add_position(t, name=(EXTENDED.get(t) or {}).get("name") or t.replace(".NS", ""), status="watching",
+                                  entry_price=float(rows["currentPrice"].iloc[0]))
+                st.toast(f"{t.replace('.NS', '')} added to your watchlist; tracked nightly from the next run.", icon="👀")
+                st.rerun()
+        else:
+            c2.success("In your book")
     reg = fv.regime(df)
     with_simba = "simba_stage" in df.columns and df["simba_stage"].notna().any()
     srow = None
     if with_simba:
         try:
-            S = _simba(fv.snap_key(df), fv.simba_regime(df).get("regime", "UNKNOWN"), df)
+            S = _simba(fv.snap_key(df) + (f"|{t}" if is_ext else ""), fv.simba_regime(df).get("regime", "UNKNOWN"), df)
             srow = S.loc[t].to_dict() if t in S.index else None
         except Exception:
             srow = None
-    R = sr.gather(t, df, get_board(df), fv.valuation(), reg, srow)
+    R = sr.gather(t, df, get_board(df[df["ticker"].isin(have)] if is_ext else df), val, reg, srow)
     if not R["ok"]:
         st.error(R["error"])
         return

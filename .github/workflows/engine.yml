@@ -55,6 +55,10 @@ jobs:
       # their own independently-fetched data even if this one ultimately
       # can't recover.
       continue-on-error: true
+      env:
+        # reads your book so held / watched stocks outside the universe are downloaded too (utils/extended.py)
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
       run: |
         for attempt in 1 2; do
           echo "Trading Engine attempt $attempt/2..."

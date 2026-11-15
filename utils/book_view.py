@@ -175,9 +175,13 @@ def _plan_panel(df: pd.DataFrame, tables: list, sources: list, allp: list, known
     """Preview what an import or sync would change, and apply it once."""
     from utils import portfolio_import as pi
     whole = st.checkbox("This is my whole portfolio (propose closing holdings that are not in it)", key="book_whole")
-    names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    names = _known(df)[1]
     prices = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
     plan = pi.reconcile(pi.combine(tables), allp, known, names, whole)
+    outside = [a["ticker"] for a in plan["add"] + plan["update"] if a["ticker"] not in prices]
+    if outside:
+        st.info("🔭 Outside the ranked universe, tracked from now on: " + ", ".join(x.replace(".NS", "") for x in outside)
+                + ". They are priced on the next page load and join the nightly run.")
     m = st.columns(5)
     for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Not in it"), ("unchanged", "Unchanged"),
                                  ("unknown", "Not recognised"))):
@@ -194,7 +198,7 @@ def _plan_panel(df: pd.DataFrame, tables: list, sources: list, allp: list, known
     else:
         st.success("Your book already matches.")
     if plan["unknown"]:
-        st.warning("Not in the dashboard's universe, so not tracked (ETFs, bonds, small or unlisted names): "
+        st.warning("Not an NSE equity share the dashboard can track (ETFs, bonds, BSE-only or unlisted names): "
                    + ", ".join(f"{u['symbol']} ({u['qty']:.0f})" for u in plan["unknown"]))
     info = pos.storage_status() if hasattr(pos, "storage_status") else {}
     st.caption("New holdings get today's date as their entry date (brokers do not give the purchase date) and no stop: "
@@ -239,13 +243,31 @@ def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
     _plan_panel(df, tables, sources, allp, known, ver)
 
 
+def _px(df: pd.DataFrame, t: str) -> Optional[float]:
+    """Latest price of `t` in the snapshot, or None for a stock not priced yet (new extended name)."""
+    x = pd.to_numeric(df.loc[df.ticker == t, "currentPrice"], errors="coerce").dropna()
+    return float(x.iloc[0]) if len(x) else None
+
+
+def _known(df: pd.DataFrame):
+    """Tickers the book accepts: the snapshot plus any other NSE equity (tracked nightly once added). -> (set, names)"""
+    names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    try:
+        from utils import extended
+        for t, n in extended.known_outside_core(set(df["ticker"])).items():
+            names.setdefault(t, n)
+    except Exception:
+        pass
+    return set(names), names
+
+
 def render_import(df: pd.DataFrame):
     """The 📥 Import tab: upload broker files, preview, apply."""
-    _import_panel(df, pos.get_all_positions(), set(df["ticker"]), st.session_state.setdefault("book_ver", 0))
+    _import_panel(df, pos.get_all_positions(), _known(df)[0], st.session_state.setdefault("book_ver", 0))
 
 
 def render(df: pd.DataFrame):
-    known = set(df["ticker"])
+    known = _known(df)[0]
     allp = pos.get_all_positions()
     st.info("📥 To load your holdings from **Zerodha, Dhan or any broker file**, open the **📥 Import** tab above.")
     hold = [p for p in allp if p.get("status") == "active"]
@@ -367,7 +389,7 @@ def render(df: pd.DataFrame):
     if q2.button(f"💾 Save changes ({n})" if n else "💾 Save changes", type="primary", disabled=not n, use_container_width=True,
                  key="book_save"):
         for t, r in dh["add"]:
-            px = float(df.loc[df.ticker == t, "currentPrice"].iloc[0])
+            px = _px(df, t)
             pos.add_position(t, name=names.get(t), status="active", entry_price=_num(r.get("Entry")) or px,
                              stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")), quantity=int(_num(r.get("Qty")) or 1),
                              notes=str(r.get("Notes") or ""))
@@ -376,17 +398,17 @@ def render(df: pd.DataFrame):
             pos.update_position(orig, entry_price=_num(r.get("Entry")), stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")),
                                 quantity=int(_num(r.get("Qty")) or 1), notes=str(r.get("Notes") or ""))
         for t, r in dw["add"]:
-            px = float(df.loc[df.ticker == t, "currentPrice"].iloc[0])
+            px = _px(df, t)
             pos.add_position(t, name=names.get(t), status="watching", entry_price=px, notes=str(r.get("Notes") or ""))
         for t, r in dw["update"]:
             orig = next(p["ticker"] for p in watch if res[p["ticker"]] == t or p["ticker"] == t)
             pos.update_position(orig, notes=str(r.get("Notes") or ""))
         for t in quick:
-            pos.add_position(t, name=names.get(t), status="watching", entry_price=float(df.loc[df.ticker == t, "currentPrice"].iloc[0]))
+            pos.add_position(t, name=names.get(t), status="watching", entry_price=_px(df, t))
         for t in bought:
             orig = next((p["ticker"] for p in watch if res[p["ticker"]] == t or p["ticker"] == t), t)
             r = C.loc[t] if len(C) and t in C.index else None
-            px = float(df.loc[df.ticker == t, "currentPrice"].iloc[0])
+            px = _px(df, t)
             fields = dict(status="active", entry_price=px, entry_date=pd.Timestamp.today().strftime("%Y-%m-%d"))
             if r is not None and pd.notna(r.stop) and r.stop < px:
                 fields["stop_loss"] = float(r.stop)
