@@ -2550,9 +2550,27 @@ elif page == "📊 Return Tracker":
     # key + on_change: the selected tab is kept in session state, so saving or
     # deleting an alert (which reruns the script) no longer drops you back on
     # Active Positions.
-    tab_book, tab_import, tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(
-        ["📒 My Book", "📥 Import", "📋 Positions (classic)", "🔔 Alerts", "➕ Add (classic)", "⚙️ Settings"],
-        key="desk_tab", on_change="rerun")
+    tab_book, tab_import, tab_journal, tab_orders, tab_active, tab_watchlist, tab_add, tab_settings = st.tabs(
+        ["📒 My Book", "📥 Import", "📓 Journal", "🎫 Model Orders", "📋 Positions (classic)", "🔔 Alerts", "➕ Add (classic)",
+         "⚙️ Settings"], key="desk_tab", on_change="rerun")
+
+    # Real-money copy of the model portfolio: order ticket, confirmation, fills (utils/model_orders_view.py)
+    with tab_orders:
+        if getattr(tab_orders, "open", True):
+            try:
+                from utils import model_orders_view as _mo
+                _mo.render(df)
+            except Exception as _e:
+                st.error(f"Model Orders failed to load: {_e}")
+
+    # Trade journal: every buy and sell with that day's readings, and what has worked (utils/journal_view.py)
+    with tab_journal:
+        if getattr(tab_journal, "open", True):
+            try:
+                from utils import journal_view as _jv
+                _jv.render(df)
+            except Exception as _e:
+                st.error(f"Journal failed to load: {_e}")
 
     # Broker file import (utils/portfolio_import.py): its own tab so it is easy to find on a phone
     # Only the open tab is drawn (stateful tabs rerun on a switch): the page used to compute all six on every click.

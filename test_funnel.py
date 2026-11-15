@@ -438,11 +438,55 @@ def test_broker_import_reconciles_without_deleting(monkeypatch):
     monkeypatch.setattr(pos, "close_position", lambda t, px: calls.append(("close", t, px)))
     monkeypatch.setattr(pos, "remove_position", lambda t: calls.append(("REMOVE", t)))
     n = pi.apply(pi.reconcile(rows, book, known, names, whole=True), {"HDFCBANK.NS": 804.0}, names, close=True)
-    assert n == dict(added=2, updated=1, closed=1) and not any(c[0] == "REMOVE" for c in calls)
+    assert {k: n[k] for k in ("added", "updated", "closed")} == dict(added=2, updated=1, closed=1) and not any(c[0] == "REMOVE" for c in calls)
     upd = {c[1]: c[2] for c in calls if c[0] == "upd"}
     assert upd["FEDERALBANK.NS"]["quantity"] == 100 and "stop_loss" not in upd["FEDERALBANK.NS"]            # stops are never touched
     assert upd["SBIN.NS"]["status"] == "active" and ("close", "HDFCBANK.NS", 804.0) in calls
     assert pi.apply(pi.reconcile(rows, book, known, names, whole=True), {}, names, close=False)["closed"] == 0
+    acts = {(e[0], e[1]): e for e in n["events"]}
+    assert acts[("BUY", "TCS.NS")][2:] == (5, 3500.0, False) and acts[("SELL", "HDFCBANK.NS")][2:] == (10, 804.0, True)
+    add = acts[("ADD", "FEDERALBNK.NS")]
+    assert add[2] == 50 and round(add[3], 2) == 290.0 and add[4] is False              # price implied by the change in average cost
+
+
+def test_sync_detects_sales_per_broker():
+    from utils import portfolio_import as pi
+    known = {"SBIN.NS", "TCS.NS", "INFY.NS", "ITC.NS"}
+    row = lambda sym, q, a: pd.DataFrame({"symbol": sym, "name": [""] * len(sym), "qty": q, "avg": a})
+    book = [dict(ticker="SBIN.NS", status="active", quantity=30, entry_price=800.0,                 # held at both brokers
+                 lots={"Zerodha": {"qty": 20, "avg": 790.0}, "Dhan": {"qty": 10, "avg": 820.0}}),
+            dict(ticker="TCS.NS", status="active", quantity=5, entry_price=3500.0, lots={"Zerodha": {"qty": 5, "avg": 3500.0}}),
+            dict(ticker="INFY.NS", status="active", quantity=7, entry_price=1500.0, lots={"Dhan": {"qty": 7, "avg": 1500.0}}),
+            dict(ticker="ITC.NS", status="active", quantity=100, entry_price=400.0)]                      # typed in by hand
+    # Zerodha now shows 12 SBIN (8 sold) and no TCS (all sold). Dhan was not synced.
+    plan = pi.reconcile_sources({"Zerodha": row(["SBIN"], [12], [790.0])}, book, known)
+    u = plan["update"][0]
+    assert (u["ticker"], u["qty"], u["old_qty"]) == ("SBIN.NS", 22, 30) and u["lots"]["Dhan"]["qty"] == 10   # Dhan's shares untouched
+    assert [(c["ticker"], c["auto"]) for c in plan["close"]] == [("TCS.NS", True)]                        # sold: no tick-box needed
+    assert not any(x["ticker"] in ("INFY.NS", "ITC.NS") for k in ("update", "close") for x in plan[k])  # other broker / typed in: left alone
+    calls = []
+    from utils import positions as pos
+    import pytest as _pt
+    mp = _pt.MonkeyPatch()
+    mp.setattr(pos, "update_position", lambda t, **k: calls.append(("upd", t, k)))
+    mp.setattr(pos, "close_position", lambda t, px: calls.append(("close", t, px)))
+    try:
+        n = pi.apply(plan, {"SBIN.NS": 850.0, "TCS.NS": 3900.0}, close=False)
+    finally:
+        mp.undo()
+    assert sorted((e[0], e[1], e[2], e[4]) for e in n["events"]) == [("REDUCE", "SBIN.NS", 8, True), ("SELL", "TCS.NS", 5, True)]
+    assert ("close", "TCS.NS", 3900.0) in calls and n["closed"] == 1
+    # a 1:1 bonus (twice the shares, half the cost) is not a purchase
+    solo = [dict(ticker="TCS.NS", status="active", quantity=5, entry_price=3500.0, lots={"Zerodha": {"qty": 5, "avg": 3500.0}})]
+    mp.setattr(pos, "update_position", lambda t, **k: None)
+    try:
+        ev = pi.apply(pi.reconcile_sources({"Zerodha": row(["TCS"], [10], [1750.0])}, solo, known), {"TCS.NS": 1900.0})["events"]
+    finally:
+        mp.undo()
+    assert ev == [("SPLIT", "TCS.NS", 2.0, None, False)]
+    # a broker figure replaces a typed-in one for the same stock rather than adding to it
+    p2 = pi.reconcile_sources({"Dhan": row(["ITC"], [100], [400.0])}, book, known)
+    assert "ITC.NS" not in [u["ticker"] for u in p2["update"]] and p2["lots_only"][0]["lots"] == {"Dhan": {"qty": 100, "avg": 400.0}}
 
 
 def test_mcp_insight_tools_return_json_with_dates():
@@ -642,3 +686,210 @@ def test_tracked_extras_and_extended_list():
     assert U.Sub_Industry.iloc[1] == "Unknown" and extended.norm(" tatacap ") == "TATACAP.NS"
     from utils.nifty1000_list import EXTENDED, SUB_INDUSTRY_MAP, TICKERS_1000
     assert not (set(EXTENDED) & set(TICKERS_1000)) and all(t in SUB_INDUSTRY_MAP for t in list(EXTENDED)[:20])
+
+
+def test_trade_journal_folds_events_into_round_trips():
+    from utils import trade_journal as tj
+    ev = lambda a, t, q, p, d, **k: {**tj.event(a, t, q, p, date=d, **k), "ts": d + "T10:00:00"}
+    evs = [ev("BUY", "AAA.NS", 10, 100.0, "2026-01-05", notes="breakout", metrics={"stages_passed": 4, "technicals": "BUY NOW", "comp_rs": 12.0}),
+           ev("ADD", "AAA.NS", 10, 120.0, "2026-01-20"),
+           ev("REDUCE", "AAA.NS", 5, 130.0, "2026-02-01", estimated=True),
+           ev("SELL", "AAA.NS", 0, 143.0, "2026-03-06", estimated=True, metrics={"status": "🔴 stop hit", "exit_rule_hit": True}),
+           ev("BUY", "BBB.NS", 4, 50.0, "2026-02-10", metrics={"stages_passed": 2, "technicals": "WAIT", "comp_rs": -3.0}),
+           ev("SELL", "BBB.NS", 4, 45.0, "2026-02-20"),
+           ev("BUY", "AAA.NS", 3, 150.0, "2026-04-01"),                                       # bought again: a second trade
+           ev("BUY", "CCC.NS", 1, 10.0, "2026-04-02"), ev("VOID", "CCC.NS", 0, None, "2026-04-03"),   # deleted by mistake: no trade
+           ev("SELL", "ZZZ.NS", 5, 9.0, "2026-04-04")]                                        # a sale with no buy on record is ignored
+    T = tj.trades(evs, {"AAA.NS": 165.0})
+    assert list(T.status) == ["closed", "closed", "open"] and "CCC.NS" not in set(T.ticker) and "ZZZ.NS" not in set(T.ticker)
+    a = T[(T.ticker == "AAA.NS") & (T.status == "closed")].iloc[0]
+    assert a.entry_price == 110.0 and round(a.exit_price, 2) == 139.75 and round(a.return_pct, 2) == 27.05     # 5 @130 + 15 @143
+    assert (a.days, a.adds, a.partial_exits, a.entry_note) == (60, 1, 1, "breakout") and a.exit_estimated
+    assert a.entry_stages_passed == 4 and a.exit_status == "🔴 stop hit"                   # entry and exit readings side by side
+    o = T[T.status == "open"].iloc[0]
+    assert o.open_qty == 3 and round(o.return_pct, 1) == 10.0
+    sp = tj.trades([ev("BUY", "DDD.NS", 10, 100.0, "2026-01-05"), ev("SPLIT", "DDD.NS", 2, None, "2026-02-01"),
+                    ev("SELL", "DDD.NS", 0, 60.0, "2026-03-01")]).iloc[0]
+    assert (sp.qty, sp.entry_price, round(sp.return_pct, 1)) == (20, 50.0, 20.0)           # a 1:1 bonus halves the cost per share
+    S = tj.stats(T)
+    assert (S["closed"], S["open"], S["win_rate"]) == (2, 1, 50.0) and round(S["avg_loss"], 1) == -10.0
+    P = tj.patterns(T, "Technicals read at entry").set_index("group")
+    assert P.loc["BUY NOW", "trades"] == 1 and P.loc["WAIT", "win_rate"] == 0
+    assert set(tj.patterns(T, "RS vs Nifty at entry").group) == {"5 to 15", "below 0"}
+    assert tj.patterns(T, "Your tag").group.tolist() == ["not recorded"]
+
+
+def test_trade_journal_catches_up_with_the_book():
+    from utils import trade_journal as tj
+    book = [dict(ticker="FEDERALBANK.NS", status="active", quantity=50, entry_price=250.0, entry_date="2025-12-01", notes="old"),
+            dict(ticker="TCS.NS", status="closed", quantity=5, entry_price=3500.0, exit_price=3900.0, exit_date="2026-05-02"),
+            dict(ticker="SBIN.NS", status="watching")]
+    res = lambda t: {"FEDERALBANK.NS": "FEDERALBNK.NS"}.get(t, t)
+    first = tj.catch_up(book, [], resolve=res)                       # a holding older than the journal gets its opening buy
+    assert [(e["action"], e["ticker"], e["qty"], e["price"], e["date"]) for e in first] == [("BUY", "FEDERALBNK.NS", 50.0, 250.0, "2025-12-01")]
+    assert first[0]["source"] == "before the journal" and tj.catch_up(book, first, resolve=res) == []      # and only once
+    evs = first + [tj.event("BUY", "TCS.NS", 5, 3500.0, date="2026-03-01"), tj.event("BUY", "ITC.NS", 9, 400.0, date="2026-03-02")]
+    more = {e["ticker"]: e for e in tj.catch_up(book, evs, resolve=res)}
+    assert (more["TCS.NS"]["action"], more["TCS.NS"]["price"], more["TCS.NS"]["date"]) == ("SELL", 3900.0, "2026-05-02")   # closed on a classic tab
+    assert more["ITC.NS"]["action"] == "VOID"                                             # deleted from the book
+    T = tj.trades(evs + list(more.values()))
+    assert T[T.ticker == "TCS.NS"].iloc[0].status == "closed" and "ITC.NS" not in set(T.ticker)
+
+
+def test_trade_journal_captures_the_days_readings():
+    from utils import trade_journal as tj
+    df, _ = _snap()
+    t = df.ticker.iloc[0]
+    M = tj.capture([t, "NOTINIT.NS"], df, regime=dict(regime="BULL", breadth_regime="NEUTRAL", breadth=55.5))
+    assert M["NOTINIT.NS"] == dict(regime_nifty="BULL", regime_breadth="NEUTRAL", breadth_pct=55.5)   # unknown stock: market regime only
+    m = M[t]
+    assert m["regime_nifty"] == "BULL" and 0 <= m["stages_passed"] <= 4 and "technicals" in m and "industry" in m
+    import json
+    json.dumps(M)                                                                          # must be storable as it is
+
+
+class _MemStore:
+    """Stands in for the GitHub-backed store in tests."""
+    def __init__(self):
+        self.rows = []
+
+    def load(self):
+        return [dict(r) for r in self.rows]
+
+    def commit(self, d, reason, background=False):
+        self.rows += [dict(r) for r in d.get("adds", [])]
+        for i, f in (d.get("patches") or {}).items():
+            for r in self.rows:
+                if r["id"] == i:
+                    r.update(f)
+        self.rows = [r for r in self.rows if r["id"] not in (d.get("removes") or [])]
+        return True
+
+
+def _model_snap():
+    port = [("AAA.NS", 100.0, 30), ("BBB.NS", 2500.0, 25), ("CCC.NS", 14000.0, 20), ("DDD.NS", 30000.0, 15), ("EEE.NS", 50.0, 10)]
+    return dict(date="2026-11-13", regime="BULL", config=dict(max_positions=15, initial_capital=1000000),
+                holdings={t: dict(entry_price=p, shares=10, entry_date="2026-11-13") for t, p, _ in port},
+                portfolio=[dict(Ticker=t, Price=p, RS_Score=rs, Trail_Stop=round(p * 0.88, 2)) for t, p, rs in port])
+
+
+def test_model_ticket_sizes_buys_and_sells_what_the_model_left():
+    from utils import model_book as mb
+    snap, meta = _model_snap(), dict(mb.DEFAULTS, capital=200000.0, cash=150000.0)
+    book = [dict(ticker="OLD.NS", qty=40, avg=1000.0), dict(ticker="AAA.NS", qty=130, avg=95.0)]      # OLD left the model, AAA is held by both
+    prices = {"OLD.NS": 1100.0, "AAA.NS": 100.0, "BBB.NS": 2500.0, "CCC.NS": 14000.0, "DDD.NS": 30000.0, "EEE.NS": 50.0}
+    T = mb.ticket(snap, meta, book, prices, {"OLD.NS": "Trend Break (< MA50)"}, today="2026-11-14")
+    S = T["summary"]
+    assert S["equity"] == 150000 + 44000 + 13000 and round(S["slot"]) == 13800                     # 207,000 over 15 slots
+    o = {(x["side"], x["ticker"]): x for x in T["orders"]}
+    assert set(o) == {("SELL", "OLD.NS"), ("BUY", "BBB.NS"), ("BUY", "CCC.NS"), ("BUY", "EEE.NS")}  # AAA untouched: no resizing
+    assert (o[("SELL", "OLD.NS")]["qty"], o[("SELL", "OLD.NS")]["limit"], o[("SELL", "OLD.NS")]["reason"]) == (40, 1089.0, "Trend Break (< MA50)")
+    assert (o[("BUY", "BBB.NS")]["qty"], o[("BUY", "BBB.NS")]["limit"]) == (5, 2525.0)             # floor(13,800 / 2,525)
+    assert o[("BUY", "CCC.NS")]["qty"] == 1 and o[("BUY", "EEE.NS")]["qty"] == 273                # one share a little over a slot is allowed
+    assert [x["ticker"] for x in T["skipped"]] == ["DDD.NS"] and "more than" in T["skipped"][0]["why"]   # ₹30,300 a share: too big for a slot
+    assert [x["ticker"] for x in T["orders"]][:2] == ["OLD.NS", "BBB.NS"]                          # sells first, then buys by RS
+    assert o[("BUY", "BBB.NS")]["stop"] == 2200.0 and o[("BUY", "BBB.NS")]["id"] == "2026-11-13-BBB-BUY"
+    # short of cash: later buys shrink, then stop
+    tight = mb.ticket(snap, dict(meta, cash=5000.0), [dict(ticker="AAA.NS", qty=130, avg=95.0)], prices, today="2026-11-14")
+    assert [(x["ticker"], x["qty"]) for x in tight["orders"]] == [("EEE.NS", 23)]                  # slot is ₹1,200 now; dearer names are skipped
+    assert all(x["value"] <= 5000 for x in tight["orders"])
+    assert "stale" in mb.ticket(snap, meta, book, prices, today="2026-11-25")["problem"]
+    assert "Paused" in mb.ticket(snap, dict(meta, paused=True), book, prices, today="2026-11-14")["problem"]
+    log = [dict(id="2026-11-13-BBB-BUY", status="SENT"), dict(id="2026-11-13-CCC-BUY", status="REJECTED")]
+    assert [x["ticker"] for x in mb.pending(T["orders"], log)] == ["OLD.NS", "CCC.NS", "EEE.NS"]     # sent: not again; refused: offered again
+
+
+def test_model_book_records_fills(monkeypatch):
+    from utils import model_book as mb
+    monkeypatch.setattr(mb, "BOOK", _MemStore())
+    monkeypatch.setattr(mb, "LOG", _MemStore())
+    mb.save_meta(capital=200000.0, cash=200000.0)
+    buy = dict(id="d-AAA-BUY", ticker="AAA.NS", side="BUY", qty=100, limit=101.0, ref=100.0)
+    assert mb.apply_fill(buy, 100, 100.5)["cash"] == 200000 - 10050
+    mb.apply_fill(buy, 50, 103.5)
+    meta, book = mb.load()
+    assert (book[0]["qty"], book[0]["avg"], meta["cash"]) == (150, 101.5, 200000 - 10050 - 5175)
+    r = mb.apply_fill(dict(id="d-AAA-SELL", ticker="AAA.NS", side="SELL", qty=999, limit=110.0), 999, 110.0)   # cannot sell more than is held
+    assert r["filled"] == 150 and mb.load()[1] == [] and mb.load()[0]["cash"] == 200000 - 15225 + 16500
+    mb.log_order(buy, "SENT", mode="manual")
+    mb.log_order(buy, "FILLED", fill_price=100.5)
+    assert [(x["id"], x["status"], x["fill_price"]) for x in mb.LOG.load()] == [("d-AAA-BUY", "FILLED", 100.5)]
+
+
+def test_dhan_orders_are_guarded():
+    from utils import dhan_orders as do
+    from utils.broker_sync import BrokerError
+    o = dict(id="2026-11-13-TCS-BUY", ticker="TCS.NS", side="BUY", qty=3, limit=3500.0)
+    assert do.settings({}) == dict(enabled=False, client_id="", proxy="")
+    with pytest.raises(BrokerError, match="switched off"):                                     # off unless the secret says otherwise
+        do.place("tok", o, do.settings({"client_id": "1"}), {"TCS": "11536"})
+    cfg = do.settings({"client_id": "1000", "orders_enabled": "true"})
+    with pytest.raises(BrokerError, match="not found"):
+        do.place("tok", o, cfg, {})
+    b = do.body(o, "1000", "11536", amo=True)
+    assert (b["productType"], b["orderType"], b["exchangeSegment"], b["validity"]) == ("CNC", "LIMIT", "NSE_EQ", "DAY")
+    assert (b["securityId"], b["quantity"], b["price"], b["afterMarketOrder"], b["correlationId"]) == ("11536", 3, 3500.0, True, o["id"])
+    chk = lambda order, log=(), held=None: do.check(order, held or {}, list(log), 15000.0, 200000.0, today="2026-11-14")
+    assert chk(o) is None
+    assert "per-order cap" in chk(dict(o, qty=5))
+    assert chk(o, [dict(id=o["id"], status="SENT")]) == "already sent"                         # a double tap cannot double an order
+    sent = [dict(id=f"x{i}", ts="2026-11-14T09:20:00", status="SENT", mode="dhan", side="BUY", qty=1, limit=14000.0) for i in range(14)]
+    assert "over the cap" in chk(o, sent)                                                      # 196,000 already bought today
+    sell = dict(id="s", ticker="TCS.NS", side="SELL", qty=3, limit=3500.0)
+    assert "more shares" in chk(sell) and chk(sell, held={"TCS.NS": 3}) is None
+    assert do.market_open(pd.Timestamp("2026-11-16 10:00", tz="Asia/Kolkata").to_pydatetime())
+    assert not do.market_open(pd.Timestamp("2026-11-15 10:00", tz="Asia/Kolkata").to_pydatetime())   # a Sunday
+    M = pd.DataFrame({"SEM_EXM_EXCH_ID": ["NSE", "BSE", "NSE"], "SEM_SEGMENT": ["E", "E", "D"], "SEM_SMST_SECURITY_ID": [11536, 532540, 99],
+                      "SEM_TRADING_SYMBOL": ["TCS", "TCS", "TCS-Nov2026-FUT"], "SEM_SERIES": ["EQ", "A", ""]})
+    assert do.parse_master(M) == {"TCS": "11536"}
+
+
+def test_dhan_order_is_sent_once_and_ip_refusal_is_explained(monkeypatch):
+    from utils import dhan_orders as do
+    from utils.broker_sync import BrokerError
+    calls = []
+
+    class R:
+        def __init__(self, code, data):
+            self.status_code, self._d = code, data
+
+        def json(self):
+            return self._d
+
+    class H:
+        reply = R(200, {"orderId": "552", "orderStatus": "TRANSIT"})
+
+        @classmethod
+        def post(cls, url, **k):
+            calls.append((url, k))
+            return cls.reply
+
+        @classmethod
+        def get(cls, url, **k):
+            return R(200, {"orderId": "552", "orderStatus": "TRADED", "filledQty": 3, "averageTradedPrice": 3498.2})
+
+    monkeypatch.setattr(do, "_http", lambda: H)
+    cfg = do.settings({"client_id": "1000", "orders_enabled": True, "order_proxy": "http://p:1"})
+    o = dict(id="2026-11-13-TCS-BUY", ticker="TCS.NS", side="BUY", qty=3, limit=3500.0)
+    r = do.place("tok", o, cfg, {"TCS": "11536"}, now=pd.Timestamp("2026-11-15 20:00", tz="Asia/Kolkata").to_pydatetime())
+    assert r == dict(order_id="552", status="TRANSIT")
+    url, k = calls[0]
+    assert url.endswith("/v2/orders") and k["headers"]["access-token"] == "tok" and k["proxies"]["https"] == "http://p:1"
+    assert k["json"]["afterMarketOrder"] is True                                               # sent on a Sunday evening: for the next open
+    assert do.status("tok", "552", cfg) == dict(status="TRADED", filled=3.0, price=3498.2, message="")
+    H.reply = R(400, {"errorCode": "DH-905", "errorMessage": "Invalid IP"})
+    with pytest.raises(BrokerError, match="registered IP"):
+        do.place("tok", o, cfg, {"TCS": "11536"})
+
+
+def test_model_orders_reach_the_daily_message(monkeypatch):
+    from utils import model_book as mb
+    monkeypatch.setattr(mb, "BOOK", _MemStore())
+    monkeypatch.setattr(mb, "LOG", _MemStore())
+    monkeypatch.setattr(mb, "snapshot", lambda root=".": dict(_model_snap(), date=pd.Timestamp.today().strftime("%Y-%m-%d")))
+    monkeypatch.setattr(mb, "exit_reasons", lambda root=".": {})
+    prices = {"AAA.NS": 100.0, "BBB.NS": 2500.0, "CCC.NS": 14000.0, "DDD.NS": 30000.0, "EEE.NS": 50.0}
+    assert mb.telegram_line(prices) == ""                                                # no model book yet: say nothing
+    mb.save_meta(capital=200000.0, cash=200000.0)
+    msg = mb.telegram_line(prices)
+    assert "Model orders (4)" in msg and "AAA 132@101" in msg and "Sell:" not in msg and "DDD" not in msg

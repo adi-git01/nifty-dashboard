@@ -122,66 +122,141 @@ def match(rows: pd.DataFrame, known: set, names: Optional[Dict[str, str]] = None
     return rows.assign(ticker=out)
 
 
-def reconcile(rows: pd.DataFrame, positions: List[Dict[str, Any]], known: set, names: Optional[Dict[str, str]] = None,
-              whole: bool = False) -> Dict[str, list]:
-    """Compare broker rows with the book. Returns lists of dicts under add / update / close / unchanged / unknown."""
+BROKERS = ("Zerodha", "Dhan")          # labels that come from a broker's API; anything else is a file or typed in
+
+
+def _lots_total(lots: Dict[str, Dict[str, Any]]):
+    q = sum(float(v.get("qty") or 0) for v in lots.values())
+    cost = sum(float(v["qty"]) * float(v["avg"]) for v in lots.values() if v.get("avg"))
+    qa = sum(float(v["qty"]) for v in lots.values() if v.get("avg"))
+    return int(round(q)), (round(cost / qa, 2) if qa else None)
+
+
+def reconcile_sources(tables: Dict[str, pd.DataFrame], positions: List[Dict[str, Any]], known: set,
+                      names: Optional[Dict[str, str]] = None, whole: bool = False) -> Dict[str, list]:
+    """
+    Compare what each source says you hold with the book. `tables` maps a source label
+    ("Zerodha", "Dhan", or "File") to its rows.
+
+    Each holding remembers how many shares each source reported (`lots`), so a sync of one broker
+    replaces only that broker's shares:
+      - a stock held at both brokers keeps the other broker's shares when one is synced;
+      - shares that have gone from a broker you just synced are a SALE: the quantity falls, and if
+        nothing is left anywhere the holding is proposed for closing -- no tick-box needed;
+      - holdings you typed in, or that came only from sources not in this sync, are left alone
+        unless `whole` is true (then anything missing is proposed for closing).
+    A broker's figure replaces a file or typed-in figure for the same stock (assumed to be the same shares).
+    Returns add / update / close / unchanged / unknown; add, update and close rows carry `lots`.
+    """
     from utils.positions import resolve_ticker
-    m = match(rows, known, names)
     plan: Dict[str, list] = dict(add=[], update=[], close=[], unchanged=[], unknown=[])
+    labels = list(tables)
+    api = [l for l in labels if l in BROKERS]
+    new: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    for label, rows in tables.items():
+        m = match(combine([rows]), known, names)
+        for r in m.itertuples():
+            if not isinstance(r.ticker, str) or not r.ticker:
+                plan["unknown"].append(dict(symbol=r.symbol or r.name, qty=r.qty, avg=r.avg, source=label))
+                continue
+            new.setdefault(r.ticker, {})[label] = dict(qty=int(round(r.qty)), avg=None if pd.isna(r.avg) else round(float(r.avg), 2))
     book = {}
     for p in positions:
         if p.get("status") in ("active", "watching"):
             book.setdefault(resolve_ticker(p["ticker"], known) or p["ticker"], p)
-    seen = set()
-    for r in m.itertuples():
-        if not isinstance(r.ticker, str) or not r.ticker:          # pandas turns a missing match into NaN
-            plan["unknown"].append(dict(symbol=r.symbol or r.name, qty=r.qty, avg=r.avg))
+    for t, lots_new in new.items():
+        p = book.get(t)
+        if p is None or p.get("status") == "watching":
+            q, a = _lots_total(lots_new)
+            plan["add"].append(dict(ticker=t, qty=q, avg=a, lots=lots_new, was="not in the book" if p is None else "on the watchlist",
+                                    **({"orig": p["ticker"]} if p else {})))
             continue
-        seen.add(r.ticker)
-        qty = int(round(r.qty))
-        avg = None if pd.isna(r.avg) else round(float(r.avg), 2)
-        p = book.get(r.ticker)
-        if p is None:
-            plan["add"].append(dict(ticker=r.ticker, qty=qty, avg=avg, was="not in the book"))
-        elif p.get("status") == "watching":
-            plan["add"].append(dict(ticker=r.ticker, qty=qty, avg=avg, was="on the watchlist", orig=p["ticker"]))
+        old = dict(p.get("lots") or {})
+        kept = {k: v for k, v in old.items() if k not in labels and not (api and k not in BROKERS)}   # a broker supersedes file / typed lots
+        lots = {**kept, **lots_new}
+        q, a = _lots_total(lots)
+        oq, oa = int(p.get("quantity") or 0), p.get("entry_price")
+        same = oq == q and (a is None or (oa and abs(float(oa) - a) <= 0.005 * a))
+        row = dict(ticker=t, orig=p["ticker"], qty=q, avg=a, old_qty=oq, old_avg=oa, lots=lots)
+        if same:
+            plan["unchanged"].append(row)
+            if old != lots:                                 # nothing visible changes; just remember which source holds it
+                plan.setdefault("lots_only", []).append(row)
         else:
-            oq, oa = int(p.get("quantity") or 0), p.get("entry_price")
-            same = oq == qty and (avg is None or (oa and abs(float(oa) - avg) <= 0.005 * avg))
-            (plan["unchanged"] if same else plan["update"]).append(
-                dict(ticker=r.ticker, orig=p["ticker"], qty=qty, avg=avg, old_qty=oq, old_avg=oa))
-    if whole:
-        for t, p in book.items():
-            if p.get("status") == "active" and t not in seen:
-                plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=int(p.get("quantity") or 0), old_avg=p.get("entry_price")))
+            plan["update"].append(row)
+    for t, p in book.items():
+        if p.get("status") != "active" or t in new:
+            continue
+        old = dict(p.get("lots") or {})
+        oq, oa = int(p.get("quantity") or 0), p.get("entry_price")
+        gone = [k for k in old if k in api]                  # only a broker sync is complete; a file may be one account of several
+        if gone:                                             # shares this sync should have shown, and did not: sold
+            left = {k: v for k, v in old.items() if k not in api}
+            if left:
+                q, a = _lots_total(left)
+                plan["update"].append(dict(ticker=t, orig=p["ticker"], qty=q, avg=a, old_qty=oq, old_avg=oa, lots=left, sold=True))
+            else:
+                plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=oq, old_avg=oa, sold=True, auto=True))
+        elif whole:
+            plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=oq, old_avg=oa, sold=True, auto=False))
     return plan
 
 
+def reconcile(rows: pd.DataFrame, positions: List[Dict[str, Any]], known: set, names: Optional[Dict[str, str]] = None,
+              whole: bool = False) -> Dict[str, list]:
+    """One table of rows from a file (kept for callers that do not track sources)."""
+    return reconcile_sources({"File": rows}, positions, known, names, whole)
+
+
 def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[str, str]] = None, close: bool = True,
-          source: str = "broker file") -> Dict[str, int]:
-    """Write the plan to the book. Stops, targets and notes of existing holdings are not touched."""
+          source: str = "broker file") -> Dict[str, Any]:
+    """
+    Write the plan to the book. Stops, targets and notes of existing holdings are not touched.
+    Returns counts plus `events`: what changed, for the trade journal -- (action, ticker, qty, price, estimated).
+    A sale's price is the latest close (brokers' holdings do not report fills), so it is marked estimated.
+    """
     from utils import positions as pos
     today = pd.Timestamp.today().strftime("%Y-%m-%d")
-    n = dict(added=0, updated=0, closed=0)
+    n: Dict[str, Any] = dict(added=0, updated=0, closed=0, events=[])
+    ev = n["events"]
     for a in plan["add"]:
         entry = a["avg"] or prices.get(a["ticker"])
+        extra = dict(source=source, synced_at=today, **({"lots": a["lots"]} if a.get("lots") else {}))
         if a.get("orig"):                                   # promote from the watchlist
-            pos.update_position(a["orig"], status="active", entry_price=entry, quantity=a["qty"], entry_date=today, source=source,
-                                synced_at=today)
+            pos.update_position(a["orig"], status="active", entry_price=entry, quantity=a["qty"], entry_date=today, **extra)
         else:
             pos.add_position(a["ticker"], name=(names or {}).get(a["ticker"]), status="active", entry_price=entry, quantity=a["qty"])
-            pos.update_position(a["ticker"], source=source, synced_at=today)
+            pos.update_position(a["ticker"], entry_date=today, exit_price=None, exit_date=None, **extra)   # also clears an old closed record
+        ev.append(("BUY", a["ticker"], a["qty"], entry, not a["avg"]))
         n["added"] += 1
     for u in plan["update"]:
-        f = dict(quantity=u["qty"], source=source, synced_at=today)
+        f = dict(quantity=u["qty"], source=source, synced_at=today, **({"lots": u["lots"]} if u.get("lots") else {}))
         if u["avg"]:
             f["entry_price"] = u["avg"]
         pos.update_position(u["orig"], **f)
+        d = u["qty"] - int(u.get("old_qty") or 0)
+        both = u.get("avg") and u.get("old_avg") and u.get("old_qty")
+        if d and both and abs(u["qty"] * u["avg"] / (u["old_qty"] * float(u["old_avg"])) - 1) < 0.01:
+            # the share count changed and the total cost did not: a split or bonus, not a trade
+            ev.append(("SPLIT", u["ticker"], u["qty"] / u["old_qty"], None, False))
+        elif d > 0:                                          # bought more: the price implied by the change in average cost
+            px, est = prices.get(u["ticker"]), True
+            if both:
+                imp = (u["qty"] * u["avg"] - u["old_qty"] * float(u["old_avg"])) / d
+                if imp > 0 and (not px or 0.5 <= imp / px <= 2):   # an implied price far from the market is not a fill
+                    px, est = round(imp, 2), False
+            ev.append(("ADD", u["ticker"], d, px, est))
+        elif d < 0:
+            ev.append(("REDUCE", u["ticker"], -d, prices.get(u["ticker"]), True))
         n["updated"] += 1
-    if close:
-        for c in plan["close"]:
-            px = prices.get(c["ticker"])
-            if px:
-                pos.close_position(c["orig"], float(px))
-                n["closed"] += 1
+    for u in plan.get("lots_only", []):
+        pos.update_position(u["orig"], lots=u["lots"], synced_at=today)
+    for c in plan["close"]:
+        if not (close or c.get("auto")):
+            continue
+        px = prices.get(c["ticker"]) or c.get("old_avg")       # no price for it: close at cost rather than leave a sold stock open
+        if px:
+            pos.close_position(c["orig"], float(px))
+            ev.append(("SELL", c["ticker"], int(c.get("old_qty") or 0), float(px), True))
+            n["closed"] += 1
     return n

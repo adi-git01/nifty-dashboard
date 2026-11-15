@@ -75,6 +75,67 @@ def _context_cached(key: str, tickers: tuple, _df: pd.DataFrame) -> pd.DataFrame
 IMPORT_TAB = "📥 Import"
 
 
+def _trail(df: pd.DataFrame) -> float:
+    from utils import funnel_view as fv
+    try:
+        return float(fv.regime(df)["info"]["engine"].get("trail_stop") or 0.12)
+    except Exception:
+        return 0.12
+
+
+def exit_facts(df: pd.DataFrame, p: Dict[str, Any], t: str) -> Dict[str, Any]:
+    """What was true of a holding when it was sold: its status, whether the exit rule had fired, how far off the peak."""
+    try:
+        C = _context(df, [t])
+        r = C.loc[t] if len(C) and t in C.index else None
+        px = float(r.price) if r is not None and pd.notna(r.price) else None
+        e, sl, tg = _num(p.get("entry_price")), _num(p.get("stop_loss")), _num(p.get("target"))
+        peak = peak_since(t, p.get("entry_date"), px)
+        g = exit_guide(px, float(r.ma50) if r is not None and pd.notna(r.ma50) else None, peak, _trail(df), sl)
+        return dict(status=status(px, sl, tg, r.scanner if r is not None else "", bool(r.below50) if r is not None else False,
+                                  float(r.caution) if r is not None else 0),
+                    exit_rule_hit=bool(str(g["text"]).startswith("🔴")), exit_level=g["level"], stop_set=sl, target_set=tg,
+                    peak_gain_pct=round((peak / e - 1) * 100, 2) if peak and e else None,
+                    from_peak_pct=round((px / peak - 1) * 100, 2) if px and peak else None)
+    except Exception:
+        return {}
+
+
+def journal(df: pd.DataFrame, changes: list, source: str, before: list, known: set, notes: Optional[Dict[str, str]] = None,
+            tags: str = "", extra: Optional[Dict[str, Dict[str, Any]]] = None) -> int:
+    """
+    Write buys and sells to the trade journal with today's metrics. `changes` are
+    (action, ticker, qty, price, estimated) tuples; `before` is the book as it was before the change
+    (so holdings older than the journal get their opening BUY first, and a sale has something to close).
+    """
+    from utils import trade_journal as tj
+    if not changes:
+        return 0
+    try:
+        from utils import funnel_view as fv
+        from utils.industry_board_view import get_board
+        res = lambda t: pos.resolve_ticker(t, known) or t
+        evs = tj.catch_up(before, resolve=res)
+        try:
+            M = tj.capture([c[1] for c in changes], df, get_board(df), fv.valuation(), fv.regime(df))
+        except Exception:
+            M = {}
+        held = {res(p["ticker"]): p for p in before if p.get("status") == "active"}
+        for a, t, q, px, est in changes:
+            if a == "SPLIT":
+                evs.append(tj.event(a, t, q, None, source=source))
+                continue
+            m = dict(M.get(t) or {})
+            if a in tj.SELLS and t in held:
+                m.update(exit_facts(df, held[t], t))
+            m.update((extra or {}).get(t) or {})
+            evs.append(tj.event(a, t, q, px, source=source, estimated=est, notes=(notes or {}).get(t, ""), metrics=m, tags=tags))
+        return tj.record(evs)
+    except Exception as e:                                   # the journal must never block a save
+        st.warning(f"Saved, but the trade journal could not be updated: {e}")
+        return 0
+
+
 def handle_broker_redirect() -> bool:
     """
     Called early in main.py. If this page load is a broker sending the user back after login
@@ -182,26 +243,27 @@ def _sync_panel():
             "this browser session and are never saved.")
 
 
-def _plan_panel(df: pd.DataFrame, tables: list, sources: list, allp: list, known: set, ver: int):
+def _plan_panel(df: pd.DataFrame, tables: Dict[str, pd.DataFrame], sources: list, allp: list, known: set, ver: int):
     """Preview what an import or sync would change, and apply it once."""
     from utils import portfolio_import as pi
     whole = st.checkbox("This is my whole portfolio (propose closing holdings that are not in it)", key="book_whole")
     names = _known(df)[1]
     prices = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
-    plan = pi.reconcile(pi.combine(tables), allp, known, names, whole)
+    plan = pi.reconcile_sources(tables, allp, known, names, whole)
     outside = [a["ticker"] for a in plan["add"] + plan["update"] if a["ticker"] not in prices]
     if outside:
         st.info("🔭 Outside the ranked universe, tracked from now on: " + ", ".join(x.replace(".NS", "") for x in outside)
                 + ". They are priced on the next page load and join the nightly run.")
     m = st.columns(5)
-    for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Not in it"), ("unchanged", "Unchanged"),
+    for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Sold / not in it"), ("unchanged", "Unchanged"),
                                  ("unknown", "Not recognised"))):
         col.metric(lab, len(plan[k]))
     t = lambda x: str(x).replace(".NS", "")
     rows = ([{"Change": "➕ Add", "Stock": t(a["ticker"]), "Qty": a["qty"], "Avg cost": a["avg"], "Before": a["was"]} for a in plan["add"]]
-            + [{"Change": "✏️ Update", "Stock": t(u["ticker"]), "Qty": u["qty"], "Avg cost": u["avg"],
+            + [{"Change": "📉 Part sold" if u["qty"] < u["old_qty"] else "📈 Bought more" if u["qty"] > u["old_qty"] else "✏️ Cost updated",
+                "Stock": t(u["ticker"]), "Qty": u["qty"], "Avg cost": u["avg"],
                 "Before": f"qty {u['old_qty']}, avg {u['old_avg']}"} for u in plan["update"]]
-            + [{"Change": "🚪 Close (sold?)", "Stock": t(c["ticker"]), "Qty": 0, "Avg cost": None,
+            + [{"Change": "🚪 Sold" if c.get("auto") else "🚪 Close (sold?)", "Stock": t(c["ticker"]), "Qty": 0, "Avg cost": None,
                 "Before": f"qty {c['old_qty']}, avg {c['old_avg']}"} for c in plan["close"]])
     if rows:
         st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True,
@@ -216,13 +278,25 @@ def _plan_panel(df: pd.DataFrame, tables: list, sources: list, allp: list, known
                "set one from the Exit guide column. Stops, targets and notes you already have are kept."
                + (f" Your book is saved to {info.get('where', 'GitHub')}"
                   " — if that repository or this dashboard is public, so are these quantities." if info else ""))
-    close = st.checkbox(f"Also close the {len(plan['close'])} holding(s) not in it", value=False, key="book_close") if plan["close"] else False
-    n = len(plan["add"]) + len(plan["update"]) + (len(plan["close"]) if close else 0)
-    if st.button(f"✅ Apply ({n} change(s))", type="primary", disabled=not n, key="book_apply"):
-        done = pi.apply(plan, prices, names, close=close, source=", ".join(sources)[:80])
+    sold = [c for c in plan["close"] if c.get("auto")]
+    maybe = [c for c in plan["close"] if not c.get("auto")]
+    if sold or any(u["qty"] < u["old_qty"] for u in plan["update"]):
+        st.caption("📓 Sales are found by comparing with the last sync of the same broker. They are closed and written to the "
+                   "**Journal** at the latest close, marked ≈ — a holdings list does not give the fill price; correct it in the Journal.")
+    close = st.checkbox(f"Also close the {len(maybe)} holding(s) not in it", value=False, key="book_close") if maybe else False
+    n = len(plan["add"]) + len(plan["update"]) + len(sold) + (len(maybe) if close else 0)
+    quiet = bool(plan.get("lots_only"))                      # first sync of a holding: remember which broker holds it
+    if quiet and not n:
+        st.caption("Press the button once to link these holdings to the broker: from then on a sync notices when you sell.")
+    if st.button(f"✅ Apply ({n} change(s))" if n or not quiet else "✅ Link holdings to this broker", type="primary",
+                 disabled=not (n or quiet), key="book_apply"):
+        src = ", ".join(sources)[:80]
+        done = pi.apply(plan, prices, names, close=close, source=src)
+        logged = journal(df, done["events"], src, allp, known)
         st.session_state["book_ver"] = ver + 1
         st.session_state["sync_rows"] = {}
-        st.toast(f"Imported: {done['added']} added, {done['updated']} updated, {done['closed']} closed", icon="📥")
+        st.toast(f"Imported: {done['added']} added, {done['updated']} updated, {done['closed']} closed"
+                 + (f" · {logged} journal entr{'y' if logged == 1 else 'ies'}" if logged else ""), icon="📥")
         st.rerun()
 
 
@@ -235,19 +309,21 @@ def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
                "Dhan: Portfolio → Holdings → download) and drop the file here. Files and synced brokers are combined into one portfolio.")
     files = st.file_uploader("Holdings files", type=["csv", "xlsx", "xls", "tsv", "txt"], accept_multiple_files=True,
                              key=f"book_up_{ver}", label_visibility="collapsed")
-    tables, sources = [], []
+    tables, sources, parsed = {}, [], []
     for label, rows in (st.session_state.get("sync_rows") or {}).items():
         if rows is not None and len(rows):
-            tables.append(rows)
+            tables[str(label).title() if str(label).title() in pi.BROKERS else str(label)] = rows
             sources.append(f"{label} sync")
     for f in files or []:
         try:
             t = pi.parse(f.getvalue(), f.name)
-            tables.append(t)
+            parsed.append(t)
             sources.append(f.name)
             st.caption(f"✅ {f.name}: {len(t)} holding(s) read")
         except Exception as e:
             st.error(f"{f.name}: {e}")
+    if parsed:
+        tables["File"] = pi.combine(parsed)
     if not tables:
         return
     st.markdown("#### 👀 Preview — " + ", ".join(sources))
@@ -297,11 +373,7 @@ def render(df: pd.DataFrame):
     money = lambda t: st.column_config.NumberColumn(t, format="₹%.2f", min_value=0.0)
 
     # ------------------------------------------------------------------ holdings
-    from utils import funnel_view as fv
-    try:
-        trail = float(fv.regime(df)["info"]["engine"].get("trail_stop") or 0.12)
-    except Exception:
-        trail = 0.12
+    trail = _trail(df)
     st.markdown("#### 📈 Holdings")
     H = []
     for p in hold:
@@ -322,6 +394,7 @@ def render(df: pd.DataFrame):
     Hall = pd.DataFrame(H, columns=["Stock", "Entry", "Qty", "Stop", "Target", "Notes", "Price", "P&L %", "Above stop %", "Status",
                                     "Exit below", "Exit guide", "Technicals", "Industry", "Sector", "Daily traded"])
     Hd = Hall.drop(columns=["Sector", "Daily traded"])
+    Hd["Sold"], Hd["Sold at"] = False, np.nan
     need = Hd[~Hd.Status.str.startswith("✅") | Hd["Exit guide"].str.startswith("🔴")] if len(Hd) else Hd
     if len(need):
         st.warning("Needs a look: " + ", ".join(
@@ -351,7 +424,10 @@ def render(df: pd.DataFrame):
             if notes:
                 st.caption("⚠️ " + "; ".join(notes) + ".")
     He = st.data_editor(Hd, key=f"book_h_{ver}", num_rows="dynamic", hide_index=True, use_container_width=True,
-                        disabled=[c for c in Hd.columns if c not in EDIT_H], column_config={
+                        disabled=[c for c in Hd.columns if c not in EDIT_H + ["Sold", "Sold at"]], column_config={
+        "Sold": st.column_config.CheckboxColumn("Sold", help="Tick and save: closes the holding and writes the sale to the Journal"),
+        "Sold at": st.column_config.NumberColumn("Sold at", format="₹%.2f", min_value=0.0,
+                                                 help="Your sale price. Leave empty to use the latest close (marked ≈ in the Journal)"),
         "Stock": st.column_config.TextColumn("Stock", help="NSE symbol, e.g. CUMMINSIND", required=True),
         "Entry": money("Entry"), "Stop": money("Stop"), "Target": money("Target"),
         "Qty": st.column_config.NumberColumn("Qty", min_value=1, step=1, format="%d"),
@@ -361,8 +437,8 @@ def render(df: pd.DataFrame):
         "Exit below": st.column_config.NumberColumn(format="₹%.1f", help=f"Higher of the 50-day average and {trail * 100:.0f}% below the "
                                                     "highest close since entry — the live engine's exit, kept by the exit studies"),
         "Exit guide": st.column_config.TextColumn("Exit guide", width="medium")})
-    st.caption("Click a cell to edit · add a row at the bottom · select a row and press Delete to remove it. "
-               "Nothing is saved until you press **Save changes**.")
+    st.caption("Click a cell to edit · add a row at the bottom · tick **Sold** (far right) when you sell — it goes to the 📓 Journal · "
+               "deleting a row erases it without a trace (for mistakes). Nothing is saved until you press **Save changes**.")
 
     # ------------------------------------------------------------------ watchlist
     st.markdown("#### 👀 Watchlist")
@@ -400,21 +476,47 @@ def render(df: pd.DataFrame):
     # ------------------------------------------------------------------ save
     dh, dw = diff(Hd, He, known, EDIT_H), diff(Wd, We, known, ["Stock", "Notes"])
     bought = [norm(r["Stock"], known) for _, r in We.iterrows() if r.get("Bought") is True and norm(r["Stock"], known) in known]
-    n = sum(len(d[k]) for d in (dh, dw) for k in ("add", "remove", "update")) + len(quick) + len(bought)
+    sold = {}
+    for _, r in He.iterrows():
+        t = norm(r.get("Stock"), known)
+        if r.get("Sold") is True and t in set(res.values()):
+            sold[t] = _num(r.get("Sold at"))
+    dh["update"] = [(t, r) for t, r in dh["update"] if t not in sold]
+    n = sum(len(d[k]) for d in (dh, dw) for k in ("add", "remove", "update")) + len(quick) + len(bought) + len(sold)
     bad = [t.replace(".NS", "") for d in (dh, dw) for t, _ in d["unknown"]]
     if bad:
         st.error("Not found in the universe, so not saved: " + ", ".join(bad))
     if q2.button(f"💾 Save changes ({n})" if n else "💾 Save changes", type="primary", disabled=not n, use_container_width=True,
                  key="book_save"):
+        log, why, fix = [], {}, {}                           # journal entries: (action, ticker, qty, price, estimated)
         for t, r in dh["add"]:
             px = _px(df, t)
-            pos.add_position(t, name=names.get(t), status="active", entry_price=_num(r.get("Entry")) or px,
-                             stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")), quantity=int(_num(r.get("Qty")) or 1),
+            e, q = _num(r.get("Entry")), int(_num(r.get("Qty")) or 1)
+            pos.add_position(t, name=names.get(t), status="active", entry_price=e or px,
+                             stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")), quantity=q,
                              notes=str(r.get("Notes") or ""))
+            pos.update_position(t, entry_date=pd.Timestamp.today().strftime("%Y-%m-%d"), exit_price=None, exit_date=None)
+            log.append(("BUY", t, q, e or px, not e))
+            why[t] = str(r.get("Notes") or "")
         for t, r in dh["update"]:
-            orig = next(p["ticker"] for p in hold if res[p["ticker"]] == t or p["ticker"] == t)
-            pos.update_position(orig, entry_price=_num(r.get("Entry")), stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")),
-                                quantity=int(_num(r.get("Qty")) or 1), notes=str(r.get("Notes") or ""))
+            p0 = next(p for p in hold if res[p["ticker"]] == t or p["ticker"] == t)
+            e, q = _num(r.get("Entry")), int(_num(r.get("Qty")) or 1)
+            pos.update_position(p0["ticker"], entry_price=e, stop_loss=_num(r.get("Stop")), target=_num(r.get("Target")),
+                                quantity=q, notes=str(r.get("Notes") or ""))
+            q0, e0 = int(_num(p0.get("quantity")) or 1), _num(p0.get("entry_price"))
+            if q > q0:                                           # bought more: price implied by the new average cost, else the latest close
+                imp = (q * e - q0 * e0) / (q - q0) if e and e0 and abs(e - e0) > 1e-9 else None
+                log.append(("ADD", t, q - q0, round(imp, 2) if imp and imp > 0 else _px(df, t), not (imp and imp > 0)))
+            elif q < q0:
+                log.append(("REDUCE", t, q0 - q, _px(df, t), True))
+            elif e and e0 and abs(e - e0) > 1e-9:
+                fix[t] = e                                       # same shares, corrected cost: fix the journal's entry price too
+        for t, px_sold in sold.items():
+            p0 = next((p for p in hold if res[p["ticker"]] == t or p["ticker"] == t), None)
+            px = p0 and (px_sold or _px(df, t) or _num(p0.get("entry_price")))
+            if px:
+                pos.close_position(p0["ticker"], float(px))
+                log.append(("SELL", t, int(_num(p0.get("quantity")) or 1), float(px), not px_sold))
         for t, r in dw["add"]:
             px = _px(df, t)
             pos.add_position(t, name=names.get(t), status="watching", entry_price=px, notes=str(r.get("Notes") or ""))
@@ -433,10 +535,24 @@ def render(df: pd.DataFrame):
             if r is not None and pd.notna(r.t1) and r.t1 > px:
                 fields["target"] = float(r.t1)
             pos.update_position(orig, **fields) if pos.get_position(orig) else pos.add_position(t, status="active", entry_price=px)
+            log.append(("BUY", t, 1, px, True))
+            why[t] = next((str(p.get("notes") or "") for p in watch if res[p["ticker"]] == t), "")
         for group, d in ((hold, dh), (watch, dw)):
             for p in group:
                 if (res[p["ticker"]] in d["remove"] or p["ticker"] in d["remove"]) and res[p["ticker"]] not in bought:
                     pos.remove_position(p["ticker"])
+        journal(df, log, "My Book", allp, known, why)
+        try:
+            from utils import trade_journal as tj
+            gone = [res[p["ticker"]] for p in hold if res[p["ticker"]] in dh["remove"] or p["ticker"] in dh["remove"]]
+            evs = tj.events() if (gone or fix) else []
+            tj.record([tj.event("VOID", t, 0, None, source="My Book") for t in gone if tj.open_entry(t, evs)])
+            for t, e in fix.items():
+                o = tj.open_entry(t, evs)
+                if o and not o["adds"] and not o["partial_exits"]:
+                    tj.patch(o["entry_event"], price=float(e), estimated=False)
+        except Exception:
+            pass
         st.session_state["book_ver"] = ver + 1
         st.toast(f"Saved {n} change(s)", icon="💾")
         st.rerun()
