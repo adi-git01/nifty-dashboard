@@ -70,6 +70,97 @@ def _div(a, b):
     return (a / b).where(b > 0)
 
 
+GOLD_LOAN = {"MUTHOOTFIN.NS", "MANAPPURAM.NS"}
+LENDER_WEIGHTS = {"Growth": 0.25, "Spread & costs": 0.25, "ROA & ROE": 0.30, "Leverage & asset quality": 0.20}
+# score break-points by lender type: (value, score) pairs
+ROA_PTS = {"BANK": [(0, 0), (0.5, 30), (1.0, 60), (1.5, 85), (2.0, 100)],
+           "NBFC": [(0, 0), (1.0, 30), (2.0, 60), (3.0, 85), (4.5, 100)],
+           "GOLD LOAN": [(0, 0), (2.0, 30), (3.5, 60), (5.0, 85), (7.0, 100)]}
+NII_PTS = {"BANK": [(1.5, 10), (2.5, 50), (3.5, 85), (4.5, 100)],
+           "NBFC": [(2, 10), (4, 50), (6, 80), (9, 100)],
+           "GOLD LOAN": [(5, 20), (8, 60), (11, 90), (14, 100)]}
+LEV_PTS = {"BANK": [(6, 100), (10, 75), (14, 45), (18, 15), (22, 0)],
+           "NBFC": [(3, 100), (5, 75), (7, 45), (10, 10), (13, 0)],
+           "GOLD LOAN": [(2, 100), (4, 70), (6, 35), (8, 0)]}
+LEV_MAX = {"BANK": 18, "NBFC": 10, "GOLD LOAN": 7}
+
+
+def lender_kind(ticker: str, w: pd.DataFrame) -> Optional[str]:
+    """
+    BANK (takes deposits), GOLD LOAN, NBFC, or None for a non-lender. An NBFC is a company in the
+    Finance sub-industry whose interest cost is 15%+ of revenue with assets at least 1.5x equity,
+    which keeps out holding companies, brokers and asset managers.
+    """
+    if "deposits" in w and w["deposits"].notna().any():
+        return "BANK"
+    t = ticker if ticker.endswith(".NS") else ticker + ".NS"
+    if t in GOLD_LOAN:
+        return "GOLD LOAN"
+    try:
+        from utils.nifty1000_list import SUB_INDUSTRY_MAP
+        ind = SUB_INDUSTRY_MAP.get(t)
+    except Exception:
+        ind = None
+    if ind != "Finance" or "sales" not in w:
+        return None
+    x = w[w["sales"].notna()]
+    if x.empty:
+        return None
+    x = x.iloc[-1]
+    eq = x.get("eq_cap", np.nan) + x.get("reserves", np.nan)
+    ok = (x["sales"] > 0 and pd.notna(x.get("interest")) and x["interest"] / x["sales"] >= 0.15
+          and eq > 0 and pd.notna(x.get("total_liab")) and x["total_liab"] / eq >= 1.5)
+    return "NBFC" if ok else None
+
+
+def roa_tree(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
+    """
+    The ROA tree for a lender, one row per fiscal year, every line as % of average total assets:
+
+        interest income - interest cost = NII
+        NII + other income - costs (operating expenses, provisions, depreciation) = pre-tax ROA
+        pre-tax ROA - tax = ROA;   ROA x leverage (average assets / average equity) = ROE
+
+    Screener reports operating expenses and provisions as one "Expenses" line, so they are one
+    line here too. Empty for a non-lender.
+    """
+    A, _ = _data(root)
+    k = _key(ticker, A)
+    if k is None:
+        return pd.DataFrame()
+    w = A[k].pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+    if as_of is not None:
+        w = w[w.index <= pd.Timestamp(as_of)]
+    kind = lender_kind(k, w)
+    need = {"sales", "interest", "op", "pbt", "np", "total_liab", "eq_cap", "reserves"}
+    if kind is None or not need <= set(w.columns):
+        return pd.DataFrame()
+    y = w[w["sales"].notna()].copy()
+    if len(y) < 2:
+        return pd.DataFrame()
+    dep = y["dep"].fillna(0) if "dep" in y else 0.0
+    avg_a = y["total_liab"].rolling(2, min_periods=1).mean()
+    eq = y["eq_cap"] + y["reserves"]
+    avg_e = eq.rolling(2, min_periods=1).mean()
+    pc = lambda v: _div(v, avg_a) * 100
+    T = pd.DataFrame(index=y.index)
+    T["int_income"] = pc(y["sales"])
+    T["int_cost"] = pc(y["interest"])
+    T["nii"] = T["int_income"] - T["int_cost"]
+    T["other_income"] = pc(y["pbt"] - y["op"] + dep)
+    T["costs"] = pc(y["sales"] - y["interest"] - y["op"] + dep)
+    T["pretax_roa"] = pc(y["pbt"])
+    T["tax"] = pc(y["pbt"] - y["np"])
+    T["roa"] = pc(y["np"])
+    T["leverage"] = _div(avg_a, avg_e)
+    T["roe"] = _div(y["np"], avg_e) * 100
+    T["cost_income"] = _div(T["costs"], T["nii"] + T["other_income"]) * 100
+    T["assets"] = y["total_liab"]
+    T["asset_g"] = (y["total_liab"].pct_change() * 100).where(y["total_liab"].shift(1) > 0)
+    T.attrs["kind"] = kind
+    return T
+
+
 def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     """as_of: use only fiscal years ending on or before this date (for point-in-time tests)."""
     A, _ = _data(root)
@@ -93,8 +184,10 @@ def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     out["npm"] = _div(g("np"), g("sales")) * 100
     out["roce"] = g("roce")
     out["roe"] = _div(g("np"), (g("eq_cap") + g("reserves")).rolling(2, min_periods=1).mean()) * 100
-    fin = bool(g("deposits").notna().any())
+    kind = lender_kind(k, w)
+    fin = kind is not None
     out["financial"] = fin
+    out["lender_kind"] = kind or ""
     if not fin:
         out["cash_conv"] = _div(g("cfo"), g("op")) * 100
         out["cash_conv_3y"] = _div(g("cfo").rolling(3).sum(), g("op").rolling(3).sum()) * 100
@@ -130,7 +223,7 @@ def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     out["op"], out["opm"] = g("op"), g("opm")
     out["np"], out["np_yoy"] = g("np"), yoy(g("np"))
     out["npm"] = _div(g("np"), g("sales")) * 100
-    for c in ("promoters", "fii", "dii", "public", "holders"):
+    for c in ("promoters", "fii", "dii", "public", "holders", "gnpa", "nnpa"):
         out[c] = g(c)
     return out
 
@@ -186,6 +279,75 @@ def investment_phase(a: pd.DataFrame) -> Optional[Dict[str, Any]]:
     return None
 
 
+def _lender_pillars(T: pd.DataFrame, q: pd.DataFrame, P: dict, add, hard: list) -> None:
+    """Score a lender from its ROA tree: spread and costs, ROA and ROE, leverage and asset quality."""
+    if T is None or T.empty:
+        return
+    kind = T.attrs.get("kind", "NBFC")
+    sgn = {UP: 1, FLAT: 0, DOWN: -1}
+    L = T.iloc[-1]
+    # ---- spread and costs
+    lv, dr = [], []
+    t = _trend(T["nii"], 0.25)
+    add("Spread & costs", "Net interest income / assets", t["way"] if t else FLAT,
+        f"{L.nii:.2f}% (interest earned {L.int_income:.2f}% less interest paid {L.int_cost:.2f}%)"
+        + (f"; {t['now']:.2f}% avg vs {t['was']:.2f}% before" if t else ""))
+    lv.append(_lin(L.nii, NII_PTS[kind]))
+    if t:
+        dr.append(sgn[t["way"]])
+    t = _trend(T["costs"], 0.25, higher_better=False)
+    add("Spread & costs", "Costs / assets", t["way"] if t else FLAT,
+        f"{L.costs:.2f}% (operating expenses and provisions together)" + (f"; {t['now']:.2f}% avg vs {t['was']:.2f}% before" if t else ""))
+    if t:
+        dr.append(sgn[t["way"]])
+    if np.isfinite(L.cost_income):
+        add("Spread & costs", "Costs / income", DOWN if L.cost_income > 75 else FLAT,
+            f"costs take {L.cost_income:.0f}% of net interest plus other income")
+        lv.append(_lin(L.cost_income, [(35, 100), (50, 80), (65, 55), (80, 25), (95, 0)]))
+    add("Spread & costs", "Other income / assets", FLAT, f"{L.other_income:.2f}% (fees, treasury, recoveries)", scored=False)
+    P["Spread & costs"] = dict(score=_mean(lv), dir=_mean(dr) if dr else 0.0)
+    # ---- ROA and ROE
+    t = _trend(T["roa"], 0.15)
+    roa_s = _lin(L.roa, ROA_PTS[kind]) + (float(np.clip(t["delta"] * 20, -15, 15)) if t else 0.0)
+    add("ROA & ROE", "ROA", t["way"] if t else FLAT, f"{L.roa:.2f}%" + (f"; {t['now']:.2f}% avg vs {t['was']:.2f}% before" if t else "")
+        + f" (a good {kind.lower()} earns about {ROA_PTS[kind][2][0]:.1f}% or more)")
+    t2 = _trend(T["roe"], 2.0)
+    add("ROA & ROE", "ROE", t2["way"] if t2 else FLAT, f"{L.roe:.1f}% = ROA {L.roa:.2f}% × leverage {L.leverage:.1f}x"
+        + (f"; {t2['now']:.0f}% avg vs {t2['was']:.0f}% before" if t2 else ""))
+    roe_s = _lin(L.roe, [(4, 0), (8, 25), (12, 50), (16, 75), (22, 100)])
+    P["ROA & ROE"] = dict(score=float(np.clip(_mean([roa_s, roe_s], [0.6, 0.4]), 0, 100)),
+                          dir=_mean([sgn[t["way"]] if t else 0, sgn[t2["way"]] if t2 else 0]))
+    if len(T) >= 4:                                     # what moved ROA over three years
+        o = T.iloc[-4]
+        d = {"net interest": L.nii - o.nii, "other income": L.other_income - o.other_income, "costs": -(L.costs - o.costs),
+             "tax": -(L.tax - o.tax)}
+        add("ROA & ROE", "What moved ROA in 3 years", UP if L.roa - o.roa > 0.15 else DOWN if L.roa - o.roa < -0.15 else FLAT,
+            f"{L.roa - o.roa:+.2f} pp: " + ", ".join(f"{k} {v:+.2f}" for k, v in sorted(d.items(), key=lambda kv: -abs(kv[1]))), scored=False)
+    if L.roa < 0:
+        hard.append("loss-making lender")
+    # ---- leverage and asset quality
+    lv, dr = [_lin(L.leverage, LEV_PTS[kind])], []
+    t = _trend(T["leverage"], 0.5, higher_better=False)
+    add("Leverage & asset quality", "Leverage", t["way"] if t else FLAT,
+        f"assets are {L.leverage:.1f}x equity" + (f"; {t['now']:.1f}x avg vs {t['was']:.1f}x before" if t else ""))
+    if t:
+        dr.append(sgn[t["way"]])
+    if L.leverage > LEV_MAX[kind]:
+        hard.append(f"leverage {L.leverage:.0f}x")
+    if np.isfinite(L.asset_g):
+        add("Leverage & asset quality", "Balance-sheet growth", FLAT, f"assets {L.asset_g:+.0f}% in the latest year", scored=False)
+    for col, lab, pts in (("nnpa", "Net NPA", [(0.3, 100), (1, 75), (2, 45), (4, 10), (6, 0)]),
+                          ("gnpa", "Gross NPA", [(1, 100), (2.5, 75), (4, 50), (7, 15), (10, 0)])):
+        s = q[col].dropna() if not q.empty and col in q else pd.Series(dtype=float)
+        if len(s):
+            d = float(s.iloc[-1] - s.iloc[-5]) if len(s) >= 5 else 0.0
+            way = FLAT if abs(d) < 0.2 else UP if d < 0 else DOWN
+            add("Leverage & asset quality", lab, way, f"{s.iloc[-1]:.2f}%" + (f" ({d:+.2f} pp over a year)" if len(s) >= 5 else ""))
+            lv.append(_lin(float(s.iloc[-1]), pts))
+            dr.append(sgn[way])
+    P["Leverage & asset quality"] = dict(score=_mean(lv), dir=_mean(dr) if dr else 0.0)
+
+
 def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
     """
     Score the business 0-100 on four pillars and describe what is changing.
@@ -193,7 +355,11 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
       Growth (30%)                3-year sales growth, latest two quarters' sales YoY, last-4-quarter profit YoY
       Margins (25%)               operating margin: last 3 years v the 3 before, and last 4 quarters v the 4 before
       Cash & balance sheet (25%)  3-year cash conversion, debt / equity, interest cover   (skipped for lenders)
-      Returns on capital (20%)    ROCE level (ROE for lenders) and its change
+      Returns on capital (20%)    ROCE level and its change
+
+    Banks, NBFCs and gold-loan companies are scored on their ROA tree instead (roa_tree, LENDER_WEIGHTS):
+    growth 25%, spread and costs 25%, ROA and ROE 30%, leverage and asset quality 20%, with ROA, spread
+    and leverage judged against break-points for that type of lender.
 
     Each pillar is LEVEL plus DIRECTION, so a falling but still-good number is not scored like a bad
     one. One cause counts once: net margin, fixed-asset turnover and ownership are shown but not scored
@@ -246,6 +412,7 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
         P["Growth"] = dict(score=_mean(lv), dir=_mean(dr) if dr else 0.0)
 
     # ---------------------------------------------------------------- margins
+    nf = not fin                       # lenders are scored on the ROA tree instead (see _lender_pillars)
     lv, dr = [], []
     if not a.empty and not fin:
         t = _trend(a["opm"], 1.5)
@@ -253,7 +420,7 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
             add("Margins", "Operating margin", t["way"], f"{t['now']:.0f}% (last {t['n']} yrs vs the {t['n']} before: {t['was']:.0f}%); latest {t['last']:.0f}%")
             lv.append(_lin(t["delta"], [(-8, 0), (-3, 35), (0, 62), (3, 85), (6, 100)]))
             dr.append({UP: 1, FLAT: 0, DOWN: -1}[t["way"]])
-    if len(r) >= 8:
+    if len(r) >= 8 and nf:
         opm_ok = r["opm"].notna().sum() >= 8
         m = r["opm"] if opm_ok else r["npm"]
         m4, mp = float(m.iloc[-4:].mean()), float(m.iloc[-8:-4].mean())
@@ -263,7 +430,7 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
                 f"{m4:.1f}% over the last 4 quarters vs {mp:.1f}% the 4 before; latest {m.iloc[-1]:.1f}%")
             lv.append(_lin(m4 - mp, [(-5, 0), (-2, 35), (0, 62), (2, 85), (4, 100)]))
             dr.append({UP: 1, FLAT: 0, DOWN: -1}[way])
-    if not a.empty:
+    if not a.empty and nf:
         t = _trend(a["npm"], 1.0)
         if t:
             dil = inv is not None and t["way"] == DOWN
@@ -319,7 +486,9 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
             P["Cash & balance sheet"] = dict(score=_mean(lv), dir=_mean(dr) if dr else 0.0)
 
     # ---------------------------------------------------------------- returns on capital
-    if not a.empty:
+    if fin:
+        _lender_pillars(roa_tree(ticker, root, as_of), q, P, add, hard)
+    if not a.empty and nf:
         col = "roe" if fin else "roce"
         t = _trend(a[col], 2.0)
         if t:
@@ -357,7 +526,7 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
                 own.append(dict(pillar="Ownership", metric=lab, way=FLAT if abs(d) < tol else UP if d > 0 else DOWN,
                                 text=f"{s.iloc[-1]:.1f}% ({d:+.1f} pp over a year)", scored=False))
 
-    w = {k: WEIGHTS[k] for k in P}
+    w = {k: (LENDER_WEIGHTS if fin else WEIGHTS)[k] for k in P}
     score = float(sum(P[k]["score"] * w[k] for k in P) / sum(w.values())) if P else np.nan
     drift = float(sum(P[k]["dir"] * w[k] for k in P) / sum(w.values())) if P else 0.0
     verdict = "NO DATA" if not P else next(lab for cut, lab in LABELS if round(score) >= cut)
@@ -366,7 +535,9 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
         F = [f for f in F if f["metric"] != "Investment phase"]
     direction = "" if not P else "IMPROVING" if drift > 0.25 else "SLIPPING" if drift < -0.25 else "STEADY"
     sc = [f for f in F if f["scored"]]
-    return dict(findings=F, ownership=own, pillars={k: dict(score=round(v["score"]), dir=round(v["dir"], 2)) for k, v in P.items()},
+    return dict(findings=F, ownership=own,
+                pillars={k: dict(score=round(v["score"]), dir=round(v["dir"], 2), weight=w[k]) for k, v in P.items()},
+                lender_kind=(a["lender_kind"].iloc[-1] if fin and not a.empty else ""),
                 score=None if not P else round(score), verdict=verdict, direction=direction, investing=inv, hard_flags=hard,
                 up=sum(f["way"] == UP for f in sc), down=sum(f["way"] == DOWN for f in sc), latest=latest, years=len(a),
                 quarters=len(q), financial=fin,

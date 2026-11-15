@@ -114,7 +114,7 @@ def test_lenders_skip_cash_and_debt_tests(tmp_path):
     root = _files(tmp_path, cfo=(5, 5, 5, 5, 5, 5), deposits=True)
     r = fund_trends.read("X.NS", root)
     names = {f["metric"] for f in r["findings"]}
-    assert r["financial"] and "Cash conversion" not in names and "Debt / equity" not in names and "ROE" in names
+    assert r["financial"] and r["lender_kind"] == "BANK" and "Cash conversion" not in names and "Debt / equity" not in names
     assert "Cash & balance sheet" not in r["pillars"] and not r["hard_flags"]
     assert fund_trends.read("NOPE.NS", root)["verdict"] == "NO DATA"
 
@@ -334,3 +334,59 @@ def test_lender_ceiling_is_not_below_the_banks_own_trough():
         pytest.skip("ICICIBANK not valued on P/B in this data")
     m = o["multiple"]
     assert m["ceiling"] >= m["own_5y_p10"] - 1e-9 or m["ceiling"] >= 1.6 * m["sector_median"] - 1e-9
+
+
+def _lender_files(tmp_path, deposits=True, roa=(1.0, 1.1, 1.2, 1.3, 1.4, 1.5), lev=10.0):
+    d = tmp_path / "data"
+    d.mkdir()
+    rows = []
+    for i, y in enumerate(range(2021, 2027)):
+        p, assets = f"{y}-03-31", 100000.0
+        eq = assets / lev
+        sales, interest = assets * 0.08, assets * 0.045            # NII 3.5% of assets
+        np_ = assets * roa[i] / 100
+        pbt = np_ / 0.75
+        op = pbt - assets * 0.01                                   # other income 1% of assets, no depreciation
+        f = dict(sales=sales, interest=interest, op=op, pbt=pbt, np=np_, total_liab=assets, eq_cap=eq * 0.1, reserves=eq * 0.9,
+                 borrowings=assets * 0.2, opm=10.0)
+        if deposits:
+            f["deposits"] = assets * 0.7
+        rows += [("X.NS", k, p, v) for k, v in f.items()]
+    pd.DataFrame(rows, columns=["ticker", "field", "period", "value"]).to_csv(d / "fundamentals_annual.csv.gz", index=False)
+    q = [("X.NS", f, p.strftime("%Y-%m-%d"), v) for i, p in enumerate(pd.date_range("2024-06-30", periods=10, freq="QE"))
+         for f, v in (("sales", 2000 * 1.03 ** i), ("np", 300 * 1.04 ** i), ("nnpa", 1.5 - 0.08 * i))]
+    pd.DataFrame(q, columns=["ticker", "field", "period", "value"]).to_csv(d / "fundamentals_quarterly.csv.gz", index=False)
+    fund_trends._load.cache_clear()
+    return str(tmp_path)
+
+
+def test_roa_tree_adds_up_and_scores_a_bank(tmp_path):
+    root = _lender_files(tmp_path)
+    T = fund_trends.roa_tree("X.NS", root)
+    L = T.iloc[-1]
+    assert T.attrs["kind"] == "BANK" and round(L.nii, 2) == 3.5 and round(L.other_income, 2) == 1.0 and round(L.roa, 2) == 1.5
+    assert abs(L.nii + L.other_income - L.costs - L.pretax_roa) < 1e-9 and abs(L.pretax_roa - L.tax - L.roa) < 1e-9     # the tree adds up
+    assert round(L.leverage, 1) == 10.0 and round(L.roe, 1) == 15.0 and abs(L.roa * L.leverage - L.roe) < 1e-6
+    r = fund_trends.read("X.NS", root)
+    assert r["lender_kind"] == "BANK" and set(r["pillars"]) == set(fund_trends.LENDER_WEIGHTS) and r["financial"]
+    way = {f["metric"]: f["way"] for f in r["findings"]}
+    assert way["ROA"] == "IMPROVING" and way["Net NPA"] == "IMPROVING" and way["Costs / assets"] == "IMPROVING"
+    assert "costs" in next(f["text"] for f in r["findings"] if f["metric"] == "What moved ROA in 3 years")
+    assert r["verdict"] in ("STRONG", "HEALTHY") and not r["hard_flags"] and fund_trends.brief("X.NS", root)["ok"]
+    assert "= ROA %" in stock_report.roa_tree_view(T).index and abs(sum(v["weight"] for v in r["pillars"].values()) - 1) < 1e-9
+
+
+def test_lender_is_judged_against_its_own_type_and_flags(tmp_path, monkeypatch):
+    root = _lender_files(tmp_path, roa=(1.0,) * 6)
+    bank = fund_trends.read("X.NS", root)["pillars"]["ROA & ROE"]["score"]
+    monkeypatch.setattr(fund_trends, "GOLD_LOAN", {"X.NS"})
+    root2 = _lender_files(tmp_path / "g", deposits=False, roa=(1.0,) * 6) if (tmp_path / "g").mkdir() is None else None
+    r = fund_trends.read("X.NS", root2)
+    assert r["lender_kind"] == "GOLD LOAN" and r["pillars"]["ROA & ROE"]["score"] < bank          # 1% ROA: fine for a bank, poor for gold loans
+    assert any(f.startswith("leverage") for f in r["hard_flags"])                                # 10x is too much for a gold-loan company
+    monkeypatch.setattr(fund_trends, "GOLD_LOAN", set())
+    (tmp_path / "l").mkdir()
+    root3 = _lender_files(tmp_path / "l", roa=(1.0, 1.0, 1.0, 0.5, -0.2, -0.8))
+    r = fund_trends.read("X.NS", root3)
+    assert "loss-making lender" in r["hard_flags"] and not fund_trends.brief("X.NS", root3)["ok"]
+    assert fund_trends.roa_tree("NOPE.NS", root3).empty

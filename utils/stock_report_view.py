@@ -158,18 +158,32 @@ def render(df: pd.DataFrame):
         cols = st.columns(len(tr["pillars"]) or 1)
         arrow = lambda d: "improving" if d > 0.25 else "slipping" if d < -0.25 else "steady"
         for col, (k, v) in zip(cols, tr["pillars"].items()):
-            col.metric(f"{k} ({fund_trends.WEIGHTS[k] * 100:.0f}%)", f"{v['score']}/100", arrow(v["dir"]), delta_color="off")
+            col.metric(f"{k} ({v.get('weight', 0) * 100:.0f}%)", f"{v['score']}/100", arrow(v["dir"]), delta_color="off")
             col.progress(int(v["score"]))
             col.markdown("\n".join(f"- {fund_trends.ICON[x['way']]} **{x['metric']}** — {x['text']}" + ("" if x["scored"] else " *(not scored)*")
                                    for x in tr["findings"] if x["pillar"] == k))
         if tr.get("ownership"):
             st.markdown("**Ownership** (shown for context, not part of the score): " + " · ".join(
                 f"{fund_trends.ICON[x['way']]} {x['metric']} {x['text']}" for x in tr["ownership"]))
-        st.caption("Score = growth 30%, margins 25%, cash and balance sheet 25%, returns on capital 20%; each mixes the level with "
+        if tr.get("lender_kind"):
+            st.caption(f"Scored as a **{tr['lender_kind'].lower()}** on its ROA tree: ROA, spread and leverage are judged against "
+                       "break-points for that type of lender (a bank earning 1% on assets is good; a gold-loan company should earn 3.5%+).")
+        st.caption(("Score = growth 25%, spread and costs 25%, ROA and ROE 30%, leverage and asset quality 20%; " if tr.get("lender_kind")
+                    else "Score = growth 30%, margins 25%, cash and balance sheet 25%, returns on capital 20%; ") + "each mixes the level with "
                    "its direction. Strong 70+, Healthy 55+, Mixed 40+, Weak below. The weights are judgement. Tested on 2021–25 the score did not predict "
                    "the next year's return (it worked in 2024–25 and was inverted in 2021–23): read it as business quality, not a buy signal.")
         A, Q = R["annual"].tail(8), R["quarterly"].tail(12)
-        if not A.empty:
+        RT = R.get("roa_tree")
+        if RT is not None and not RT.empty:
+            st.markdown(f"**ROA tree** — every line as % of average assets ({tr.get('lender_kind', 'lender').title()})")
+            st.dataframe(sr.roa_tree_view(RT), use_container_width=True)
+            a, b = st.columns(2)
+            a.plotly_chart(_lines(RT.tail(8), {"nii": "Net interest income", "costs": "Costs (opex + provisions)", "other_income": "Other income",
+                                               "roa": "ROA"}, "Yearly ROA tree, % of assets"), use_container_width=True)
+            b.plotly_chart(_bars(RT.tail(8), "roe", "leverage", "ROE %", "Leverage x", "Yearly ROE and leverage"), use_container_width=True)
+            st.caption("Net interest income + other income − costs − tax = ROA; ROA × leverage = ROE. Screener reports operating "
+                       "expenses and provisions as one line, so they are one line here.")
+        elif not A.empty:
             a, b = st.columns(2)
             a.plotly_chart(_bars(A, "sales", "opm", "Sales ₹cr", "OPM %", "Yearly sales and operating margin"), use_container_width=True)
             b.plotly_chart(_lines(A, {"roce": "ROCE %", "roe": "ROE %", "cash_conv_3y": "Cash conversion (3-yr) %"},
