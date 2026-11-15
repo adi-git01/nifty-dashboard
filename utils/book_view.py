@@ -16,8 +16,8 @@ import pandas as pd
 import streamlit as st
 
 from utils import funnel, positions as pos
+from utils.book_logic import NEAR_STOP, _num, exit_guide, funnel_label, peak_since, risk_summary, status  # noqa: F401
 
-NEAR_STOP = 3.0
 EDIT_H = ["Stock", "Entry", "Qty", "Stop", "Target", "Notes"]
 EDIT_W = ["Stock", "Notes", "Bought"]
 
@@ -29,93 +29,6 @@ def norm(s: Any, known: set) -> Optional[str]:
         return None
     t = t if t.endswith((".NS", ".BO")) else t + ".NS"
     return pos.resolve_ticker(t, known) or t
-
-
-def _num(v) -> Optional[float]:
-    try:
-        f = float(v)
-        return f if np.isfinite(f) and f > 0 else None
-    except (TypeError, ValueError):
-        return None
-
-
-def status(px, stop, target, scan, below50, caution) -> str:
-    if not px:
-        return "❔ no price"
-    if stop and px <= stop:
-        return "🔴 stop hit"
-    if target and px >= target:
-        return "🎯 target hit"
-    if stop and (px / stop - 1) * 100 < NEAR_STOP:
-        return f"⚠️ {(px / stop - 1) * 100:.1f}% above stop"
-    if caution >= 2 or (below50 and scan != "BUY"):
-        return "🟣 trend weakening"
-    return "✅ on track"
-
-
-@st.cache_data(ttl=6 * 3600, show_spinner=False)
-def _panel(n_files: int) -> pd.DataFrame:
-    from utils.signal_scorecard import price_panel
-    return price_panel()[0]
-
-
-def peak_since(ticker: str, entry_date, price: Optional[float]) -> Optional[float]:
-    """Highest close since the entry date from the stored snapshots (split-adjusted), at least today's price."""
-    import glob
-    try:
-        P = _panel(len(glob.glob("data/cache/market_master_*.parquet")))
-        s = P[ticker].dropna() if ticker in P.columns else pd.Series(dtype=float)
-        if entry_date:
-            s = s[s.index >= pd.Timestamp(entry_date)]
-        hi = float(s.max()) if len(s) else None
-    except Exception:
-        hi = None
-    vals = [v for v in (hi, price) if v]
-    return max(vals) if vals else None
-
-
-def exit_guide(price, ma50, peak, trail: float, stop) -> Dict[str, Any]:
-    """
-    The live engine's exit, the one rule the exit studies kept (analysis/ENTRY_EXIT_VERDICT.md,
-    exit_rule_multiregime_result.md): sell on a close below the 50-day average, or `trail` below
-    the highest close since entry, whichever level is higher.
-    """
-    lv = [x for x in (ma50, peak * (1 - trail) if peak else None) if x and np.isfinite(x)]
-    if not lv or not price:
-        return dict(level=None, text="—", hit=False)
-    level = max(lv)
-    which = "50-day average" if ma50 and level == ma50 else f"{trail * 100:.0f}% below the peak ₹{peak:,.0f}"
-    if price < level:
-        return dict(level=level, text=f"🔴 Exit rule hit: closed below ₹{level:,.1f} ({which})", hit=True)
-    if not stop or stop < level * 0.995:
-        return dict(level=level, text=f"Raise stop to ₹{level:,.1f} ({which})", hit=False)
-    return dict(level=level, text=f"Stop is at or above the exit level ₹{level:,.1f}", hit=False)
-
-
-def risk_summary(H: pd.DataFrame, capital: Optional[float] = None) -> Dict[str, Any]:
-    """Portfolio-level numbers from holdings rows (Price, Qty, Stop, Exit below, Industry name, Daily traded)."""
-    h = H[H["Price"].notna()].copy()
-    if h.empty:
-        return {}
-    h["value"] = h["Price"] * h["Qty"].fillna(1)
-    floor = h["Stop"].where(h["Stop"].notna() & (h["Stop"] < h["Price"]), h["Exit below"])
-    h["risk"] = ((h["Price"] - floor) * h["Qty"].fillna(1)).clip(lower=0)
-    invested = float(h.value.sum())
-    cap = capital if capital and capital > 0 else invested
-    ind = (h.groupby("Sector")["value"].sum() / invested * 100).sort_values(ascending=False)
-    thin = h[h["Daily traded"].notna() & (h.value > 0.05 * h["Daily traded"])]
-    return dict(invested=invested, capital=cap, risk=float(h.risk.sum()), risk_pct=float(h.risk.sum() / cap * 100) if cap else np.nan,
-                no_stop=h.loc[h["Stop"].isna(), "Stock"].tolist(), largest=(h.loc[h.value.idxmax(), "Stock"], float(h.value.max() / cap * 100)),
-                by_industry=ind, thin=thin["Stock"].tolist(), n=len(h),
-                unprotected=h.loc[floor.isna(), "Stock"].tolist())
-
-
-def funnel_label(r: Optional[pd.Series]) -> str:
-    if r is None:
-        return "—"
-    miss = [lab for k, lab in (("s_industry", "industry"), ("s_trend", "trend"), ("s_business", "business"), ("s_setup", "entry"))
-            if not (pd.notna(r.get(k)) and bool(r.get(k))) and not (k == "s_business" and pd.isna(r.get(k)))]
-    return "✅ Buyable now" if not miss else "Missing: " + ", ".join(miss)
 
 
 def diff(before: pd.DataFrame, after: pd.DataFrame, known: set, cols: List[str]) -> Dict[str, list]:
@@ -151,9 +64,67 @@ def _context(df: pd.DataFrame, tickers: List[str]) -> pd.DataFrame:
     return T
 
 
+def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
+    """Upload broker holdings files, preview the changes, apply once (utils/portfolio_import.py)."""
+    from utils import portfolio_import as pi
+    with st.expander("📥 Import holdings from a broker file (Zerodha, Dhan or any broker)"):
+        st.caption("Download your holdings from the broker (Zerodha: Kite → Holdings → download, or Console → Portfolio → Holdings; "
+                   "Dhan: Portfolio → Holdings → download) and drop the file here. Several files are combined into one portfolio. "
+                   "Nothing changes until you press Apply.")
+        files = st.file_uploader("Holdings files", type=["csv", "xlsx", "xls", "tsv", "txt"], accept_multiple_files=True,
+                                 key=f"book_up_{ver}", label_visibility="collapsed")
+        whole = st.checkbox("These files are my whole portfolio (propose closing holdings that are not in them)", key="book_whole")
+        if not files:
+            return
+        tables = []
+        for f in files:
+            try:
+                t = pi.parse(f.getvalue(), f.name)
+                tables.append(t)
+                st.caption(f"✅ {f.name}: {len(t)} holding(s) read")
+            except Exception as e:
+                st.error(f"{f.name}: {e}")
+        if not tables:
+            return
+        names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+        prices = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
+        plan = pi.reconcile(pi.combine(tables), allp, known, names, whole)
+        m = st.columns(5)
+        for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Not in file"), ("unchanged", "Unchanged"),
+                                     ("unknown", "Not recognised"))):
+            col.metric(lab, len(plan[k]))
+        t = lambda x: str(x).replace(".NS", "")
+        rows = ([{"Change": "➕ Add", "Stock": t(a["ticker"]), "Qty": a["qty"], "Avg cost": a["avg"], "Before": a["was"]} for a in plan["add"]]
+                + [{"Change": "✏️ Update", "Stock": t(u["ticker"]), "Qty": u["qty"], "Avg cost": u["avg"],
+                    "Before": f"qty {u['old_qty']}, avg {u['old_avg']}"} for u in plan["update"]]
+                + [{"Change": "🚪 Close (sold?)", "Stock": t(c["ticker"]), "Qty": 0, "Avg cost": None,
+                    "Before": f"qty {c['old_qty']}, avg {c['old_avg']}"} for c in plan["close"]])
+        if rows:
+            st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True,
+                         column_config={"Avg cost": st.column_config.NumberColumn(format="₹%.2f")})
+        else:
+            st.success("Your book already matches these files.")
+        if plan["unknown"]:
+            st.warning("Not in the dashboard's universe, so not tracked (ETFs, bonds, small or unlisted names): "
+                       + ", ".join(f"{u['symbol']} ({u['qty']:.0f})" for u in plan["unknown"]))
+        info = pos.storage_status() if hasattr(pos, "storage_status") else {}
+        st.caption("New holdings get the import date as their entry date (brokers do not give the purchase date) and no stop: "
+                   "set one from the Exit guide column. Stops, targets and notes you already have are kept."
+                   + (f" Your book is saved to {info.get('where', 'GitHub')}"
+                      " — if that repository is public, so are these quantities." if info else ""))
+        close = st.checkbox(f"Also close the {len(plan['close'])} holding(s) not in the file", value=False, key="book_close") if plan["close"] else False
+        n = len(plan["add"]) + len(plan["update"]) + (len(plan["close"]) if close else 0)
+        if st.button(f"✅ Apply import ({n} change(s))", type="primary", disabled=not n, key="book_apply"):
+            done = pi.apply(plan, prices, names, close=close, source=", ".join(f.name for f in files)[:80])
+            st.session_state["book_ver"] = ver + 1
+            st.toast(f"Imported: {done['added']} added, {done['updated']} updated, {done['closed']} closed", icon="📥")
+            st.rerun()
+
+
 def render(df: pd.DataFrame):
     known = set(df["ticker"])
     allp = pos.get_all_positions()
+    _import_panel(df, allp, known, st.session_state.setdefault("book_ver", 0))
     hold = [p for p in allp if p.get("status") == "active"]
     watch = [p for p in allp if p.get("status") == "watching"]
     res = {p["ticker"]: (pos.resolve_ticker(p["ticker"], known) or p["ticker"]) for p in hold + watch}

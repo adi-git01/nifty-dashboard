@@ -390,3 +390,72 @@ def test_lender_is_judged_against_its_own_type_and_flags(tmp_path, monkeypatch):
     r = fund_trends.read("X.NS", root3)
     assert "loss-making lender" in r["hard_flags"] and not fund_trends.brief("X.NS", root3)["ok"]
     assert fund_trends.roa_tree("NOPE.NS", root3).empty
+
+
+def test_broker_file_parsing_zerodha_dhan_and_excel():
+    import io
+    from utils import portfolio_import as pi
+    z = b"Instrument,Qty.,Avg. cost,LTP,Cur. val,P&L\nCUMMINSIND,8,4198.5,4369,34952,1364\nFEDERALBNK,100,270.00,360,36000,9000\nGOLDBEES,50,60,70,3500,500\n"
+    Z = pi.parse(z, "holdings.csv")
+    assert Z.symbol.tolist() == ["CUMMINSIND", "FEDERALBNK", "GOLDBEES"] and Z.qty.tolist() == [8, 100, 50] and Z.avg.iloc[0] == 4198.5
+    d = b'Name,Symbol,Quantity,Avg Price,LTP\nState Bank of India,NSE:SBIN-EQ,"1,000","812.40",1080\nCummins India Limited,CUMMINSIND,2,4000,4369\nSold Out Ltd,SOLD,0,10,11\n'
+    Dn = pi.parse(d, "dhan.csv")
+    assert Dn.symbol.tolist() == ["SBIN", "CUMMINSIND"] and Dn.qty.iloc[0] == 1000 and Dn.avg.iloc[0] == 812.4       # zero-quantity row dropped
+    x = pd.DataFrame([["Holdings Statement", None, None, None, None], ["Client ID", "AB1234", None, None, None], [None] * 5,
+                      ["Symbol", "ISIN", "Quantity Available", "Quantity Pledged (Margin)", "Average Price"],
+                      ["TCS", "INE467B01029", "10", "5", "3500.5"], ["Total", None, "15", None, None]])
+    b = io.BytesIO()
+    x.to_excel(b, header=False, index=False)
+    X = pi.parse(b.getvalue(), "console.xlsx")
+    assert X.symbol.tolist() == ["TCS"] and X.qty.iloc[0] == 15                                    # title rows skipped, pledged added, Total dropped
+    C = pi.combine([Z, Dn]).set_index("symbol")
+    assert C.at["CUMMINSIND", "qty"] == 10 and round(C.at["CUMMINSIND", "avg"], 1) == 4158.8       # two brokers, weighted average
+    with pytest.raises(ValueError):
+        pi.parse(b"a,b\n1,2\n", "junk.csv")
+    assert pi.clean_symbol("NSE:TCS-EQ") == "TCS" and pi.clean_symbol("m&m.ns") == "M&M"
+
+
+def test_broker_import_reconciles_without_deleting(monkeypatch):
+    from utils import portfolio_import as pi, positions as pos
+    known = {"CUMMINSIND.NS", "FEDERALBNK.NS", "SBIN.NS", "TCS.NS", "HDFCBANK.NS"}
+    names = {"SBIN.NS": "State Bank of India", "TCS.NS": "Tata Consultancy Services Limited"}
+    book = [dict(ticker="CUMMINSIND.NS", status="active", quantity=8, entry_price=4198.5, stop_loss=3850),      # unchanged
+            dict(ticker="FEDERALBANK.NS", status="active", quantity=50, entry_price=250.0),                   # changed (old symbol spelling)
+            dict(ticker="HDFCBANK.NS", status="active", quantity=10, entry_price=800.0),                      # not in the file
+            dict(ticker="SBIN.NS", status="watching")]                                                        # watched, now bought
+    rows = pd.DataFrame({"symbol": ["CUMMINSIND", "FEDERALBNK", "SBIN", "", "GOLDBEES"],
+                         "name": ["", "", "", "Tata Consultancy Services Ltd", ""], "qty": [8, 100, 20, 5, 50],
+                         "avg": [4198.5, 270.0, 812.4, 3500.0, 60.0]})
+    plan = pi.reconcile(rows, book, known, names, whole=False)
+    assert [u["ticker"] for u in plan["unchanged"]] == ["CUMMINSIND.NS"] and plan["close"] == []
+    assert [(u["orig"], u["qty"], u["old_qty"]) for u in plan["update"]] == [("FEDERALBANK.NS", 100, 50)]
+    assert {a["ticker"]: a["was"] for a in plan["add"]} == {"SBIN.NS": "on the watchlist", "TCS.NS": "not in the book"}   # TCS matched by name
+    assert [u["symbol"] for u in plan["unknown"]] == ["GOLDBEES"]
+    assert [c["ticker"] for c in pi.reconcile(rows, book, known, names, whole=True)["close"]] == ["HDFCBANK.NS"]
+    calls = []
+    monkeypatch.setattr(pos, "add_position", lambda t, **k: calls.append(("add", t, k)))
+    monkeypatch.setattr(pos, "update_position", lambda t, **k: calls.append(("upd", t, k)))
+    monkeypatch.setattr(pos, "close_position", lambda t, px: calls.append(("close", t, px)))
+    monkeypatch.setattr(pos, "remove_position", lambda t: calls.append(("REMOVE", t)))
+    n = pi.apply(pi.reconcile(rows, book, known, names, whole=True), {"HDFCBANK.NS": 804.0}, names, close=True)
+    assert n == dict(added=2, updated=1, closed=1) and not any(c[0] == "REMOVE" for c in calls)
+    upd = {c[1]: c[2] for c in calls if c[0] == "upd"}
+    assert upd["FEDERALBANK.NS"]["quantity"] == 100 and "stop_loss" not in upd["FEDERALBANK.NS"]            # stops are never touched
+    assert upd["SBIN.NS"]["status"] == "active" and ("close", "HDFCBANK.NS", 804.0) in calls
+    assert pi.apply(pi.reconcile(rows, book, known, names, whole=True), {}, names, close=False)["closed"] == 0
+
+
+def test_mcp_insight_tools_return_json_with_dates():
+    import json
+    from mcp_server import data_access as D
+    if not D.snapshot_dates():
+        pytest.skip("no snapshots on disk")
+    from mcp_server import insight as I
+    for fn in (lambda: I.get_funnel(3), lambda: I.get_industry_board("LEADING", 3), lambda: I.get_scorecard(),
+               lambda: I.get_business("HDFCBANK"), lambda: I.get_stock_report("NOSUCHSTOCK")):
+        out = fn()
+        json.dumps(out)
+        assert isinstance(out, dict)
+    f = I.get_funnel(3)
+    assert f["as_of"] == D.snapshot_dates()[-1] and f["counts"][0]["stage"] == "Universe" and "evidence" in f
+    assert I.get_business("HDFCBANK")["lender_kind"] == "BANK" and "error" in I.get_stock_report("NOSUCHSTOCK")
