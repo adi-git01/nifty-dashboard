@@ -51,7 +51,10 @@ def _lines(t: pd.DataFrame, cols: dict, title: str) -> go.Figure:
 def _extended_rows(key: str, ticker: str) -> pd.DataFrame:
     """Snapshot row for a stock outside the daily snapshot (utils/extended.py). Cached for the session's data day."""
     from utils import extended
-    return extended.rows_for([ticker])
+    rows = extended.rows_for([ticker])
+    if rows.empty:
+        raise LookupError(ticker)               # not cached, so a temporary data failure is retried next time
+    return rows
 
 
 @st.cache_resource(show_spinner=False)
@@ -95,7 +98,7 @@ def render(df: pd.DataFrame):
                     help=f"Type part of the name or ticker. {len(core):,} ranked stocks plus {len(ext):,} extended ones "
                          f"(market cap ₹{extended.MIN_MCAP_CR:,} cr and above, analysed on request).")
     other = b.text_input("…or any other NSE symbol", key="sr_any", placeholder="e.g. TATACAP",
-                         help="For a stock in neither list. Type the NSE symbol and press Enter.")
+                         help="For a stock in neither list. Type the NSE symbol and press Enter. Clear this box to go back to the list.")
     if other and other.strip():
         t = extended.norm(other)
     is_ext = t not in have
@@ -103,9 +106,8 @@ def render(df: pd.DataFrame):
     if is_ext:
         try:
             rows = _extended_rows(fv.snap_key(df), t)
-        except Exception as e:
+        except Exception:
             rows = pd.DataFrame()
-            st.caption(f"({type(e).__name__})")
         if rows.empty:
             st.error(f"No price data found for {t.replace('.NS', '')}. Check the NSE symbol; newly listed stocks need about "
                      "eight months of history.")

@@ -232,6 +232,13 @@ def main():
     except Exception as e:
         print(f"  Agreement log failed: {e}")
 
+    # ── 3c1. Business scores for every stock, saved so the dashboard does not recompute them on a cold start ──
+    try:
+        from utils import fund_trends
+        print(f"  Business scores saved for {fund_trends.build_brief_cache()} stocks.")
+    except Exception as e:
+        print(f"  Business score cache failed: {e}")
+
     # ── 3c2. Funnel log: today's passes and near misses (utils/funnel_log.py) ──
     fn_new = None
     try:

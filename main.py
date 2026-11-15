@@ -420,10 +420,24 @@ df = st.session_state['market_data']
 
 # Stocks you hold or watch that are outside the snapshot (new extended names not yet picked up by
 # the nightly run) are computed once per data day so My Book, the brief and alerts can price them.
-@st.cache_data(ttl=6 * 3600, show_spinner="Pricing your stocks outside the universe…")
-def _tracked_rows(_key: str, tickers: tuple) -> pd.DataFrame:
-    from utils import extended as _ext
-    return _ext.rows_for(list(tickers))
+@st.cache_resource(show_spinner=False)
+def _tracked_store() -> dict:
+    return {}                                   # (snapshot key, tickers) -> rows, shared by every session
+
+def _tracked_rows(key: str, tickers: tuple) -> pd.DataFrame:
+    """One download per snapshot for the whole app; a failed attempt is remembered too, so it is not retried on every load."""
+    store = _tracked_store()
+    if (key, tickers) not in store:
+        from utils import extended as _ext
+        with st.spinner("Pricing your stocks outside the universe…"):
+            try:
+                store[(key, tickers)] = _ext.rows_for(list(tickers))
+            except Exception as _err:
+                print(f"[extended] on-demand pricing failed: {_err}", flush=True)
+                store[(key, tickers)] = pd.DataFrame()
+        for k in [k for k in store if k[0] != key]:
+            del store[k]
+    return store[(key, tickers)]
 
 try:
     from utils import extended as _ext_main
@@ -2541,20 +2555,23 @@ elif page == "📊 Return Tracker":
         key="desk_tab", on_change="rerun")
 
     # Broker file import (utils/portfolio_import.py): its own tab so it is easy to find on a phone
+    # Only the open tab is drawn (stateful tabs rerun on a switch): the page used to compute all six on every click.
     with tab_import:
-        try:
-            from utils import book_view as _bv_import
-            _bv_import.render_import(df)
-        except Exception as _e:
-            st.error(f"Import failed to load: {_e}")
+        if getattr(tab_import, "open", True):
+            try:
+                from utils import book_view as _bv_import
+                _bv_import.render_import(df)
+            except Exception as _e:
+                st.error(f"Import failed to load: {_e}")
 
     # TAB 0: holdings + watchlist as editable tables, one Save (utils/book_view.py)
     with tab_book:
-        try:
-            from utils import book_view
-            book_view.render(df)
-        except Exception as _e:
-            st.error(f"My Book failed to load: {_e}")
+        if getattr(tab_book, "open", True):
+            try:
+                from utils import book_view
+                book_view.render(df)
+            except Exception as _e:
+                st.error(f"My Book failed to load: {_e}")
     
     # ========================================
     # TAB 1: ACTIVE POSITIONS (Using unified positions.json)

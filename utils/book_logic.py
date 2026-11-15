@@ -39,8 +39,27 @@ def status(px, stop, target, scan, below50, caution) -> str:
 
 @lru_cache(maxsize=2)
 def _panel(n_files: int) -> pd.DataFrame:
-    from utils.signal_scorecard import price_panel
-    return price_panel()[0]
+    """
+    Closing prices by session and ticker, split-adjusted. Reads only two columns per snapshot: the
+    full scorecard panel (every column of ~185 files) took many seconds and was the reason My Book
+    sat grey after a sync.
+    """
+    P = {}
+    for f in sorted(glob.glob("data/cache/market_master_*.parquet")):
+        try:
+            d = pd.read_parquet(f, columns=["ticker", "currentPrice"]).drop_duplicates("ticker")
+        except Exception:
+            continue
+        P[pd.Timestamp(f[-18:-8].replace("_", "-"))] = pd.to_numeric(d.set_index("ticker")["currentPrice"], errors="coerce")
+    P = pd.DataFrame(P).T.sort_index()
+    try:
+        from utils import corp_actions
+        for _, r in corp_actions.load().iterrows():
+            if r["ticker"] in P.columns and float(r["factor"]) > 0:
+                P.loc[P.index < pd.Timestamp(r["date"]), r["ticker"]] /= float(r["factor"])
+    except Exception:
+        pass
+    return P
 
 
 def peak_since(ticker: str, entry_date, price: Optional[float]) -> Optional[float]:

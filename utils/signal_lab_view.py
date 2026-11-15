@@ -179,16 +179,12 @@ def _lookup(df: pd.DataFrame):
 def render(df: pd.DataFrame):
     t0, t1, t2, t3, t4 = st.tabs(["🔎 Stock lookup", "💪 RS Divergence", "⚡ Earnings Drift", "📏 Scorecard", "🗂 All signal logs"],
                                  key="sl_tab", on_change="rerun")
-    with t0:
-        _lookup(df)
-    with t1:
-        _strong(df, "rs")
-    with t2:
-        _strong(df, "es")
-    with t3:
-        _scorecard()
-    with t4:
-        _logs()
+    # draw only the open tab; a switch reruns the page
+    for tab, fn in ((t0, lambda: _lookup(df)), (t1, lambda: _strong(df, "rs")), (t2, lambda: _strong(df, "es")),
+                    (t3, _scorecard), (t4, _logs)):
+        with tab:
+            if getattr(tab, "open", True):
+                fn()
 
 
 def _logs():

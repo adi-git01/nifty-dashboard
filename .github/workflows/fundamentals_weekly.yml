@@ -39,10 +39,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_BRANCH: ${{ github.ref_name }}
         run: python build_extended_universe.py --minutes 60 2>&1 | tee -a fundamentals_output.txt
+      - name: Business scores for the refreshed fundamentals
+        continue-on-error: true
+        run: python -c "from utils import fund_trends as f; print('business scores:', f.build_brief_cache())"
       - name: Commit
         if: always()
         run: |
-          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv data/extended_universe.csv 'data/fundamentals_ext_*.csv.gz' EQUITY_L.csv
+          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv data/extended_universe.csv 'data/fundamentals_ext_*.csv.gz' data/business_scores.csv EQUITY_L.csv
       - name: Notify on failure
         if: failure()
         run: |

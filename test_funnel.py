@@ -580,6 +580,9 @@ def test_broker_sync_kite_and_dhan_read_holdings_only(monkeypatch):
     assert set(C.index) == {"CUMMINSIND", "SBIN", "HDFCBANK"}                                # both brokers feed one portfolio
     assert bs.config({"kite": {"api_key": "a", "api_secret": "b"}, "dhan": {"client_id": "1"}}) == {"kite": {"api_key": "a", "api_secret": "b"}}
     assert bs.config({}) == {}
+    want = {"dhan": {"client_id": "1000", "app_id": "KEY", "app_secret": "SEC"}}
+    assert bs.config({"dhan": {"client_id": 1000, "api_key": " KEY ", "api_secret": "SEC"}}) == want      # Dhan's own names
+    assert bs.config({"dhan": {"client_id": "1000", "app_id": "KEY", "app_secret": "SEC"}}) == want
 
 
 def _fake_bars(n=320, drift=0.0015, seed=1):
@@ -617,7 +620,16 @@ def test_tracked_extras_and_extended_list():
     core = {"SBIN.NS", "TCS.NS"}
     book = [dict(ticker="SBIN.NS", status="active"), dict(ticker="NEWCO", status="active"), dict(ticker="OLDCO.NS", status="closed"),
             dict(ticker="WATCHME.NS", status="watching"), dict(ticker="bad symbol!", status="active"), dict(ticker="NEWCO.NS", status="watching")]
-    assert extended.tracked(core, book) == ["NEWCO.NS", "WATCHME.NS"]                  # core, closed, invalid and duplicates dropped
+    import utils.extended as _e
+    real = _e.eq_symbols
+    _e.eq_symbols = lambda: {"NEWCO.NS": "New Co", "WATCHME.NS": "Watch Me", "SBIN.NS": "SBI", "TCS.NS": "TCS"}
+    try:
+        assert extended.tracked(core, book) == ["NEWCO.NS", "WATCHME.NS"]              # core, closed, invalid and duplicates dropped
+        # a misspelt universe stock is not an extra, and a symbol that is not an NSE equity is never downloaded
+        assert extended.tracked({"FEDERALBNK.NS"}, [dict(ticker="FEDERALBANK.NS", status="active"),
+                                                    dict(ticker="GOLDBEES.NS", status="active")]) == []
+    finally:
+        _e.eq_symbols = real
     f = extended.add_tracked(pd.DataFrame({"ticker": ["SBIN.NS", "TCS.NS"], "name": ["S", "T"]}), ["NEWCO.NS", "SBIN.NS"])
     assert f.ticker.tolist() == ["SBIN.NS", "TCS.NS", "NEWCO.NS"] and f.sector_granular.iloc[-1] in ("Unknown", f.sector_granular.iloc[-1])
     A = pd.DataFrame([("BIG.NS", "mcap_cr", "2026-11-10", 5000.0), ("BIG.NS", "price_scr", "2026-11-10", 250.0),

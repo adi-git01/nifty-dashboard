@@ -354,6 +354,8 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             threads=False,      # <-- KEY FIX: avoid parallel request storm
             auto_adjust=True,
             min_coverage=0.5,   # below this, treat the whole attempt as failed and retry
+            # on-demand rows (save=False) run while a page is loading: one attempt, no 8 s + 16 s back-off
+            **({} if save else {"retries": 1}),
         )
         if history_data is None or history_data.empty:
             raise RuntimeError("yf.download returned no usable data after retries")

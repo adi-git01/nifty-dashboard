@@ -167,7 +167,13 @@ def roa_tree(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
 
 
 def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
-    """as_of: use only fiscal years ending on or before this date (for point-in-time tests)."""
+    """as_of: use only fiscal years ending on or before this date (for point-in-time tests).
+    The result is cached and shared: treat it as read-only."""
+    return _annual(ticker, root, None if as_of is None else str(as_of), _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+
+
+@lru_cache(maxsize=8192)
+def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     A, _ = _data(root)
     k = _key(ticker, A)
     if k is None:
@@ -215,6 +221,12 @@ def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
 
 
 def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
+    """Cached and shared: treat the result as read-only."""
+    return _quarterly(ticker, root, None if as_of is None else str(as_of), _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+
+
+@lru_cache(maxsize=8192)
+def _quarterly(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     _, Q = _data(root)
     k = _key(ticker, Q)
     if k is None or as_of is not None:        # quarterly history is too short for point-in-time tests
@@ -573,6 +585,57 @@ def _brief(ticker: str, root: str, stamp: float) -> Dict[str, Any]:
                 ok=r["score"] is not None and r["score"] >= PASS_SCORE and not r["hard_flags"])
 
 
+BRIEF_CACHE = "data/business_scores.csv"
+_BRIEF_COLS = ["ticker", "verdict", "score", "direction", "investing", "headline", "up", "down", "flags", "roce", "quarter",
+               "sales_yoy", "np_yoy", "ok", "fingerprint"]
+
+
+def fingerprint(root: str = ".") -> str:
+    """Identifies the fundamentals files by size, which is the same on every checkout (file times are not)."""
+    return "|".join(str(os.path.getsize(os.path.join(root, f))) if os.path.exists(os.path.join(root, f)) else "-" for f in FILES + QFILES)
+
+
+@lru_cache(maxsize=4)
+def _precomputed(root: str, mtime: float, fp: str) -> Dict[str, Dict[str, Any]]:
+    try:
+        d = pd.read_csv(os.path.join(root, BRIEF_CACHE))
+        d = d[d.fingerprint == fp]
+    except Exception:
+        return {}
+    out = {}
+    for r in d.to_dict("records"):
+        r.pop("fingerprint", None)
+        r["flags"] = [x for x in str(r["flags"]).split("; ") if x and x != "nan"]
+        r["score"] = None if pd.isna(r["score"]) else int(r["score"])
+        r["quarter"] = None if pd.isna(r["quarter"]) else r["quarter"]
+        r["direction"] = "" if pd.isna(r["direction"]) else r["direction"]
+        r["investing"], r["ok"] = bool(r["investing"]), bool(r["ok"])
+        out[r["ticker"]] = r
+    return out
+
+
+def build_brief_cache(tickers=None, root: str = ".") -> int:
+    """Score every stock once and save it (EOD job), so a cold dashboard start does not recompute ~170 scores."""
+    if tickers is None:
+        from utils.nifty1000_list import EXTENDED, TICKERS_1000
+        tickers = list(TICKERS_1000) + list(EXTENDED)
+    stamp, fp, rows = _mtime([os.path.join(root, f) for f in FILES + QFILES]), fingerprint(root), []
+    for t in tickers:
+        try:
+            b = _brief(t, root, stamp)
+        except Exception:
+            continue
+        rows.append({**b, "ticker": t, "flags": "; ".join(b["flags"]), "fingerprint": fp})
+    pd.DataFrame(rows, columns=_BRIEF_COLS).to_csv(os.path.join(root, BRIEF_CACHE), index=False)
+    return len(rows)
+
+
 def brief(ticker: str, root: str = ".") -> Dict[str, Any]:
-    """Score, verdict, red flags, latest quarter and a pass / fail for the funnel's business stage. Cached."""
+    """Score, verdict, red flags, latest quarter and a pass / fail for the funnel's business stage.
+    Read from the nightly precomputed file when it matches the fundamentals on disk; computed otherwise."""
+    p = os.path.join(root, BRIEF_CACHE)
+    if os.path.exists(p):
+        hit = _precomputed(root, os.path.getmtime(p), fingerprint(root)).get(ticker)
+        if hit is not None:
+            return dict(hit)
     return _brief(ticker, root, _mtime([os.path.join(root, f) for f in FILES + QFILES]))
