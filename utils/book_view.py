@@ -64,62 +64,179 @@ def _context(df: pd.DataFrame, tickers: List[str]) -> pd.DataFrame:
     return T
 
 
-def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
-    """Upload broker holdings files, preview the changes, apply once (utils/portfolio_import.py)."""
-    from utils import portfolio_import as pi
-    st.markdown("#### 📥 Import holdings from a broker file")
-    with st.container():
-        st.caption("Download your holdings from the broker (Zerodha: Kite → Holdings → download, or Console → Portfolio → Holdings; "
-                   "Dhan: Portfolio → Holdings → download) and drop the file here. Several files are combined into one portfolio. "
-                   "Nothing changes until you press Apply.")
-        files = st.file_uploader("Holdings files", type=["csv", "xlsx", "xls", "tsv", "txt"], accept_multiple_files=True,
-                                 key=f"book_up_{ver}", label_visibility="collapsed")
-        whole = st.checkbox("These files are my whole portfolio (propose closing holdings that are not in them)", key="book_whole")
-        if not files:
-            return
-        tables = []
-        for f in files:
-            try:
-                t = pi.parse(f.getvalue(), f.name)
-                tables.append(t)
-                st.caption(f"✅ {f.name}: {len(t)} holding(s) read")
-            except Exception as e:
-                st.error(f"{f.name}: {e}")
-        if not tables:
-            return
-        names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
-        prices = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
-        plan = pi.reconcile(pi.combine(tables), allp, known, names, whole)
-        m = st.columns(5)
-        for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Not in file"), ("unchanged", "Unchanged"),
-                                     ("unknown", "Not recognised"))):
-            col.metric(lab, len(plan[k]))
-        t = lambda x: str(x).replace(".NS", "")
-        rows = ([{"Change": "➕ Add", "Stock": t(a["ticker"]), "Qty": a["qty"], "Avg cost": a["avg"], "Before": a["was"]} for a in plan["add"]]
-                + [{"Change": "✏️ Update", "Stock": t(u["ticker"]), "Qty": u["qty"], "Avg cost": u["avg"],
-                    "Before": f"qty {u['old_qty']}, avg {u['old_avg']}"} for u in plan["update"]]
-                + [{"Change": "🚪 Close (sold?)", "Stock": t(c["ticker"]), "Qty": 0, "Avg cost": None,
-                    "Before": f"qty {c['old_qty']}, avg {c['old_avg']}"} for c in plan["close"]])
-        if rows:
-            st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True,
-                         column_config={"Avg cost": st.column_config.NumberColumn(format="₹%.2f")})
+IMPORT_TAB = "📥 Import"
+
+
+def handle_broker_redirect() -> bool:
+    """
+    Called early in main.py. If this page load is a broker sending the user back after login
+    (Zerodha: ?request_token=..., Dhan: ?tokenId=...), exchange the one-time code, fetch holdings,
+    keep them for the Import tab's preview, and send the user there. Returns True if it handled one.
+    """
+    qp = st.query_params
+    kind = "kite" if "request_token" in qp else "dhan" if "tokenId" in qp else None
+    if kind is None:
+        return False
+    from utils import broker_sync as bs
+    cfg = bs.config()
+    code = qp.get("request_token") if kind == "kite" else qp.get("tokenId")
+    label = "Zerodha" if kind == "kite" else "Dhan"
+    try:
+        if kind not in cfg:
+            raise bs.BrokerError(f"{label} keys are not in the app's secrets.")
+        if kind == "kite":
+            if qp.get("status", "success") != "success":
+                raise bs.BrokerError("Zerodha login was cancelled.")
+            tok = bs.kite_session(cfg["kite"]["api_key"], cfg["kite"]["api_secret"], code)
+            rows = bs.kite_holdings(cfg["kite"]["api_key"], tok)
         else:
-            st.success("Your book already matches these files.")
-        if plan["unknown"]:
-            st.warning("Not in the dashboard's universe, so not tracked (ETFs, bonds, small or unlisted names): "
-                       + ", ".join(f"{u['symbol']} ({u['qty']:.0f})" for u in plan["unknown"]))
-        info = pos.storage_status() if hasattr(pos, "storage_status") else {}
-        st.caption("New holdings get the import date as their entry date (brokers do not give the purchase date) and no stop: "
-                   "set one from the Exit guide column. Stops, targets and notes you already have are kept."
-                   + (f" Your book is saved to {info.get('where', 'GitHub')}"
-                      " — if that repository is public, so are these quantities." if info else ""))
-        close = st.checkbox(f"Also close the {len(plan['close'])} holding(s) not in the file", value=False, key="book_close") if plan["close"] else False
-        n = len(plan["add"]) + len(plan["update"]) + (len(plan["close"]) if close else 0)
-        if st.button(f"✅ Apply import ({n} change(s))", type="primary", disabled=not n, key="book_apply"):
-            done = pi.apply(plan, prices, names, close=close, source=", ".join(f.name for f in files)[:80])
-            st.session_state["book_ver"] = ver + 1
-            st.toast(f"Imported: {done['added']} added, {done['updated']} updated, {done['closed']} closed", icon="📥")
-            st.rerun()
+            tok = bs.dhan_session(code, cfg["dhan"]["app_id"], cfg["dhan"]["app_secret"])
+            rows = bs.dhan_holdings(tok)
+        st.session_state[f"{kind}_token"] = tok                      # this browser session only
+        st.session_state.setdefault("sync_rows", {})[label] = rows
+        st.session_state["sync_note"] = f"{label}: {len(rows)} holding(s) fetched. Check the preview below and press Apply."
+    except Exception as e:
+        st.session_state["sync_error"] = str(e) if isinstance(e, bs.BrokerError) else f"{label} sync failed: {type(e).__name__}"
+    for k in ("request_token", "tokenId", "status", "action", "type"):
+        if k in qp:
+            del qp[k]
+    st.session_state["nav_page"] = "📊 Return Tracker"
+    st.session_state["desk_tab"] = IMPORT_TAB
+    return True
+
+
+def _sync_panel():
+    """Buttons to pull holdings from Zerodha and Dhan (utils/broker_sync.py)."""
+    from utils import broker_sync as bs
+    cfg = bs.config()
+    st.markdown("#### 🔄 Sync from your broker")
+    if st.session_state.get("sync_error"):
+        st.error(st.session_state.pop("sync_error"))
+    if st.session_state.get("sync_note"):
+        st.success(st.session_state.pop("sync_note"))
+    got = st.session_state.setdefault("sync_rows", {})
+
+    def fetch(label, fn):
+        try:
+            got[label] = fn()
+            st.session_state["sync_note"] = f"{label}: {len(got[label])} holding(s) fetched. Check the preview below and press Apply."
+        except Exception as e:
+            st.session_state["sync_error"] = str(e) if isinstance(e, bs.BrokerError) else f"{label} sync failed: {type(e).__name__}"
+        st.rerun()
+
+    z, d = st.columns(2)
+    with z:
+        st.markdown("**Zerodha**" + (f" — {len(got['Zerodha'])} holding(s) loaded" if "Zerodha" in got else ""))
+        if "kite" not in cfg:
+            st.caption("Not set up. Add `[kite]` `api_key` and `api_secret` to the app's secrets (see the setup notes below).")
+        elif st.session_state.get("kite_token"):
+            if st.button("🔄 Fetch Zerodha holdings", key="sync_kite_fetch", use_container_width=True):
+                fetch("Zerodha", lambda: bs.kite_holdings(cfg["kite"]["api_key"], st.session_state["kite_token"]))
+        else:
+            st.link_button("🔐 Log in to Zerodha and sync", bs.kite_login_url(cfg["kite"]["api_key"]), use_container_width=True)
+            st.caption("Opens Zerodha's own login page, then returns here with your holdings.")
+    with d:
+        st.markdown("**Dhan**" + (f" — {len(got['Dhan'])} holding(s) loaded" if "Dhan" in got else ""))
+        if st.session_state.get("dhan_token"):
+            if st.button("🔄 Fetch Dhan holdings", key="sync_dhan_fetch", use_container_width=True):
+                fetch("Dhan", lambda: bs.dhan_holdings(st.session_state["dhan_token"]))
+        else:
+            if "dhan" in cfg:
+                if st.button("🔐 Log in to Dhan and sync", key="sync_dhan_login", use_container_width=True):
+                    try:
+                        st.session_state["dhan_login_url"] = bs.dhan_login_url(
+                            bs.dhan_consent(cfg["dhan"]["client_id"], cfg["dhan"]["app_id"], cfg["dhan"]["app_secret"]))
+                    except Exception as e:
+                        st.session_state["sync_error"] = str(e) if isinstance(e, bs.BrokerError) else f"Dhan login failed: {type(e).__name__}"
+                    st.rerun()
+                if st.session_state.get("dhan_login_url"):
+                    st.link_button("➡️ Continue to Dhan's login page", st.session_state["dhan_login_url"], use_container_width=True)
+            tok = st.text_input("…or paste a Dhan access token", type="password", key="sync_dhan_paste",
+                                help="web.dhan.co → My Profile → Access DhanHQ APIs → generate an access token (valid 24 hours). "
+                                     "Kept for this browser session only.")
+            if tok and st.button("Use this token and fetch", key="sync_dhan_use", use_container_width=True):
+                st.session_state["dhan_token"] = tok.strip()
+                fetch("Dhan", lambda: bs.dhan_holdings(st.session_state["dhan_token"]))
+    if got and st.button("Clear fetched holdings", key="sync_clear"):
+        st.session_state["sync_rows"] = {}
+        st.rerun()
+    with st.expander("Setup notes (one time)"):
+        st.markdown(
+            "**Zerodha** — create an app at developers.kite.trade (the Personal plan covers holdings), set its **Redirect URL** to "
+            "this dashboard's address, then add to the app's secrets:\n\n```toml\n[kite]\napi_key = \"…\"\napi_secret = \"…\"\n```\n\n"
+            "**Dhan** — simplest is to paste a 24-hour access token above. For one-tap login instead, create an API key at "
+            "web.dhan.co (My Profile → Access DhanHQ APIs) with this dashboard's address as the redirect URL, then add:\n\n"
+            "```toml\n[dhan]\nclient_id = \"…\"\napp_id = \"…\"\napp_secret = \"…\"\n```\n\n"
+            "Both brokers make you log in again each day; the sync only reads holdings and cannot place orders. Login tokens stay in "
+            "this browser session and are never saved.")
+
+
+def _plan_panel(df: pd.DataFrame, tables: list, sources: list, allp: list, known: set, ver: int):
+    """Preview what an import or sync would change, and apply it once."""
+    from utils import portfolio_import as pi
+    whole = st.checkbox("This is my whole portfolio (propose closing holdings that are not in it)", key="book_whole")
+    names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
+    prices = pd.to_numeric(df.drop_duplicates("ticker").set_index("ticker")["currentPrice"], errors="coerce").dropna().to_dict()
+    plan = pi.reconcile(pi.combine(tables), allp, known, names, whole)
+    m = st.columns(5)
+    for col, (k, lab) in zip(m, (("add", "New"), ("update", "Changed"), ("close", "Not in it"), ("unchanged", "Unchanged"),
+                                 ("unknown", "Not recognised"))):
+        col.metric(lab, len(plan[k]))
+    t = lambda x: str(x).replace(".NS", "")
+    rows = ([{"Change": "➕ Add", "Stock": t(a["ticker"]), "Qty": a["qty"], "Avg cost": a["avg"], "Before": a["was"]} for a in plan["add"]]
+            + [{"Change": "✏️ Update", "Stock": t(u["ticker"]), "Qty": u["qty"], "Avg cost": u["avg"],
+                "Before": f"qty {u['old_qty']}, avg {u['old_avg']}"} for u in plan["update"]]
+            + [{"Change": "🚪 Close (sold?)", "Stock": t(c["ticker"]), "Qty": 0, "Avg cost": None,
+                "Before": f"qty {c['old_qty']}, avg {c['old_avg']}"} for c in plan["close"]])
+    if rows:
+        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True,
+                     column_config={"Avg cost": st.column_config.NumberColumn(format="₹%.2f")})
+    else:
+        st.success("Your book already matches.")
+    if plan["unknown"]:
+        st.warning("Not in the dashboard's universe, so not tracked (ETFs, bonds, small or unlisted names): "
+                   + ", ".join(f"{u['symbol']} ({u['qty']:.0f})" for u in plan["unknown"]))
+    info = pos.storage_status() if hasattr(pos, "storage_status") else {}
+    st.caption("New holdings get today's date as their entry date (brokers do not give the purchase date) and no stop: "
+               "set one from the Exit guide column. Stops, targets and notes you already have are kept."
+               + (f" Your book is saved to {info.get('where', 'GitHub')}"
+                  " — if that repository or this dashboard is public, so are these quantities." if info else ""))
+    close = st.checkbox(f"Also close the {len(plan['close'])} holding(s) not in it", value=False, key="book_close") if plan["close"] else False
+    n = len(plan["add"]) + len(plan["update"]) + (len(plan["close"]) if close else 0)
+    if st.button(f"✅ Apply ({n} change(s))", type="primary", disabled=not n, key="book_apply"):
+        done = pi.apply(plan, prices, names, close=close, source=", ".join(sources)[:80])
+        st.session_state["book_ver"] = ver + 1
+        st.session_state["sync_rows"] = {}
+        st.toast(f"Imported: {done['added']} added, {done['updated']} updated, {done['closed']} closed", icon="📥")
+        st.rerun()
+
+
+def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
+    """Sync from a broker and / or upload broker files, preview the changes, apply once."""
+    from utils import portfolio_import as pi
+    _sync_panel()
+    st.markdown("#### 📥 Or import a holdings file")
+    st.caption("Download your holdings from the broker (Zerodha: Kite → Holdings → download, or Console → Portfolio → Holdings; "
+               "Dhan: Portfolio → Holdings → download) and drop the file here. Files and synced brokers are combined into one portfolio.")
+    files = st.file_uploader("Holdings files", type=["csv", "xlsx", "xls", "tsv", "txt"], accept_multiple_files=True,
+                             key=f"book_up_{ver}", label_visibility="collapsed")
+    tables, sources = [], []
+    for label, rows in (st.session_state.get("sync_rows") or {}).items():
+        if rows is not None and len(rows):
+            tables.append(rows)
+            sources.append(f"{label} sync")
+    for f in files or []:
+        try:
+            t = pi.parse(f.getvalue(), f.name)
+            tables.append(t)
+            sources.append(f.name)
+            st.caption(f"✅ {f.name}: {len(t)} holding(s) read")
+        except Exception as e:
+            st.error(f"{f.name}: {e}")
+    if not tables:
+        return
+    st.markdown("#### 👀 Preview — " + ", ".join(sources))
+    _plan_panel(df, tables, sources, allp, known, ver)
 
 
 def render_import(df: pd.DataFrame):

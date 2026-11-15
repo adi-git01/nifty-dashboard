@@ -624,6 +624,15 @@ _NAV = {
 # sidebar's page (usually Morning Pulse), which looked like the dashboard
 # reloading. Turn the request into the real sidebar selection instead, before
 # those widgets are drawn, so the page sticks.
+# A broker sending the user back after login (Zerodha / Dhan holdings sync, utils/broker_sync.py):
+# exchange the one-time code, fetch holdings and go to the Import tab.
+try:
+    if "request_token" in st.query_params or "tokenId" in st.query_params:
+        from utils import book_view as _bv_cb
+        _bv_cb.handle_broker_redirect()
+except Exception as _e:
+    st.session_state["sync_error"] = f"Broker sync failed: {type(_e).__name__}"
+
 if 'nav_page' in st.session_state:
     _want = st.session_state.pop('nav_page')
     for _ws, (_key, _pages) in _NAV.items():
