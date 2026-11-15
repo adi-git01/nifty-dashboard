@@ -121,6 +121,9 @@ def journal(df: pd.DataFrame, changes: list, source: str, before: list, known: s
             M = {}
         held = {res(p["ticker"]): p for p in before if p.get("status") == "active"}
         for a, t, q, px, est in changes:
+            if a == "SPLIT":
+                evs.append(tj.event(a, t, q, None, source=source))
+                continue
             m = dict(M.get(t) or {})
             if a in tj.SELLS and t in held:
                 m.update(exit_facts(df, held[t], t))
@@ -281,6 +284,8 @@ def _plan_panel(df: pd.DataFrame, tables: Dict[str, pd.DataFrame], sources: list
     close = st.checkbox(f"Also close the {len(maybe)} holding(s) not in it", value=False, key="book_close") if maybe else False
     n = len(plan["add"]) + len(plan["update"]) + len(sold) + (len(maybe) if close else 0)
     quiet = bool(plan.get("lots_only"))                      # first sync of a holding: remember which broker holds it
+    if quiet and not n:
+        st.caption("Press the button once to link these holdings to the broker: from then on a sync notices when you sell.")
     if st.button(f"✅ Apply ({n} change(s))" if n or not quiet else "✅ Link holdings to this broker", type="primary",
                  disabled=not (n or quiet), key="book_apply"):
         src = ", ".join(sources)[:80]
@@ -505,8 +510,8 @@ def render(df: pd.DataFrame):
             elif e and e0 and abs(e - e0) > 1e-9:
                 fix[t] = e                                       # same shares, corrected cost: fix the journal's entry price too
         for t, px_sold in sold.items():
-            p0 = next(p for p in hold if res[p["ticker"]] == t or p["ticker"] == t)
-            px = px_sold or _px(df, t) or _num(p0.get("entry_price"))
+            p0 = next((p for p in hold if res[p["ticker"]] == t or p["ticker"] == t), None)
+            px = p0 and (px_sold or _px(df, t) or _num(p0.get("entry_price")))
             if px:
                 pos.close_position(p0["ticker"], float(px))
                 log.append(("SELL", t, int(_num(p0.get("quantity")) or 1), float(px), not px_sold))

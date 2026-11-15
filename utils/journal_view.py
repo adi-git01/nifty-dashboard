@@ -33,6 +33,17 @@ def _catch_up(df: pd.DataFrame, evs: list) -> list:
         return evs
     known = bv._known(df)[0]
     new = tj.catch_up(pos.get_all_positions(), evs, resolve=lambda t: pos.resolve_ticker(t, known) or t)
+    today = pd.Timestamp.today().strftime("%Y-%m-%d")
+    fresh = [e for e in new if e["action"] == "BUY" and e["date"] == today]       # bought today on a classic tab: readings still valid
+    if fresh:
+        try:
+            from utils import funnel_view as fv
+            from utils.industry_board_view import get_board
+            M = tj.capture([e["ticker"] for e in fresh], df, get_board(df), fv.valuation(), fv.regime(df))
+            for e in fresh:
+                e["metrics"], e["source"] = M.get(e["ticker"]) or {}, "book"
+        except Exception:
+            pass
     if new:
         tj.record(new)
         evs = tj.events()
@@ -153,7 +164,7 @@ def render(df: pd.DataFrame):
 
     # ------------------------------------------------------------------ one trade, entry against exit
     with st.expander("🔬 One trade: the readings at entry and at exit"):
-        lab = lambda i: (f"{T.ticker[i].replace('.NS', '')} · {T.entry_date[i]} → {T.exit_date[i] or 'open'}"
+        lab = lambda i: (f"{T.ticker[i].replace('.NS', '')} · {T.entry_date[i]} → {T.exit_date[i] if pd.notna(T.exit_date[i]) else 'open'}"
                          + (f" · {T.return_pct[i]:+.1f}%" if pd.notna(T.return_pct[i]) else ""))
         i = st.selectbox("Trade", list(T.index), format_func=lab, key="journal_pick")
         r = T.loc[i]

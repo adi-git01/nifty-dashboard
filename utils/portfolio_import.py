@@ -235,11 +235,15 @@ def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[
             f["entry_price"] = u["avg"]
         pos.update_position(u["orig"], **f)
         d = u["qty"] - int(u.get("old_qty") or 0)
-        if d > 0:                                            # bought more: the price implied by the change in average cost
+        both = u.get("avg") and u.get("old_avg") and u.get("old_qty")
+        if d and both and abs(u["qty"] * u["avg"] / (u["old_qty"] * float(u["old_avg"])) - 1) < 0.01:
+            # the share count changed and the total cost did not: a split or bonus, not a trade
+            ev.append(("SPLIT", u["ticker"], u["qty"] / u["old_qty"], None, False))
+        elif d > 0:                                          # bought more: the price implied by the change in average cost
             px, est = prices.get(u["ticker"]), True
-            if u.get("avg") and u.get("old_avg") and u.get("old_qty"):
+            if both:
                 imp = (u["qty"] * u["avg"] - u["old_qty"] * float(u["old_avg"])) / d
-                if imp > 0:
+                if imp > 0 and (not px or 0.5 <= imp / px <= 2):   # an implied price far from the market is not a fill
                     px, est = round(imp, 2), False
             ev.append(("ADD", u["ticker"], d, px, est))
         elif d < 0:

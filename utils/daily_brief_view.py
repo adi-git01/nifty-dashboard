@@ -155,6 +155,22 @@ def _positions(df: pd.DataFrame, B: pd.DataFrame):
                "**Portfolio Manager → Return Tracker**.")
 
 
+def _nifty_since(dates: pd.Series):
+    """Nifty 50 rebased to 100 on the first of `dates` (None when the index series is not loaded)."""
+    try:
+        n = st.session_state.get("nifty_data")
+        if n is None or n.empty:
+            return None
+        cl = n["Close"].copy()
+        if cl.index.tz is not None:
+            cl.index = cl.index.tz_localize(None)
+        cl.index = cl.index.normalize()
+        x = cl[~cl.index.duplicated(keep="last")].reindex(pd.DatetimeIndex(dates), method="ffill")
+        return None if x.isna().any() else (x / x.iloc[0] * 100).round(2)
+    except Exception:
+        return None
+
+
 def _model_portfolio():
     st.markdown("### 5 · Model portfolio (paper)")
     if not (os.path.exists(BENCH) and os.path.exists(SNAP)):
@@ -166,15 +182,26 @@ def _model_portfolio():
     except Exception:
         snap = {}
     last = b.iloc[-1]
+    since = f"since {b.date.iloc[0]:%d %b}"
     c = st.columns(5)
-    c[0].metric("Model", f"{last.model - 100:+.1f}%", help=f"Since {b.date.iloc[0]:%d %b %Y}")
-    c[1].metric("Equal-weight market", f"{last.equal_weight - 100:+.1f}%", f"{last.model - last.equal_weight:+.1f} pp model vs this",
-                delta_color="normal")
-    if "top50" in b:
-        c[2].metric("50 largest stocks", f"{last.top50 - 100:+.1f}%", f"{last.model - last.top50:+.1f} pp model vs this")
+    # the headline is the same figure as the Trend Scanner card: equity against the starting capital
+    start = float((snap.get("config") or {}).get("initial_capital") or 0)
+    total = (float(snap["equity"]) / start - 1) * 100 if start and snap.get("equity") else None
+    c[0].metric("Model, since inception" if total is not None else "Model", f"{total if total is not None else last.model - 100:+.1f}%",
+                f"{last.model - 100:+.1f}% {since}", delta_color="off")
+    nifty = _nifty_since(b.date)
+    if nifty is not None:
+        b["nifty50"] = nifty.values
+        c[1].metric("Nifty 50", f"{b.nifty50.iloc[-1] - 100:+.1f}%", f"{last.model - b.nifty50.iloc[-1]:+.1f} pp model vs this")
+    elif "top50" in b:
+        c[1].metric("50 largest stocks", f"{last.top50 - 100:+.1f}%", f"{last.model - last.top50:+.1f} pp model vs this")
+    c[2].metric("Average stock (equal-weight)", f"{last.equal_weight - 100:+.1f}%", f"{last.model - last.equal_weight:+.1f} pp model vs this",
+                help="Every stock in the universe, equally weighted: the fair yardstick for a model that buys mid and small caps")
     c[3].metric("Holdings", int(last.holdings))
     c[4].metric("Cash", f"{last.cash_pct:.0f}%", f"avg {b.cash_pct.mean():.0f}%", delta_color="off")
     fig = go.Figure()
+    if "nifty50" in b:
+        fig.add_scatter(x=b.date, y=b.nifty50, name="Nifty 50", line=dict(color="#E45756", width=1.5, dash="dot"))
     for col, lab, colr in (("model", "Model portfolio", "#54A24B"), ("equal_weight", "Equal-weight market", "#9D9D9D"),
                            ("top50", "50 largest stocks", "#4C78A8")):
         if col in b:
@@ -182,9 +209,9 @@ def _model_portfolio():
     fig.update_layout(height=240, margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", y=1.15),
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("The momentum model (OptComp V2.2), tracked daily with paper money. Benchmarks are built from the same "
-               "snapshots: every stock equally weighted, and the 50 largest by market value. Holdings, trades and the "
-               "refresh button are on **Trend Scanner**.")
+    st.caption(f"The momentum model (OptComp V2.2), paper money, the same equity curve as the card on **Trend Scanner**. The lines "
+               f"and the comparisons run {since}, the first day all series exist. Two yardsticks, two answers: against the Nifty 50 "
+               "the model is well ahead; against the average stock (which is what it buys from) it is about level.")
     pf = pd.DataFrame(snap.get("portfolio") or [])
     if len(pf):
         with st.expander(f"Holdings ({len(pf)})"):

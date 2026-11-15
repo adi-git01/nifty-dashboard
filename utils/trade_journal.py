@@ -7,6 +7,7 @@ Events (one per change in a holding) are stored in the same GitHub-backed store 
     BUY     a new holding            ADD     more of an existing one
     REDUCE  part sold                SELL    all sold
     VOID    the holding was deleted from the book (a mistake, not a trade): the open trade is dropped
+    SPLIT   a split or bonus changed the share count (qty holds the ratio); the cost is unchanged
 
 Each event keeps the quantity, the price, where it came from (Zerodha sync, Dhan sync, a file,
 or typed in), an `estimated` flag when the price is the day's close rather than the real fill
@@ -186,6 +187,9 @@ def trades(evs: Optional[List[Dict[str, Any]]] = None, prices: Optional[Dict[str
             c["cost"] += q * float(p or 0)
         elif a == "VOID":
             cur.pop(t, None)
+        elif a == "SPLIT" and t in cur and q > 0:            # qty holds the ratio (2 = one share became two); cost is unchanged
+            for k in ("qty", "bought", "sold_qty"):
+                cur[t][k] *= q
         elif a in SELLS and t in cur:
             c = cur[t]
             q = min(q, c["qty"]) if a == "REDUCE" else c["qty"] if a == "SELL" else q

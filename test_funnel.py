@@ -476,6 +476,14 @@ def test_sync_detects_sales_per_broker():
         mp.undo()
     assert sorted((e[0], e[1], e[2], e[4]) for e in n["events"]) == [("REDUCE", "SBIN.NS", 8, True), ("SELL", "TCS.NS", 5, True)]
     assert ("close", "TCS.NS", 3900.0) in calls and n["closed"] == 1
+    # a 1:1 bonus (twice the shares, half the cost) is not a purchase
+    solo = [dict(ticker="TCS.NS", status="active", quantity=5, entry_price=3500.0, lots={"Zerodha": {"qty": 5, "avg": 3500.0}})]
+    mp.setattr(pos, "update_position", lambda t, **k: None)
+    try:
+        ev = pi.apply(pi.reconcile_sources({"Zerodha": row(["TCS"], [10], [1750.0])}, solo, known), {"TCS.NS": 1900.0})["events"]
+    finally:
+        mp.undo()
+    assert ev == [("SPLIT", "TCS.NS", 2.0, None, False)]
     # a broker figure replaces a typed-in one for the same stock rather than adding to it
     p2 = pi.reconcile_sources({"Dhan": row(["ITC"], [100], [400.0])}, book, known)
     assert "ITC.NS" not in [u["ticker"] for u in p2["update"]] and p2["lots_only"][0]["lots"] == {"Dhan": {"qty": 100, "avg": 400.0}}
@@ -700,6 +708,9 @@ def test_trade_journal_folds_events_into_round_trips():
     assert a.entry_stages_passed == 4 and a.exit_status == "🔴 stop hit"                   # entry and exit readings side by side
     o = T[T.status == "open"].iloc[0]
     assert o.open_qty == 3 and round(o.return_pct, 1) == 10.0
+    sp = tj.trades([ev("BUY", "DDD.NS", 10, 100.0, "2026-01-05"), ev("SPLIT", "DDD.NS", 2, None, "2026-02-01"),
+                    ev("SELL", "DDD.NS", 0, 60.0, "2026-03-01")]).iloc[0]
+    assert (sp.qty, sp.entry_price, round(sp.return_pct, 1)) == (20, 50.0, 20.0)           # a 1:1 bonus halves the cost per share
     S = tj.stats(T)
     assert (S["closed"], S["open"], S["win_rate"]) == (2, 1, 50.0) and round(S["avg_loss"], 1) == -10.0
     P = tj.patterns(T, "Technicals read at entry").set_index("group")
