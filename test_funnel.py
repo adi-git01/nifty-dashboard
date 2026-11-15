@@ -482,3 +482,27 @@ def test_remote_mcp_needs_a_long_token_and_hides_behind_it(monkeypatch):
         assert c.post("/wrong-token-0123456789abcdef/mcp", json=body, headers=h).status_code == 404
         r = c.post(f"/{tok}/mcp", json=body, headers=h)
         assert r.status_code == 200 and len(r.json()["result"]["tools"]) == 17
+
+
+def test_hot_reload_picks_up_a_changed_module(tmp_path, monkeypatch):
+    import importlib, os, sys, time
+    from utils import hot_reload
+    pkg = tmp_path / "hrpkg"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text("")
+    (pkg / "base.py").write_text("def f():\n    return 1\n")
+    (pkg / "user_view.py").write_text("from hrpkg.base import f\n\ndef g():\n    return f() * 10\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    importlib.invalidate_caches()
+    import hrpkg.base, hrpkg.user_view                                         # noqa: E401
+    assert hot_reload.refresh(("hrpkg.",)) == [] and hrpkg.user_view.g() == 10   # first sight: nothing stale
+    (pkg / "base.py").write_text("def f():\n    return 2\n\ndef new():\n    return 'added'\n")
+    future = time.time() + 5
+    os.utime(pkg / "base.py", (future, future))
+    assert hot_reload.refresh(("hrpkg.",)) == ["hrpkg.base"]
+    assert sys.modules["hrpkg.base"].new() == "added" and sys.modules["hrpkg.user_view"].g() == 20   # the dependant sees the new code
+    hot_reload._SEEN["hrpkg.base"] = future + 1
+    assert hot_reload.refresh(("hrpkg.",)) == []
+    for n in ("hrpkg.base", "hrpkg.user_view", "hrpkg"):
+        sys.modules.pop(n, None)
+        hot_reload._SEEN.pop(n, None)
