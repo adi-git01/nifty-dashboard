@@ -580,3 +580,53 @@ def test_broker_sync_kite_and_dhan_read_holdings_only(monkeypatch):
     assert set(C.index) == {"CUMMINSIND", "SBIN", "HDFCBANK"}                                # both brokers feed one portfolio
     assert bs.config({"kite": {"api_key": "a", "api_secret": "b"}, "dhan": {"client_id": "1"}}) == {"kite": {"api_key": "a", "api_secret": "b"}}
     assert bs.config({}) == {}
+
+
+def _fake_bars(n=320, drift=0.0015, seed=1):
+    rng = np.random.default_rng(seed)
+    idx = pd.bdate_range(end="2026-11-13", periods=n)
+    c = pd.Series(100 * np.cumprod(1 + drift + rng.normal(0, 0.01, n)), idx)
+    return pd.DataFrame({"Open": c * 0.995, "High": c * 1.01, "Low": c * 0.99, "Close": c, "Volume": 2e6}, index=idx)
+
+
+def test_extended_rows_use_the_nightly_engine_without_saving(tmp_path, monkeypatch):
+    import glob
+    from utils import extended, fast_data_engine as fde
+    stock = _fake_bars()
+    multi = pd.concat({"NEWCO.NS": stock}, axis=1)                         # yfinance's [Ticker, Field] shape for a list input
+    monkeypatch.setattr(fde, "safe_download", lambda tickers, **k: multi)
+    monkeypatch.setattr(fde, "safe_history", lambda sym, **k: _fake_bars(drift=0.0003, seed=2))
+    before = sorted(glob.glob("data/cache/market_master_*.parquet"))
+    R = extended.rows_for(["newco"])
+    assert sorted(glob.glob("data/cache/market_master_*.parquet")) == before          # the day's snapshot is never touched
+    assert R.ticker.tolist() == ["NEWCO.NS"] and bool(R.extended.iloc[0])
+    r = R.iloc[0]
+    assert abs(r.currentPrice - stock.Close.iloc[-1]) < 1e-6 and r.fiftyDayAverage > 0 and r.twoHundredDayAverage > 0
+    for c in ("comp_rs", "rs_3m", "dist_52w", "dna_signal", "trend_score", "return_1m"):
+        assert c in R.columns and pd.notna(r[c]), c
+    base = pd.DataFrame({"ticker": ["A.NS"], "currentPrice": [10.0], "bar_date": ["2026-11-13"]})
+    W = extended.with_rows(base, ["NEWCO", "A.NS"])
+    assert W.ticker.tolist() == ["A.NS", "NEWCO.NS"] and W.bar_date.tolist() == ["2026-11-13"] * 2
+    monkeypatch.setattr(fde, "safe_download", lambda tickers, **k: pd.DataFrame())
+    assert extended.rows_for(["NOPE"]).empty and len(extended.with_rows(base, ["NOPE"])) == 1
+
+
+def test_tracked_extras_and_extended_list():
+    from utils import extended
+    import build_extended_universe as bx
+    core = {"SBIN.NS", "TCS.NS"}
+    book = [dict(ticker="SBIN.NS", status="active"), dict(ticker="NEWCO", status="active"), dict(ticker="OLDCO.NS", status="closed"),
+            dict(ticker="WATCHME.NS", status="watching"), dict(ticker="bad symbol!", status="active"), dict(ticker="NEWCO.NS", status="watching")]
+    assert extended.tracked(core, book) == ["NEWCO.NS", "WATCHME.NS"]                  # core, closed, invalid and duplicates dropped
+    f = extended.add_tracked(pd.DataFrame({"ticker": ["SBIN.NS", "TCS.NS"], "name": ["S", "T"]}), ["NEWCO.NS", "SBIN.NS"])
+    assert f.ticker.tolist() == ["SBIN.NS", "TCS.NS", "NEWCO.NS"] and f.sector_granular.iloc[-1] in ("Unknown", f.sector_granular.iloc[-1])
+    A = pd.DataFrame([("BIG.NS", "mcap_cr", "2026-11-10", 5000.0), ("BIG.NS", "price_scr", "2026-11-10", 250.0),
+                      ("SMALL.NS", "mcap_cr", "2026-11-10", 400.0), ("HELD.NS", "mcap_cr", "2026-11-10", 300.0),
+                      ("BIG.NS", "sales", "2026-03-31", 900.0)], columns=["ticker", "field", "period", "value"])
+    U = bx.assemble(A, {"BIG.NS": "Industrial  Products"}, {"BIG.NS": "Big Co Ltd"}, {"HELD.NS"}, pd.DataFrame())
+    assert U.Ticker.tolist() == ["BIG.NS", "HELD.NS"]                                    # Rs 1,000 cr and above, plus what you hold
+    assert U.iloc[0].to_dict() | {} == dict(Ticker="BIG.NS", Company_Name="Big Co Ltd", Sub_Industry="Industrial Products",
+                                              mcap_cr=5000.0, price=250.0, as_of="2026-11-10")
+    assert U.Sub_Industry.iloc[1] == "Unknown" and extended.norm(" tatacap ") == "TATACAP.NS"
+    from utils.nifty1000_list import EXTENDED, SUB_INDUSTRY_MAP, TICKERS_1000
+    assert not (set(EXTENDED) & set(TICKERS_1000)) and all(t in SUB_INDUSTRY_MAP for t in list(EXTENDED)[:20])

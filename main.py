@@ -418,6 +418,23 @@ if _needs_refresh:
 
 df = st.session_state['market_data']
 
+# Stocks you hold or watch that are outside the snapshot (new extended names not yet picked up by
+# the nightly run) are computed once per data day so My Book, the brief and alerts can price them.
+@st.cache_data(ttl=6 * 3600, show_spinner="Pricing your stocks outside the universe…")
+def _tracked_rows(_key: str, tickers: tuple) -> pd.DataFrame:
+    from utils import extended as _ext
+    return _ext.rows_for(list(tickers))
+
+try:
+    from utils import extended as _ext_main
+    _need = tuple(t for t in _ext_main.tracked(set(df['ticker']), get_all_positions()) if t not in set(df['ticker']))
+    if _need:
+        _rows = _tracked_rows(f"{len(df)}|{df['bar_date'].iloc[0] if 'bar_date' in df.columns else ''}", _need)
+        if len(_rows):
+            df = pd.concat([df, _rows.reindex(columns=list(dict.fromkeys(list(df.columns) + ['extended'])))], ignore_index=True)
+except Exception as _e:
+    print(f"[extended] tracked rows skipped: {_e}", flush=True)
+
 # --- Auto-refresh heartbeat (placed here, AFTER the data-load block) ---
 # A Streamlit script only reruns on user interaction, not on a timer, so a
 # tab left open and just watched never refreshes — data could sit hours

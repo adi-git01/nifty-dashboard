@@ -91,10 +91,21 @@ def _read(path):
     return pd.read_csv(path) if os.path.exists(path) else pd.DataFrame()
 
 
-def load_context(root: str = ".") -> Context:
+def load_context(root: str = ".", extended: bool = False) -> Context:
+    """extended=True also loads the extended list's fundamentals (utils/extended.py). It is a separate
+    context on purpose: adding those stocks to the default one would change the peer sets, and so the
+    valuations, of the core universe."""
     p = lambda f: os.path.join(root, f)
     A = _read(p("data/fundamentals_annual.csv.gz"))
     Q = _read(p("data/fundamentals_quarterly.csv.gz"))
+    if extended:
+        for f in ("data/fundamentals_ext_annual.csv.gz", "data/fundamentals_annual_extra.csv.gz"):
+            x = _read(p(f))
+            if not x.empty:
+                A = pd.concat([A, x[~x.ticker.isin(set(A.ticker))].reindex(columns=A.columns)], ignore_index=True)
+        x = _read(p("data/fundamentals_ext_quarterly.csv.gz"))
+        if not x.empty:
+            Q = pd.concat([Q, x[~x.ticker.isin(set(Q.ticker))].reindex(columns=Q.columns)], ignore_index=True)
     if Q.empty:
         Q = _read(p("analysis/screener_raw.csv.gz")).rename(columns={"quarter": "period"})
     for df in (A, Q):

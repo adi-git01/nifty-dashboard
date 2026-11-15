@@ -11,7 +11,7 @@ on:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 240
     permissions:
       contents: write
     env:
@@ -32,10 +32,17 @@ jobs:
           python fundamentals_annual.py 2>&1 | tee fundamentals_output.txt
       - name: Re-run the valuation
         run: python valuation_run.py 2>&1 | tee -a fundamentals_output.txt
+      - name: Extended list (stocks outside the universe with market cap of Rs 1,000 cr+)
+        # After the core files are done, so a slow or blocked scrape here cannot cost the core refresh.
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BRANCH: ${{ github.ref_name }}
+        run: python build_extended_universe.py --minutes 60 2>&1 | tee -a fundamentals_output.txt
       - name: Commit
         if: always()
         run: |
-          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv
+          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv data/extended_universe.csv 'data/fundamentals_ext_*.csv.gz' EQUITY_L.csv
       - name: Notify on failure
         if: failure()
         run: |
