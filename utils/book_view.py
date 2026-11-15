@@ -67,7 +67,8 @@ def _context(df: pd.DataFrame, tickers: List[str]) -> pd.DataFrame:
 def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
     """Upload broker holdings files, preview the changes, apply once (utils/portfolio_import.py)."""
     from utils import portfolio_import as pi
-    with st.expander("📥 Import holdings from a broker file (Zerodha, Dhan or any broker)"):
+    st.markdown("#### 📥 Import holdings from a broker file")
+    with st.container():
         st.caption("Download your holdings from the broker (Zerodha: Kite → Holdings → download, or Console → Portfolio → Holdings; "
                    "Dhan: Portfolio → Holdings → download) and drop the file here. Several files are combined into one portfolio. "
                    "Nothing changes until you press Apply.")
@@ -121,10 +122,15 @@ def _import_panel(df: pd.DataFrame, allp: list, known: set, ver: int):
             st.rerun()
 
 
+def render_import(df: pd.DataFrame):
+    """The 📥 Import tab: upload broker files, preview, apply."""
+    _import_panel(df, pos.get_all_positions(), set(df["ticker"]), st.session_state.setdefault("book_ver", 0))
+
+
 def render(df: pd.DataFrame):
     known = set(df["ticker"])
     allp = pos.get_all_positions()
-    _import_panel(df, allp, known, st.session_state.setdefault("book_ver", 0))
+    st.info("📥 To load your holdings from **Zerodha, Dhan or any broker file**, open the **📥 Import** tab above.")
     hold = [p for p in allp if p.get("status") == "active"]
     watch = [p for p in allp if p.get("status") == "watching"]
     res = {p["ticker"]: (pos.resolve_ticker(p["ticker"], known) or p["ticker"]) for p in hold + watch}
