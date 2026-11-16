@@ -2381,7 +2381,7 @@ elif page == "🌊 Trend Scanner":
             filtered_df['screener_link'] = "https://www.screener.in/company/" + filtered_df['ticker'].str.replace('.NS', '', regex=False) + "/"
 
             st.dataframe(
-                filtered_df[display_cols].sort_values(by='trend_score', ascending=False),
+                filtered_df[display_cols].sort_values(by=['trend_score', 'comp_rs'], ascending=False, na_position='last'),   # ties (many score 100) by RS
                 column_config={
                     "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                     "trend_score": st.column_config.ProgressColumn("Trend Score", format="%d", min_value=0, max_value=100),
@@ -2414,7 +2414,7 @@ elif page == "🌊 Trend Scanner":
             with _nifty_dl:
                 st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
                 _dl_cols = [c for c in display_cols if c != 'screener_link']
-                _export = filtered_df[_dl_cols].sort_values('trend_score', ascending=False).copy()
+                _export = filtered_df[_dl_cols].sort_values(['trend_score', 'comp_rs'] if 'comp_rs' in _dl_cols else 'trend_score', ascending=False).copy()
                 _export['signal'] = _export.get('trend_signal', _export.get('signal_display', ''))
                 st.download_button(
                     label="⬇️ Download CSV",
