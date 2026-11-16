@@ -37,8 +37,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.110102",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.114742"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.337440",
+    "lots": {
+      "Zerodha": {
+        "qty": 22,
+        "avg": 3331.11
+      }
+    }
   },
   {
     "id": "1d427bdd-d095-4cfa-8016-1ec5d8d1e9c5",
@@ -59,8 +65,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.117692",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.120605"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.341375",
+    "lots": {
+      "Zerodha": {
+        "qty": 9,
+        "avg": 1665.0
+      }
+    }
   },
   {
     "id": "a31b48db-3060-4507-bd41-ea57d0016aac",
@@ -81,8 +93,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.124769",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.127749"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.345871",
+    "lots": {
+      "Zerodha": {
+        "qty": 20,
+        "avg": 1929.74
+      }
+    }
   },
   {
     "id": "824e52c6-ea58-45d3-84bd-572a2ae9495d",
@@ -103,8 +121,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.130499",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.133238"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.349872",
+    "lots": {
+      "Zerodha": {
+        "qty": 3,
+        "avg": 10386.67
+      }
+    }
   },
   {
     "id": "71b15d39-df30-4bdf-a06f-f905f7829d26",
@@ -125,8 +149,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.136559",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.140182"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.353360",
+    "lots": {
+      "Zerodha": {
+        "qty": 17,
+        "avg": 1943.2
+      }
+    }
   },
   {
     "id": "0a20976a-b6ce-4c15-a729-cbc34792026c",
@@ -147,8 +177,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.143654",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.147302"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.356833",
+    "lots": {
+      "Zerodha": {
+        "qty": 277,
+        "avg": 219.36
+      }
+    }
   },
   {
     "id": "6f77e1c4-b937-46fb-a53c-b5f1ede58804",
@@ -169,8 +205,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.150606",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.153844"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.360577",
+    "lots": {
+      "Zerodha": {
+        "qty": 14,
+        "avg": 1571.37
+      }
+    }
   },
   {
     "id": "1d9f5217-fc6b-43e4-af3d-0580827348cc",
@@ -191,8 +233,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.157068",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.160434"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.363611",
+    "lots": {
+      "Zerodha": {
+        "qty": 12,
+        "avg": 1922.1
+      }
+    }
   },
   {
     "id": "f3319ac0-e396-44e9-a726-33631e681dec",
@@ -213,8 +261,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.164070",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.167918"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.367349",
+    "lots": {
+      "Zerodha": {
+        "qty": 44,
+        "avg": 786.66
+      }
+    }
   },
   {
     "id": "e4075466-34e3-48b0-8e12-911301b873e3",
@@ -235,8 +289,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.171962",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.175694"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.372049",
+    "lots": {
+      "Zerodha": {
+        "qty": 73,
+        "avg": 820.83
+      }
+    }
   },
   {
     "id": "2b5ab921-22b2-414b-86e9-0ab464b35e63",
@@ -257,8 +317,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.179603",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.183326"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.376132",
+    "lots": {
+      "Zerodha": {
+        "qty": 22,
+        "avg": 3568.63
+      }
+    }
   },
   {
     "id": "1a7a69f0-5f57-404d-9f96-be2fa063f5af",
@@ -279,8 +345,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.187549",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.191371"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.379537",
+    "lots": {
+      "Zerodha": {
+        "qty": 72,
+        "avg": 524.7
+      }
+    }
   },
   {
     "id": "9cd1ef0e-76f4-4c5a-a1d5-5330914f68bc",
@@ -301,8 +373,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.194586",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.198702"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.383940",
+    "lots": {
+      "Zerodha": {
+        "qty": 36,
+        "avg": 550.23
+      }
+    }
   },
   {
     "id": "18e0f2c8-0abe-4799-a8fe-ea22e610c175",
@@ -323,8 +401,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.202395",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.206741"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.388832",
+    "lots": {
+      "Zerodha": {
+        "qty": 210,
+        "avg": 158.44
+      }
+    }
   },
   {
     "id": "72bd2d32-ad58-44cc-8f01-8964770f2686",
@@ -345,8 +429,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.210285",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.214297"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.393860",
+    "lots": {
+      "Zerodha": {
+        "qty": 52,
+        "avg": 577.37
+      }
+    }
   },
   {
     "id": "07551d19-6083-4858-b626-ce35b96193a8",
@@ -367,8 +457,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.217931",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.221322"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.398205",
+    "lots": {
+      "Zerodha": {
+        "qty": 23,
+        "avg": 1775.88
+      }
+    }
   },
   {
     "id": "6b263ba2-7887-4fe4-8b63-89a8dc422eb0",
@@ -380,7 +476,7 @@
     "entry_date": "2026-11-15",
     "stop_loss": null,
     "target": null,
-    "quantity": 139,
+    "quantity": 99,
     "notes": "",
     "alerts_enabled": true,
     "entry_signal": "N/A",
@@ -389,8 +485,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.225625",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.229647"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.334784",
+    "lots": {
+      "Zerodha": {
+        "qty": 99,
+        "avg": 296.8
+      }
+    }
   },
   {
     "id": "68261e03-f1bc-4bd3-9388-fe1a4003a43b",
@@ -411,8 +513,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.234121",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.237732"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.402783",
+    "lots": {
+      "Zerodha": {
+        "qty": 128,
+        "avg": 485.42
+      }
+    }
   },
   {
     "id": "94edf548-a87d-4843-bd16-38c3587a9332",
@@ -455,8 +563,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.248682",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.252246"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.405735",
+    "lots": {
+      "Zerodha": {
+        "qty": 44,
+        "avg": 731.47
+      }
+    }
   },
   {
     "id": "958aee47-9b26-40ce-8bb8-b2b668bd4fa0",
@@ -477,8 +591,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.255411",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.258824"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.410495",
+    "lots": {
+      "Zerodha": {
+        "qty": 157,
+        "avg": 383.79
+      }
+    }
   },
   {
     "id": "3d20cd3e-4a1d-4167-aaaa-6a87ada7976d",
@@ -499,8 +619,14 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.262966",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.267046"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.415910",
+    "lots": {
+      "Zerodha": {
+        "qty": 732,
+        "avg": 63.84
+      }
+    }
   },
   {
     "id": "6137b602-309a-4d3f-a066-5140d3db5a7b",
@@ -521,7 +647,13 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.270934",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-15",
-    "updated_at": "2026-11-15T15:31:01.274845"
+    "synced_at": "2026-11-16",
+    "updated_at": "2026-11-16T13:50:40.421404",
+    "lots": {
+      "Zerodha": {
+        "qty": 30,
+        "avg": 1019.7
+      }
+    }
   }
 ]
