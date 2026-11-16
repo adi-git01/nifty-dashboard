@@ -1,6 +1,6 @@
 """
 Read holdings straight from Zerodha (Kite Connect) and Dhan (DhanHQ v2). Read-only: the only
-account endpoints called are the two holdings endpoints. Nothing here can place or change an order
+account endpoints called are the holdings endpoints and Zerodha's positions (today's trades). Nothing here can place or change an order
 (orders, only when you switch them on, are in utils/dhan_orders.py).
 
 Both brokers issue a login token that lasts about a day and needs you to log in on the broker's
@@ -61,13 +61,15 @@ def _json(r) -> Any:
 
 def _rows(items: List[Dict[str, Any]]) -> pd.DataFrame:
     from utils.portfolio_import import clean_symbol
-    out = pd.DataFrame(items, columns=["symbol", "name", "qty", "avg"])
+    out = pd.DataFrame(items, columns=["symbol", "name", "qty", "avg", "buy_px", "sell_px"])
     if out.empty:
         return out
     out["symbol"] = out["symbol"].map(clean_symbol)
     out["qty"] = pd.to_numeric(out["qty"], errors="coerce")
-    out["avg"] = pd.to_numeric(out["avg"], errors="coerce").replace(0, np.nan)
-    return out[out.qty > 0].reset_index(drop=True)
+    for c in ("avg", "buy_px", "sell_px"):
+        out[c] = pd.to_numeric(out[c], errors="coerce").replace(0, np.nan)
+    # a row with no shares left is kept when the broker says it was sold today: that is a sale, not a gap
+    return out[(out.qty > 0) | ((out.qty == 0) & out.sell_px.notna())].reset_index(drop=True)
 
 
 # ------------------------------------------------------------------ Zerodha
@@ -99,14 +101,57 @@ def kite_holdings(api_key: str, access_token: str) -> pd.DataFrame:
     if r.status_code != 200 or not isinstance(d, dict) or d.get("status") != "success":
         raise BrokerError(f"Zerodha did not return holdings: {(d or {}).get('message', f'HTTP {r.status_code}')}. "
                           "The day's login may have expired; press Sync again.")
-    items = []
-    for h in d.get("data") or []:
+    return _rows(kite_merge(d.get("data") or [], kite_day_positions(api_key, access_token)))
+
+
+def kite_day_positions(api_key: str, access_token: str) -> List[Dict[str, Any]]:
+    """Today's trades (read-only). Holdings alone miss today's buys and say nothing of the price a sale got."""
+    try:
+        r = _http().get(f"{KITE_API}/portfolio/positions", timeout=TIMEOUT,
+                        headers={"X-Kite-Version": "3", "Authorization": f"token {api_key}:{access_token}"})
+        d = _json(r)
+        return list(((d or {}).get("data") or {}).get("day") or []) if r.status_code == 200 else []
+    except Exception:
+        return []                                            # holdings still sync without it
+
+
+def kite_merge(holdings: List[Dict[str, Any]], day: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Holdings plus today's delivery trades, as rows of symbol / qty / avg / buy_px / sell_px.
+    Zerodha's holdings already have today's sales taken out (quantity falls, used_quantity rises) but do
+    not have today's purchases, which sit in positions until the next day. So:
+        qty = settled + T1 + pledged + bought today - sold today out of today's own purchases
+    A stock sold out completely today stays as a row with qty 0 and its sale price.
+    """
+    f = lambda h, k: float(h.get(k) or 0)
+    out: Dict[str, Dict[str, Any]] = {}
+    for h in holdings:
         if str(h.get("exchange", "")).upper() not in EQUITY_EXCHANGES:
             continue
-        # settled + bought-but-unsettled (T1) + pledged as collateral
-        qty = sum(float(h.get(k) or 0) for k in ("quantity", "t1_quantity", "collateral_quantity"))
-        items.append(dict(symbol=h.get("tradingsymbol"), name="", qty=qty, avg=h.get("average_price")))
-    return _rows(items)
+        sym = str(h.get("tradingsymbol") or "")
+        q = sum(f(h, k) for k in ("quantity", "t1_quantity", "collateral_quantity"))
+        o = out.setdefault(sym, dict(symbol=sym, name="", qty=0.0, cost=0.0, used=0.0, buy_px=None, sell_px=None))
+        o["qty"] += q
+        o["cost"] += q * f(h, "average_price")
+        o["used"] += f(h, "used_quantity")
+    for p in day:
+        if str(p.get("product", "")).upper() != "CNC" or str(p.get("exchange", "")).upper() not in EQUITY_EXCHANGES:
+            continue
+        sym = str(p.get("tradingsymbol") or "")
+        b, sl = f(p, "day_buy_quantity"), f(p, "day_sell_quantity")
+        if not (b or sl):
+            continue
+        o = out.setdefault(sym, dict(symbol=sym, name="", qty=0.0, cost=0.0, used=0.0, buy_px=None, sell_px=None))
+        add = max(b - max(sl - o["used"], 0.0), 0.0)          # sales beyond what came out of holdings were of today's purchase
+        o["qty"] += add
+        o["cost"] += add * f(p, "day_buy_price")
+        if b:
+            o["buy_px"] = f(p, "day_buy_price")
+        if sl:
+            o["sell_px"] = f(p, "day_sell_price")
+    return [dict(symbol=o["symbol"], name="", qty=o["qty"], avg=(o["cost"] / o["qty"]) if o["qty"] else None,
+                 buy_px=o["buy_px"], sell_px=o["sell_px"]) for o in out.values()
+            if o["qty"] > 0 or o["used"] > 0]                # nothing left and nothing sold out of holdings: bought and sold today
 
 
 # ------------------------------------------------------------------ Dhan

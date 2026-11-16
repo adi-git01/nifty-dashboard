@@ -617,8 +617,9 @@ def test_broker_sync_kite_and_dhan_read_holdings_only(monkeypatch):
     with pytest.raises(bs.BrokerError, match="24 hours"):
         bs.dhan_holdings("BAD")
     urls = {u for _, u, _ in calls}
-    assert all("order" not in u and "/positions" not in u and "/funds" not in u and "/margins" not in u for u in urls)   # holdings and login only
-    assert {u for m, u, _ in calls if m == "GET"} == {"https://api.kite.trade/portfolio/holdings", "https://api.dhan.co/v2/holdings"}
+    assert all("order" not in u and "/funds" not in u and "/margins" not in u for u in urls)   # holdings, today's positions (read) and login only
+    assert {u for m, u, _ in calls if m == "GET"} == {"https://api.kite.trade/portfolio/holdings", "https://api.kite.trade/portfolio/positions",
+                                                           "https://api.dhan.co/v2/holdings"}
     from utils import portfolio_import as pi
     C = pi.combine([Z, Dn]).set_index("symbol")
     assert set(C.index) == {"CUMMINSIND", "SBIN", "HDFCBANK"}                                # both brokers feed one portfolio
@@ -898,3 +899,34 @@ def test_model_orders_reach_the_daily_message(monkeypatch):
     mb.save_meta(capital=200000.0, cash=200000.0)
     msg = mb.telegram_line(prices)
     assert "Model orders (4)" in msg and "AAA 132@101" in msg and "Sell:" not in msg and "DDD" not in msg
+
+
+def test_zerodha_sync_includes_todays_buys_and_full_sales(monkeypatch):
+    """Shapes taken from a live account: holdings net out today's sales but not today's buys (those sit in positions)."""
+    from utils import broker_sync as bs, portfolio_import as pi, positions as pos
+    H = lambda sym, q, avg, used=0, t1=0, exch="NSE": dict(tradingsymbol=sym, exchange=exch, quantity=q, t1_quantity=t1,
+                                                           collateral_quantity=0, used_quantity=used, average_price=avg)
+    P = lambda sym, b=0, bp=0, s=0, sp=0, product="CNC": dict(tradingsymbol=sym, exchange="NSE", product=product, day_buy_quantity=b,
+                                                              day_buy_price=bp, day_sell_quantity=s, day_sell_price=sp)
+    hold = [H("KIRLPNU", 36, 550.225, exch="BSE"), H("NORTHARC", 99, 296.8018, used=40), H("SWARAJENG", 0, 3446.55, used=2, exch="BSE"),
+            H("MAHSEAMLES", 0, 577.37, t1=52), H("SAREGAMA", 128, 485.42)]
+    day = [P("KIRLPNU", b=15, bp=644.2433), P("SWARAJENG", s=2, sp=3490.3), P("BHARTIARTL", b=13, bp=2159.2), P("NORTHARC", s=40, sp=275.68),
+           P("UNIONBANK", b=58, bp=204.72), P("RELIANCE", b=10, bp=1400.0, s=10, sp=1410.0), P("INFY", b=5, bp=1500.0, product="MIS")]
+    R = bs._rows(bs.kite_merge(hold, day)).set_index("symbol")
+    assert R.qty.to_dict() == {"KIRLPNU": 51, "NORTHARC": 99, "SWARAJENG": 0, "MAHSEAMLES": 52, "SAREGAMA": 128, "BHARTIARTL": 13, "UNIONBANK": 58}
+    assert round(R.avg["KIRLPNU"], 2) == round((36 * 550.225 + 15 * 644.2433) / 51, 2) and R.avg["BHARTIARTL"] == 2159.2
+    assert R.sell_px["SWARAJENG"] == 3490.3 and "RELIANCE" not in R.index and "INFY" not in R.index   # bought and sold today, intraday: nothing held
+    known = {s + ".NS" for s in R.index}
+    book = [dict(ticker="KIRLPNU.NS", status="active", quantity=36, entry_price=550.23), dict(ticker="NORTHARC.NS", status="active", quantity=139, entry_price=296.8),
+            dict(ticker="SWARAJENG.NS", status="active", quantity=2, entry_price=3446.55), dict(ticker="SAREGAMA.NS", status="active", quantity=128, entry_price=485.42),
+            dict(ticker="MAHSEAMLES.NS", status="active", quantity=52, entry_price=577.37), dict(ticker="HDFCBANK.NS", status="active", quantity=5, entry_price=900.0)]
+    plan = pi.reconcile_sources({"Zerodha": R.reset_index()}, book, known)
+    assert sorted(a["ticker"] for a in plan["add"]) == ["BHARTIARTL.NS", "UNIONBANK.NS"]
+    assert sorted((u["ticker"], u["old_qty"], u["qty"]) for u in plan["update"]) == [("KIRLPNU.NS", 36, 51), ("NORTHARC.NS", 139, 99)]
+    assert [(c["ticker"], c["auto"], c["sell_px"]) for c in plan["close"]] == [("SWARAJENG.NS", True, 3490.3)]   # sold out today, though never linked
+    assert plan["unknown"] == [] and "HDFCBANK.NS" not in [c["ticker"] for c in plan["close"]]                 # held elsewhere: untouched
+    for f in ("add_position", "update_position", "close_position"):
+        monkeypatch.setattr(pos, f, lambda *a, **k: None)
+    ev = {(e[0], e[1]): e[2:] for e in pi.apply(plan, {}, close=False)["events"]}
+    assert ev[("SELL", "SWARAJENG.NS")] == (2, 3490.3, False) and ev[("REDUCE", "NORTHARC.NS")] == (40, 275.68, False)   # real fills, not estimates
+    assert ev[("ADD", "KIRLPNU.NS")] == (15, 644.24, False) and ev[("BUY", "UNIONBANK.NS")] == (58, 204.72, False)

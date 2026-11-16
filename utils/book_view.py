@@ -281,8 +281,8 @@ def _plan_panel(df: pd.DataFrame, tables: Dict[str, pd.DataFrame], sources: list
     sold = [c for c in plan["close"] if c.get("auto")]
     maybe = [c for c in plan["close"] if not c.get("auto")]
     if sold or any(u["qty"] < u["old_qty"] for u in plan["update"]):
-        st.caption("📓 Sales are found by comparing with the last sync of the same broker. They are closed and written to the "
-                   "**Journal** at the latest close, marked ≈ — a holdings list does not give the fill price; correct it in the Journal.")
+        st.caption("📓 Sales are closed and written to the **Journal**. A sale made today on Zerodha carries its real price; an older "
+                   "one is found by comparing with the last sync and is logged at the latest close, marked ≈ — correct it in the Journal.")
     close = st.checkbox(f"Also close the {len(maybe)} holding(s) not in it", value=False, key="book_close") if maybe else False
     n = len(plan["add"]) + len(plan["update"]) + len(sold) + (len(maybe) if close else 0)
     quiet = bool(plan.get("lots_only"))                      # first sync of a holding: remember which broker holds it
