@@ -101,7 +101,11 @@ def combine(tables: Iterable[pd.DataFrame]) -> pd.DataFrame:
     t["cost"] = t.qty * t.avg
     g = t.groupby("key", sort=False)
     out = pd.DataFrame({"symbol": g.symbol.first(), "name": g.name.first(), "qty": g.qty.sum(),
-                        "avg": g.apply(lambda x: x.cost.sum() / x.loc[x.avg.notna(), "qty"].sum() if x.avg.notna().any() else np.nan)})
+                        "avg": g.apply(lambda x: x.cost.sum() / x.loc[x.avg.notna(), "qty"].sum()
+                                       if x.avg.notna().any() and x.loc[x.avg.notna(), "qty"].sum() else np.nan)})
+    for c in ("buy_px", "sell_px"):                         # today's fill prices, when a broker sync supplies them
+        if c in t.columns:
+            out[c] = g[c].first()
     return out.reset_index(drop=True)
 
 
@@ -153,11 +157,21 @@ def reconcile_sources(tables: Dict[str, pd.DataFrame], positions: List[Dict[str,
     labels = list(tables)
     api = [l for l in labels if l in BROKERS]
     new: Dict[str, Dict[str, Dict[str, Any]]] = {}
+    fills: Dict[str, Dict[str, float]] = {}                 # today's real buy / sell prices, from a broker's positions
+    zero: set = set()                                        # the broker says: sold out today
     for label, rows in tables.items():
         m = match(combine([rows]), known, names)
         for r in m.itertuples():
             if not isinstance(r.ticker, str) or not r.ticker:
-                plan["unknown"].append(dict(symbol=r.symbol or r.name, qty=r.qty, avg=r.avg, source=label))
+                if r.qty > 0:
+                    plan["unknown"].append(dict(symbol=r.symbol or r.name, qty=r.qty, avg=r.avg, source=label))
+                continue
+            for k in ("buy_px", "sell_px"):
+                v = getattr(r, k, None)
+                if v is not None and pd.notna(v):
+                    fills.setdefault(r.ticker, {})[k] = float(v)
+            if r.qty <= 0:
+                zero.add(r.ticker)
                 continue
             new.setdefault(r.ticker, {})[label] = dict(qty=int(round(r.qty)), avg=None if pd.isna(r.avg) else round(float(r.avg), 2))
     book = {}
@@ -197,8 +211,13 @@ def reconcile_sources(tables: Dict[str, pd.DataFrame], positions: List[Dict[str,
                 plan["update"].append(dict(ticker=t, orig=p["ticker"], qty=q, avg=a, old_qty=oq, old_avg=oa, lots=left, sold=True))
             else:
                 plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=oq, old_avg=oa, sold=True, auto=True))
+        elif t in zero and not old:                          # never linked to a broker, but the broker reports it sold out today
+            plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=oq, old_avg=oa, sold=True, auto=True))
         elif whole:
             plan["close"].append(dict(ticker=t, orig=p["ticker"], old_qty=oq, old_avg=oa, sold=True, auto=False))
+    for k in ("update", "close"):
+        for row in plan[k]:
+            row.update(fills.get(row["ticker"]) or {})
     return plan
 
 
@@ -239,6 +258,10 @@ def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[
         if d and both and abs(u["qty"] * u["avg"] / (u["old_qty"] * float(u["old_avg"])) - 1) < 0.01:
             # the share count changed and the total cost did not: a split or bonus, not a trade
             ev.append(("SPLIT", u["ticker"], u["qty"] / u["old_qty"], None, False))
+        elif d > 0 and u.get("buy_px"):                      # bought today: the broker's own fill price
+            ev.append(("ADD", u["ticker"], d, round(float(u["buy_px"]), 2), False))
+        elif d < 0 and u.get("sell_px"):
+            ev.append(("REDUCE", u["ticker"], -d, round(float(u["sell_px"]), 2), False))
         elif d > 0:                                          # bought more: the price implied by the change in average cost
             px, est = prices.get(u["ticker"]), True
             if both:
@@ -254,9 +277,9 @@ def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[
     for c in plan["close"]:
         if not (close or c.get("auto")):
             continue
-        px = prices.get(c["ticker"]) or c.get("old_avg")       # no price for it: close at cost rather than leave a sold stock open
+        px = c.get("sell_px") or prices.get(c["ticker"]) or c.get("old_avg")   # no price at all: close at cost, not leave it open
         if px:
             pos.close_position(c["orig"], float(px))
-            ev.append(("SELL", c["ticker"], int(c.get("old_qty") or 0), float(px), True))
+            ev.append(("SELL", c["ticker"], int(c.get("old_qty") or 0), round(float(px), 2), not c.get("sell_px")))
             n["closed"] += 1
     return n

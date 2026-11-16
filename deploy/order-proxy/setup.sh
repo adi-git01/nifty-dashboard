@@ -44,6 +44,11 @@ chmod 644 "$DIR/proxy.py"; chmod 755 "$DIR"
 systemctl daemon-reload
 systemctl enable --now order-proxy.service
 command -v ufw >/dev/null && ufw status | grep -q "Status: active" && ufw allow "$PORT/tcp" || true
+# Oracle's Ubuntu images block new ports in iptables as well as in the cloud firewall
+if command -v iptables >/dev/null; then
+  iptables -C INPUT -p tcp --dport "$PORT" -j ACCEPT 2>/dev/null || iptables -I INPUT 1 -p tcp --dport "$PORT" -j ACCEPT || true
+  command -v netfilter-persistent >/dev/null && netfilter-persistent save >/dev/null 2>&1 || true
+fi
 
 IP="$(curl -fsS https://api.ipify.org || echo '<this server public IP>')"
 echo
