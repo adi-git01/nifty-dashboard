@@ -877,6 +877,11 @@ def test_dhan_order_is_sent_once_and_ip_refusal_is_explained(monkeypatch):
     assert url.endswith("/v2/orders") and k["headers"]["access-token"] == "tok" and k["proxies"]["https"] == "http://p:1"
     assert k["json"]["afterMarketOrder"] is True                                               # sent on a Sunday evening: for the next open
     assert do.status("tok", "552", cfg) == dict(status="TRADED", filled=3.0, price=3498.2, message="")
+    class IP:
+        status_code, text = 200, "203.0.113.7\n"
+    seen = {}
+    monkeypatch.setattr(H, "get", classmethod(lambda cls, url, **k: seen.update(url=url, **k) or IP))
+    assert do.sending_ip(cfg) == "203.0.113.7" and seen["proxies"]["https"] == "http://p:1" and "headers" not in seen   # nothing of yours is sent
     H.reply = R(400, {"errorCode": "DH-905", "errorMessage": "Invalid IP"})
     with pytest.raises(BrokerError, match="registered IP"):
         do.place("tok", o, cfg, {"TCS": "11536"})

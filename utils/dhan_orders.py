@@ -127,6 +127,22 @@ def _error(d: Any, code: int) -> str:
     return msg or f"HTTP {code}"
 
 
+def sending_ip(cfg: Optional[Dict[str, Any]] = None) -> str:
+    """The address Dhan will see for an order sent from here (through order_proxy when one is set). Sends nothing about you."""
+    cfg = cfg or settings()
+    try:
+        r = _http().get("https://api.ipify.org", timeout=TIMEOUT, proxies=_proxies(cfg))
+    except Exception as e:
+        raise BrokerError("The fixed-IP exit did not answer: check that its server is running, its port is open and the "
+                          f"order_proxy line is exact ({type(e).__name__})." if cfg.get("proxy") else
+                          f"Could not find this server's address ({type(e).__name__}).")
+    if r.status_code == 407:
+        raise BrokerError("The fixed-IP exit refused the password in order_proxy.")
+    if r.status_code != 200:
+        raise BrokerError(f"The address check failed (HTTP {r.status_code}).")
+    return r.text.strip()
+
+
 def place(token: str, order: Dict[str, Any], cfg: Optional[Dict[str, Any]] = None, ids: Optional[Dict[str, str]] = None,
           now: Optional[datetime] = None) -> Dict[str, Any]:
     """Send one order. Returns {'order_id', 'status'}; raises BrokerError with a message safe to show."""

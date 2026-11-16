@@ -24,6 +24,21 @@ Portfolio Manager → Return Tracker → **🎫 Model Orders**. Code: `utils/mod
    in 7 days). Streamlit Cloud has no fixed address. Either set `order_proxy = "http://user:pass@host:port"` to a
    fixed-IP exit, or run the dashboard on a small server with a fixed address.
 
+### Setting up the fixed-IP exit (about 15 minutes, free)
+
+`deploy/order-proxy/` is a tiny tunnel that only reaches Dhan's API and only with a password. Your Dhan token
+passes through it encrypted; the server never sees it.
+
+1. Create a small always-on Linux server with a **static public IP**. Free choices: Oracle Cloud "Always Free"
+   VM (Mumbai region), or Google Cloud e2-micro. Any ₹300–500/month VPS also works. Pick Ubuntu.
+2. In the provider's firewall, allow inbound **TCP 8443**.
+3. On the server run:
+   `curl -fsSL https://raw.githubusercontent.com/adi-git01/nifty-dashboard/main/deploy/order-proxy/setup.sh | sudo bash`
+   It prints the server's IP and the two secrets lines.
+4. Register that IP with Dhan (web.dhan.co → Profile → DhanHQ Trading APIs → Add IP).
+5. Paste the two lines under `[dhan]` in the Streamlit app's secrets and save.
+6. In the dashboard: Model Orders → Settings → **Check the address Dhan will see**. It should show the server's IP.
+
 First live use: untick everything except one cheap order and send that alone.
 
 ## Stage 3 — fully automatic (not built)

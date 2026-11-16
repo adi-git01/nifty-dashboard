@@ -305,5 +305,19 @@ def render(df: pd.DataFrame):
             mb.save_meta(**f)
             st.session_state["mo_ver"] = ver + 1
             st.rerun()
+        cfg = do.settings()
+        st.markdown("**Sending orders to Dhan**")
+        st.caption(("✅" if cfg["enabled"] else "❌") + " orders_enabled in secrets · " + ("✅" if cfg["proxy"] else "❌")
+                   + " order_proxy (fixed-IP exit) in secrets · " + ("✅" if st.session_state.get("dhan_token") else "❌")
+                   + " today's Dhan login. Setup: docs/model_orders_setup.md.")
+        if st.button("🌐 Check the address Dhan will see", key="mo_ip"):
+            from utils.broker_sync import BrokerError
+            try:
+                ip = do.sending_ip(cfg)
+                st.success(f"Orders from here reach Dhan from **{ip}**. " + ("This is your fixed-IP exit: register it on web.dhan.co "
+                           "(Profile → DhanHQ Trading APIs → Add IP) if you have not." if cfg["proxy"] else
+                           "No order_proxy is set, so this is Streamlit's own address, which changes: Dhan will refuse orders from it."))
+            except BrokerError as e:
+                st.error(str(e))
         st.caption("The paper model is unchanged by anything here. Fills are also written to **My Book** and the **Journal** (tag "
                    "'model'), so a Dhan sync afterwards finds nothing new.")
