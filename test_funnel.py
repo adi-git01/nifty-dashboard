@@ -729,6 +729,7 @@ def test_trade_journal_catches_up_with_the_book():
     first = tj.catch_up(book, [], resolve=res)                       # a holding older than the journal gets its opening buy
     assert [(e["action"], e["ticker"], e["qty"], e["price"], e["date"]) for e in first] == [("BUY", "FEDERALBNK.NS", 50.0, 250.0, "2025-12-01")]
     assert first[0]["source"] == "before the journal" and tj.catch_up(book, first, resolve=res) == []      # and only once
+    assert tj.catch_up(book, [], resolve=res)[0]["id"] == first[0]["id"]                  # same id if written twice: stored once
     evs = first + [tj.event("BUY", "TCS.NS", 5, 3500.0, date="2026-03-01"), tj.event("BUY", "ITC.NS", 9, 400.0, date="2026-03-02")]
     more = {e["ticker"]: e for e in tj.catch_up(book, evs, resolve=res)}
     assert (more["TCS.NS"]["action"], more["TCS.NS"]["price"], more["TCS.NS"]["date"]) == ("SELL", 3900.0, "2026-05-02")   # closed on a classic tab

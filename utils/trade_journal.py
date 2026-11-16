@@ -119,23 +119,29 @@ def catch_up(positions: List[Dict[str, Any]], evs: Optional[List[Dict[str, Any]]
     T = trades(evs)
     open_t = set(T.loc[T.status == "open", "ticker"]) if len(T) else set()
     rs = resolve or (lambda t: t)
+    closed_n = T[T.status == "closed"].groupby("ticker").groups if len(T) else {}     # a re-bought stock gets a new id
+    first = dict(zip(T.loc[T.status == "open", "ticker"], T.loc[T.status == "open", "trade_id"])) if len(T) else {}
     out, active, closed = [], set(), {}
     for p in positions:
         t = rs(p.get("ticker"))
         if p.get("status") == "active":
             active.add(t)
             if t not in open_t and p.get("entry_price"):
+                # fixed ids: if the journal could not be read (GitHub down) and looked empty, the same catch-up
+                # written twice is stored once, instead of doubling every holding
                 out.append(event("BUY", t, p.get("quantity") or 1, p.get("entry_price"), source="before the journal",
-                                 notes=p.get("notes") or "", date=str(p.get("entry_date") or "")[:10] or None))
+                                 notes=p.get("notes") or "", date=str(p.get("entry_date") or "")[:10] or None,
+                                 id=f"base:{t}:{str(p.get('entry_date') or '')[:10]}:{len(closed_n.get(t, []))}"))
                 open_t.add(t)
         elif p.get("status") == "closed":
             closed[t] = p
     for t in sorted(open_t - active):
         p = closed.get(t)
         if p is not None and p.get("exit_price"):
-            out.append(event("SELL", t, 0, p["exit_price"], source="book", date=str(p.get("exit_date") or "")[:10] or None))
+            out.append(event("SELL", t, 0, p["exit_price"], source="book", date=str(p.get("exit_date") or "")[:10] or None,
+                             id=f"close:{first.get(t, t)}"))
         else:
-            out.append(event("VOID", t, 0, None, source="book"))
+            out.append(event("VOID", t, 0, None, source="book", id=f"void:{first.get(t, t)}"))
     return out
 
 

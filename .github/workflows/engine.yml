@@ -4,10 +4,42 @@ on:
   schedule:
     # Regular: 3:45 PM IST = 10:15 AM UTC (Mon-Fri) - After market close for proper EOD data
     - cron: '15 10 * * 1-5'
+    # GitHub was starting that one seven to ten hours late (about 11 pm IST), so the dashboard showed
+    # the previous session all evening. Two more chances; the `check` job skips a run once today's is in.
+    - cron: '47 11 * * 1-5'
+    - cron: '23 13 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
+# one run at a time: a late-starting schedule waits, then finds today's data and skips
+concurrency:
+  group: alpha-trend-engine
+  cancel-in-progress: false
+
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.c.outputs.skip }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: data/engine_last_run.json
+        sparse-checkout-cone-mode: false
+    - id: c
+      run: |
+        today=$(TZ=Asia/Kolkata date +%F)
+        # the day the job last ran to the end (written just before its commit); a market holiday counts, so it is not run three times
+        last=$(python3 -c "import json; print(json.load(open('data/engine_last_run.json')).get('date', ''))" 2>/dev/null || true)
+        echo "today=$today  last engine run=$last  event=${{ github.event_name }}"
+        if [ "${{ github.event_name }}" = "schedule" ] && [ "$last" = "$today" ]; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+        fi
+
   run-trading-engine:
+    needs: check
+    if: needs.check.outputs.skip != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Crucial for git-auto-commit-action
@@ -140,6 +172,13 @@ jobs:
       run: |
         python industry_alert_daemon.py
       continue-on-error: true
+
+    - name: Mark today's run (later schedules skip)
+      run: |
+        # only when today's snapshot was written: a run that Yahoo failed leaves no mark, so the next schedule tries again
+        if [ -f "data/cache/market_master_$(date -u +%Y_%m_%d).parquet" ] || [ -f "data/cache/market_master_$(TZ=Asia/Kolkata date +%Y_%m_%d).parquet" ]; then
+          echo "{\"date\": \"$(TZ=Asia/Kolkata date +%F)\"}" > data/engine_last_run.json
+        fi
 
     - name: Commit State Changes (All Data Files)
       continue-on-error: true  # a failed push must not trigger the crash alert; the step log shows it
