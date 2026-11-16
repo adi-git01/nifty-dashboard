@@ -1,0 +1,11 @@
+[
+  {
+    "id": "_meta",
+    "capital": 200000.0,
+    "cash": 200000.0,
+    "paused": false,
+    "buffer": 0.01,
+    "max_order": 0.0,
+    "started": "2026-11-16"
+  }
+]
