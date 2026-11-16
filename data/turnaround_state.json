@@ -1,152 +1,212 @@
 {
     "AGIIL.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "CHEMPLASTS.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 100.0
-    },
-    "LEMONTREE.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 100.0
-    },
-    "HDFCLIFE.NS": {
-        "tier": "ALERT",
-        "days_active": 9,
-        "ias": 100.0
-    },
-    "ITC.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 97.9
-    },
-    "ANUP.NS": {
-        "tier": "ALERT",
-        "days_active": 2,
-        "ias": 90.0
-    },
-    "MFSL.NS": {
-        "tier": "ALERT",
+        "tier": "READY",
         "days_active": 4,
-        "ias": 90.0
+        "ias": 70.0
     },
-    "VOLTAS.NS": {
-        "tier": "ALERT",
-        "days_active": 4,
-        "ias": 90.0
-    },
-    "TITAGARH.NS": {
-        "tier": "ALERT",
-        "days_active": 4,
-        "ias": 85.0
-    },
-    "GODREJIND.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 85.0
-    },
-    "GPIL.NS": {
-        "tier": "ALERT",
-        "days_active": 1,
-        "ias": 84.5
-    },
-    "POLICYBZR.NS": {
-        "tier": "ALERT",
-        "days_active": 3,
-        "ias": 81.2
-    },
-    "HDBFS.NS": {
-        "tier": "READY",
-        "days_active": 8,
-        "ias": 74.1
-    },
-    "BALAMINES.NS": {
+    "GVPTECH.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 73.3
+        "ias": 70.0
     },
-    "ENRIN.NS": {
+    "THOMASCOOK.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 73.0
+        "ias": 70.0
     },
-    "ITI.NS": {
+    "SUNTECK.NS": {
         "tier": "READY",
         "days_active": 1,
-        "ias": 71.4
+        "ias": 70.0
     },
-    "WHIRLPOOL.NS": {
+    "DAMCAPITAL.NS": {
         "tier": "READY",
         "days_active": 1,
         "ias": 65.0
     },
-    "DMART.NS": {
+    "GODREJIND.NS": {
+        "tier": "READY",
+        "days_active": 4,
+        "ias": 60.0
+    },
+    "BALAMINES.NS": {
+        "tier": "READY",
+        "days_active": 2,
+        "ias": 60.0
+    },
+    "DOLATALGO.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "MFSL.NS": {
+        "tier": "READY",
+        "days_active": 5,
+        "ias": 60.0
+    },
+    "BOMDYEING.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "NAVA.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "PATELENG.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "TITAGARH.NS": {
+        "tier": "READY",
+        "days_active": 5,
+        "ias": 60.0
+    },
+    "SHARDACROP.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "DCXINDIA.NS": {
+        "tier": "READY",
+        "days_active": 1,
+        "ias": 60.0
+    },
+    "SFL.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 55.8
+        "ias": 55.0
+    },
+    "ANANTRAJ.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
+    },
+    "GREENPANEL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
+    },
+    "HDFCLIFE.NS": {
+        "tier": "WATCH",
+        "days_active": 10,
+        "ias": 55.0
+    },
+    "VINATIORGA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 55.0
+    },
+    "KSCL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 53.8
+    },
+    "AWFIS.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 51.9
+    },
+    "SANDUMA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 45.8
+    },
+    "LUXIND.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.6
+    },
+    "CSLFINANCE.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.4
+    },
+    "CHEMPLASTS.NS": {
+        "tier": "WATCH",
+        "days_active": 3,
+        "ias": 42.0
+    },
+    "GHCL.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.0
+    },
+    "CONTROLPR.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.0
+    },
+    "PRSMJOHNSN.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 42.0
     },
     "EMAMILTD.NS": {
         "tier": "WATCH",
-        "days_active": 8,
-        "ias": 53.9
+        "days_active": 9,
+        "ias": 41.9
     },
-    "AMBER.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 52.0
-    },
-    "IEX.NS": {
+    "SCI.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 51.4
+        "ias": 40.2
     },
-    "ABREL.NS": {
+    "SKFINDIA.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 39.3
+    },
+    "GICHSGFIN.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 39.3
+    },
+    "ALANKIT.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 39.0
+    },
+    "SUNDARMFIN.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.8
+    },
+    "ENERGYDEV.NS": {
+        "tier": "WATCH",
+        "days_active": 1,
+        "ias": 36.0
+    },
+    "ANUP.NS": {
         "tier": "WATCH",
         "days_active": 3,
-        "ias": 51.0
+        "ias": 36.0
     },
-    "TRENT.NS": {
+    "ERIS.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 49.8
+        "ias": 36.0
     },
-    "GVT&D.NS": {
+    "SYNGENE.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 48.1
+        "ias": 35.8
     },
-    "GALLANTT.NS": {
+    "DCW.NS": {
         "tier": "WATCH",
         "days_active": 1,
-        "ias": 45.6
+        "ias": 35.3
     },
-    "ACI.NS": {
+    "ANTELOPUS.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 44.2
+        "days_active": 1,
+        "ias": 35.0
     },
-    "NATCOPHARM.NS": {
+    "AJMERA.NS": {
         "tier": "WATCH",
-        "days_active": 2,
-        "ias": 43.8
-    },
-    "YESBANK.NS": {
-        "tier": "WATCH",
-        "days_active": 7,
-        "ias": 40.7
-    },
-    "MMTC.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 39.2
-    },
-    "UPL.NS": {
-        "tier": "WATCH",
-        "days_active": 2,
-        "ias": 36.4
+        "days_active": 1,
+        "ias": 35.0
     }
 }
