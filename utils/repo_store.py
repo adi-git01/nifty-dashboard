@@ -45,6 +45,7 @@ import base64
 import copy
 import json
 import os
+import threading
 import time
 from typing import Any, Callable, Optional, Tuple
 
@@ -57,7 +58,10 @@ TIMEOUT = 15
 # The dashboard re-runs its whole script on every interaction; without a cache
 # that would mean a GitHub round-trip per widget click.
 _CACHE_TTL = 30.0
+_STALE_OK = 6 * 3600.0      # older than the TTL but younger than this: serve it and refresh in the background
 _cache: dict = {}
+_refreshing: set = set()
+_refresh_lock = threading.Lock()
 
 
 _CFG: dict = {}
@@ -162,6 +166,34 @@ def read_json(path: str, use_cache: bool = True, branch: Optional[str] = None) -
         hit = _cache.get(ck)
         if hit and (time.time() - hit[0]) < _CACHE_TTL:
             return hit[1], hit[2], True
+        if hit and (time.time() - hit[0]) < _STALE_OK:
+            # A page render must not wait a second per file on GitHub: show what we have and refresh
+            # behind it. The dashboard's own writes update this cache, so only changes made elsewhere
+            # (the nightly job) arrive one click late.
+            _refresh_soon(path, branch)
+            return hit[1], hit[2], True
+    return _read_now(path, branch)
+
+
+def _refresh_soon(path: str, branch: str) -> None:
+    ck = f"{branch}:{path}"
+    with _refresh_lock:
+        if ck in _refreshing:
+            return
+        _refreshing.add(ck)
+    get_token(); get_repo()                                  # resolve secrets on this thread, not the worker
+
+    def work():
+        try:
+            _read_now(path, branch)
+        finally:
+            with _refresh_lock:
+                _refreshing.discard(ck)
+    threading.Thread(target=work, daemon=True).start()
+
+
+def _read_now(path: str, branch: str) -> Tuple[Optional[Any], Optional[str], bool]:
+    ck = f"{branch}:{path}"
     try:
         r = requests.get(f"{API}/repos/{get_repo()}/contents/{path}",
                          headers=_headers(), params={"ref": branch}, timeout=TIMEOUT)
