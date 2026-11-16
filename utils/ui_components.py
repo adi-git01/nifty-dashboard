@@ -513,7 +513,7 @@ def card_verdict(verdict, score):
     </div>
     """
 
-def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="OptComp-V22", since="Feb '26"):
+def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="OptComp-V22", since="Feb '26", as_of=None):
     """Robinhood-style hero card with big P&L number."""
     ret_color = COLORS['positive'] if return_pct >= 0 else COLORS['negative']
     arrow = "▲" if return_pct >= 0 else "▼"
@@ -528,7 +528,7 @@ def hero_pnl_card(portfolio_value, return_pct, holdings_count, strategy_name="Op
                     <span style="font-size: 0.6em; color: rgba(255,255,255,0.4); margin-left: 8px;">since {since}</span>
                 </div>
             </div>
-            <div class="live-badge">Live</div>
+            <div class="live-badge">{("As of " + as_of) if as_of else "Live"}</div>
         </div>
         <div class="hero-meta">
             <div class="hero-meta-item">

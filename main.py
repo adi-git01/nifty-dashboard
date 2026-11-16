@@ -1523,8 +1523,18 @@ elif page == "🌊 Trend Scanner":
                     st.markdown(hero_pnl_card(
                         portfolio_value=equity_val,
                         return_pct=live_return_pct,
-                        holdings_count=dna3_data.get('count', 0)
+                        holdings_count=dna3_data.get('count', 0),
+                        as_of=(pd.Timestamp(dna3_data['date']).strftime('%d %b') if dna3_data.get('date') else None)
                     ), unsafe_allow_html=True)
+                    # the figure moves once a day, after the evening run: say so when that run is behind
+                    try:
+                        _age = int(np.busday_count(pd.Timestamp(dna3_data['date']).date(), pd.Timestamp.now(tz='Asia/Kolkata').date()))
+                        _late = _age >= 2 or (_age == 1 and pd.Timestamp.now(tz='Asia/Kolkata').hour >= 19)
+                        if _late:
+                            st.caption(f"⏳ Last updated after the close on {pd.Timestamp(dna3_data['date']):%a %d %b}. The evening run for "
+                                       "the latest session has not landed yet; the figure changes when it does.")
+                    except Exception:
+                        pass
             
                     # === EQUITY VS NIFTY CHART ===
                     if os.path.exists(DNA3_EQUITY):
