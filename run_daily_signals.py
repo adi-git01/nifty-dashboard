@@ -257,6 +257,13 @@ def main():
     except Exception as e:
         print(f"  Scorecard failed: {e}")
 
+    # ── 3e. All closing prices in one file, so My Book opens without reading every snapshot ──
+    try:
+        from utils import book_logic
+        print(f"  Close panel: {book_logic.build_close_panel()} sessions -> {book_logic.PANEL_FILE}")
+    except Exception as e:
+        print(f"  Close panel failed: {e}")
+
     # ── 4. Telegram: one message, in the order you would act (utils/daily_message.py) ──
     try:
         from utils import daily_message

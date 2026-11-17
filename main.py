@@ -2381,7 +2381,7 @@ elif page == "🌊 Trend Scanner":
             filtered_df['screener_link'] = "https://www.screener.in/company/" + filtered_df['ticker'].str.replace('.NS', '', regex=False) + "/"
 
             st.dataframe(
-                filtered_df[display_cols].sort_values(by='trend_score', ascending=False),
+                filtered_df[display_cols].sort_values(by=['trend_score', 'comp_rs'], ascending=False, na_position='last'),   # ties (many score 100) by RS
                 column_config={
                     "screener_link": st.column_config.LinkColumn("Ticker", display_text=r"https://www\.screener\.in/company/(.*?)/"),
                     "trend_score": st.column_config.ProgressColumn("Trend Score", format="%d", min_value=0, max_value=100),
@@ -2414,7 +2414,7 @@ elif page == "🌊 Trend Scanner":
             with _nifty_dl:
                 st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
                 _dl_cols = [c for c in display_cols if c != 'screener_link']
-                _export = filtered_df[_dl_cols].sort_values('trend_score', ascending=False).copy()
+                _export = filtered_df[_dl_cols].sort_values(['trend_score', 'comp_rs'] if 'comp_rs' in _dl_cols else 'trend_score', ascending=False).copy()
                 _export['signal'] = _export.get('trend_signal', _export.get('signal_display', ''))
                 st.download_button(
                     label="⬇️ Download CSV",
@@ -2522,16 +2522,18 @@ elif page == "📊 Return Tracker":
     positions = get_positions_with_pnl(df)
     # A position whose symbol is not in the market data gets no price, so its stop-loss and
     # target are never checked -- say so instead of showing it as quietly fine.
-    _orphans = [p.get('ticker', '') for p in positions if not p.get('has_data')]
+    # only what you still hold or watch: a sold stock outside the universe has no price, and needs none
+    _live_pos = [p for p in positions if p.get('status') in ('active', 'watching')]
+    _orphans = [p.get('ticker', '') for p in _live_pos if not p.get('has_data')]
     if _orphans:
         st.error("⚠️ No market data for " + ", ".join(f"**{t.replace('.NS', '')}**" for t in _orphans)
                  + ". These positions have no live price, so their stop-loss and target alerts cannot fire. "
                  "Delete and re-add them with the correct NSE symbol.")
     _aliased = [f"{p['ticker'].replace('.NS', '')} → {p['resolved_ticker'].replace('.NS', '')}"
-                for p in positions if p.get('resolved_ticker')]
+                for p in _live_pos if p.get('resolved_ticker')]
     if _aliased:
         st.info("Symbol corrected for pricing: " + ", ".join(_aliased) + ". Stop-loss and target are now checked.")
-    for _p in positions:
+    for _p in _live_pos:
         if _p.get('adj_note'):
             st.info(f"**{_p['ticker'].replace('.NS', '')}**: {_p['adj_note']}.")
     from utils.positions import storage_status as _pos_status, sync_positions as _pos_sync

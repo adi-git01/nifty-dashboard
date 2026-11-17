@@ -931,3 +931,25 @@ def test_zerodha_sync_includes_todays_buys_and_full_sales(monkeypatch):
     ev = {(e[0], e[1]): e[2:] for e in pi.apply(plan, {}, close=False)["events"]}
     assert ev[("SELL", "SWARAJENG.NS")] == (2, 3490.3, False) and ev[("REDUCE", "NORTHARC.NS")] == (40, 275.68, False)   # real fills, not estimates
     assert ev[("ADD", "KIRLPNU.NS")] == (15, 644.24, False) and ev[("BUY", "UNIONBANK.NS")] == (58, 204.72, False)
+
+
+def test_close_panel_file_matches_reading_every_snapshot(tmp_path, monkeypatch):
+    from utils import book_logic as bl
+    import glob as _g
+    files = sorted(_g.glob("data/cache/market_master_*.parquet"))[-4:]
+    if len(files) < 4:
+        pytest.skip("needs stored snapshots")
+    monkeypatch.setattr(bl.glob, "glob", lambda pat: files[:3] if "market_master" in pat else _g.glob(pat))
+    f = str(tmp_path / "panel.parquet")
+    assert bl.build_close_panel(f) == 3
+    monkeypatch.setattr(bl, "PANEL_FILE", f)
+    monkeypatch.setattr(bl.glob, "glob", lambda pat: files if "market_master" in pat else _g.glob(pat))   # a newer snapshot than the file
+    bl._panel.cache_clear()
+    P = bl._panel(-1)
+    monkeypatch.setattr(bl, "PANEL_FILE", str(tmp_path / "missing.parquet"))
+    bl._panel.cache_clear()
+    Q = bl._panel(-2)
+    bl._panel.cache_clear()
+    assert len(P) == len(Q) == 4 and list(P.index) == list(Q.index)          # the newest snapshot is added on top of the file
+    j = P.columns.intersection(Q.columns)
+    assert len(j) > 500 and np.allclose(P[j].values, Q[j].values, rtol=1e-5, equal_nan=True)

@@ -37,21 +37,56 @@ def status(px, stop, target, scan, below50, caution) -> str:
     return "✅ on track"
 
 
-@lru_cache(maxsize=2)
-def _panel(n_files: int) -> pd.DataFrame:
-    """
-    Closing prices by session and ticker, split-adjusted. Reads only two columns per snapshot: the
-    full scorecard panel (every column of ~185 files) took many seconds and was the reason My Book
-    sat grey after a sync.
-    """
+PANEL_FILE = "data/cache/close_panel.parquet"
+
+
+def _snap_date(f: str) -> pd.Timestamp:
+    return pd.Timestamp(f[-18:-8].replace("_", "-"))
+
+
+def _closes(files) -> Dict[pd.Timestamp, pd.Series]:
     P = {}
-    for f in sorted(glob.glob("data/cache/market_master_*.parquet")):
+    for f in files:
         try:
             d = pd.read_parquet(f, columns=["ticker", "currentPrice"]).drop_duplicates("ticker")
         except Exception:
             continue
-        P[pd.Timestamp(f[-18:-8].replace("_", "-"))] = pd.to_numeric(d.set_index("ticker")["currentPrice"], errors="coerce")
-    P = pd.DataFrame(P).T.sort_index()
+        P[_snap_date(f)] = pd.to_numeric(d.set_index("ticker")["currentPrice"], errors="coerce")
+    return P
+
+
+def build_close_panel(path: str = PANEL_FILE) -> int:
+    """
+    Every snapshot's closing prices in one small file, written by the nightly run. Reading ~185
+    snapshots took about 5 s the first time My Book opened after each restart; one file takes a
+    fraction of that. Prices are stored as recorded; splits are applied when it is read.
+    """
+    files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+    P = pd.DataFrame(_closes(files)).T.sort_index()
+    P.index.name = "date"
+    P.astype("float32").to_parquet(path)
+    return len(P)
+
+
+@lru_cache(maxsize=2)
+def _panel(n_files: int) -> pd.DataFrame:
+    """
+    Closing prices by session and ticker, split-adjusted: the nightly panel file plus any snapshot
+    newer than it (so it is never stale), or every snapshot when the file is missing.
+    """
+    files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+    base = None
+    try:
+        base = pd.read_parquet(PANEL_FILE).astype(float)
+        base.index = pd.to_datetime(base.index)
+    except Exception:
+        base = None
+    if base is not None and len(base):
+        new = _closes([f for f in files if _snap_date(f) > base.index.max()])
+        P = pd.concat([base, pd.DataFrame(new).T]) if new else base
+    else:
+        P = pd.DataFrame(_closes(files)).T
+    P = P[~P.index.duplicated(keep="last")].sort_index()
     try:
         from utils import corp_actions
         for _, r in corp_actions.load().iterrows():
