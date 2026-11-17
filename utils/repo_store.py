@@ -299,12 +299,12 @@ _perm: dict = {}
 def can_write() -> Optional[bool]:
     """
     Whether the token may push to the repo, from GitHub's own answer (GET /repos
-    returns permissions.push for the caller). None when unknown. Cached 10 min.
+    returns permissions.push for the caller). None when unknown. Cached 6 hours.
     """
     if not is_configured():
         return False
     hit = _perm.get("push")
-    if hit and time.time() - hit[0] < 600:
+    if hit and time.time() - hit[0] < 6 * 3600:       # a token's permissions rarely change; each check cost a page ~0.5 s
         return hit[1]
     try:
         r = requests.get(f"{API}/repos/{get_repo()}", headers=_headers(), timeout=TIMEOUT)
