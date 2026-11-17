@@ -2,7 +2,7 @@ breakout_date,first_seen,ticker,name,kind,momentum,mom_rank,gate1,size_tier,ind_
 2026-11-16,2026-11-16,NAZARA.NS,Nazara Technologies Limited,squeeze release,True,96.7,True,Small,87.0,,False,True,False,False,430.3999938964844,430.3999938964844,0.0,2026-11-16,0
 2026-11-16,2026-11-16,SAREGAMA.NS,Saregama India Limited,ATH breakout,True,97.9,True,Small,87.0,4.0,False,True,False,False,670.0,670.0,0.0,2026-11-16,0
 2026-11-16,2026-11-16,BHARTIARTL.NS,Bharti Airtel Limited,ATH breakout,False,77.5,True,Large,96.0,1.5,False,True,False,False,2153.5,2153.5,0.0,2026-11-16,0
-2026-11-16,2026-11-16,HINDOILEXP.NS,Hindustan Oil Exploration Company Limited,52W breakout,False,87.4,True,Micro,58.0,52.1,True,True,False,False,212.66000366210938,212.66000366210938,0.0,2026-11-16,0
+2026-11-16,2026-11-16,HINDOILEXP.NS,Hindustan Oil Exploration Company Limited,52W breakout,False,87.4,True,Micro,58.0,52.1,True,True,False,False,212.66000366210935,212.66000366210938,2.220446049250313e-14,2026-11-16,0
 2026-11-13,2026-11-13,ADROITINFO.NS,Adroit Infotech Limited,52W breakout,True,95.4,True,Micro,49.0,1.2,False,True,False,False,14.829999923706056,14.569999694824219,-1.7532045193487944,2026-11-16,1
 2026-11-13,2026-11-13,ALICON.NS,Alicon Castalloy Limited,52W breakout,True,91.4,True,Micro,55.0,124.0,True,True,False,False,976.1500244140624,966.0499877929688,-1.0346807732916075,2026-11-16,1
 2026-11-13,2026-11-13,ALICON.NS,Alicon Castalloy Limited,squeeze release,True,91.4,True,Micro,55.0,,False,True,False,False,976.1500244140624,966.0499877929688,-1.0346807732916075,2026-11-16,1
@@ -14,7 +14,7 @@ breakout_date,first_seen,ticker,name,kind,momentum,mom_rank,gate1,size_tier,ind_
 2026-11-13,2026-11-13,BOROSCI.NS,Borosil Scientific Limited,squeeze release,False,58.9,False,Micro,55.0,,False,True,False,False,116.4499969482422,115.87999725341797,-0.4894802144800203,2026-11-16,1
 2026-11-13,2026-11-13,CTE.NS,Cambridge Technology Enterprises Limited,squeeze release,False,78.8,False,Micro,49.0,,False,True,False,False,38.45000076293945,40.369998931884766,4.993493188161202,2026-11-16,1
 2026-11-13,2026-11-13,DATAPATTNS.NS,Data Patterns (India) Limited,squeeze release,False,56.7,True,Small,62.0,,False,True,False,False,4268.0,4190.0,-1.827553889409561,2026-11-16,1
-2026-11-13,2026-11-13,DCBBANK.NS,DCB Bank Limited,ATH breakout,False,85.7,True,Micro,98.0,1.4,False,True,False,False,233.00999450683597,229.8300018310547,-1.364745182931626,2026-11-16,1
+2026-11-13,2026-11-13,DCBBANK.NS,DCB Bank Limited,ATH breakout,False,85.7,True,Micro,98.0,1.4,False,True,False,False,233.009994506836,229.8300018310547,-1.364745182931637,2026-11-16,1
 2026-11-13,2026-11-13,DTIL.NS,Dhunseri Tea & Industries Limited,squeeze release,False,74.7,False,Micro,42.0,,False,True,True,False,155.17999267578125,150.67999267578125,-2.8998583660213795,2026-11-16,1
 2026-11-13,2026-11-13,GINNIFILA.NS,Ginni Filaments Limited,squeeze release,False,56.4,False,Micro,47.0,,False,True,False,False,42.970001220703125,42.209999084472656,-1.7686807415409067,2026-11-16,1
 2026-11-13,2026-11-13,GULFOILLUB.NS,Gulf Oil Lubricants India Limited,squeeze release,False,82.9,True,Micro,26.0,,False,True,False,False,1129.300048828125,1139.0999755859375,0.8677876856537647,2026-11-16,1
@@ -138,7 +138,7 @@ breakout_date,first_seen,ticker,name,kind,momentum,mom_rank,gate1,size_tier,ind_
 2026-11-04,2026-11-04,LICI.NS,Life Insurance Corporation of India,squeeze release,False,68.0,True,Large,36.0,,False,True,False,False,408.0,400.0,-1.9607843137254943,2026-11-16,8
 2026-11-04,2026-11-04,M&M.NS,Mahindra & Mahindra Limited,squeeze release,False,46.7,False,Large,68.0,,False,True,False,False,2961.89990234375,3339.0,12.731696211538113,2026-11-16,8
 2026-11-04,2026-11-04,MARICO.NS,Marico Limited,ATH breakout,False,76.6,True,Large,85.0,3.7,True,True,False,False,890.0,913.6500244140625,2.657306113939617,2026-11-16,8
-2026-11-04,2026-11-16,MARICO.NS,Marico Limited,squeeze release,False,71.8,True,Large,47.0,,False,True,False,False,913.6500244140625,913.6500244140625,0.0,2026-11-16,8
+2026-11-04,2026-11-16,MARICO.NS,Marico Limited,squeeze release,False,71.8,True,Large,47.0,,False,True,False,False,913.6500244140624,913.6500244140625,2.220446049250313e-14,2026-11-16,8
 2026-11-04,2026-11-04,NAVINFLUOR.NS,Navin Fluorine International Limited,ATH breakout,False,87.6,True,Mid,30.0,1.8,False,True,False,False,8785.0,9890.0,12.57825839499147,2026-11-16,8
 2026-11-04,2026-11-04,UNOMINDA.NS,Uno Minda Limited,squeeze release,False,72.5,True,Mid,75.0,,False,True,False,False,1196.9000244140625,1348.0,12.62427709113867,2026-11-16,8
 2026-11-03,2026-11-03,GRWRHITECH.NS,Garware Hi-Tech Films Limited,squeeze release,True,97.4,True,Small,34.0,,False,True,False,False,7395.5,7647.5,3.4074775201135887,2026-11-16,9
