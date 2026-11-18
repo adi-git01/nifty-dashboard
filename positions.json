@@ -52,11 +52,11 @@
     "name": "Aurobindo Pharma Limited",
     "sector": "Unknown",
     "status": "active",
-    "entry_price": 1665.0,
+    "entry_price": 1735.95,
     "entry_date": "2026-11-15",
     "stop_loss": null,
     "target": null,
-    "quantity": 9,
+    "quantity": 19,
     "notes": "",
     "alerts_enabled": true,
     "entry_signal": "N/A",
@@ -65,12 +65,12 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.117692",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.341375",
+    "synced_at": "2026-11-18",
+    "updated_at": "2026-11-18T11:27:15.974825",
     "lots": {
       "Zerodha": {
-        "qty": 9,
-        "avg": 1665.0
+        "qty": 19,
+        "avg": 1735.95
       }
     }
   },
@@ -331,7 +331,7 @@
     "ticker": "KIRIINDUS.NS",
     "name": "Kiri Industries Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 524.7,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -341,12 +341,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 492.5708333333333,
+    "exit_date": "2026-11-18",
     "created_at": "2026-11-15T15:31:01.187549",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.379537",
+    "updated_at": "2026-11-18T11:27:15.979562",
     "lots": {
       "Zerodha": {
         "qty": 72,
@@ -415,7 +415,7 @@
     "ticker": "MAHSEAMLES.NS",
     "name": "Maharashtra Seamless Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 577.37,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -425,12 +425,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 501.4326923076923,
+    "exit_date": "2026-11-18",
     "created_at": "2026-11-15T15:31:01.210285",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.393860",
+    "updated_at": "2026-11-18T11:27:15.984927",
     "lots": {
       "Zerodha": {
         "qty": 52,
@@ -471,7 +471,7 @@
     "ticker": "NORTHARC.NS",
     "name": "Northern Arc Capital Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 296.8,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -481,12 +481,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 277.3959595959596,
+    "exit_date": "2026-11-18",
     "created_at": "2026-11-15T15:31:01.225625",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.334784",
+    "updated_at": "2026-11-18T11:27:15.989465",
     "lots": {
       "Zerodha": {
         "qty": 99,
@@ -577,7 +577,7 @@
     "ticker": "TRIVENI.NS",
     "name": "Triveni Engineering & Industries Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 383.79,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -587,12 +587,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 233.23089171974522,
+    "exit_date": "2026-11-18",
     "created_at": "2026-11-15T15:31:01.255411",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.410495",
+    "updated_at": "2026-11-18T11:27:15.995247",
     "lots": {
       "Zerodha": {
         "qty": 157,
@@ -711,5 +711,61 @@
       }
     },
     "updated_at": "2026-11-16T16:40:22.794351"
+  },
+  {
+    "id": "5c00b75d-7b8d-4ba8-aa9f-5dd3173d1a98",
+    "ticker": "BANCOINDIA.NS",
+    "name": "Banco Products (India) Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 704.3,
+    "entry_date": "2026-11-18",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 3,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-18T11:27:15.954574",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-18",
+    "lots": {
+      "Zerodha": {
+        "qty": 3,
+        "avg": 704.3
+      }
+    },
+    "updated_at": "2026-11-18T11:27:15.961387"
+  },
+  {
+    "id": "8ab64a6c-cab7-40fe-964f-dbbe18d2c1b3",
+    "ticker": "ICICIBANK.NS",
+    "name": "ICICI Bank Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 1603.2,
+    "entry_date": "2026-11-18",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 10,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-18T11:27:15.965933",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-18",
+    "lots": {
+      "Zerodha": {
+        "qty": 10,
+        "avg": 1603.2
+      }
+    },
+    "updated_at": "2026-11-18T11:27:15.969831"
   }
 ]
