@@ -953,3 +953,33 @@ def test_close_panel_file_matches_reading_every_snapshot(tmp_path, monkeypatch):
     assert len(P) == len(Q) == 4 and list(P.index) == list(Q.index)          # the newest snapshot is added on top of the file
     j = P.columns.intersection(Q.columns)
     assert len(j) > 500 and np.allclose(P[j].values, Q[j].values, rtol=1e-5, equal_nan=True)
+
+
+def test_stock_report_fills_from_my_book_and_updates_the_holding(tmp_path):
+    from streamlit.testing.v1 import AppTest
+    app = tmp_path / "tx_app.py"
+    app.write_text('''
+import numpy as np, pandas as pd, streamlit as st
+from utils import positions as pos, technicals_view as tv
+df = pd.DataFrame({"ticker": ["SAREGAMA.NS", "TCS.NS"]})
+P = [dict(id="1", ticker="SAREGAMA.NS", status="active", entry_price=485.42, quantity=128, stop_loss=430.0, entry_date="2026-06-02")]
+pos.get_all_positions = lambda status=None: [dict(p) for p in P]
+calls = st.session_state.setdefault("calls", [])
+pos.update_position = lambda t, **k: calls.append((t, k))
+idx = pd.bdate_range(end="2026-11-17", periods=500)
+c = pd.Series(np.linspace(400, 680, 500), index=idx)
+tv._history = lambda t: pd.DataFrame({"Open": c, "High": c * 1.01, "Low": c * 0.99, "Close": c, "Volume": 1e6}, index=idx)
+tv._trade_plan_card = lambda *a, **k: None
+tv._visual_report = lambda *a, **k: None
+tv._deep_dive(df)
+''')
+    at = AppTest.from_file(str(app), default_timeout=120).run()
+    at.selectbox(key="tx_pick").select("SAREGAMA.NS").run()
+    assert not at.exception and not at.warning
+    assert (at.toggle(key="tx_held").value, at.number_input(key="tx_hp").value, str(at.date_input(key="tx_hd").value)) == (True, 485.42, "2026-06-02")
+    at.button(key="tx_run").click().run()
+    at.button(key="tx_update").click().run()
+    (t, f), = at.session_state["calls"]
+    assert t == "SAREGAMA.NS" and set(f) == {"stop_loss"} and 430 < f["stop_loss"] < 680       # only the stop is raised; buy details matched
+    at.selectbox(key="tx_pick").select("TCS.NS").run()                                       # not held: the fields are cleared
+    assert (at.toggle(key="tx_held").value, at.number_input(key="tx_hp").value) == (False, 0.0)
