@@ -1941,10 +1941,27 @@ elif page == "🌊 Trend Scanner":
                 with f_col1:
                     search_query = st.text_input("🔍 Search Stock", placeholder="e.g. RELIANCE, TATA...")
                 with f_col2:
-                    # Safely get unique sectors
+                    # Industry (23 broad groups) -> sub-industry (the 58 groups the Industry board ranks).
+                    # The data has no finer level than these two.
+                    from utils.nifty1000_list import SUB_INDUSTRY_MAP as _SUBMAP
                     df['sector'] = df['sector'].fillna("Unknown")
-                    all_sectors = sorted(df['sector'].astype(str).unique().tolist())
-                    sel_sector = st.multiselect("Sector (Empty = All)", all_sectors, default=[]) 
+                    df['sub_industry'] = df['ticker'].map(_SUBMAP).fillna(df.get('sector_granular', df['sector'])).fillna("Unknown")
+                    sel_sector = st.multiselect("Industry (Empty = All)", sorted(df['sector'].astype(str).unique().tolist()),
+                                                default=[], key="scan_industry")
+                    _sub_pool = df[df['sector'].isin(sel_sector)] if sel_sector else df
+                    sel_sub = st.multiselect("Sub-industry (Empty = All)", sorted(_sub_pool['sub_industry'].astype(str).unique().tolist()),
+                                             default=[], key="scan_sub",
+                                             help="Narrowed to the industries picked above. These are the groups ranked on the Industry board.")
+                    try:
+                        from utils.industry_board_view import get_board as _gb
+                        _B = _gb(df)
+                        _grp = dict(zip(_B['industry'], _B['group'])) if len(_B) else {}
+                    except Exception:
+                        _grp = {}
+                    df['ind_status'] = df['sub_industry'].map(_grp).fillna("not ranked")
+                    sel_status = st.multiselect("Sub-industry status (Empty = All)", ["LEADING", "IMPROVING", "WEAKENING", "LAGGING"],
+                                                default=[], key="scan_status",
+                                                help="From the Industry board: e.g. pick LEADING and IMPROVING to keep only stocks in strong groups")
             
                 # Row 2: Trend & Signal
                 f_col3, f_col4 = st.columns(2)
@@ -1981,6 +1998,10 @@ elif page == "🌊 Trend Scanner":
         
             if sel_sector:
                 filtered_df = filtered_df[filtered_df['sector'].isin(sel_sector)]
+            if sel_sub:
+                filtered_df = filtered_df[filtered_df['sub_industry'].isin(sel_sub)]
+            if sel_status:
+                filtered_df = filtered_df[filtered_df['ind_status'].isin(sel_status)]
             filtered_df = filtered_df[filtered_df['trend_score'] >= min_score]
             if sig_filter:
                 filtered_df = filtered_df[filtered_df['trend_signal'].isin(sig_filter)]
@@ -2371,7 +2392,7 @@ elif page == "🌊 Trend Scanner":
                            "breakouts did not beat the engine's 6-month RS ranking, so use this to choose among names "
                            "you already like.")
 
-            display_cols = ['screener_link', 'name', 'sector', 'price', 'signal_display', 'trend_score', 'comp_rs',
+            display_cols = ['screener_link', 'name', 'sub_industry', 'ind_status', 'price', 'signal_display', 'trend_score', 'comp_rs',
                             'momo_entry', 'size_tier', 'watch_flags',
                             'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
                             'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
@@ -2389,6 +2410,8 @@ elif page == "🌊 Trend Scanner":
                     "dist_52w": st.column_config.NumberColumn("% from 52W High", format="%.1f%%"),
                     "dist_200dma": st.column_config.NumberColumn("% vs 200DMA", format="%.1f%%"),
                     "signal_display": st.column_config.TextColumn("Signal"),
+                    "sub_industry": st.column_config.TextColumn("Sub-industry"),
+                    "ind_status": st.column_config.TextColumn("Group", help="The sub-industry's place on the Industry board"),
                     "quality": st.column_config.ProgressColumn("Quality", min_value=0, max_value=10, format="%.1f"),
                     "value": st.column_config.ProgressColumn("Value", min_value=0, max_value=10, format="%.1f"),
                     "growth": st.column_config.ProgressColumn("Growth", min_value=0, max_value=10, format="%.1f"),

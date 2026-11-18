@@ -283,13 +283,34 @@ def _deep_dive(df: pd.DataFrame):
     with c1:
         pick = st.selectbox("Stock", tickers, index=None, placeholder="Choose a stock", key="tx_pick")
         custom = st.text_input("…or any NSE symbol", value="", key="tx_custom", placeholder="e.g. ASIANHOTNR")
+    # a stock you hold: fill buy price and date from My Book, once per stock picked (your edits then stand)
+    t0 = custom.strip().upper() or pick
+    t0 = (t0 if not t0 or t0.endswith(".NS") or t0.startswith("^") else t0 + ".NS")
+    mine = _holding(t0, set(tickers))
+    for k, v in (("tx_held", False), ("tx_hp", 0.0), ("tx_hd", None)):
+        st.session_state.setdefault(k, v)                   # defaults live here, so filling them in raises no widget warning
+    if t0 and st.session_state.get("tx_filled_for") != t0:
+        st.session_state["tx_filled_for"] = t0
+        if mine:
+            st.session_state["tx_held"] = True
+            st.session_state["tx_hp"] = float(mine.get("entry_price") or 0.0)
+            try:
+                st.session_state["tx_hd"] = pd.Timestamp(mine["entry_date"]).date() if mine.get("entry_date") else None
+            except Exception:
+                st.session_state["tx_hd"] = None
+        else:
+            st.session_state["tx_held"], st.session_state["tx_hp"], st.session_state["tx_hd"] = False, 0.0, None
     with c2:
-        held = st.toggle("I hold it", value=False, key="tx_held")
+        held = st.toggle("I hold it", key="tx_held")
     with c3:
-        hp = st.number_input("Bought @", min_value=0.0, value=0.0, step=1.0, key="tx_hp", disabled=not held)
+        hp = st.number_input("Bought @", min_value=0.0, step=1.0, key="tx_hp", disabled=not held)
     with c4:
-        hd = st.date_input("Since", value=None, key="tx_hd", disabled=not held)
+        hd = st.date_input("Since", key="tx_hd", disabled=not held)
     risk = st.number_input("Risk per trade (₹)", min_value=500.0, value=10000.0, step=500.0, key="tx_riskrs")
+    if mine:
+        st.caption(f"📒 In My Book: {mine.get('quantity') or '?'} shares @ ₹{float(mine.get('entry_price') or 0):,.2f} since "
+                   f"{str(mine.get('entry_date') or '?')[:10]}" + (f", stop ₹{float(mine['stop_loss']):,.2f}" if mine.get("stop_loss") else
+                   ", no stop set") + ". Filled in above.")
     t = custom.strip().upper() or pick
     if not t:
         return
@@ -309,6 +330,60 @@ def _deep_dive(df: pd.DataFrame):
         st.error(f"No data for {t}.")
         return
     _visual_report(h, t.replace(".NS", ""), hp if held else None, hd if held else None, risk)
+    if held and mine:
+        _update_holding(h, mine, hp, hd, risk)
+
+
+def _holding(t, known: set):
+    """The active My Book position for ticker `t` (old spellings resolved), or None."""
+    if not t:
+        return None
+    try:
+        from utils import positions as pos
+        for p in pos.get_all_positions():
+            if p.get("status") == "active" and (p.get("ticker") == t or (pos.resolve_ticker(p.get("ticker", ""), known) or "") == t):
+                return p
+    except Exception:
+        return None
+    return None
+
+
+def _update_holding(h: pd.DataFrame, mine: dict, hp: float, hd, risk: float):
+    """Write what the report found back to My Book: the buy details as entered, and the exit level as the stop."""
+    from utils import positions as pos
+    from utils.forensics import plan
+    P = plan(h, hp, hd, risk)
+    if not P:
+        return
+    r = P["r"]
+    close, lvl = float(r["close"]), max(float(r["ma50"]), float(P["trail"]))
+    old_stop = float(mine.get("stop_loss") or 0)
+    changes, notes = {}, []
+    if abs(float(mine.get("entry_price") or 0) - hp) > 0.005 or str(mine.get("entry_date") or "")[:10] != str(hd)[:10]:
+        changes.update(entry_price=round(hp, 2), entry_date=str(hd)[:10])
+        notes.append(f"buy price ₹{hp:,.2f} and date {hd}")
+    if lvl < close and abs(lvl - old_stop) > 0.005:
+        notes.append(f"stop ₹{old_stop:,.2f} → ₹{lvl:,.2f} (higher of the 50-day average and 15% below the peak since you bought)"
+                     if old_stop else f"stop ₹{lvl:,.2f} (higher of the 50-day average and 15% below the peak since you bought)")
+    st.markdown("#### 📒 Update My Book")
+    if P["action"] == "EXIT":
+        st.error(f"The exit rule fired on {pd.Timestamp(P['fired']):%d %b %Y}. If you sell, tick **Sold** on My Book "
+                 "(or sync your broker) so it reaches the Journal.")
+    if lvl < close and old_stop > lvl:
+        notes = [n for n in notes if not n.startswith("stop")]
+        st.caption(f"Your stop ₹{old_stop:,.2f} is already above this report's exit level ₹{lvl:,.2f}; it is left as it is.")
+    if not notes:
+        st.caption("My Book already matches this report.")
+        return
+    c = st.columns([3, 1])
+    c[0].caption("Will save: " + "; ".join(notes) + ". Quantity, target and notes are not touched.")
+    if c[1].button("💾 Update holding", key="tx_update", type="primary", use_container_width=True):
+        if any(n.startswith("stop") for n in notes):
+            changes["stop_loss"] = round(lvl, 2)
+        pos.update_position(mine["ticker"], **changes)
+        st.session_state["book_ver"] = st.session_state.get("book_ver", 0) + 1
+        st.toast(f"{str(mine['ticker']).replace('.NS', '')} updated in My Book", icon="📒")
+        st.rerun()
 
 
 def _trade_plan_card(P: dict, name: str, h: pd.DataFrame):
