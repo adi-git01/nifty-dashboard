@@ -154,10 +154,10 @@ def _hist(res: dict) -> go.Figure:
     probs = np.diff(np.interp(edges, g, np.arange(1, 100), left=0, right=100))
     fig = go.Figure(go.Bar(x=(edges[1:] + edges[:-1]) / 2, y=probs, marker_color="#2a78d6", opacity=0.75,
                            hovertemplate="₹%{x:,.0f}: %{y:.1f}% of trials<extra></extra>", showlegend=False))
-    zones = [(edges[0], lad["deep_add"], "rgba(27,175,122,0.16)", "deep add ≤P10"),
-             (lad["deep_add"], lad["accumulate"], "rgba(27,175,122,0.08)", "accumulate"),
-             (lad["fair_hi"], lad["trim"], "rgba(235,104,52,0.08)", "trim"),
-             (lad["trim"], edges[-1], "rgba(227,73,72,0.14)", "exit >P90")]
+    zones = [(edges[0], lad["deep_add"], "rgba(27,175,122,0.16)", "BUY ≤P20"),
+             (lad["deep_add"], lad["accumulate"], "rgba(27,175,122,0.08)", "accumulate P20–40"),
+             (lad["fair_hi"], lad["trim"], "rgba(235,104,52,0.08)", "reduce P70–88"),
+             (lad["trim"], edges[-1], "rgba(227,73,72,0.14)", "sell >P88")]
     for x0, x1, col, lab in zones:
         fig.add_vrect(x0=x0, x1=x1, fillcolor=col, line_width=0, annotation_text=lab,
                       annotation_position="top left", annotation_font=dict(size=10, color="#52514e"))
@@ -318,9 +318,9 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                        " · ".join(f"{k_} P{v:.0f}" for k_, v in res["sensitivity"].items()) +
                        (" — **KNOB-DEPENDENT**" if res.get("knob_dependent") else ""))
     lad = res["ladder"]
-    st.caption(f"Entry/exit ladder (only meaningful when gates pass): deep add ≤ ₹{lad['deep_add']:,.0f} · accumulate "
-               f"₹{lad['deep_add']:,.0f}-{lad['accumulate']:,.0f} · fair ₹{lad['fair_lo']:,.0f}-{lad['fair_hi']:,.0f} · "
-               f"trim ₹{lad['fair_hi']:,.0f}-{lad['trim']:,.0f} · exit > ₹{lad['trim']:,.0f}. Pivot: {res['pivot']}.")
+    st.caption(f"Entry/exit ladder, the same cut-offs as the rating (only meaningful when gates pass): buy ≤ ₹{lad['deep_add']:,.0f} · "
+               f"accumulate ₹{lad['deep_add']:,.0f}-{lad['accumulate']:,.0f} · hold ₹{lad['fair_lo']:,.0f}-{lad['fair_hi']:,.0f} · "
+               f"reduce ₹{lad['fair_hi']:,.0f}-{lad['trim']:,.0f} · sell > ₹{lad['trim']:,.0f}. Pivot: {res['pivot']}.")
     if res["notes"]:
         st.markdown("\n".join(f"- {n}" for n in res["notes"]))
     ref = _reference()

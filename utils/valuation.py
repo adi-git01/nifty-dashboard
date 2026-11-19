@@ -139,11 +139,12 @@ def load_context(root: str = ".", extended: bool = False) -> Context:
 
 
 FEATURES_FILE = "data/cache/valuation_features.parquet"
+FEATURES_VERSION = "f2"
 
 
 def features_fingerprint(root: str = ".") -> str:
     """Sizes of the files the peer features are built from: equal sizes = same data (mtimes change on every checkout)."""
-    parts = []
+    parts = [FEATURES_VERSION]               # a change to _features must not reuse features built by the old code
     for f in ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz", "data/monthly_prices.csv.gz",
               "data/fundamentals_cache.csv"):
         q = os.path.join(root, f)
@@ -185,7 +186,11 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
         for t_, pq in pq_all.groupby("ticker", sort=False):
             prom_last[t_] = float(pq.sort_values("period").value.iloc[-1])
     for t, g in A.groupby("ticker"):
-        piv = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+        # Screener's headline market cap and price are stored dated the scrape day. When that day falls in the fiscal
+        # year-end month (every March for most stocks; November for PFIZER) the row was taken as the latest year,
+        # with no profit or sales, and blanked attr / fa_int. Fiscal-year rows come from the statements only.
+        piv = g[~g.field.isin(("mcap_cr", "price_scr"))].pivot_table(index="period", columns="field", values="value",
+                                                                     aggfunc="last").sort_index()
         if "np" not in piv:
             continue
         m = piv.index.month.value_counts().idxmax()
@@ -846,7 +851,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     # 1F sanity
     lev0 = ttm_eps if ident != "BFSI" else bvps
     ratio = lever["base"][0] / lev0 if lev0 else np.nan
-    out["sanity_1f"] = dict(ratio=ratio, ok=bool(ratio < 2.5) if np.isfinite(ratio) else False,
+    out["sanity_1f"] = dict(ratio=ratio, ok=bool(0 < ratio < 2.5 and lev0 > 0) if np.isfinite(ratio) else False,   # a negative ratio is no pass
                             flag=bool(1.5 <= ratio < 2.5) if np.isfinite(ratio) else False)
 
     # ---- Phase 2C multiple model ---------------------------------------------------------
@@ -1008,6 +1013,11 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     bl = blends(lever, mult, w, r)
     am = analytic_mean(lever, mult, probs, w, r, mult_floor)
     out["dist"] = dict(Q, mean=float(V.mean()), sd=float(V.std()), cmp_pct=pct, n=n, seed=SEED)
+    if Q["P10"] <= 0 or Q["P50"] <= 0:
+        # earnings x multiple went negative in the low or middle case: a loss-making path, where the method says
+        # nothing (NSLNISP P50 -Rs270, SPARC P10 -Rs1,895). Such ranges were still used as percentiles and zones.
+        return {**out, "status": "OUT OF SCOPE",
+                "reason": f"loss-making earnings path: fair value P10 Rs{Q['P10']:,.0f}, P50 Rs{Q['P50']:,.0f}"}
     out["grid"] = [float(x) for x in np.percentile(V, np.arange(1, 100))]
     out["blends"] = bl
     out["regimes"] = {s: dict(share=float((reg == k).mean()), mean=float(V[reg == k].mean()) if (reg == k).any() else np.nan)
@@ -1084,7 +1094,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     else:
         out["rating"] = v + (" · INDICATIVE" if ident == "COMMODITY" else "")
     out["verdict_raw"] = v
-    out["ladder"] = dict(deep_add=Q["P10"], accumulate=Q["P25"], fair_lo=Q["P25"], fair_hi=Q["P75"], trim=Q["P90"])
+    # the same cut-offs as the rating (LADDER: BUY <P20, ACCUMULATE <P40, HOLD <P70, REDUCE <P88): the chart used P10/P25/P75/P90,
+    # so 40% of stocks showed e.g. ACCUMULATE in the headline and "fair value" for the same price on the chart below
+    out["ladder"] = dict(deep_add=Q["P20"], accumulate=Q["P40"], fair_lo=Q["P40"], fair_hi=Q["P70"], trim=Q["P88"])
     pivot = "multiple" if ident != "BFSI" and np.std([mult[s] for s in mult]) / mult["base"] > np.std(
         [lever[s][2] for s in lever]) / lever["base"][2] else ("ROE / book path" if ident == "BFSI" else "margin path")
     out["pivot"] = pivot

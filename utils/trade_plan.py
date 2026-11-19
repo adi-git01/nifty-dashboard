@@ -56,19 +56,23 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
 
     flags, zone = [], ""
     if val and val.get("status") == "OK":
-        d = val["dist"]
-        add(d["P90"], "💰 Trim above (P90)", "Valuation", "expensive against nine in ten fair-value outcomes")
+        d = dict(val["dist"])
+        for k, alt in (("P88", "P90"), ("P70", "P75"), ("P40", "P25"), ("P20", "P10")):   # older results lack the rating cut-offs
+            d.setdefault(k, d.get(alt, np.nan))
+        # the rating's own cut-offs (utils/valuation.LADDER), so the levels and the verdict agree
+        add(d["P88"], "💰 Reduce above (P88)", "Valuation", "rated SELL/AVOID above this price")
+        add(d["P70"], "💰 Hold up to (P70)", "Valuation", "rated REDUCE above this price")
         add(d["P50"], "💰 Fair value (P50)", "Valuation", "middle of the fair-value range")
-        add(d["P25"], "💰 Accumulate below (P25)", "Valuation", "")
-        add(d["P10"], "💰 Deep value (P10)", "Valuation", "")
+        add(d["P40"], "💰 Accumulate below (P40)", "Valuation", "")
+        add(d["P20"], "💰 Buy below (P20)", "Valuation", "")
         b = val.get("band")
         zone = (f"valuation {val['band']['bucket_lo']}" + (f"–{b['bucket_hi']}" if b["bucket_lo"] != b["bucket_hi"] else "")
                 + f" (P{b['p_lo']:.0f}–{b['p_hi']:.0f})") if b else f"valuation P{d['cmp_pct']:.0f}"
-        if entry > d["P90"]:
-            flags.append("Entry is above the valuation's trim level (P90): a momentum trade, not a value one — "
+        if entry > d["P88"]:
+            flags.append("Entry is above the valuation's SELL level (P88): a momentum trade, not a value one — "
                          "keep the stop tight and do not add.")
-        elif _fin(t1) and t1 > d["P90"]:
-            flags.append("Target 1 is above the valuation's trim level (P90): take the P90 level as the first place to book.")
+        elif _fin(t1) and t1 > d["P88"]:
+            flags.append("Target 1 is above the valuation's SELL level (P88): take P88 as the first place to book.")
         if valid_stop and stop > d["P50"]:
             flags.append("Even the stop is above fair value (P50): a stop-out would not be a bargain to re-buy.")
         if b and b["firmness"] == "WIDE":
