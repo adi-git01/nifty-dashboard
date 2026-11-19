@@ -62,6 +62,16 @@ BFSI_GRAN = {"Banks", "Finance"}
 COMMODITY_GRAN = {"Ferrous Metals", "Non - Ferrous Metals", "Diversified Metals", "Minerals & Mining",
                   "Consumable Fuels", "Oil", "Metals & Minerals Trading", "Petroleum Products"}
 OUT_GRAN = {"Insurance": "insurance", "Realty": "NAV-driven real estate"}
+# US (GICS sub-industries in data/sp500_tickers.csv)
+BFSI_GRAN |= {"Regional Banks", "Diversified Banks", "Consumer Finance"}
+COMMODITY_GRAN |= {"Oil & Gas Exploration & Production", "Integrated Oil & Gas", "Oil & Gas Refining & Marketing",
+                   "Steel", "Copper", "Gold", "Aluminum", "Diversified Metals & Mining", "Commodity Chemicals",
+                   "Fertilizers & Agricultural Chemicals", "Paper & Forest Products"}
+OUT_GRAN.update({g: "insurance" for g in ("Property & Casualty Insurance", "Life & Health Insurance", "Multi-line Insurance",
+                                          "Reinsurance", "Title Insurance")})
+OUT_GRAN.update({"Multi-Sector Holdings": "conglomerate holding company (sum of parts)"})
+US_FILES = dict(annual="data/us_fundamentals_annual.csv.gz", quarterly="data/us_fundamentals_quarterly.csv.gz",
+                monthly="data/us_monthly_prices.csv.gz", funda="data/us_fundamentals_cache.csv")
 MIXED_GRAN = {"Diversified"}
 KNOWN_LIMITS = ("Scenario inputs are judgments; the engine only guarantees the distribution faithfully represents "
                 "them. Outcomes can land outside P5-P95. Multiple-dependent verdicts are timing-uncertain even when "
@@ -85,17 +95,20 @@ class Context:
     overrides: dict = field(default_factory=dict)
     peer_cagr3: dict = field(default_factory=dict)
     features: pd.DataFrame = field(default_factory=pd.DataFrame)
+    market: str = "IN"              # "US": SEC EDGAR files (us_fundamentals.py), money in USD 10 million units
 
 
 def _read(path):
     return pd.read_csv(path) if os.path.exists(path) else pd.DataFrame()
 
 
-def load_context(root: str = ".", extended: bool = False) -> Context:
+def load_context(root: str = ".", extended: bool = False, market: str = "IN") -> Context:
     """extended=True also loads the extended list's fundamentals (utils/extended.py). It is a separate
     context on purpose: adding those stocks to the default one would change the peer sets, and so the
-    valuations, of the core universe."""
+    valuations, of the core universe. market="US" loads the S&P 500 files from SEC EDGAR instead."""
     p = lambda f: os.path.join(root, f)
+    if market == "US":
+        return _load_us(p)
     A = _read(p("data/fundamentals_annual.csv.gz"))
     Q = _read(p("data/fundamentals_quarterly.csv.gz"))
     if extended:
@@ -138,6 +151,26 @@ def load_context(root: str = ".", extended: bool = False) -> Context:
     return ctx
 
 
+def _load_us(p) -> Context:
+    A, Q, F = _read(p(US_FILES["annual"])), _read(p(US_FILES["quarterly"])), _read(p(US_FILES["funda"]))
+    for df in (A, Q):
+        if not df.empty:
+            df["period"] = pd.to_datetime(df["period"])
+    M = _read(p(US_FILES["monthly"]))
+    if not M.empty:
+        M["date"] = pd.to_datetime(M["date"])
+        M = M.pivot_table(index="date", columns="ticker", values="close").sort_index()
+    F = F.set_index("ticker") if not F.empty else F
+    ov = {}
+    for r in _read(p("data/us_valuation_overrides.csv")).to_dict("records"):
+        ov.setdefault(str(r["ticker"]).strip(), {})[str(r["key"]).strip()] = r["value"]
+    ctx = Context(A, Q, M, F, ov, market="US")
+    ctx.peer_cagr3 = _all_cagr3(A)
+    ctx.peer_mult = _screener_multiples(A, Q)
+    ctx.features = _features(A, F, M, Q)
+    return ctx
+
+
 FEATURES_FILE = "data/cache/valuation_features.parquet"
 FEATURES_VERSION = "f2"
 
@@ -167,7 +200,11 @@ FAMILY = {"Chemicals": "chem-pharma", "Pharma & Healthcare": "chem-pharma", "Cap
           "Retail": "consumer-discretionary", "Textiles": "consumer-discretionary", "Hospitality": "services",
           "Media": "services", "Telecom": "services", "IT & Technology": "tech", "Auto": "auto",
           "Banking": "fin", "Financial Services": "fin", "Real Estate": "realty", "Insurance": "insurance",
-          "Diversified": "diversified"}
+          "Diversified": "diversified",
+          # US (GICS sectors)
+          "Information Technology": "tech", "Health Care": "chem-pharma", "Financials": "fin", "Industrials": "industrial",
+          "Consumer Discretionary": "consumer-discretionary", "Consumer Staples": "consumer-staples", "Energy": "energy",
+          "Materials": "materials", "Utilities": "utilities", "Real Estate": "realty", "Communication Services": "services"}
 
 
 def _features(A, F, M=None, Q=None) -> pd.DataFrame:
@@ -548,7 +585,8 @@ def _ov(ov, key, default=np.nan, cast=float):
 def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = N_DEFAULT,
                 knobs: bool = True, hi52: float | None = None, lo52: float | None = None) -> dict:
     """Full mechanical v4.1 run for one stock. Returns a dict (see keys at the end)."""
-    t = ticker if ticker.endswith(".NS") else ticker + ".NS"
+    us = getattr(ctx, "market", "IN") == "US"
+    t = ticker.upper().replace(".", "-") if us else ticker if ticker.endswith(".NS") else ticker + ".NS"
     ov = ctx.overrides.get(t.replace(".NS", ""), ctx.overrides.get(t, {}))
     out = {"ticker": t.replace(".NS", ""), "engine": ENGINE, "notes": [], "label": "MECHANICAL"}
     note = out["notes"].append
@@ -565,8 +603,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
 
     # ---- scope -----------------------------------------------------------
     ident = str(ov.get("identity", "")).upper() or None
-    if ident == "OUT" or gran in OUT_GRAN or any(k in name.upper() for k in (" REIT", "INVIT", " TRUST")):
-        why = OUT_GRAN.get(gran, "REIT/InvIT/trust" if gran not in OUT_GRAN else gran)
+    if ident == "OUT" or gran in OUT_GRAN or "REIT" in gran or any(k in name.upper() for k in (" REIT", "INVIT", " TRUST")):
+        why = OUT_GRAN.get(gran, "REIT/InvIT/trust")
         return {**out, "status": "OUT OF SCOPE", "reason": f"{why} -- outside the framework's identities"}
     q_np, q_sales = _series(ctx.quarterly, t, "np"), _series(ctx.quarterly, t, "sales")
     q_np = q_np[q_np.index.month.isin([3, 6, 9, 12])]
@@ -965,13 +1003,15 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     else:
         rho = 0.35
     rho = _ov(ov, "rho", rho)
-    large = mcap / 1e7 >= 100_000
-    small = mcap / 1e7 < 5_000
+    # India: large >= Rs 1 lakh cr, small < Rs 5,000 cr; US: large >= $50 bn, small < $5 bn (mcap is in currency units)
+    large = mcap >= (50e9 if us else 1e12)
+    small = mcap < (5e9 if us else 5e10)
     predictable = len(a_np) >= 5 and int((a_np.diff().dropna().iloc[-4:] > 0).sum()) >= 3
+    base_r = 0.09 if us else 0.12               # US cost of equity: ~4% ten-year yield + ~5% equity premium
     if ident == "BFSI":
-        r = 0.13 + (0.01 if small else 0.0)
+        r = base_r + 0.01 + (0.01 if small else 0.0)
     else:
-        r = 0.12 - (0.01 if (large and np.isfinite(de) and de < 0.3 and predictable) else 0.0) + (0.01 if small else 0.0)
+        r = base_r - (0.01 if (large and np.isfinite(de) and de < 0.3 and predictable) else 0.0) + (0.01 if small else 0.0)
     r = _ov(ov, "hurdle", r)
     wkey = str(ov.get("weights", "")).upper()
     if wkey not in WEIGHTS:

@@ -43,6 +43,16 @@ def _ctx(key: tuple):
     return load_context()
 
 
+@st.cache_resource(ttl=6 * 3600, show_spinner=False)
+def _ctx_us(key: tuple):
+    return load_context(market="US")
+
+
+def ctx_us():
+    from utils.valuation import US_FILES
+    return _ctx_us(tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in US_FILES.values()))
+
+
 def ctx():
     files = ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz",
              "data/monthly_prices.csv.gz", "data/valuation_overrides.csv")
@@ -146,14 +156,14 @@ def snapshot_date() -> str:
 # ----------------------------------------------------------------------------
 # single stock
 # ----------------------------------------------------------------------------
-def _hist(res: dict) -> go.Figure:
+def _hist(res: dict, cur: str = "₹") -> go.Figure:
     d, lad, price = res["dist"], res["ladder"], res["snapshot"]["price"]
     g = np.asarray(res["grid"])
     # density from the 1..99 grid (enough for a picture; the engine keeps the full N trials)
     edges = np.linspace(d["P5"] * 0.9, d["P95"] * 1.1, 60)
     probs = np.diff(np.interp(edges, g, np.arange(1, 100), left=0, right=100))
     fig = go.Figure(go.Bar(x=(edges[1:] + edges[:-1]) / 2, y=probs, marker_color="#2a78d6", opacity=0.75,
-                           hovertemplate="₹%{x:,.0f}: %{y:.1f}% of trials<extra></extra>", showlegend=False))
+                           hovertemplate=cur + "%{x:,.0f}: %{y:.1f}% of trials<extra></extra>", showlegend=False))
     zones = [(edges[0], lad["deep_add"], "rgba(27,175,122,0.16)", "BUY ≤P20"),
              (lad["deep_add"], lad["accumulate"], "rgba(27,175,122,0.08)", "accumulate P20–40"),
              (lad["fair_hi"], lad["trim"], "rgba(235,104,52,0.08)", "reduce P70–88"),
@@ -163,21 +173,27 @@ def _hist(res: dict) -> go.Figure:
                       annotation_position="top left", annotation_font=dict(size=10, color="#52514e"))
     for lab, x, dash in (("P10", d["P10"], "dot"), ("P50", d["P50"], "dash"), ("P90", d["P90"], "dot")):
         fig.add_vline(x=x, line=dict(color="#52514e", dash=dash, width=1),
-                      annotation_text=f"{lab} ₹{x:,.0f}", annotation_position="bottom right", annotation_font=dict(size=10))
+                      annotation_text=f"{lab} {cur}{x:,.0f}", annotation_position="bottom right", annotation_font=dict(size=10))
     fig.add_vline(x=price, line=dict(color="#0b0b0b", width=3),
-                  annotation_text=f"<b>CMP ₹{price:,.0f} · P{d['cmp_pct']:.0f}</b>", annotation_position="top right")
+                  annotation_text=f"<b>CMP {cur}{price:,.0f} · P{d['cmp_pct']:.0f}</b>", annotation_position="top right")
     fig.update_layout(height=340, margin=dict(l=10, r=10, t=40, b=10), bargap=0.05,
                       title=dict(text="<b>Fair value per share</b> (present value, 3-year horizon) · "
                                       f"{d['n']:,} trials", x=0, font=dict(size=14)),
-                      xaxis=dict(title="₹ per share", range=[edges[0], max(edges[-1], price * 1.05)]),
+                      xaxis=dict(title=f"{cur} per share", range=[edges[0], max(edges[-1], price * 1.05)]),
                       yaxis=dict(title="% of trials", gridcolor="rgba(128,128,128,0.15)"))
     return fig
 
 
 def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: float | None = None,
-                 tech_buy: bool | None = None, below_both: bool | None = None):
-    st.markdown("#### 💰 Valuation — v4.1, mechanical")
-    c = ctx()
+                 tech_buy: bool | None = None, below_both: bool | None = None, market: str = "IN"):
+    us = market == "US"
+    cur = "$" if us else "₹"
+    st.markdown("#### 💰 Valuation — v4.1, mechanical" + (" (SEC EDGAR filings)" if us else ""))
+    c = ctx_us() if us else ctx()
+    if us and c.annual.empty:
+        st.info("US valuation inputs are not in the repo yet: run the 'US Valuation Inputs (SEC EDGAR)' workflow "
+                "(needs the SEC_USER_AGENT repository secret), then reload.")
+        return
     if c.annual.empty:
         st.info("Valuation inputs are not in the repo yet -- run the Ranking / Rotation workflow with "
                 "script = fundamentals (about 40 minutes), then reload.")
@@ -211,7 +227,7 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                          "≤ 25, wide beyond that.")
     else:
         k[1].metric("CMP percentile", f"P{d['cmp_pct']:.0f}", res["label"], delta_color="off")
-    k[2].metric("Fair value P50", f"₹{d['P50']:,.0f}", f"P10 ₹{d['P10']:,.0f} · P90 ₹{d['P90']:,.0f}", delta_color="off")
+    k[2].metric("Fair value P50", f"{cur}{d['P50']:,.0f}", f"P10 {cur}{d['P10']:,.0f} · P90 {cur}{d['P90']:,.0f}", delta_color="off")
     k[3].metric("3y CAGR at CMP (base)", f"{res['cagr']['base']:+.1%}",
                 f"hurdle {res['hurdle']:.0%} · bear {res['cagr']['bear']:+.0%} · bull {res['cagr']['bull']:+.0%}",
                 delta_color="off", help="(undiscounted Y3 value ÷ CMP)^(1/3) − 1 + dividend yield, per scenario")
@@ -252,13 +268,13 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
         st.caption(f"Gate D near-trigger: {res['gates']['D']['detail']}")
     if res.get("cycle", {}).get("statement"):
         st.info(f"**Cycle position (outside the simulation):** {res['cycle']['statement']}")
-    st.plotly_chart(_hist(res), use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(_hist(res, cur), use_container_width=True, config={"displayModeBar": False})
 
     c1, c2 = st.columns(2)
     with c1:
         lv = res["lever"]
         kind = "BVPS" if res["identity"] == "BFSI" else "EPS"
-        sc = pd.DataFrame({s.title(): [f"{x:,.1f}" for x in lv[s]] + [f"{m[s]:.1f}×", f"₹{res['blends'][s]:,.0f}",
+        sc = pd.DataFrame({s.title(): [f"{x:,.1f}" for x in lv[s]] + [f"{m[s]:.1f}×", f"{cur}{res['blends'][s]:,.0f}",
                                                                    f"{res['cagr'][s]:+.1%}", f"{p:.0%}"]
                            for s, p in zip(("bear", "base", "bull"), res["probs"])},
                           index=[f"{kind} Y1", f"{kind} Y2", f"{kind} Y3", "Multiple", "Blend (PV)", "3y CAGR at CMP",
@@ -273,7 +289,7 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                        f"{si['margin_ttm']:.1%}, worst demonstrated {si['worst_margin']:.1%}). {res['path_note']}.")
         else:
             st.caption(f"ROE bear/base/bull {si['ROE']['bear']:.1%} / {si['ROE']['base']:.1%} / {si['ROE']['bull']:.1%}, "
-                       f"payout {si['payout']:.0%}, BVPS today ₹{si['BVPS0']:,.1f}. {res['path_note']}.")
+                       f"payout {si['payout']:.0%}, BVPS today {cur}{si['BVPS0']:,.1f}. {res['path_note']}.")
         mm = pd.DataFrame({"value": [m["own_5y_median"], m["own_5y_p10"], m["peer_median"], m["sector_median"],
                                      m["neutral"], m["modifiers_sum"] * 100, m["ceiling"], m["spot"]]},
                           index=[f"own 5Y median ({m['own_months']} months)", "own 5Y P10 (trough)",
@@ -310,7 +326,7 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                             (" (1.5-2.5x: explain)" if res["sanity_1f"]["flag"] else ""))],
                           columns=["gate", "", "detail"])
         st.dataframe(gt, hide_index=True, use_container_width=True)
-        rg = pd.DataFrame({s: [f"{v['share']:.0%}", f"₹{v['mean']:,.0f}"] for s, v in res["regimes"].items()},
+        rg = pd.DataFrame({s: [f"{v['share']:.0%}", f"{cur}{v['mean']:,.0f}"] for s, v in res["regimes"].items()},
                           index=["trial share", "conditional mean"])
         st.dataframe(rg, use_container_width=True)
         if res.get("sensitivity"):
@@ -318,9 +334,9 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                        " · ".join(f"{k_} P{v:.0f}" for k_, v in res["sensitivity"].items()) +
                        (" — **KNOB-DEPENDENT**" if res.get("knob_dependent") else ""))
     lad = res["ladder"]
-    st.caption(f"Entry/exit ladder, the same cut-offs as the rating (only meaningful when gates pass): buy ≤ ₹{lad['deep_add']:,.0f} · "
-               f"accumulate ₹{lad['deep_add']:,.0f}-{lad['accumulate']:,.0f} · hold ₹{lad['fair_lo']:,.0f}-{lad['fair_hi']:,.0f} · "
-               f"reduce ₹{lad['fair_hi']:,.0f}-{lad['trim']:,.0f} · sell > ₹{lad['trim']:,.0f}. Pivot: {res['pivot']}.")
+    st.caption(f"Entry/exit ladder, the same cut-offs as the rating (only meaningful when gates pass): buy ≤ {cur}{lad['deep_add']:,.0f} · "
+               f"accumulate {cur}{lad['deep_add']:,.0f}-{lad['accumulate']:,.0f} · hold {cur}{lad['fair_lo']:,.0f}-{lad['fair_hi']:,.0f} · "
+               f"reduce {cur}{lad['fair_hi']:,.0f}-{lad['trim']:,.0f} · sell > {cur}{lad['trim']:,.0f}. Pivot: {res['pivot']}.")
     if res["notes"]:
         st.markdown("\n".join(f"- {n}" for n in res["notes"]))
     ref = _reference()
@@ -328,9 +344,9 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
     if len(ref) and t in set(ref.ticker):
         r = ref[ref.ticker == t].sort_values("run_date").iloc[-1]
         st.info(f"**Your v4.1 run ({r.run_date}):** {r.verdict} at P{r.cmp_percentile:.0f}"
-                + (f", fair value P50 ₹{r.p50:,.0f}" if pd.notna(r.get("p50")) else "")
+                + (f", fair value P50 {cur}{r.p50:,.0f}" if pd.notna(r.get("p50")) else "")
                 + f" — mechanical: {res['rating']} at P{d['cmp_pct']:.0f}"
-                + (f", P50 ₹{d['P50']:,.0f}" if pd.notna(r.get("p50")) else ""))
+                + (f", P50 {cur}{d['P50']:,.0f}" if pd.notna(r.get("p50")) else ""))
     with st.expander("Known limits · engine"):
         st.markdown(KNOWN_LIMITS)
         st.caption(res["engine_line"] + f" · weights {res['weights']} · data: {snap['years']} annual years, "

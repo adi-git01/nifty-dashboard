@@ -1,0 +1,39 @@
+name: US Valuation Inputs (SEC EDGAR)
+
+# S&P 500 annual + quarterly financials from SEC filings, for the US valuation in the
+# Technicals single-stock report. SEC needs a contact in the User-Agent: set the repository
+# secret SEC_USER_AGENT to "Your Name you@example.com".
+on:
+  schedule:
+    - cron: '10 23 * * 6'   # Sunday 4:40 am IST, after the Indian refresh
+  workflow_dispatch:
+    inputs:
+      tickers:
+        description: "Only these tickers, comma separated (blank = all S&P 500)"
+        type: string
+        default: ""
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    env:
+      SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Fetch SEC filings and monthly prices
+        run: python us_fundamentals.py ${{ inputs.tickers && format('--tickers {0}', inputs.tickers) || '' }}
+      - name: Value every stock once (sanity check)
+        run: python us_valuation_run.py
+      - name: Commit
+        run: |
+          bash scripts/commit_and_push.sh "US valuation inputs (SEC EDGAR)" data/us_fundamentals_annual.csv.gz data/us_fundamentals_quarterly.csv.gz data/us_monthly_prices.csv.gz data/us_fundamentals_cache.csv data/us_valuation_snapshot.csv
