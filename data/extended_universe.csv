@@ -1,357 +1,443 @@
 Ticker,Company_Name,Sub_Industry,mcap_cr,price,as_of
-TATACAP.NS,Tata Capital Limited,Finance,133622.0,314.0,2026-10-19
-METROBRAND.NS,Metro Brands Limited,Consumer Durables,24234.0,890.0,2026-10-19
-TVSHLTD.NS,TVS Holdings Limited,Finance,22744.0,11236.0,2026-10-19
-PFOCUS.NS,Prime Focus Limited,Entertainment,22152.0,284.0,2026-10-19
-URBANCO.NS,Urban Company Limited,Retailing,21966.0,143.0,2026-10-19
-KIOCL.NS,KIOCL Limited,Ferrous Metals,21393.0,352.0,2026-10-19
-SIGMAADV.NS,SIGMA ADVANCED SYSTEMS LIMITED,Aerospace & Defense,17364.0,912.0,2026-10-19
-TRAVELFOOD.NS,Travel Food Services Limited,Leisure Services,15729.0,1192.0,2026-10-19
-PSB.NS,Punjab & Sind Bank,Banks,15085.0,21.3,2026-10-19
-SPLPETRO.NS,Supreme Petrochem Limited,Chemicals & Petrochemicals,14224.0,756.0,2026-10-19
-TMB.NS,Tamilnad Mercantile Bank Limited,Banks,13779.0,870.0,2026-10-19
-SHREEJISPG.NS,Shreeji Shipping Global Limited,Transport Services,13094.0,803.0,2026-10-19
-JSWHL.NS,JSW Holdings Limited,Finance,12490.0,11251.0,2026-10-19
-LOTUSDEV.NS,Sri Lotus Developers and Realty Limited,Realty,11792.0,240.0,2026-10-19
-QPOWER.NS,Quality Power Electrical Equipments Limited,Electrical Equipment,10911.0,1408.0,2026-10-19
-JAINREC.NS,Jain Resource Recycling Limited,Diversified Metals,9820.0,285.0,2026-10-19
-SGMART.NS,SG Mart Limited,Metals & Minerals Trading,9665.0,766.0,2026-10-19
-JAYNECOIND.NS,Jayaswal Neco Industries Limited,Industrial Products,9539.0,98.1,2026-10-19
-WEWORK.NS,WeWork India Management Limited,Commercial Services & Supplies,9262.0,666.0,2026-10-19
-SMLMAH.NS,SML Mahindra Limited,"Agricultural, Commercial & Construction Vehicles",8867.0,6128.0,2026-10-19
-KINGFA.NS,Kingfa Science & Technology (India) Limited,Industrial Products,8709.0,6428.0,2026-10-19
-PGHL.NS,Procter & Gamble Health Limited,Pharmaceuticals & Biotechnology,8546.0,5154.0,2026-10-19
-KMEW.NS,Knowledge Marine & Engineering Works Limited,Engineering Services,8467.0,3340.0,2026-10-19
-SUVEN.NS,Suven Life Sciences Limited,Healthcare Services,8217.0,291.0,2026-10-19
-RPEL.NS,Raghav Productivity Enhancers Limited,Industrial Products,8181.0,1785.0,2026-10-19
-IBULLSLTD.NS,Indiabulls Limited,Commercial Services & Supplies,8022.0,34.3,2026-10-19
-JLHL.NS,Jupiter Life Line Hospitals Limited,Healthcare Services,7984.0,244.0,2026-10-19
-PRECWIRE.NS,Precision Wires India Limited,Industrial Products,7844.0,429.0,2026-10-19
-MBAPL.NS,Madhya Bharat Agro Products Limited,Fertilizers & Agrochemicals,7541.0,164.0,2026-10-19
-RAYMOND.NS,Raymond Limited,Industrial Manufacturing,7510.0,1123.0,2026-10-19
-TFCILTD.NS,Tourism Finance Corporation of India Limited,Finance,7315.0,158.0,2026-10-19
-PAISALO.NS,Paisalo Digital Limited,Finance,7223.0,78.9,2026-10-19
-TTKPRESTIG.NS,TTK Prestige Limited,Consumer Durables,7005.0,512.0,2026-10-19
-SETL.NS,Standard Engineering Technology Limited,Industrial Manufacturing,6902.0,346.0,2026-10-19
-MOREPENLAB.NS,Morepen Laboratories Limited,Pharmaceuticals & Biotechnology,6727.0,122.0,2026-10-19
-TCI.NS,Transport Corporation of India Limited,Transport Services,6660.0,865.0,2026-10-19
-MANINDS.NS,Man Industries (India) Limited,Industrial Products,6582.0,879.0,2026-10-19
-KRISHANA.NS,Krishana Phoschem Limited,Fertilizers & Agrochemicals,6581.0,213.0,2026-10-19
-WHEELS.NS,Wheels India Limited,Auto Components,6567.0,2438.0,2026-10-19
-SSWL.NS,Steel Strips Wheels Limited,Auto Components,6474.0,411.0,2026-10-19
-SJS.NS,S.J.S. Enterprises Limited,Auto Components,6448.0,2000.0,2026-10-19
-SUPRAJIT.NS,Suprajit Engineering Limited,Auto Components,6393.0,466.0,2026-10-19
-REDTAPE.NS,Redtape Limited,Consumer Durables,6139.0,111.0,2026-10-19
-MARINE.NS,Marine Electricals (India) Limited,Industrial Manufacturing,6050.0,432.0,2026-10-19
-SENORES.NS,Senores Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,5781.0,1252.0,2026-10-19
-TIIL.NS,Technocraft Industries (India) Limited,Industrial Products,5754.0,2545.0,2026-10-19
-SBCL.NS,Shivalik Bimetal Controls Limited,Industrial Products,5745.0,998.0,2026-10-19
-RPTECH.NS,Rashi Peripherals Limited,IT - Hardware,5702.0,858.0,2026-10-19
-PICCADIL.NS,Piccadily Agro Industries Limited,Beverages,5692.0,577.0,2026-10-19
-ITDC.NS,India Tourism Development Corporation Limited,Leisure Services,5679.0,660.0,2026-10-19
-STYLAMIND.NS,Stylam Industries Limited,Consumer Durables,5645.0,3315.0,2026-10-19
-SIS.NS,SIS LIMITED,Other Consumer Services,5555.0,394.0,2026-10-19
-ROSSTECH.NS,Rossell Techsys Limited,Aerospace & Defense,5512.0,1466.0,2026-10-19
-LGBBROSLTD.NS,LG Balakrishnan & Bros Limited,Auto Components,5512.0,1721.0,2026-10-19
-WSTCSTPAPR.NS,West Coast Paper Mills Limited,"Paper, Forest & Jute Products",5448.0,823.0,2026-10-19
-IOLCP.NS,IOL Chemicals and Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,5345.0,182.0,2026-10-19
-SMARTWORKS.NS,Smartworks Coworking Spaces Limited,Commercial Services & Supplies,5300.0,464.0,2026-10-19
-KALPATARU.NS,Kalpataru Limited,Realty,5285.0,258.0,2026-10-19
-RAMRAT.NS,Ram Ratna Wires Limited,Electrical Equipment,5211.0,557.0,2026-10-19
-TBZ.NS,Tribhovandas Bhimji Zaveri Limited,Consumer Durables,5161.0,775.0,2026-10-19
-VADILALIND.NS,Vadilal Industries Limited,Food Products,5113.0,7114.0,2026-10-19
-VIKRAMSOLR.NS,Vikram Solar Limited,Electrical Equipment,5102.0,141.0,2026-10-19
-STYL.NS,Seshaasai Technologies Limited,Financial Technology (Fintech),5094.0,315.0,2026-10-19
-LUMAXIND.NS,Lumax Industries Limited,Auto Components,5069.0,5424.0,2026-10-19
-UNIVCABLES.NS,Universal Cables Limited,Industrial Products,5035.0,1458.0,2026-10-19
-VRLLOG.NS,VRL Logistics Limited,Transport Services,5017.0,287.0,2026-10-19
-SAATVIKGL.NS,Saatvik Green Energy Limited,Electrical Equipment,4950.0,388.0,2026-10-19
-SAMBHV.NS,Sambhv Steel Tubes Limited,Industrial Products,4899.0,166.0,2026-10-19
-SOTL.NS,Savita Oil Technologies Limited,Petroleum Products,4792.0,699.0,2026-10-19
-ARTEMISMED.NS,Artemis Medicare Services Limited,Healthcare Services,4775.0,302.0,2026-10-19
-MASFIN.NS,MAS Financial Services Limited,Finance,4750.0,263.0,2026-10-19
-ZOTA.NS,Zota Health Care LImited,Pharmaceuticals & Biotechnology,4710.0,1360.0,2026-10-19
-JUNIPER.NS,Juniper Hotels Limited,Leisure Services,4692.0,211.0,2026-10-19
-RPGLIFE.NS,RPG Life Sciences Limited,Pharmaceuticals & Biotechnology,4691.0,2837.0,2026-10-19
-PDSL.NS,PDS Limited,Textiles & Apparels,4689.0,331.0,2026-10-19
-KDDL.NS,KDDL Limited,Consumer Durables,4667.0,3785.0,2026-10-19
-SANATHAN.NS,Sanathan Textiles Limited,Textiles & Apparels,4637.0,546.0,2026-10-19
-JSLL.NS,Jeena Sikho Lifecare Limited,Leisure Services,4604.0,370.0,2026-10-19
-NRBBEARING.NS,NRB Bearing Limited,Auto Components,4549.0,470.0,2026-10-19
-TATVA.NS,Tatva Chintan Pharma Chem Limited,Chemicals & Petrochemicals,4469.0,1907.0,2026-10-19
-NORTHARC.NS,Northern Arc Capital Limited,Finance,4437.0,274.0,2026-10-19
-ROLEXRINGS.NS,Rolex Rings Limited,Auto Components,4402.0,168.0,2026-10-19
-UFLEX.NS,UFLEX Limited,Industrial Products,4376.0,608.0,2026-10-19
-PILANIINVS.NS,Pilani Investment and Industries Corporation Limited,Finance,4358.0,3950.0,2026-10-19
-RUSTOMJEE.NS,Keystone Realtors Limited,Realty,4330.0,342.0,2026-10-19
-SGFIN.NS,SG Finserve Limited,Finance,4318.0,656.0,2026-10-19
-SWARAJENG.NS,Swaraj Engines Limited,Industrial Products,4304.0,3540.0,2026-10-19
-YASHO.NS,Yasho Industries Limited,Chemicals & Petrochemicals,4247.0,3520.0,2026-10-19
-MPSLTD.NS,MPS Limited,Printing & Publication,4196.0,2453.0,2026-10-19
-VISHNU.NS,Vishnu Chemicals Limited,Chemicals & Petrochemicals,4159.0,616.0,2026-10-19
-ORIENTELEC.NS,Orient Electric Limited,Consumer Durables,4149.0,194.0,2026-10-19
-RAYMONDREL.NS,Raymond Realty Limited,Realty,4147.0,623.0,2026-10-19
-SMSPHARMA.NS,SMS Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,4088.0,435.0,2026-10-19
-SHANTIGEAR.NS,Shanthi Gears Limited,Industrial Manufacturing,4057.0,529.0,2026-10-19
-SEAMECLTD.NS,Seamec Limited,Transport Services,4030.0,1587.0,2026-10-19
-MHRIL.NS,Mahindra Holidays & Resorts India Limited,Leisure Services,4022.0,200.0,2026-10-19
-DEEDEV.NS,DEE Development Engineers Limited,Industrial Manufacturing,3975.0,527.0,2026-10-19
-RESPONIND.NS,Responsive Industries Limited,Consumer Durables,3957.0,149.0,2026-10-19
-MAHLOG.NS,Mahindra Logistics Limited,Transport Services,3946.0,397.0,2026-10-19
-SHOPERSTOP.NS,Shoppers Stop Limited,Retailing,3804.0,345.0,2026-10-19
-VENUSPIPES.NS,Venus Pipes & Tubes Limited,Industrial Products,3793.0,1826.0,2026-10-19
-KOLTEPATIL.NS,Kolte - Patil Developers Limited,Realty,3788.0,427.0,2026-10-19
-INDIQUBE.NS,Indiqube Spaces Limited,Commercial Services & Supplies,3766.0,178.0,2026-10-19
-TCPLPACK.NS,TCPL Packaging Limited,Industrial Products,3756.0,4157.0,2026-10-19
-TRUALT.NS,TruAlt Bioenergy Limited,Agricultural Food & other Products,3732.0,435.0,2026-10-19
-PREMEXPLN.NS,Premier Explosives Limited,Chemicals & Petrochemicals,3728.0,693.0,2026-10-19
-PITTIENG.NS,Pitti Engineering Limited,Industrial Manufacturing,3714.0,986.0,2026-10-19
-NPST.NS,Network People Services Technologies Limited,Financial Technology (Fintech),3700.0,1774.0,2026-10-19
-SINDHUTRAD.NS,Sindhu Trade Links Limited,Consumable Fuels,3673.0,20.1,2026-10-19
-RML.NS,Rane (Madras) Limited,Auto Components,3626.0,1313.0,2026-10-19
-VSTTILLERS.NS,V.S.T Tillers Tractors Limited,"Agricultural, Commercial & Construction Vehicles",3613.0,4168.0,2026-10-19
-NITINSPIN.NS,Nitin Spinners Limited,Textiles & Apparels,3591.0,639.0,2026-10-19
-MOSCHIP.NS,Moschip Technologies Limited,IT - Hardware,3559.0,182.0,2026-10-19
-UNICHEMLAB.NS,Unichem Laboratories Limited,Pharmaceuticals & Biotechnology,3544.0,503.0,2026-10-19
-VSSL.NS,Vardhman Special Steels Limited,Industrial Products,3541.0,366.0,2026-10-19
-KIRLOSIND.NS,Kirloskar Industries Limited,Industrial Products,3520.0,3343.0,2026-10-19
-IDEAFORGE.NS,Ideaforge Technology Limited,Aerospace & Defense,3509.0,705.0,2026-10-19
-STEELCAS.NS,Steelcast Limited,Industrial Products,3476.0,342.0,2026-10-19
-PACEDIGITK.NS,Pace Digitek Limited,Telecom - Services,3411.0,158.0,2026-10-19
-VINDHYATEL.NS,Vindhya Telelinks Limited,Construction,3390.0,2865.0,2026-10-19
-JASH.NS,Jash Engineering Limited,Industrial Manufacturing,3385.0,535.0,2026-10-19
-PARAGMILK.NS,Parag Milk Foods Limited,Food Products,3363.0,268.0,2026-10-19
-TVSSRICHAK.NS,TVS Srichakra Limited,Auto Components,3333.0,4358.0,2026-10-19
-JTEKTINDIA.NS,Jtekt India Limited,Auto Components,3294.0,118.0,2026-10-19
-MAYURUNIQ.NS,Mayur Uniquoters Ltd,Consumer Durables,3248.0,747.0,2026-10-19
-UNIPARTS.NS,Uniparts India Limited,Auto Components,3226.0,714.0,2026-10-19
-POCL.NS,Pondy Oxides & Chemicals Limited,Diversified Metals,3226.0,423.0,2026-10-19
-JTLIND.NS,JTL INDUSTRIES LIMITED,Industrial Products,3211.0,84.0,2026-10-19
-SHANTIGOLD.NS,Shanti Gold International Limited,Consumer Durables,3182.0,415.0,2026-10-19
-KIRIINDUS.NS,Kiri Industries Limited,Chemicals & Petrochemicals,3167.0,486.0,2026-10-19
-PSPPROJECT.NS,PSP Projects Limited,Construction,3152.0,797.0,2026-10-19
-WONDERLA.NS,Wonderla Holidays Limited,Leisure Services,3147.0,496.0,2026-10-19
-INDOTECH.NS,Indo Tech Transformers Limited,Electrical Equipment,3140.0,2961.0,2026-10-19
-INDOSTAR.NS,IndoStar Capital Finance Limited,Finance,3133.0,193.0,2026-10-19
-SANDHAR.NS,Sandhar Technologies Limited,Auto Components,3128.0,518.0,2026-10-19
-SOLARA.NS,Solara Active Pharma Sciences Limited,Pharmaceuticals & Biotechnology,3108.0,640.0,2026-10-19
-SBC.NS,SBC Exports Limited,Textiles & Apparels,3078.0,64.6,2026-10-19
-INDSWFTLAB.NS,Ind-Swift Laboratories Limited,Pharmaceuticals & Biotechnology,3066.0,352.0,2026-10-19
-RSYSTEMS.NS,R Systems International Limited,IT - Services,3055.0,258.0,2026-10-19
-SHRINGARMS.NS,Shringar House of Mangalsutra Limited,Consumer Durables,3052.0,317.0,2026-10-19
-SANGAMIND.NS,Sangam (India) Limited,Textiles & Apparels,3035.0,604.0,2026-10-19
-JINDALPOLY.NS,Jindal Poly Films Limited,Industrial Products,3010.0,684.0,2026-10-19
-STYLEBAAZA.NS,Baazar Style Retail Limited,Retailing,3001.0,393.0,2026-10-19
-SANGHVIMOV.NS,Sanghvi Movers Limited,Commercial Services & Supplies,3000.0,347.0,2026-10-19
-RPSGVENT.NS,RPSG VENTURES LIMITED,Commercial Services & Supplies,2936.0,886.0,2026-10-19
-KERNEX.NS,Kernex Microsystems (India) Limited,Transport Services,2932.0,1741.0,2026-10-19
-NACLIND.NS,NACL Industries Limited,Fertilizers & Agrochemicals,2930.0,125.0,2026-10-19
-WINDMACHIN.NS,Windsor Machines Limited,Industrial Manufacturing,2928.0,284.0,2026-10-19
-RATNAVEER.NS,Ratnaveer Precision Engineering Limited,Industrial Products,2928.0,351.0,2026-10-19
-PANAMAPET.NS,Panama Petrochem Limited,Petroleum Products,2897.0,478.0,2026-10-19
-INDRAMEDCO.NS,Indraprastha Medical Corporation Limited,Healthcare Services,2884.0,315.0,2026-10-19
-MUTHOOTMF.NS,Muthoot Microfin Limited,Finance,2854.0,168.0,2026-10-19
-MUFIN.NS,Mufin Green Finance Limited,Finance,2801.0,141.0,2026-10-19
-STOVEKRAFT.NS,Stove Kraft Limited,Consumer Durables,2781.0,840.0,2026-10-19
-SPORTKING.NS,Sportking India Limited,Textiles & Apparels,2774.0,218.0,2026-10-19
-MONARCH.NS,Monarch Networth Capital Limited,Capital Markets,2762.0,348.0,2026-10-19
-RELTD.NS,Ravindra Energy Limited,Electrical Equipment,2754.0,138.0,2026-10-19
-NAVNETEDUL.NS,Navneet Education Limited,Household Products,2750.0,124.0,2026-10-19
-INDNIPPON.NS,India Nippon Electricals Limited,Auto Components,2734.0,1209.0,2026-10-19
-NSIL.NS,Nalwa Sons Investments Limited,Finance,2722.0,5275.0,2026-10-19
-NIITMTS.NS,NIIT Learning Systems Limited,Other Consumer Services,2717.0,196.0,2026-10-19
-KKCL.NS,Kewal Kiran Clothing Limited,Textiles & Apparels,2690.0,438.0,2026-10-19
-KABRAEXTRU.NS,Kabra Extrusion Technik Limited,Industrial Manufacturing,2688.0,769.0,2026-10-19
-RISHABH.NS,Rishabh Instruments Limited,Electrical Equipment,2687.0,694.0,2026-10-19
-NOCIL.NS,NOCIL Limited,Chemicals & Petrochemicals,2662.0,160.0,2026-10-19
-ORIENTHOT.NS,Oriental Hotels Limited,Leisure Services,2658.0,149.0,2026-10-19
-UFBL.NS,United Foodbrands Limited,Leisure Services,2648.0,676.0,2026-10-19
-MANGLMCEM.NS,Mangalam Cement Limited,Cement & Cement Products,2645.0,961.0,2026-10-19
-INTERARCH.NS,Interarch Building Solutions Limited,Construction,2642.0,1568.0,2026-10-19
-RAMCOIND.NS,Ramco Industries Limited,Other Construction Materials,2627.0,302.0,2026-10-19
-MARATHON.NS,Marathon Nextgen Realty Limited,Realty,2616.0,387.0,2026-10-19
-NILKAMAL.NS,Nilkamal Limited,Consumer Durables,2565.0,1719.0,2026-10-19
-VINCOFE.NS,Vintage Coffee And Beverages Limited,Agricultural Food & other Products,2526.0,173.0,2026-10-19
-MAITHANALL.NS,Maithan Alloys Limited,Ferrous Metals,2524.0,867.0,2026-10-19
-PROTEAN.NS,Protean eGov Technologies Limited,IT - Services,2510.0,615.0,2026-10-19
-SATIN.NS,Satin Creditcare Network Limited,Finance,2501.0,227.0,2026-10-19
-SASKEN.NS,Sasken Technologies Limited,IT - Services,2497.0,1642.0,2026-10-19
-UEL.NS,Ujaas Energy Limited,Power,2475.0,186.0,2026-10-19
-SIRCA.NS,Sirca Paints India Limited,Consumer Durables,2469.0,434.0,2026-10-19
-MMFL.NS,MM Forgings Limited,Auto Components,2450.0,507.0,2026-10-19
-PIXTRANS.NS,Pix Transmissions Limited,Industrial Products,2436.0,1788.0,2026-10-19
-VENKEYS.NS,Venky's (India) Limited,Food Products,2433.0,1726.0,2026-10-19
-ROSSARI.NS,Rossari Biotech Limited,Chemicals & Petrochemicals,2427.0,438.0,2026-10-19
-SUNCLAY.NS,Sundaram Clayton Limited,Auto Components,2423.0,1104.0,2026-10-19
-INDORAMA.NS,Indo Rama Synthetics (India) Limited,Textiles & Apparels,2422.0,92.4,2026-10-19
-JGCHEM.NS,J.G.Chemicals Limited,Chemicals & Petrochemicals,2399.0,611.0,2026-10-19
-STALLION.NS,Stallion India Fluorochemicals Limited,Chemicals & Petrochemicals,2399.0,206.0,2026-10-19
-XPROINDIA.NS,Xpro India Limited,Industrial Products,2392.0,1019.0,2026-10-19
-MUKANDLTD.NS,Mukand Limited,Industrial Products,2373.0,164.0,2026-10-19
-SOMANYCERA.NS,Somany Ceramics Limited,Consumer Durables,2359.0,575.0,2026-10-19
-SIYSIL.NS,Siyaram Silk Mills Limited,Textiles & Apparels,2352.0,517.0,2026-10-19
-VEEDOL.NS,Veedol Corporation Limited,Petroleum Products,2338.0,1344.0,2026-10-19
-UTKARSHBNK.NS,Utkarsh Small Finance Bank Limited,Banks,2333.0,13.1,2026-10-19
-JNKINDIA.NS,JNK India Limited,Industrial Manufacturing,2328.0,415.0,2026-10-19
-TASTYBITE.NS,Tasty Bite Eatables Limited,Food Products,2325.0,9079.0,2026-10-19
-RAJRATAN.NS,Rajratan Global Wire Limited,Auto Components,2314.0,456.0,2026-10-19
-SUNDROP.NS,Sundrop Brands Limited,Food Products,2304.0,611.0,2026-10-19
-SPAL.NS,S. P. Apparels Limited,Textiles & Apparels,2303.0,919.0,2026-10-19
-SIMPLEXINF.NS,Simplex Infrastructures Limited,Construction,2300.0,292.0,2026-10-19
-VIMTALABS.NS,Vimta Labs Limited,Healthcare Services,2250.0,504.0,2026-10-19
-PENIND.NS,Pennar Industries Limited,Industrial Manufacturing,2243.0,165.0,2026-10-19
-SMCGLOBAL.NS,SMC Global Securities Limited,Capital Markets,2235.0,106.0,2026-10-19
-MEDIASSIST.NS,Medi Assist Healthcare Services Limited,Insurance,2221.0,297.0,2026-10-19
-PRAKASH.NS,Prakash Industries Limited,Ferrous Metals,2219.0,124.0,2026-10-19
-HUBTOWN.NS,Hubtown Limited,Realty,2201.0,155.0,2026-10-19
-POKARNA.NS,Pokarna Limited,Consumer Durables,2201.0,710.0,2026-10-19
-THEJO.NS,Thejo Engineering Limited,Industrial Manufacturing,2193.0,2022.0,2026-10-19
-ONEPOINT.NS,One Point One Solutions Limited,Commercial Services & Supplies,2192.0,83.4,2026-10-19
-INDOCO.NS,Indoco Remedies Limited,Pharmaceuticals & Biotechnology,2179.0,236.0,2026-10-19
-TALBROAUTO.NS,Talbros Automotive Components Limited,Auto Components,2177.0,352.0,2026-10-19
-PARACABLES.NS,Paramount Communications Limited,Industrial Products,2160.0,66.2,2026-10-19
-SPANDANA.NS,Spandana Sphoorty Financial Limited,Finance,2150.0,204.0,2026-10-19
-PANACEABIO.NS,Panacea Biotec Limited,Pharmaceuticals & Biotechnology,2146.0,350.0,2026-10-19
-RANEHOLDIN.NS,Rane Holdings Limited,Finance,2130.0,1492.0,2026-10-19
-KICL.NS,Kalyani Investment Company Limited,Finance,2127.0,4878.0,2026-10-19
-RAMCOSYS.NS,Ramco Systems Limited,IT - Software,2113.0,561.0,2026-10-19
-OAL.NS,Oriental Aromatics Limited,Chemicals & Petrochemicals,2094.0,621.0,2026-10-19
-REPCOHOME.NS,Repco Home Finance Limited,Finance,2090.0,334.0,2026-10-19
-OMAXE.NS,Omaxe Limited,Realty,2089.0,114.0,2026-10-19
-BODALCHEM.NS,Bodal Chemicals Limited,Chemicals & Petrochemicals,2087.0,164.0,2026-10-19
-SAKAR.NS,Sakar Healthcare Limited,Pharmaceuticals & Biotechnology,2054.0,923.0,2026-10-19
-ORISSAMINE.NS,The Orissa Minerals Development Company Limited,Minerals & Mining,2030.0,3378.0,2026-10-19
-SYNCOMF.NS,Syncom Formulations (India) Limited,Pharmaceuticals & Biotechnology,2024.0,21.5,2026-10-19
-MOLDTKPAC.NS,Mold-Tek Packaging Limited,Industrial Products,2021.0,304.0,2026-10-19
-TAJGVK.NS,Taj GVK Hotels & Resorts Limited,Leisure Services,2001.0,319.0,2026-10-19
-STLNETWORK.NS,STL Networks Limited,Telecom - Services,1995.0,40.9,2026-10-19
-NIBE.NS,NIBE Limited,Aerospace & Defense,1972.0,1275.0,2026-10-19
-AVADHSUGAR.NS,Avadh Sugar & Energy Limited,Agricultural Food & other Products,1969.0,981.0,2026-10-19
-KCP.NS,KCP Limited,Cement & Cement Products,1961.0,152.0,2026-10-19
-SANSTAR.NS,Sanstar Limited,Agricultural Food & other Products,1948.0,97.8,2026-10-19
-LANDMARK.NS,Landmark Cars Limited,Automobiles,1926.0,464.0,2026-10-19
-MOTISONS.NS,Motisons Jewellers Limited,Consumer Durables,1926.0,16.9,2026-10-19
-KROSS.NS,Kross Limited,Auto Components,1910.0,296.0,2026-10-19
-NITCO.NS,Nitco Limited,Consumer Durables,1897.0,78.8,2026-10-19
-WINDLAS.NS,Windlas Biotech Limited,Pharmaceuticals & Biotechnology,1886.0,915.0,2026-10-19
-SHK.NS,S H Kelkar and Company Limited,Chemicals & Petrochemicals,1872.0,135.0,2026-10-19
-TIL.NS,TIL Limited,"Agricultural, Commercial & Construction Vehicles",1850.0,225.0,2026-10-19
-SAKSOFT.NS,Saksoft Limited,IT - Software,1847.0,139.0,2026-10-19
-MACPOWER.NS,Macpower CNC Machines Limited,Industrial Manufacturing,1827.0,1826.0,2026-10-19
-RAMKY.NS,Ramky Infrastructure Limited,Construction,1811.0,262.0,2026-10-19
-RGL.NS,Renaissance Global Limited,Consumer Durables,1803.0,168.0,2026-10-19
-TCIEXP.NS,TCI Express Limited,Transport Services,1803.0,468.0,2026-10-19
-INDIANHUME.NS,Indian Hume Pipe Company Limited,Construction,1802.0,343.0,2026-10-19
-NELCO.NS,NELCO Limited,IT - Hardware,1796.0,786.0,2026-10-19
-MOBIKWIK.NS,One Mobikwik Systems Limited,Financial Technology (Fintech),1770.0,224.0,2026-10-19
-QUADFUTURE.NS,Quadrant Future Tek Limited,Industrial Products,1759.0,439.0,2026-10-19
-LAOPALA.NS,La Opala RG Limited,Consumer Durables,1744.0,157.0,2026-10-19
-MSPL.NS,MSP Steel & Power Limited,Industrial Products,1742.0,31.3,2026-10-19
-NUCLEUS.NS,Nucleus Software Exports Limited,IT - Software,1741.0,657.0,2026-10-19
-JAICORPLTD.NS,Jai Corp Limited,Industrial Products,1735.0,99.0,2026-10-19
-RACLGEAR.NS,RACL Geartech Limited,Auto Components,1733.0,1466.0,2026-10-19
-IGPL.NS,IG Petrochemicals Limited,Chemicals & Petrochemicals,1733.0,562.0,2026-10-19
-KRISHNADEF.NS,Krishna Defence And Allied Industries Limited,Aerospace & Defense,1716.0,1148.0,2026-10-19
-SCILAL.NS,Shipping Corporation of India Land and Assets Limited,Finance,1712.0,36.6,2026-10-19
-SAGCEM.NS,Sagar Cements Limited,Cement & Cement Products,1712.0,131.0,2026-10-19
-RUBYMILLS.NS,The Ruby Mills Limited,Textiles & Apparels,1711.0,513.0,2026-10-19
-SHREEPUSHK.NS,Shree Pushkar Chemicals & Fertilisers Limited,Chemicals & Petrochemicals,1678.0,513.0,2026-10-19
-TARSONS.NS,Tarsons Products Limited,Healthcare Equipment & Supplies,1678.0,315.0,2026-10-19
-VIDHIING.NS,Vidhi Specialty Food Ingredients Limited,Chemicals & Petrochemicals,1673.0,333.0,2026-10-19
-PFS.NS,PTC India Financial Services Limited,Finance,1671.0,26.2,2026-10-19
-KRSNAA.NS,Krsnaa Diagnostics Limited,Healthcare Services,1664.0,513.0,2026-10-19
-INSECTICID.NS,Insecticides (India) Limited,Fertilizers & Agrochemicals,1650.0,567.0,2026-10-19
-TEXINFRA.NS,Texmaco Infrastructure & Holdings Limited,Commercial Services & Supplies,1633.0,128.0,2026-10-19
-NDRAUTO.NS,Ndr Auto Components Limited,Auto Components,1630.0,684.0,2026-10-19
-TINNARUBR.NS,Tinna Rubber and Infrastructure Limited,Industrial Products,1627.0,904.0,2026-10-19
-TIRUMALCHM.NS,Thirumalai Chemicals Limited,Chemicals & Petrochemicals,1622.0,134.0,2026-10-19
-MBEL.NS,M & B Engineering Limited,Construction,1617.0,283.0,2026-10-19
-JINDRILL.NS,Jindal Drilling And Industries Limited,Oil,1598.0,552.0,2026-10-19
-SILVERTUC.NS,Silver Touch Technologies Limited,IT - Software,1580.0,125.0,2026-10-19
-RICOAUTO.NS,Rico Auto Industries Limited,Auto Components,1575.0,116.0,2026-10-19
-SURYODAY.NS,Suryoday Small Finance Bank Limited,Banks,1573.0,148.0,2026-10-19
-SERVOTECH.NS,Servotech Renewable Power System Limited,Electrical Equipment,1546.0,68.4,2026-10-19
-WENDT.NS,Wendt (India) Limited,Industrial Products,1544.0,7713.0,2026-10-19
-SURAKSHA.NS,Suraksha Diagnostic Limited,Healthcare Services,1543.0,296.0,2026-10-19
-MODISONLTD.NS,MODISON LIMITED,Electrical Equipment,1539.0,477.0,2026-10-19
-INFOBEAN.NS,InfoBeans Technologies Limited,IT - Software,1538.0,159.0,2026-10-19
-SDBL.NS,Som Distilleries & Breweries Limited,Beverages,1531.0,73.5,2026-10-19
-BHAGERIA.NS,Bhageria Industries Limited,Chemicals & Petrochemicals,1529.0,350.0,2026-10-19
-YATRA.NS,Yatra Online Limited,Leisure Services,1523.0,96.7,2026-10-19
-MENONBE.NS,Menon Bearings Limited,Auto Components,1494.0,269.0,2026-10-19
-YUKEN.NS,Yuken India Limited,Industrial Products,1492.0,1120.0,2026-10-19
-VIKRAN.NS,Vikran Engineering Limited,Construction,1484.0,57.5,2026-10-19
-INDOBORAX.NS,Indo Borax & Chemicals Limited,Chemicals & Petrochemicals,1467.0,458.0,2026-10-19
-SUMMITSEC.NS,Summit Securities Limited,Finance,1461.0,1334.0,2026-10-19
-WALCHANNAG.NS,Walchandnagar Industries Limited,Industrial Manufacturing,1452.0,214.0,2026-10-19
-MCLOUD.NS,Magellanic Cloud Limited,IT - Software,1451.0,24.6,2026-10-19
-MTNL.NS,Mahanagar Telephone Nigam Limited,Telecom - Services,1438.0,22.8,2026-10-19
-MOL.NS,Meghmani Organics Limited,Fertilizers & Agrochemicals,1438.0,56.6,2026-10-19
-IPL.NS,India Pesticides Limited,Fertilizers & Agrochemicals,1432.0,125.0,2026-10-19
-JAGSNPHARM.NS,Jagsonpal Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1427.0,217.0,2026-10-19
-TTKHLTCARE.NS,TTK Healthcare Limited,Diversified,1425.0,1006.0,2026-10-19
-PASHUPATI.NS,Pashupati Cotspin Limited,Textiles & Apparels,1414.0,89.6,2026-10-19
-MANALIPETC.NS,Manali Petrochemicals Limited,Chemicals & Petrochemicals,1400.0,81.3,2026-10-19
-JAYBARMARU.NS,Jay Bharat Maruti Limited,Auto Components,1395.0,129.0,2026-10-19
-IKIO.NS,IKIO Technologies Limited,Consumer Durables,1390.0,180.0,2026-10-19
-MANAKCOAT.NS,Manaksia Coated Metals & Industries Limited,Industrial Products,1390.0,130.0,2026-10-19
-UDS.NS,Updater Services Limited,Commercial Services & Supplies,1387.0,209.0,2026-10-19
-SHALBY.NS,Shalby Limited,Healthcare Services,1371.0,127.0,2026-10-19
-UTTAMSUGAR.NS,Uttam Sugar Mills Limited,Agricultural Food & other Products,1366.0,358.0,2026-10-19
-KOPRAN.NS,Kopran Limited,Pharmaceuticals & Biotechnology,1352.0,280.0,2026-10-19
-SESHAPAPER.NS,Seshasayee Paper and Boards Limited,"Paper, Forest & Jute Products",1324.0,210.0,2026-10-19
-JAGRAN.NS,Jagran Prakashan Limited,Media,1322.0,60.7,2026-10-19
-VALIANTORG.NS,Valiant Organics Limited,Chemicals & Petrochemicals,1305.0,464.0,2026-10-19
-PNBGILTS.NS,PNB Gilts Limited,Finance,1302.0,72.3,2026-10-19
-IFGLEXPOR.NS,IFGL Refractories Limited,Industrial Products,1292.0,179.0,2026-10-19
-STEELXIND.NS,STEEL EXCHANGE INDIA LIMITED,Industrial Products,1291.0,10.1,2026-10-19
-KPEL.NS,K.P. Energy Limited,Power,1286.0,190.0,2026-10-19
-IMPAL.NS,India Motor Parts and Accessories Limited,Auto Components,1272.0,1018.0,2026-10-19
-NAVKARCORP.NS,Navkar Corporation Limited,Transport Services,1268.0,84.1,2026-10-19
-RHETAN.NS,Rhetan TMT Limited,Industrial Products,1255.0,15.7,2026-10-19
-SPMLINFRA.NS,SPML Infra Limited,Construction,1246.0,147.0,2026-10-19
-UGROCAP.NS,Ugro Capital Limited,Finance,1233.0,79.4,2026-10-19
-VHL.NS,Vardhman Holdings Limited,Finance,1233.0,3810.0,2026-10-19
-PLATIND.NS,Platinum Industries Limited,Chemicals & Petrochemicals,1233.0,226.0,2026-10-19
-IGARASHI.NS,Igarashi Motors India Limited,Auto Components,1232.0,392.0,2026-10-19
-PUNJABCHEM.NS,Punjab Chemicals & Crop Protection Limited,Fertilizers & Agrochemicals,1225.0,1000.0,2026-10-19
-IVALUE.NS,Ivalue Infosolutions Limited,IT - Services,1219.0,222.0,2026-10-19
-NRAIL.NS,N R Agarwal Industries Limited,"Paper, Forest & Jute Products",1215.0,715.0,2026-10-19
-MMP.NS,MMP Industries Limited,Non - Ferrous Metals,1215.0,478.0,2026-10-19
-IRISDOREME.NS,Iris Clothings Limited,Textiles & Apparels,1202.0,63.2,2026-10-19
-SPIC.NS,Southern Petrochemicals Industries Corporation  Limited,Fertilizers & Agrochemicals,1198.0,58.6,2026-10-19
-PVP.NS,PVP Ventures Limited,Realty,1188.0,45.7,2026-10-19
-MVGJL.NS,Manoj Vaibhav Gems N Jewellers Limited,Consumer Durables,1171.0,240.0,2026-10-19
-SULA.NS,Sula Vineyards Limited,Beverages,1158.0,137.0,2026-10-19
-NIITLTD.NS,NIIT Limited,Other Consumer Services,1156.0,84.5,2026-10-19
-NRL.NS,Nupur Recyclers Limited,Metals & Minerals Trading,1153.0,167.0,2026-10-19
-NELCAST.NS,Nelcast Limited,Industrial Products,1151.0,132.0,2026-10-19
-ROTO.NS,Roto Pumps Limited,Industrial Products,1142.0,60.5,2026-10-19
-TNPETRO.NS,Tamilnadu PetroProducts Limited,Chemicals & Petrochemicals,1136.0,126.0,2026-10-19
-RIIL.NS,Reliance Industrial Infrastructure Limited,Transport Services,1130.0,748.0,2026-10-19
-ARROWGREEN.NS,Arrow Greentech Limited,Industrial Products,1119.0,740.0,2026-10-19
-SHRIRAMPPS.NS,Shriram Properties Limited,Realty,1119.0,65.7,2026-10-19
-KALAMANDIR.NS,Sai Silks (Kalamandir) Limited,Retailing,1116.0,72.5,2026-10-19
-BAFNAPH.NS,Bafna Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1113.0,478.0,2026-10-19
-MATRIMONY.NS,Matrimony.Com Limited,Retailing,1092.0,524.0,2026-10-19
-JINDALPHOT.NS,Jindal Photo Limited,Finance,1082.0,1046.0,2026-10-19
-SKMEGGPROD.NS,SKM Egg Products Export (India) Limited,Food Products,1080.0,205.0,2026-10-19
-MONTECARLO.NS,Monte Carlo Fashions Limited,Textiles & Apparels,1080.0,522.0,2026-10-19
-MICEL.NS,MIC Electronics Limited,Industrial Products,1080.0,36.2,2026-10-19
-RAJOOENG.NS,Rajoo Engineers Limited,Industrial Manufacturing,1074.0,60.0,2026-10-19
-LGHL.NS,Laxmi Goldorna House Limited,Consumer Durables,1068.0,213.0,2026-10-19
-LINCOLN.NS,Lincoln Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1063.0,532.0,2026-10-19
-SOLARWORLD.NS,Solarworld Energy Solutions Limited,Construction,1061.0,122.0,2026-10-19
-TEMBO.NS,Tembo Global Industries Limited,Industrial Products,1060.0,57.2,2026-10-19
-KAMDHENU.NS,Kamdhenu Limited,Industrial Products,1056.0,37.2,2026-10-19
-PRECAM.NS,Precision Camshafts Limited,Auto Components,1034.0,109.0,2026-10-19
-ORIENTTECH.NS,Orient Technologies Limited,IT - Services,1031.0,225.0,2026-10-19
-RUPA.NS,Rupa & Company Limited,Textiles & Apparels,1030.0,129.0,2026-10-19
-JYOTISTRUC.NS,Jyoti Structures Limited,Electrical Equipment,1025.0,8.62,2026-10-19
-IRMENERGY.NS,IRM Energy Limited,Gas,1025.0,250.0,2026-10-19
-SIGACHI.NS,Sigachi Industries Limited,Pharmaceuticals & Biotechnology,1023.0,26.8,2026-10-19
-SUBEXLTD.NS,Subex Limited,IT - Software,1021.0,18.1,2026-10-19
-MUNJALAU.NS,Munjal Auto Industries Limited,Auto Components,1013.0,101.0,2026-10-19
-LAXMIDENTL.NS,Laxmi Dental Limited,Healthcare Equipment & Supplies,1009.0,183.0,2026-10-19
-ONWARDTEC.NS,Onward Technologies Limited,IT - Services,1008.0,453.0,2026-10-19
-UNITECH.NS,Unitech Limited,Realty,1007.0,3.87,2026-10-19
+TMCV.NS,Tata Motors Limited,"Agricultural, Commercial & Construction Vehicles",163646.0,446.0,2026-11-19
+TATACAP.NS,Tata Capital Limited,Finance,146596.0,345.0,2026-11-19
+VAML.NS,Vedanta Aluminium Metal Limited,Non - Ferrous Metals,145250.0,371.0,2026-11-19
+DHOOTTRANS.NS,Dhoot Transmission Limited,Auto Components,33066.0,1617.0,2026-11-19
+ZETWERK.NS,Zetwerk Manufacturing Businesses Limited,Industrial Manufacturing,28706.0,170.0,2026-11-19
+TVSHLTD.NS,TVS Holdings Limited,Finance,27960.0,13820.0,2026-11-19
+URBANCO.NS,Urban Company Limited,Retailing,26996.0,175.0,2026-11-19
+METROBRAND.NS,Metro Brands Limited,Consumer Durables,22477.0,824.0,2026-11-19
+GUJENERGY.NS,GUJARAT ENERGY LIMITED,Gas,21156.0,226.0,2026-11-19
+PFOCUS.NS,Prime Focus Limited,Entertainment,20954.0,270.0,2026-11-19
+KIOCL.NS,KIOCL Limited,Ferrous Metals,19749.0,325.0,2026-11-19
+SIGMAADV.NS,SIGMA ADVANCED SYSTEMS LIMITED,Aerospace & Defense,18010.0,950.0,2026-11-19
+TENNIND.NS,Tenneco Clean Air India Limited,Auto Components,17535.0,435.0,2026-11-19
+PSB.NS,Punjab & Sind Bank,Banks,15666.0,22.1,2026-11-19
+TRAVELFOOD.NS,Travel Food Services Limited,Leisure Services,15209.0,1155.0,2026-11-19
+BONFIG.NS,Bonfiglioli Transmissions Limited,Industrial Manufacturing,15062.0,802.0,2026-11-19
+CLEANMAX.NS,Clean Max Enviro Energy Solutions Limited,Power,14892.0,1262.0,2026-11-19
+SHREEJISPG.NS,Shreeji Shipping Global Limited,Transport Services,14808.0,909.0,2026-11-19
+BHARATCOAL.NS,Bharat Coking Coal Limited,Consumable Fuels,14278.0,30.7,2026-11-19
+TMB.NS,Tamilnad Mercantile Bank Limited,Banks,14188.0,896.0,2026-11-19
+VEDPOWER.NS,Vedanta Power Limited,Power,13682.0,35.0,2026-11-19
+CORONA.NS,CORONA Remedies Limited,Pharmaceuticals & Biotechnology,13630.0,2229.0,2026-11-19
+ESDS.NS,ESDS Software Solution Limited,IT - Services,13592.0,1159.0,2026-11-19
+SPLPETRO.NS,Supreme Petrochem Limited,Chemicals & Petrochemicals,13163.0,699.0,2026-11-19
+CMPDI.NS,Central Mine Planning & Design Institute Limited,Construction,12768.0,179.0,2026-11-19
+SGMART.NS,SG Mart Limited,Metals & Minerals Trading,12736.0,1009.0,2026-11-19
+EDELALTS.NS,EAAA India Alternatives Limited,Capital Markets,12682.0,1960.0,2026-11-19
+QPOWER.NS,Quality Power Electrical Equipments Limited,Electrical Equipment,12517.0,1616.0,2026-11-19
+JSWHL.NS,JSW Holdings Limited,Finance,11792.0,10615.0,2026-11-19
+VOGL.NS,Vedanta Oil and Gas Limited,Oil,11633.0,29.8,2026-11-19
+LOTUSDEV.NS,Sri Lotus Developers and Realty Limited,Realty,11387.0,233.0,2026-11-19
+SYMBIOTEC.NS,Symbiotec Pharmalab Limited,Pharmaceuticals & Biotechnology,10331.0,1608.0,2026-11-19
+E2E.NS,E2E Networks Limited,IT - Services,10290.0,500.0,2026-11-19
+JAINREC.NS,Jain Resource Recycling Limited,Diversified Metals,10078.0,292.0,2026-11-19
+WEWORK.NS,WeWork India Management Limited,Commercial Services & Supplies,9643.0,694.0,2026-11-19
+ELANTAS.NS,Elantas Beck India Limited,Chemicals & Petrochemicals,9630.0,12116.0,2026-11-19
+UTLSOLAR.NS,Fujiyama Power Systems Limited,Electrical Equipment,9604.0,312.0,2026-11-19
+VISL.NS,Vedanta Iron and Steel Limited,Ferrous Metals,9467.0,24.2,2026-11-19
+KMEW.NS,Knowledge Marine & Engineering Works Limited,Engineering Services,9264.0,730.0,2026-11-19
+JLHL.NS,Jupiter Life Line Hospitals Limited,Healthcare Services,9207.0,281.0,2026-11-19
+PGHL.NS,Procter & Gamble Health Limited,Pharmaceuticals & Biotechnology,9159.0,5516.0,2026-11-19
+MBAPL.NS,Madhya Bharat Agro Products Limited,Fertilizers & Agrochemicals,8824.0,192.0,2026-11-19
+SSWL.NS,Steel Strips Wheels Limited,Auto Components,8786.0,559.0,2026-11-19
+RPEL.NS,Raghav Productivity Enhancers Limited,Industrial Products,8707.0,1896.0,2026-11-19
+TONBO.NS,Tonbo Imaging India Limited,Aerospace & Defense,8632.0,1507.0,2026-11-19
+JAYNECOIND.NS,Jayaswal Neco Industries Limited,Industrial Products,8624.0,88.9,2026-11-19
+KINGFA.NS,Kingfa Science & Technology (India) Limited,Industrial Products,8349.0,6146.0,2026-11-19
+AUGMONT.NS,Augmont Enterprises Limited,Non - Ferrous Metals,8302.0,909.0,2026-11-19
+SMLMAH.NS,SML Mahindra Limited,"Agricultural, Commercial & Construction Vehicles",8225.0,5677.0,2026-11-19
+RAYMOND.NS,Raymond Limited,Industrial Manufacturing,7998.0,1196.0,2026-11-19
+SUVEN.NS,Suven Life Sciences Limited,Healthcare Services,7842.0,278.0,2026-11-19
+TFCILTD.NS,Tourism Finance Corporation of India Limited,Finance,7833.0,169.0,2026-11-19
+TTKPRESTIG.NS,TTK Prestige Limited,Consumer Durables,7575.0,553.0,2026-11-19
+KRISHANA.NS,Krishana Phoschem Limited,Fertilizers & Agrochemicals,7485.0,242.0,2026-11-19
+TIMEX.NS,Timex Group India Limited,Consumer Durables,7316.0,724.0,2026-11-19
+SJS.NS,S.J.S. Enterprises Limited,Auto Components,7250.0,2248.0,2026-11-19
+SETL.NS,Standard Engineering Technology Limited,Industrial Manufacturing,7222.0,362.0,2026-11-19
+EMBDL.NS,Embassy Developments Limited,Realty,7183.0,50.4,2026-11-19
+PAISALO.NS,Paisalo Digital Limited,Finance,7006.0,74.5,2026-11-19
+PRECWIRE.NS,Precision Wires India Limited,Industrial Products,7003.0,383.0,2026-11-19
+IBULLSLTD.NS,Indiabulls Limited,Commercial Services & Supplies,6742.0,28.9,2026-11-19
+TIIL.NS,Technocraft Industries (India) Limited,Industrial Products,6368.0,2806.0,2026-11-19
+BENGALASM.NS,Bengal & Assam Company Limited,Finance,6355.0,5602.0,2026-11-19
+ROSSTECH.NS,Rossell Techsys Limited,Aerospace & Defense,6266.0,1556.0,2026-11-19
+CORDELIA.NS,Waterways Leisure Tourism Limited,Leisure Services,6253.0,86.7,2026-11-19
+SUPRAJIT.NS,Suprajit Engineering Limited,Auto Components,6219.0,453.0,2026-11-19
+TCI.NS,Transport Corporation of India Limited,Transport Services,6101.0,810.0,2026-11-19
+WHEELS.NS,Wheels India Limited,Auto Components,5998.0,2232.0,2026-11-19
+VRLLOG.NS,VRL Logistics Limited,Transport Services,5975.0,342.0,2026-11-19
+MARINE.NS,Marine Electricals (India) Limited,Industrial Manufacturing,5953.0,425.0,2026-11-19
+TVSSCS.NS,TVS Supply Chain Solutions Limited,Transport Services,5926.0,134.0,2026-11-19
+SMARTWORKS.NS,Smartworks Coworking Spaces Limited,Commercial Services & Supplies,5904.0,516.0,2026-11-19
+PDSL.NS,PDS Limited,Textiles & Apparels,5835.0,412.0,2026-11-19
+KDDL.NS,KDDL Limited,Consumer Durables,5764.0,4696.0,2026-11-19
+REDTAPE.NS,Redtape Limited,Consumer Durables,5744.0,104.0,2026-11-19
+ITDC.NS,India Tourism Development Corporation Limited,Leisure Services,5739.0,668.0,2026-11-19
+MANINDS.NS,Man Industries (India) Limited,Industrial Products,5736.0,765.0,2026-11-19
+IOLCP.NS,IOL Chemicals and Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,5630.0,192.0,2026-11-19
+STYLAMIND.NS,Stylam Industries Limited,Consumer Durables,5594.0,3306.0,2026-11-19
+SBCL.NS,Shivalik Bimetal Controls Limited,Industrial Products,5571.0,966.0,2026-11-19
+PICCADIL.NS,Piccadily Agro Industries Limited,Beverages,5362.0,544.0,2026-11-19
+ARTEMISMED.NS,Artemis Medicare Services Limited,Healthcare Services,5352.0,338.0,2026-11-19
+SGFIN.NS,SG Finserve Limited,Finance,5346.0,810.0,2026-11-19
+LUMAXIND.NS,Lumax Industries Limited,Auto Components,5335.0,5703.0,2026-11-19
+ROLEXRINGS.NS,Rolex Rings Limited,Auto Components,5239.0,200.0,2026-11-19
+LGBBROSLTD.NS,LG Balakrishnan & Bros Limited,Auto Components,5180.0,1625.0,2026-11-19
+ELEVATE.NS,Elevate Campuses Limited,Realty,5176.0,307.0,2026-11-19
+SENORES.NS,Senores Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,5173.0,1123.0,2026-11-19
+KALPATARU.NS,Kalpataru Limited,Realty,5082.0,247.0,2026-11-19
+HDFIRE.NS,HD Fire Protect Limited,Industrial Manufacturing,5058.0,289.0,2026-11-19
+SIS.NS,SIS LIMITED,Other Consumer Services,5024.0,362.0,2026-11-19
+VADILALIND.NS,Vadilal Industries Limited,Food Products,5011.0,6978.0,2026-11-19
+MOREPENLAB.NS,Morepen Laboratories Limited,Pharmaceuticals & Biotechnology,4987.0,90.9,2026-11-19
+VIKRAMSOLR.NS,Vikram Solar Limited,Electrical Equipment,4986.0,138.0,2026-11-19
+SANATHAN.NS,Sanathan Textiles Limited,Textiles & Apparels,4979.0,590.0,2026-11-19
+STYL.NS,Seshaasai Technologies Limited,Financial Technology (Fintech),4906.0,303.0,2026-11-19
+EVONILE.NS,Evonile Pharma Limited,Pharmaceuticals & Biotechnology,4897.0,1395.0,2026-11-19
+RAMRAT.NS,Ram Ratna Wires Limited,Electrical Equipment,4778.0,512.0,2026-11-19
+SAMBHV.NS,Sambhv Steel Tubes Limited,Industrial Products,4744.0,161.0,2026-11-19
+MASFIN.NS,MAS Financial Services Limited,Finance,4739.0,261.0,2026-11-19
+TRIVENIPT.NS,Triveni Power Transmission Limited,Power,4717.0,450.0,2026-11-19
+RUSTOMJEE.NS,Keystone Realtors Limited,Realty,4625.0,366.0,2026-11-19
+PARAGMILK.NS,Parag Milk Foods Limited,Food Products,4623.0,343.0,2026-11-19
+CMRGREEN.NS,CMR Green Technologies Limited,Industrial Products,4578.0,209.0,2026-11-19
+SMSPHARMA.NS,SMS Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,4529.0,484.0,2026-11-19
+UFLEX.NS,UFLEX Limited,Industrial Products,4529.0,627.0,2026-11-19
+ZOTA.NS,Zota Health Care LImited,Pharmaceuticals & Biotechnology,4523.0,1306.0,2026-11-19
+NORTHARC.NS,Northern Arc Capital Limited,Finance,4466.0,276.0,2026-11-19
+WAKEFIT.NS,Wakefit Innovations Limited,Consumer Durables,4465.0,134.0,2026-11-19
+PILANIINVS.NS,Pilani Investment and Industries Corporation Limited,Finance,4462.0,4026.0,2026-11-19
+HAWKINCOOK.NS,Hawkins Cookers Limited,Consumer Durables,4439.0,8389.0,2026-11-19
+SAATVIKGL.NS,Saatvik Green Energy Limited,Electrical Equipment,4382.0,345.0,2026-11-19
+YASHO.NS,Yasho Industries Limited,Chemicals & Petrochemicals,4353.0,3618.0,2026-11-19
+JUNIPER.NS,Juniper Hotels Limited,Leisure Services,4339.0,195.0,2026-11-19
+ORIENTELEC.NS,Orient Electric Limited,Consumer Durables,4333.0,203.0,2026-11-19
+TEMPSENS.NS,Tempsens Instruments (India) Limited,Industrial Manufacturing,4332.0,516.0,2026-11-19
+RPTECH.NS,Rashi Peripherals Limited,IT - Hardware,4323.0,651.0,2026-11-19
+RPGLIFE.NS,RPG Life Sciences Limited,Pharmaceuticals & Biotechnology,4300.0,2602.0,2026-11-19
+WSTCSTPAPR.NS,West Coast Paper Mills Limited,"Paper, Forest & Jute Products",4267.0,645.0,2026-11-19
+ARCIL.NS,Asset Reconstruction Company (India) Limited,Finance,4235.0,130.0,2026-11-19
+RAYMONDREL.NS,Raymond Realty Limited,Realty,4220.0,633.0,2026-11-19
+SWARAJENG.NS,Swaraj Engines Limited,Industrial Products,4212.0,3464.0,2026-11-19
+NRBBEARING.NS,NRB Bearing Limited,Auto Components,4189.0,433.0,2026-11-19
+SHOPERSTOP.NS,Shoppers Stop Limited,Retailing,4152.0,376.0,2026-11-19
+SOTL.NS,Savita Oil Technologies Limited,Petroleum Products,4119.0,602.0,2026-11-19
+DEEDEV.NS,DEE Development Engineers Limited,Industrial Manufacturing,4095.0,543.0,2026-11-19
+TCPLPACK.NS,TCPL Packaging Limited,Industrial Products,4093.0,4485.0,2026-11-19
+VENUSPIPES.NS,Venus Pipes & Tubes Limited,Industrial Products,4059.0,1769.0,2026-11-19
+STEELCAS.NS,Steelcast Limited,Industrial Products,4016.0,397.0,2026-11-19
+STYLEBAAZA.NS,Baazar Style Retail Limited,Retailing,3973.0,522.0,2026-11-19
+MHRIL.NS,Mahindra Holidays & Resorts India Limited,Leisure Services,3964.0,197.0,2026-11-19
+KOLTEPATIL.NS,Kolte - Patil Developers Limited,Realty,3954.0,445.0,2026-11-19
+FUSIONCX.NS,Fusion CX Limited,Commercial Services & Supplies,3939.0,273.0,2026-11-19
+SHANTIGEAR.NS,Shanthi Gears Limited,Industrial Manufacturing,3936.0,514.0,2026-11-19
+SEAMECLTD.NS,Seamec Limited,Transport Services,3921.0,1538.0,2026-11-19
+UNIVCABLES.NS,Universal Cables Limited,Industrial Products,3916.0,1129.0,2026-11-19
+NITINSPIN.NS,Nitin Spinners Limited,Textiles & Apparels,3904.0,695.0,2026-11-19
+TBZ.NS,Tribhovandas Bhimji Zaveri Limited,Consumer Durables,3851.0,578.0,2026-11-19
+INDIQUBE.NS,Indiqube Spaces Limited,Commercial Services & Supplies,3833.0,181.0,2026-11-19
+GVPIL.NS,GE Power India Limited,Electrical Equipment,3812.0,568.0,2026-11-19
+TATVA.NS,Tatva Chintan Pharma Chem Limited,Chemicals & Petrochemicals,3799.0,1624.0,2026-11-19
+JSLL.NS,Jeena Sikho Lifecare Limited,Leisure Services,3783.0,304.0,2026-11-19
+VISHNU.NS,Vishnu Chemicals Limited,Chemicals & Petrochemicals,3739.0,555.0,2026-11-19
+MPSLTD.NS,MPS Limited,Printing & Publication,3729.0,2180.0,2026-11-19
+MAHLOG.NS,Mahindra Logistics Limited,Transport Services,3714.0,374.0,2026-11-19
+DECNGOLD.NS,Deccan Gold Mines Limited,Non - Ferrous Metals,3707.0,184.0,2026-11-19
+RESPONIND.NS,Responsive Industries Limited,Consumer Durables,3704.0,142.0,2026-11-19
+PACEDIGITK.NS,Pace Digitek Limited,Telecom - Services,3688.0,171.0,2026-11-19
+SINDHUTRAD.NS,Sindhu Trade Links Limited,Consumable Fuels,3685.0,20.0,2026-11-19
+VSSL.NS,Vardhman Special Steels Limited,Industrial Products,3678.0,380.0,2026-11-19
+AONESTEELS.NS,A-One Steels India Limited,Industrial Products,3651.0,472.0,2026-11-19
+CMLL.NS,Caliber Mining and Logistics Limited,Consumable Fuels,3596.0,549.0,2026-11-19
+NPST.NS,Network People Services Technologies Limited,Financial Technology (Fintech),3559.0,1699.0,2026-11-19
+KIRLOSIND.NS,Kirloskar Industries Limited,Industrial Products,3538.0,3372.0,2026-11-19
+TVSSRICHAK.NS,TVS Srichakra Limited,Auto Components,3514.0,4593.0,2026-11-19
+SANDHAR.NS,Sandhar Technologies Limited,Auto Components,3461.0,575.0,2026-11-19
+GRAUWEIL.NS,Grauer & Weil India Limited,Chemicals & Petrochemicals,3450.0,75.8,2026-11-19
+WPIL.NS,WPIL Limited,Industrial Manufacturing,3449.0,354.0,2026-11-19
+JTEKTINDIA.NS,Jtekt India Limited,Auto Components,3443.0,123.0,2026-11-19
+IDEAFORGE.NS,Ideaforge Technology Limited,Aerospace & Defense,3405.0,685.0,2026-11-19
+SANGAMIND.NS,Sangam (India) Limited,Textiles & Apparels,3388.0,675.0,2026-11-19
+UNICHEMLAB.NS,Unichem Laboratories Limited,Pharmaceuticals & Biotechnology,3376.0,483.0,2026-11-19
+PITTIENG.NS,Pitti Engineering Limited,Industrial Manufacturing,3359.0,892.0,2026-11-19
+COCKERILL.NS,John Cockerill India Limited,Industrial Manufacturing,3342.0,6761.0,2026-11-19
+GSPLTRANS.NS,GSPL Transmission Limited,Gas,3315.0,106.0,2026-11-19
+RML.NS,Rane (Madras) Limited,Auto Components,3309.0,1197.0,2026-11-19
+INDRAMEDCO.NS,Indraprastha Medical Corporation Limited,Healthcare Services,3291.0,360.0,2026-11-19
+UNIPARTS.NS,Uniparts India Limited,Auto Components,3266.0,722.0,2026-11-19
+WINDMACHIN.NS,Windsor Machines Limited,Industrial Manufacturing,3253.0,314.0,2026-11-19
+JASH.NS,Jash Engineering Limited,Industrial Manufacturing,3250.0,515.0,2026-11-19
+SBC.NS,SBC Exports Limited,Textiles & Apparels,3250.0,68.4,2026-11-19
+WONDERLA.NS,Wonderla Holidays Limited,Leisure Services,3231.0,509.0,2026-11-19
+NILKAMAL.NS,Nilkamal Limited,Consumer Durables,3221.0,2159.0,2026-11-19
+MOSCHIP.NS,Moschip Technologies Limited,IT - Hardware,3214.0,165.0,2026-11-19
+SANGHVIMOV.NS,Sanghvi Movers Limited,Commercial Services & Supplies,3204.0,370.0,2026-11-19
+KIRIINDUS.NS,Kiri Industries Limited,Chemicals & Petrochemicals,3202.0,491.0,2026-11-19
+ORIENTHOT.NS,Oriental Hotels Limited,Leisure Services,3169.0,177.0,2026-11-19
+MAYURUNIQ.NS,Mayur Uniquoters Ltd,Consumer Durables,3119.0,717.0,2026-11-19
+SOLARA.NS,Solara Active Pharma Sciences Limited,Pharmaceuticals & Biotechnology,3105.0,640.0,2026-11-19
+MMFL.NS,MM Forgings Limited,Auto Components,3101.0,642.0,2026-11-19
+VSTTILLERS.NS,V.S.T Tillers Tractors Limited,"Agricultural, Commercial & Construction Vehicles",3085.0,3565.0,2026-11-19
+RATNAVEER.NS,Ratnaveer Precision Engineering Limited,Industrial Products,3083.0,367.0,2026-11-19
+PREMEXPLN.NS,Premier Explosives Limited,Chemicals & Petrochemicals,3026.0,563.0,2026-11-19
+PSPPROJECT.NS,PSP Projects Limited,Construction,3015.0,760.0,2026-11-19
+VINDHYATEL.NS,Vindhya Telelinks Limited,Construction,3003.0,2533.0,2026-11-19
+INDOSTAR.NS,IndoStar Capital Finance Limited,Finance,3002.0,186.0,2026-11-19
+VARMORA.NS,Varmora Granito Limited,Consumer Durables,2965.0,131.0,2026-11-19
+XPROINDIA.NS,Xpro India Limited,Industrial Products,2963.0,1261.0,2026-11-19
+MARATHON.NS,Marathon Nextgen Realty Limited,Realty,2960.0,438.0,2026-11-19
+MUTHOOTMF.NS,Muthoot Microfin Limited,Finance,2936.0,172.0,2026-11-19
+JINDALPOLY.NS,Jindal Poly Films Limited,Industrial Products,2935.0,670.0,2026-11-19
+BONDADA.NS,Bondada Engineering Limited,Telecom - Services,2934.0,263.0,2026-11-19
+FREDUN.NS,Fredun Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,2928.0,1708.0,2026-11-19
+PROTEAN.NS,Protean eGov Technologies Limited,IT - Services,2913.0,713.0,2026-11-19
+JTLIND.NS,JTL INDUSTRIES LIMITED,Industrial Products,2901.0,76.0,2026-11-19
+RPSGVENT.NS,RPSG VENTURES LIMITED,Commercial Services & Supplies,2896.0,874.0,2026-11-19
+INDSWFTLAB.NS,Ind-Swift Laboratories Limited,Pharmaceuticals & Biotechnology,2879.0,330.0,2026-11-19
+RSYSTEMS.NS,R Systems International Limited,IT - Services,2858.0,241.0,2026-11-19
+TRUALT.NS,TruAlt Bioenergy Limited,Agricultural Food & other Products,2853.0,333.0,2026-11-19
+SATIN.NS,Satin Creditcare Network Limited,Finance,2842.0,256.0,2026-11-19
+SPORTKING.NS,Sportking India Limited,Textiles & Apparels,2831.0,223.0,2026-11-19
+POCL.NS,Pondy Oxides & Chemicals Limited,Diversified Metals,2830.0,371.0,2026-11-19
+KERNEX.NS,Kernex Microsystems (India) Limited,Transport Services,2817.0,1676.0,2026-11-19
+SASKEN.NS,Sasken Technologies Limited,IT - Services,2816.0,1850.0,2026-11-19
+WELSPLSOL.NS,Welspun Specialty Solutions Limited,Industrial Products,2790.0,42.1,2026-11-19
+TASTYBITE.NS,Tasty Bite Eatables Limited,Food Products,2782.0,10848.0,2026-11-19
+NACLIND.NS,NACL Industries Limited,Fertilizers & Agrochemicals,2754.0,117.0,2026-11-19
+ASHIKAG.NS,Ashika Global Securities Limited,Finance,2746.0,368.0,2026-11-19
+MUFIN.NS,Mufin Green Finance Limited,Finance,2739.0,138.0,2026-11-19
+RAMCOIND.NS,Ramco Industries Limited,Other Construction Materials,2706.0,310.0,2026-11-19
+MONARCH.NS,Monarch Networth Capital Limited,Capital Markets,2694.0,340.0,2026-11-19
+INTERARCH.NS,Interarch Building Solutions Limited,Construction,2692.0,1598.0,2026-11-19
+NAVNETEDUL.NS,Navneet Education Limited,Household Products,2688.0,122.0,2026-11-19
+RAMKY.NS,Ramky Infrastructure Limited,Construction,2679.0,387.0,2026-11-19
+INDNIPPON.NS,India Nippon Electricals Limited,Auto Components,2651.0,1169.0,2026-11-19
+RELTD.NS,Ravindra Energy Limited,Electrical Equipment,2626.0,132.0,2026-11-19
+INDOTECH.NS,Indo Tech Transformers Limited,Electrical Equipment,2614.0,2463.0,2026-11-19
+PANAMAPET.NS,Panama Petrochem Limited,Petroleum Products,2582.0,427.0,2026-11-19
+KKCL.NS,Kewal Kiran Clothing Limited,Textiles & Apparels,2557.0,415.0,2026-11-19
+KABRAEXTRU.NS,Kabra Extrusion Technik Limited,Industrial Manufacturing,2546.0,729.0,2026-11-19
+MANGLMCEM.NS,Mangalam Cement Limited,Cement & Cement Products,2543.0,925.0,2026-11-19
+STOVEKRAFT.NS,Stove Kraft Limited,Consumer Durables,2539.0,766.0,2026-11-19
+NSIL.NS,Nalwa Sons Investments Limited,Finance,2514.0,4886.0,2026-11-19
+TALBROAUTO.NS,Talbros Automotive Components Limited,Auto Components,2510.0,407.0,2026-11-19
+AEROPLANE.NS,Amir Chand Jagdish Kumar (Exports) Limited,Agricultural Food & other Products,2479.0,239.0,2026-11-19
+HUBTOWN.NS,Hubtown Limited,Realty,2456.0,174.0,2026-11-19
+GLASSWALL.NS,Glass Wall Systems (India) Limited,Other Construction Materials,2434.0,277.0,2026-11-19
+TECHNVISN.NS,TechNVision Ventures Limited,IT - Software,2427.0,3849.0,2026-11-19
+SIMPLEXINF.NS,Simplex Infrastructures Limited,Construction,2414.0,306.0,2026-11-19
+SUNCLAY.NS,Sundaram Clayton Limited,Auto Components,2397.0,1090.0,2026-11-19
+MAITHANALL.NS,Maithan Alloys Limited,Ferrous Metals,2396.0,823.0,2026-11-19
+ROSSARI.NS,Rossari Biotech Limited,Chemicals & Petrochemicals,2375.0,427.0,2026-11-19
+REPCOHOME.NS,Repco Home Finance Limited,Finance,2366.0,377.0,2026-11-19
+SHRINGARMS.NS,Shringar House of Mangalsutra Limited,Consumer Durables,2366.0,245.0,2026-11-19
+SPAL.NS,S. P. Apparels Limited,Textiles & Apparels,2352.0,937.0,2026-11-19
+VEEDOL.NS,Veedol Corporation Limited,Petroleum Products,2342.0,1345.0,2026-11-19
+NOCIL.NS,NOCIL Limited,Chemicals & Petrochemicals,2323.0,139.0,2026-11-19
+NIITMTS.NS,NIIT Learning Systems Limited,Other Consumer Services,2314.0,167.0,2026-11-19
+SIYSIL.NS,Siyaram Silk Mills Limited,Textiles & Apparels,2313.0,510.0,2026-11-19
+PIXTRANS.NS,Pix Transmissions Limited,Industrial Products,2307.0,1691.0,2026-11-19
+MOLDTKPAC.NS,Mold-Tek Packaging Limited,Industrial Products,2298.0,346.0,2026-11-19
+UEL.NS,Ujaas Energy Limited,Power,2296.0,172.0,2026-11-19
+SIRCA.NS,Sirca Paints India Limited,Consumer Durables,2286.0,402.0,2026-11-19
+SUNDROP.NS,Sundrop Brands Limited,Food Products,2275.0,603.0,2026-11-19
+RANEHOLDIN.NS,Rane Holdings Limited,Finance,2245.0,1570.0,2026-11-19
+RISHABH.NS,Rishabh Instruments Limited,Electrical Equipment,2244.0,578.0,2026-11-19
+VINCOFE.NS,Vintage Coffee And Beverages Limited,Agricultural Food & other Products,2239.0,153.0,2026-11-19
+SOMANYCERA.NS,Somany Ceramics Limited,Consumer Durables,2234.0,544.0,2026-11-19
+JGCHEM.NS,J.G.Chemicals Limited,Chemicals & Petrochemicals,2225.0,567.0,2026-11-19
+POKARNA.NS,Pokarna Limited,Consumer Durables,2211.0,714.0,2026-11-19
+PENIND.NS,Pennar Industries Limited,Industrial Manufacturing,2199.0,162.0,2026-11-19
+UFBL.NS,United Foodbrands Limited,Leisure Services,2180.0,558.0,2026-11-19
+SAKAR.NS,Sakar Healthcare Limited,Pharmaceuticals & Biotechnology,2172.0,976.0,2026-11-19
+PANACEABIO.NS,Panacea Biotec Limited,Pharmaceuticals & Biotechnology,2162.0,350.0,2026-11-19
+THEJO.NS,Thejo Engineering Limited,Industrial Manufacturing,2157.0,1988.0,2026-11-19
+INDOCO.NS,Indoco Remedies Limited,Pharmaceuticals & Biotechnology,2151.0,232.0,2026-11-19
+MACPOWER.NS,Macpower CNC Machines Limited,Industrial Manufacturing,2132.0,2131.0,2026-11-19
+UTKARSHBNK.NS,Utkarsh Small Finance Bank Limited,Banks,2116.0,11.9,2026-11-19
+RAJRATAN.NS,Rajratan Global Wire Limited,Auto Components,2115.0,417.0,2026-11-19
+VIMTALABS.NS,Vimta Labs Limited,Healthcare Services,2104.0,470.0,2026-11-19
+STLNETWORK.NS,STL Networks Limited,Telecom - Services,2099.0,43.1,2026-11-19
+GCSL.NS,Gretex Corporate Services Limited,Capital Markets,2096.0,839.0,2026-11-19
+SYNCOMF.NS,Syncom Formulations (India) Limited,Pharmaceuticals & Biotechnology,2087.0,22.2,2026-11-19
+MEDIASSIST.NS,Medi Assist Healthcare Services Limited,Insurance,2084.0,279.0,2026-11-19
+STALLION.NS,Stallion India Fluorochemicals Limited,Chemicals & Petrochemicals,2079.0,179.0,2026-11-19
+NITCO.NS,Nitco Limited,Consumer Durables,2073.0,82.0,2026-11-19
+VENKEYS.NS,Venky's (India) Limited,Food Products,2063.0,1462.0,2026-11-19
+WINDLAS.NS,Windlas Biotech Limited,Pharmaceuticals & Biotechnology,2033.0,985.0,2026-11-19
+VENUSREM.NS,Venus Remedies Limited,Pharmaceuticals & Biotechnology,2029.0,1512.0,2026-11-19
+RAMCOSYS.NS,Ramco Systems Limited,IT - Software,2014.0,535.0,2026-11-19
+ORISSAMINE.NS,The Orissa Minerals Development Company Limited,Minerals & Mining,2014.0,3350.0,2026-11-19
+PRAKASH.NS,Prakash Industries Limited,Ferrous Metals,2008.0,112.0,2026-11-19
+PARACABLES.NS,Paramount Communications Limited,Industrial Products,2002.0,61.2,2026-11-19
+INDORAMA.NS,Indo Rama Synthetics (India) Limited,Textiles & Apparels,2002.0,76.8,2026-11-19
+TURTLEMINT.NS,Turtlemint Fintech Solutions Limited,Financial Technology (Fintech),1991.0,67.7,2026-11-19
+KICL.NS,Kalyani Investment Company Limited,Finance,1986.0,4426.0,2026-11-19
+TAJGVK.NS,Taj GVK Hotels & Resorts Limited,Leisure Services,1972.0,312.0,2026-11-19
+MUKANDLTD.NS,Mukand Limited,Industrial Products,1970.0,137.0,2026-11-19
+SANSTAR.NS,Sanstar Limited,Agricultural Food & other Products,1964.0,97.8,2026-11-19
+ONEPOINT.NS,One Point One Solutions Limited,Commercial Services & Supplies,1950.0,73.0,2026-11-19
+TECHNOCRAF.NS,Technocraft Ventures Limited,Other Utilities,1936.0,488.0,2026-11-19
+GSPCROP.NS,GSP Crop Science Limited,Fertilizers & Agrochemicals,1927.0,414.0,2026-11-19
+JNKINDIA.NS,JNK India Limited,Industrial Manufacturing,1924.0,343.0,2026-11-19
+KRISHNADEF.NS,Krishna Defence And Allied Industries Limited,Aerospace & Defense,1914.0,1280.0,2026-11-19
+LANDMARK.NS,Landmark Cars Limited,Automobiles,1910.0,462.0,2026-11-19
+MANAKCOAT.NS,Manaksia Coated Metals & Industries Limited,Industrial Products,1909.0,161.0,2026-11-19
+KROSS.NS,Kross Limited,Auto Components,1900.0,288.0,2026-11-19
+DEEPA.NS,Deepa Jewellers Limited,Consumer Durables,1893.0,197.0,2026-11-19
+BODALCHEM.NS,Bodal Chemicals Limited,Chemicals & Petrochemicals,1890.0,150.0,2026-11-19
+SHANTIGOLD.NS,Shanti Gold International Limited,Consumer Durables,1872.0,244.0,2026-11-19
+RACLGEAR.NS,RACL Geartech Limited,Auto Components,1854.0,1574.0,2026-11-19
+KCP.NS,KCP Limited,Cement & Cement Products,1851.0,144.0,2026-11-19
+SAGCEM.NS,Sagar Cements Limited,Cement & Cement Products,1850.0,140.0,2026-11-19
+TCIEXP.NS,TCI Express Limited,Transport Services,1825.0,476.0,2026-11-19
+BCG.NS,Brightcom Group Limited,IT - Services,1812.0,8.99,2026-11-19
+OMAXE.NS,Omaxe Limited,Realty,1811.0,98.7,2026-11-19
+NDRAUTO.NS,Ndr Auto Components Limited,Auto Components,1804.0,760.0,2026-11-19
+LAOPALA.NS,La Opala RG Limited,Consumer Durables,1801.0,162.0,2026-11-19
+MSPL.NS,MSP Steel & Power Limited,Industrial Products,1791.0,31.6,2026-11-19
+TINNARUBR.NS,Tinna Rubber and Infrastructure Limited,Industrial Products,1789.0,993.0,2026-11-19
+MENONBE.NS,Menon Bearings Limited,Auto Components,1789.0,319.0,2026-11-19
+NELCO.NS,NELCO Limited,IT - Hardware,1786.0,783.0,2026-11-19
+SMCGLOBAL.NS,SMC Global Securities Limited,Capital Markets,1773.0,84.6,2026-11-19
+BFUTILITIE.NS,BF Utilities Limited,Transport Infrastructure,1770.0,471.0,2026-11-19
+BLEL.NS,Behari Lal Engineering Limited,Industrial Products,1759.0,416.0,2026-11-19
+SHK.NS,S H Kelkar and Company Limited,Chemicals & Petrochemicals,1758.0,127.0,2026-11-19
+GAJA.NS,Gaja Alternative Asset Management Limited,Capital Markets,1752.0,124.0,2026-11-19
+NIBE.NS,NIBE Limited,Aerospace & Defense,1727.0,1116.0,2026-11-19
+BLSPOLY.NS,BLS Polymers Limited,Chemicals & Petrochemicals,1721.0,278.0,2026-11-19
+QUADFUTURE.NS,Quadrant Future Tek Limited,Industrial Products,1719.0,429.0,2026-11-19
+SURAKSHA.NS,Suraksha Diagnostic Limited,Healthcare Services,1716.0,329.0,2026-11-19
+GYFTR.NS,Gyftr Limited,Finance,1714.0,223.0,2026-11-19
+VOEPL.NS,Virtuoso Optoelectronics Limited,Consumer Durables,1700.0,475.0,2026-11-19
+AVADHSUGAR.NS,Avadh Sugar & Energy Limited,Agricultural Food & other Products,1698.0,847.0,2026-11-19
+GNRL.NS,Gujarat Natural Resources Limited,Oil,1695.0,11.1,2026-11-19
+TIL.NS,TIL Limited,"Agricultural, Commercial & Construction Vehicles",1694.0,207.0,2026-11-19
+FRONTSP.NS,Frontier Springs Limited,Auto Components,1688.0,1426.0,2026-11-19
+SCILAL.NS,Shipping Corporation of India Land and Assets Limited,Finance,1686.0,36.2,2026-11-19
+MBEL.NS,M & B Engineering Limited,Construction,1679.0,294.0,2026-11-19
+SILVERTUC.NS,Silver Touch Technologies Limited,IT - Software,1677.0,132.0,2026-11-19
+SHREEPUSHK.NS,Shree Pushkar Chemicals & Fertilisers Limited,Chemicals & Petrochemicals,1672.0,519.0,2026-11-19
+KRSNAA.NS,Krsnaa Diagnostics Limited,Healthcare Services,1672.0,514.0,2026-11-19
+SAKSOFT.NS,Saksoft Limited,IT - Software,1658.0,125.0,2026-11-19
+BPLPHARMA.NS,Bharat Parenterals Limited,Pharmaceuticals & Biotechnology,1654.0,2401.0,2026-11-19
+MOBIKWIK.NS,One Mobikwik Systems Limited,Financial Technology (Fintech),1652.0,209.0,2026-11-19
+TARSONS.NS,Tarsons Products Limited,Healthcare Equipment & Supplies,1640.0,308.0,2026-11-19
+VIDYAWIRES.NS,Vidya Wires Limited,Industrial Products,1639.0,77.0,2026-11-19
+GRANDOAK.NS,Grand Oak Canyons Distillery Limited,Finance,1631.0,32.5,2026-11-19
+NUCLEUS.NS,Nucleus Software Exports Limited,IT - Software,1624.0,618.0,2026-11-19
+IGPL.NS,IG Petrochemicals Limited,Chemicals & Petrochemicals,1613.0,524.0,2026-11-19
+SURYODAY.NS,Suryoday Small Finance Bank Limited,Banks,1610.0,152.0,2026-11-19
+SDBL.NS,Som Distilleries & Breweries Limited,Beverages,1595.0,76.6,2026-11-19
+DISAQ.NS,Disa India Limited,Industrial Manufacturing,1585.0,10855.0,2026-11-19
+SPANDANA.NS,Spandana Sphoorty Financial Limited,Finance,1582.0,178.0,2026-11-19
+INDIANHUME.NS,Indian Hume Pipe Company Limited,Construction,1578.0,300.0,2026-11-19
+RGL.NS,Renaissance Global Limited,Consumer Durables,1575.0,146.0,2026-11-19
+INSECTICID.NS,Insecticides (India) Limited,Fertilizers & Agrochemicals,1572.0,540.0,2026-11-19
+GOODYEAR.NS,Goodyear India Limited,Auto Components,1569.0,679.0,2026-11-19
+PFS.NS,PTC India Financial Services Limited,Finance,1567.0,24.4,2026-11-19
+MTNL.NS,Mahanagar Telephone Nigam Limited,Telecom - Services,1562.0,24.8,2026-11-19
+INFOBEAN.NS,InfoBeans Technologies Limited,IT - Software,1559.0,161.0,2026-11-19
+JAICORPLTD.NS,Jai Corp Limited,Industrial Products,1551.0,88.4,2026-11-19
+VIDHIING.NS,Vidhi Specialty Food Ingredients Limited,Chemicals & Petrochemicals,1549.0,311.0,2026-11-19
+BHAGERIA.NS,Bhageria Industries Limited,Chemicals & Petrochemicals,1539.0,353.0,2026-11-19
+RUBYMILLS.NS,The Ruby Mills Limited,Textiles & Apparels,1536.0,462.0,2026-11-19
+IKIO.NS,IKIO Technologies Limited,Consumer Durables,1535.0,199.0,2026-11-19
+TEXINFRA.NS,Texmaco Infrastructure & Holdings Limited,Commercial Services & Supplies,1529.0,120.0,2026-11-19
+MOTISONS.NS,Motisons Jewellers Limited,Consumer Durables,1523.0,13.4,2026-11-19
+SUMMITSEC.NS,Summit Securities Limited,Finance,1518.0,1394.0,2026-11-19
+TTKHLTCARE.NS,TTK Healthcare Limited,Diversified,1493.0,1055.0,2026-11-19
+JINDRILL.NS,Jindal Drilling And Industries Limited,Oil,1487.0,513.0,2026-11-19
+JYOTISTRUC.NS,Jyoti Structures Limited,Electrical Equipment,1484.0,12.4,2026-11-19
+LGHL.NS,Laxmi Goldorna House Limited,Consumer Durables,1473.0,294.0,2026-11-19
+BLIL.NS,Balmer Lawrie Investments Limited,Finance,1460.0,65.9,2026-11-19
+BLUECLOUDS.NS,Blue Cloud Softech Solutions Limited,IT - Software,1460.0,15.9,2026-11-19
+SERVOTECH.NS,Servotech Renewable Power System Limited,Electrical Equipment,1456.0,64.5,2026-11-19
+UDS.NS,Updater Services Limited,Commercial Services & Supplies,1454.0,217.0,2026-11-19
+PNBGILTS.NS,PNB Gilts Limited,Finance,1447.0,80.2,2026-11-19
+OAL.NS,Oriental Aromatics Limited,Chemicals & Petrochemicals,1445.0,429.0,2026-11-19
+FAZE3Q.NS,Faze Three Limited,Textiles & Apparels,1440.0,588.0,2026-11-19
+IPL.NS,India Pesticides Limited,Fertilizers & Agrochemicals,1436.0,124.0,2026-11-19
+TIRUMALCHM.NS,Thirumalai Chemicals Limited,Chemicals & Petrochemicals,1434.0,119.0,2026-11-19
+BNAGROCHEM.NS,BN Agrochem Limited,Commercial Services & Supplies,1434.0,14.6,2026-11-19
+AGL.NS,Allcargo Global Limited,Transport Services,1422.0,14.5,2026-11-19
+WENDT.NS,Wendt (India) Limited,Industrial Products,1412.0,7060.0,2026-11-19
+TAALTECH.NS,Taal Tech Limited,Transport Services,1409.0,909.0,2026-11-19
+UTTAMSUGAR.NS,Uttam Sugar Mills Limited,Agricultural Food & other Products,1408.0,368.0,2026-11-19
+STEELXIND.NS,STEEL EXCHANGE INDIA LIMITED,Industrial Products,1407.0,10.4,2026-11-19
+YATRA.NS,Yatra Online Limited,Leisure Services,1404.0,89.9,2026-11-19
+JAGRAN.NS,Jagran Prakashan Limited,Media,1398.0,64.3,2026-11-19
+JAGSNPHARM.NS,Jagsonpal Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1396.0,212.0,2026-11-19
+KALAMANDIR.NS,Sai Silks (Kalamandir) Limited,Retailing,1395.0,91.0,2026-11-19
+FERMENTA.NS,Fermenta Biotech Limited,Pharmaceuticals & Biotechnology,1367.0,464.0,2026-11-19
+TGVSL.NS,TGV Sraac Limited,Chemicals & Petrochemicals,1367.0,128.0,2026-11-19
+JAYBARMARU.NS,Jay Bharat Maruti Limited,Auto Components,1367.0,126.0,2026-11-19
+MOL.NS,Meghmani Organics Limited,Fertilizers & Agrochemicals,1366.0,53.8,2026-11-19
+VIKRAN.NS,Vikran Engineering Limited,Construction,1364.0,52.8,2026-11-19
+YUKEN.NS,Yuken India Limited,Industrial Products,1360.0,1000.0,2026-11-19
+MCLOUD.NS,Magellanic Cloud Limited,IT - Software,1358.0,23.1,2026-11-19
+ROTO.NS,Roto Pumps Limited,Industrial Products,1350.0,71.7,2026-11-19
+XTRANET.NS,Xtranet Technologies Limited,IT - Services,1335.0,255.0,2026-11-19
+MANALIPETC.NS,Manali Petrochemicals Limited,Chemicals & Petrochemicals,1331.0,77.5,2026-11-19
+SESHAPAPER.NS,Seshasayee Paper and Boards Limited,"Paper, Forest & Jute Products",1328.0,211.0,2026-11-19
+BENARAS.NS,Benares Hotels Limited,Leisure Services,1326.0,10200.0,2026-11-19
+IFGLEXPOR.NS,IFGL Refractories Limited,Industrial Products,1324.0,182.0,2026-11-19
+AKCAPIT.NS,AK Capital Services Limited,Finance,1318.0,2002.0,2026-11-19
+RICOAUTO.NS,Rico Auto Industries Limited,Auto Components,1317.0,97.4,2026-11-19
+SHALBY.NS,Shalby Limited,Healthcare Services,1317.0,122.0,2026-11-19
+KOPRAN.NS,Kopran Limited,Pharmaceuticals & Biotechnology,1300.0,268.0,2026-11-19
+NRL.NS,Nupur Recyclers Limited,Metals & Minerals Trading,1298.0,188.0,2026-11-19
+UNITEDPOLY.NS,United Polyfab Gujarat Limited,Textiles & Apparels,1293.0,55.6,2026-11-19
+IVALUE.NS,Ivalue Infosolutions Limited,IT - Services,1288.0,236.0,2026-11-19
+IMPAL.NS,India Motor Parts and Accessories Limited,Auto Components,1271.0,1034.0,2026-11-19
+ARDEE.NS,Ardee Industries Limited,Diversified Metals,1266.0,40.2,2026-11-19
+NELCAST.NS,Nelcast Limited,Industrial Products,1241.0,142.0,2026-11-19
+WALCHANNAG.NS,Walchandnagar Industries Limited,Industrial Manufacturing,1240.0,182.0,2026-11-19
+NAVKARCORP.NS,Navkar Corporation Limited,Transport Services,1208.0,80.3,2026-11-19
+SPIC.NS,Southern Petrochemicals Industries Corporation  Limited,Fertilizers & Agrochemicals,1192.0,58.6,2026-11-19
+SHRIRAMPPS.NS,Shriram Properties Limited,Realty,1189.0,69.7,2026-11-19
+INDOBORAX.NS,Indo Borax & Chemicals Limited,Chemicals & Petrochemicals,1185.0,370.0,2026-11-19
+PLATIND.NS,Platinum Industries Limited,Chemicals & Petrochemicals,1172.0,213.0,2026-11-19
+KPEL.NS,K.P. Energy Limited,Power,1168.0,172.0,2026-11-19
+SPMLINFRA.NS,SPML Infra Limited,Construction,1167.0,138.0,2026-11-19
+ULTRAMAR.NS,Ultramarine & Pigments Limited,Chemicals & Petrochemicals,1165.0,398.0,2026-11-19
+FEDDERSHOL.NS,Fedders Holding Limited,Finance,1162.0,57.7,2026-11-19
+JINDALPHOT.NS,Jindal Photo Limited,Finance,1156.0,1123.0,2026-11-19
+SKMEGGPROD.NS,SKM Egg Products Export (India) Limited,Food Products,1154.0,219.0,2026-11-19
+MMP.NS,MMP Industries Limited,Non - Ferrous Metals,1152.0,454.0,2026-11-19
+UGROCAP.NS,Ugro Capital Limited,Finance,1142.0,73.4,2026-11-19
+SULA.NS,Sula Vineyards Limited,Beverages,1142.0,135.0,2026-11-19
+IGARASHI.NS,Igarashi Motors India Limited,Auto Components,1131.0,360.0,2026-11-19
+ANDREWYU.NS,Andrew Yule & Company Limited,Agricultural Food & other Products,1127.0,23.0,2026-11-19
+PASHUPATI.NS,Pashupati Cotspin Limited,Textiles & Apparels,1127.0,28.6,2026-11-19
+3BBLACKBIO.NS,3B Blackbio Dx Limited,Healthcare Services,1126.0,1311.0,2026-11-19
+VHL.NS,Vardhman Holdings Limited,Finance,1123.0,3515.0,2026-11-19
+BAFNAPH.NS,Bafna Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1119.0,480.0,2026-11-19
+BELDING.NS,Belding India Limited,Industrial Products,1117.0,784.0,2026-11-19
+ACEVECTOR.NS,AceVector Limited,Retailing,1111.0,20.5,2026-11-19
+PVP.NS,PVP Ventures Limited,Realty,1110.0,42.6,2026-11-19
+ACGL.NS,Automobile Corporation of Goa Limited,Auto Components,1104.0,1808.0,2026-11-19
+WEL.NS,Wonder Electricals Limited,Consumer Durables,1104.0,82.8,2026-11-19
+MATRIMONY.NS,Matrimony.Com Limited,Retailing,1094.0,528.0,2026-11-19
+NRAIL.NS,N R Agarwal Industries Limited,"Paper, Forest & Jute Products",1088.0,642.0,2026-11-19
+RHETAN.NS,Rhetan TMT Limited,Industrial Products,1087.0,13.7,2026-11-19
+MODISONLTD.NS,MODISON LIMITED,Electrical Equipment,1086.0,332.0,2026-11-19
+IRISDOREME.NS,Iris Clothings Limited,Textiles & Apparels,1084.0,57.0,2026-11-19
+ZSARACOM.NS,Saraswati Commercial India Limited,Finance,1084.0,9696.0,2026-11-19
+MICEL.NS,MIC Electronics Limited,Industrial Products,1077.0,36.2,2026-11-19
+PUNJABCHEM.NS,Punjab Chemicals & Crop Protection Limited,Fertilizers & Agrochemicals,1075.0,878.0,2026-11-19
+KAMDHENU.NS,Kamdhenu Limited,Industrial Products,1075.0,38.2,2026-11-19
+LAXMIDENTL.NS,Laxmi Dental Limited,Healthcare Equipment & Supplies,1061.0,193.0,2026-11-19
+SIGACHI.NS,Sigachi Industries Limited,Pharmaceuticals & Biotechnology,1057.0,27.6,2026-11-19
+MONTECARLO.NS,Monte Carlo Fashions Limited,Textiles & Apparels,1045.0,503.0,2026-11-19
+SYSTMTXC.NS,Systematix Corporate Services Limited,Capital Markets,1044.0,78.0,2026-11-19
+RIIL.NS,Reliance Industrial Infrastructure Limited,Transport Services,1042.0,690.0,2026-11-19
+CONSOFINVT.NS,Consolidated Finvest & Holdings Limited,Finance,1037.0,320.0,2026-11-19
+LINCOLN.NS,Lincoln Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,1023.0,510.0,2026-11-19
+ARYAMAN.NS,Aryaman Financial Services Limited,Finance,1021.0,831.0,2026-11-19
+ARROWGREEN.NS,Arrow Greentech Limited,Industrial Products,1019.0,673.0,2026-11-19
+IRMENERGY.NS,IRM Energy Limited,Gas,1011.0,247.0,2026-11-19
+ASTAR.NS,Asian Star Company Limited,Consumer Durables,1008.0,630.0,2026-11-19
+TNPETRO.NS,Tamilnadu PetroProducts Limited,Chemicals & Petrochemicals,1008.0,112.0,2026-11-19
