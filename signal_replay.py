@@ -88,6 +88,21 @@ def exit_hit(c, ma50, since, i):
     return (c[i] < ma50[i] and c[i - 1] < ma50[i - 1]) or c[i] < 0.85 * c[since:i + 1].max()
 
 
+def run_exits(c, ma50, i0, entries=()):
+    """Buy at i0, sell on the technical exit, buy again on the next day in `entries` (none: stay out). -> % return."""
+    e, p, entries = 1.0, i0, set(entries)
+    for j in range(i0 + 1, len(c)):
+        if p is None:
+            if j in entries:
+                p = j
+        elif exit_hit(c, ma50, p, j):
+            e *= c[j] / c[p]
+            p = None
+    if p is not None:
+        e *= c[-1] / c[p]
+    return (e - 1) * 100
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2026-07-01")
@@ -136,10 +151,12 @@ def main():
         pos = {"T": None, "TV": None}
         eq = {"T": 1.0, "TV": 1.0}
         inv = {"T": 0, "TV": 0}
-        nbuy, ncomb, vstat = 0, 0, {}
+        nbuy, ncomb, vstat, buy_days = 0, 0, {}, []
         for i in days:
             r = analyse(h.iloc[:i + 1])
             tech_buy = r.get("action") == "BUY NOW"
+            if tech_buy:
+                buy_days.append(i)
             nbuy += tech_buy
             need_val = tech_buy or pos["TV"] is not None
             comb = "HOLD"
@@ -169,6 +186,12 @@ def main():
         rec = dict(stock=n, hold=(c[-1] / c[days[0]] - 1) * 100, buy_now_days=nbuy, comb_buy_days=ncomb,
                    tech=(eq["T"] - 1) * 100, techval=(eq["TV"] - 1) * 100, tech_inv_days=inv["T"], techval_inv_days=inv["TV"],
                    days=len(days), val_status=";".join(f"{k_}:{v_}" for k_, v_ in vstat.items()))
+        rec["hold_exit"] = run_exits(c, ma50, days[0])                       # every stock, technical exit, stay out
+        rec["hold_exit_re"] = run_exits(c, ma50, days[0], buy_days)          # ... and buy back on the next BUY NOW
+        g2 = D[(D.stock == n) & D.src.isin(["RS Divergence", "Earnings Shock"])]
+        sig2 = sorted({min(h.index.searchsorted(d), len(c) - 1) for d in g2.date if d <= h.index[-1]})
+        if sig2:
+            rec.update(rde_date=h.index[sig2[0]].date(), rde_exit=run_exits(c, ma50, sig2[0], sig2), rde_n=len(g2))
         g = D[D.stock == n]
         if len(g):
             sig = sorted({min(h.index.searchsorted(d), len(c) - 1) for d in g.date if d <= h.index[-1]})
@@ -198,7 +221,10 @@ def main():
 
 
 def summarise(S, T, nifty, START):
-    cols = {"hold": "Hold every stock", "sl_hold": "Signal Lab: first signal, held", "sl_exit": "Signal Lab entries + technical exit",
+    cols = {"hold": "Hold every stock", "hold_exit": "Hold every stock + technical exit (stay out after)",
+            "hold_exit_re": "Hold every stock + technical exit, buy back on BUY NOW",
+            "sl_hold": "Signal Lab: first signal, held", "sl_exit": "Signal Lab entries + technical exit",
+            "rde_exit": "RS Divergence + Earnings Shock entries + technical exit",
             "tech": "Technicals only", "techval": "Technicals + valuation"}
     L = [f"# Signal replay: Nifty 500 from {START:%d %b %Y} to {pd.Timestamp.today():%d %b %Y}", "",
          f"{len(S)} stocks with Yahoo data. Nifty 50 over the same days: {nifty:+.1f}%.", "",
@@ -207,9 +233,9 @@ def summarise(S, T, nifty, START):
     for k, lab in cols.items():
         if k not in S:
             continue
-        if k == "hold":
+        if k.startswith("hold"):
             acted = S[k].dropna()
-        elif k.startswith("sl"):
+        elif k.startswith(("sl", "rde")):
             acted = S[k].dropna()
         else:
             acted = S.loc[S[f"{k}_inv_days"] > 0, k]
@@ -239,9 +265,11 @@ def summarise(S, T, nifty, START):
     # big movers: who caught them
     top, bot = S.nlargest(25, "hold"), S.nsmallest(25, "hold")
     L += ["", "**Top 25 and bottom 25 stocks by holding return: average captured by each approach**", "",
-          "| Group | Hold | Signal Lab held | Technicals | Tech + valuation |", "|---|---|---|---|---|"]
+          "| Group | Hold | Hold + tech exit | Signal Lab held | RS Div + Earnings + exit | Technicals | Tech + valuation |",
+          "|---|---|---|---|---|---|---|"]
     for lab, g in (("Top 25", top), ("Bottom 25", bot)):
-        L.append(f"| {lab} | {g.hold.mean():+.1f}% | {g.sl_hold.fillna(0).mean():+.1f}% | {g.tech.mean():+.1f}% | {g.techval.mean():+.1f}% |")
+        L.append(f"| {lab} | {g.hold.mean():+.1f}% | {g.hold_exit.mean():+.1f}% | {g.sl_hold.fillna(0).mean():+.1f}% | "
+                 f"{g.rde_exit.fillna(0).mean():+.1f}% | {g.tech.mean():+.1f}% | {g.techval.mean():+.1f}% |")
     L += ["", "Fills at the signal day's close, no costs, equal weight per stock, uninvested money earns nothing. "
           "Valuation peers are today's. Signal Lab has no exits of its own."]
     txt = "\n".join(L)
