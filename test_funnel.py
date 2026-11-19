@@ -983,3 +983,23 @@ tv._deep_dive(df)
     assert t == "SAREGAMA.NS" and set(f) == {"stop_loss"} and 430 < f["stop_loss"] < 680       # only the stop is raised; buy details matched
     at.selectbox(key="tx_pick").select("TCS.NS").run()                                       # not held: the fields are cleared
     assert (at.toggle(key="tx_held").value, at.number_input(key="tx_hp").value) == (False, 0.0)
+
+
+def test_engine_gate_runs_once_in_the_evening_window():
+    import importlib.util
+    from datetime import datetime
+    spec = importlib.util.spec_from_file_location("engine_gate", "scripts/engine_gate.py")
+    g = importlib.util.module_from_spec(spec); spec.loader.exec_module(g)
+    at = lambda s: datetime.fromisoformat(s).replace(tzinfo=g.IST)
+    sch = "schedule"
+    assert g.decide(at("2026-11-19 10:30"), sch, {})[0]                                   # market hours: would be intraday prices
+    assert not g.decide(at("2026-11-19 16:05"), sch, {})[0]                               # after the close: run
+    assert g.decide(at("2026-11-20 00:19"), sch, {})[0]                                   # after midnight: Yahoo lacks the day's bar
+    assert g.decide(at("2026-11-21 18:00"), sch, {})[0]                                   # Saturday
+    done = {"date": "2026-11-19", "bar_date": "2026-11-19", "tries": 1}
+    assert g.decide(at("2026-11-19 19:00"), sch, done)[0]                                  # captured: later firings skip
+    stale = {"date": "2026-11-19", "bar_date": "2026-11-18", "tries": 1}
+    assert not g.decide(at("2026-11-19 19:00"), sch, stale)[0]                             # one more try
+    assert g.decide(at("2026-11-19 21:00"), sch, {**stale, "tries": 2})[0]                 # then stop (holiday)
+    assert not g.decide(at("2026-11-19 19:00"), sch, {"date": "2026-11-19"})[0]            # old-style mark from a late run: still runs
+    assert not g.decide(at("2026-11-19 11:00"), "workflow_dispatch", done)[0]              # manual run always goes
