@@ -342,7 +342,9 @@ def _deep_dive_us():
     """The same v6 technical read for a US stock: chart structure, volume anchor, supply, stop, size and exit rule."""
     st.caption("Fresh 2-year daily bars from Yahoo. While New York is open, today's candle is provisional and left out. "
                "⚠️ The v6 rules were built and backtested on NSE stocks only; on US stocks they are untested. The volume "
-               "anchor needs about $0.6M traded that day (the ₹5 cr rule), so nearly every US day qualifies on value.")
+               "anchor needs about $0.6M traded that day (the ₹5 cr rule), so nearly every US day qualifies on value. "
+               "Valuation below uses SEC filings (refreshed weekly) and the same v4.1 model with S&P 500 peers and a 9% "
+               "hurdle; it too was calibrated on Indian stocks.")
     try:
         sp = pd.read_csv("data/sp500_tickers.csv")
         names = dict(zip(sp.iloc[:, 0].astype(str), sp.get("name", sp.iloc[:, 0]).astype(str)))
@@ -437,12 +439,10 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
     """Entry, stop, targets and value zones in one place, with the dates the data is from."""
     from utils import trade_plan
     from utils.valuation import _series, value_stock
-    from utils.valuation_view import ctx as _val_ctx
+    from utils.valuation_view import ctx as _val_ctx, ctx_us as _val_ctx_us
     r, val, c = P["r"], None, None
     try:
-        if us:
-            raise RuntimeError("no US valuation")
-        c = _val_ctx()
+        c = _val_ctx_us() if us else _val_ctx()
         if not c.annual.empty:
             hh = h.tail(252)
             val = value_stock(name, c, price=float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))
@@ -564,12 +564,8 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     with st.expander("🧾 Full v6 report (text)"):
         st.code(report(h, name, P=P), language=None)
     st.divider()
-    if us:
-        st.info("💰 Valuation for US stocks is not built yet: the fair-value model runs on Indian (Screener) financials. "
-                "The technical read above stands on its own.")
-        return
     from utils.valuation_view import render_stock
     hh = h.tail(252)
     render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
                  tech_buy=P["r"]["action"] == "BUY NOW" and not P["held"],
-                 below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]))
+                 below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]), market="US" if us else "IN")
