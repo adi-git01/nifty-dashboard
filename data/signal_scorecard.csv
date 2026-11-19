@@ -1,18 +1,20 @@
 signal,signals,first,n_5d,days_5d,avg_5d,median_5d,hit_5d,n_21d,days_21d,avg_21d,median_21d,hit_21d,n_63d,days_63d,avg_63d,median_63d,hit_63d,where,claim,verdict,as_of,sessions
-Turnaround Radar (IAS watchlist),582,2026-04-22,558,119,-0.58,-0.42,44.0,448,103,-0.27,-1.92,40.0,241,70,-1.63,-1.78,46.0,Turnaround Radar,accumulation in beaten-down stocks,LAGS MARKET,2026-11-17,171
-   …ALERT tier only,116,2026-04-22,114,56,-1.25,-0.83,41.0,100,48,-0.62,-2.65,40.0,65,37,-2.11,-4.35,42.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-17,171
-   …READY tier only,167,2026-04-22,162,62,-1.55,-0.83,40.0,134,51,-1.11,-2.6,35.0,88,43,-1.08,-3.19,44.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-17,171
-Turnaround Catalyst,972,2026-06-03,900,102,-0.76,-1.16,40.0,610,84,0.27,-1.38,43.0,387,46,-0.33,-3.32,42.0,Live Desk / Morning Pulse,big up day or trend-score jump off the lows,NO EDGE,2026-11-17,171
-Earnings Shock,2026,2026-05-18,1875,106,0.41,-0.53,46.0,1365,90,0.76,-1.01,44.0,764,48,3.79,0.9,52.0,Live Desk,4%+ jump on 2.5x volume,LIKE MOMENTUM,2026-11-17,171
-RS Divergence,719,2026-05-18,560,11,-0.52,-0.37,46.0,451,7,-2.13,-1.87,43.0,22,1,4.33,7.2,59.0,Live Desk,"up on a red market day, near highs",TOO NEW,2026-11-17,171
-Breakouts (52W / ATH / squeeze),325,2026-09-16,275,34,0.46,-0.7,46.0,125,18,-1.14,-4.62,35.0,0,0,,,,Trend Scanner,new high or squeeze release,TOO NEW,2026-11-17,171
-V2.2 watchlist BUY alert,810,2026-02-24,786,161,0.17,-0.45,46.0,677,142,0.64,-0.88,45.0,452,105,4.15,1.33,53.0,Live Desk / Telegram,trend score 70+ with accumulation,LIKE MOMENTUM,2026-11-17,171
-"Agreement (2+ of SIMBA, Scanner, Technicals)",71,2026-11-10,34,1,2.05,1.3,71.0,0,0,,,,0,0,,,,Trend Scanner → Agreement,three tools agree,TOO NEW,2026-11-17,171
-Funnel: passes all four stages (live log),33,2026-11-13,0,0,,,,0,0,,,,0,0,,,,Investment Funnel,industry + trend + business + entry,TOO NEW,2026-11-17,171
-"Funnel: near miss, one stage short (live log)",98,2026-11-13,0,0,,,,0,0,,,,0,0,,,,Investment Funnel,the funnel's control group,TOO NEW,2026-11-17,171
-"Scanner BUY, any day (yardstick)",57797,2026-02-24,55645,166,0.35,0.0,50.0,49037,150,1.17,0.02,50.0,32620,108,4.15,1.0,52.0,Trend Scanner,"plain momentum: RS > 0, above the 50-day, liquid",YARDSTICK,2026-11-17,171
-Morning Pulse: top-10 trend-score gainers,1700,2026-02-27,1625,165,-0.16,-0.45,46.0,1382,149,0.52,-1.17,45.0,923,107,1.91,-1.16,48.0,Morning Pulse,labelled 'turnaround candidates',LIKE MOMENTUM,2026-11-17,171
-Morning Pulse: top-10 trend-score losers,1700,2026-02-27,1627,165,-0.04,-0.35,46.0,1384,149,1.06,-0.39,48.0,933,107,3.51,-0.73,47.0,Morning Pulse,labelled 'caution / exit watch',LIKE MOMENTUM,2026-11-17,171
-Morning Pulse: accumulation leaders (top 10),1710,2026-02-24,1645,166,-0.05,-0.3,47.0,1442,150,0.01,-1.16,45.0,1008,108,3.75,2.24,56.0,Morning Pulse,highest volume-accumulation score,NO EDGE,2026-11-17,171
-Funnel stages 1+2: Scanner BUY in a leading industry (rebuilt),38269,2026-02-24,36781,166,0.33,0.07,51.0,32622,150,1.72,0.2,51.0,23517,108,8.24,1.47,53.0,Investment Funnel,does the industry stage add to plain momentum? (all sessions),LIKE MOMENTUM,2026-11-17,171
-Funnel stages 1+2+4: …with an entry setup (rebuilt),485,2026-09-30,395,24,-0.47,-1.44,39.0,180,8,-2.15,-2.78,44.0,0,0,,,,Investment Funnel,"…and the entry stage? (since Technicals data began, 30 Sep 2026)",TOO NEW,2026-11-17,171
+Turnaround Radar (IAS watchlist),592,2026-04-22,558,119,-0.49,-0.42,44.0,454,104,-0.11,-1.91,40.0,243,71,-0.65,-1.66,46.0,Turnaround Radar,accumulation in beaten-down stocks,LAGS MARKET,2026-11-19,172
+   …ALERT tier only,116,2026-04-22,114,56,-0.88,-0.83,41.0,101,49,-0.44,-2.5,41.0,65,37,0.37,-3.86,45.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-19,172
+   …READY tier only,169,2026-04-22,162,62,-1.56,-0.84,40.0,135,52,-1.35,-2.63,35.0,90,44,-1.34,-3.44,44.0,Turnaround Radar,the radar's highest-conviction tiers,TOO NEW,2026-11-19,172
+Turnaround Catalyst,980,2026-06-03,924,103,-0.63,-1.14,40.0,620,85,0.23,-1.46,43.0,395,47,0.21,-2.96,43.0,Live Desk / Morning Pulse,big up day or trend-score jump off the lows,NO EDGE,2026-11-19,172
+Earnings Shock,2046,2026-05-18,1908,107,0.44,-0.51,46.0,1375,91,0.69,-1.02,44.0,785,49,4.05,1.19,52.0,Live Desk,4%+ jump on 2.5x volume,LIKE MOMENTUM,2026-11-19,172
+RS Divergence,719,2026-05-18,560,11,-0.39,-0.39,46.0,451,7,-1.93,-1.87,43.0,22,1,4.03,6.9,59.0,Live Desk,"up on a red market day, near highs",TOO NEW,2026-11-19,172
+Breakouts (52W / ATH / squeeze),333,2026-09-30,287,23,0.33,-0.31,46.0,70,7,-3.94,-3.83,31.0,0,0,,,,Trend Scanner,new high or squeeze release,TOO NEW,2026-11-19,172
+   …momentum entry only,87,2026-09-30,71,19,1.08,1.0,56.0,28,6,-4.91,-4.24,32.0,0,0,,,,Trend Scanner,the Scanner's Momentum entry tag,TOO NEW,2026-11-19,172
+   …52W / ATH high in a leader industry,95,2026-09-30,82,20,0.39,0.73,57.0,34,7,-3.52,-2.9,29.0,0,0,,,,Trend Scanner,the 2014-26 study's edge: +2.2 pp at 3 months,TOO NEW,2026-11-19,172
+V2.2 watchlist BUY alert,810,2026-02-24,789,162,0.16,-0.47,46.0,682,143,0.67,-0.93,45.0,457,106,4.71,1.51,53.0,Live Desk / Telegram,trend score 70+ with accumulation,LIKE MOMENTUM,2026-11-19,172
+"Agreement (2+ of SIMBA, Scanner, Technicals)",80,2026-11-10,43,2,2.97,1.43,74.0,0,0,,,,0,0,,,,Trend Scanner → Agreement,three tools agree,TOO NEW,2026-11-19,172
+Funnel: passes all four stages (live log),43,2026-11-13,0,0,,,,0,0,,,,0,0,,,,Investment Funnel,industry + trend + business + entry,TOO NEW,2026-11-19,172
+"Funnel: near miss, one stage short (live log)",132,2026-11-13,0,0,,,,0,0,,,,0,0,,,,Investment Funnel,the funnel's control group,TOO NEW,2026-11-19,172
+"Scanner BUY, any day (yardstick)",57966,2026-02-24,55810,167,0.39,0.0,50.0,49260,151,1.3,0.02,50.0,33064,109,4.51,1.08,53.0,Trend Scanner,"plain momentum: RS > 0, above the 50-day, liquid",YARDSTICK,2026-11-19,172
+Morning Pulse: top-10 trend-score gainers,1710,2026-02-27,1635,166,-0.09,-0.44,46.0,1392,150,0.46,-1.18,45.0,933,108,2.19,-0.72,47.0,Morning Pulse,labelled 'turnaround candidates',NO EDGE,2026-11-19,172
+Morning Pulse: top-10 trend-score losers,1710,2026-02-27,1637,166,0.04,-0.34,46.0,1394,150,1.11,-0.41,48.0,943,108,3.28,-0.73,47.0,Morning Pulse,labelled 'caution / exit watch',LIKE MOMENTUM,2026-11-19,172
+Morning Pulse: accumulation leaders (top 10),1720,2026-02-24,1655,167,-0.02,-0.28,47.0,1452,151,-0.03,-1.24,44.0,1018,109,4.59,2.49,57.0,Morning Pulse,highest volume-accumulation score,NO EDGE,2026-11-19,172
+Funnel stages 1+2: Scanner BUY in a leading industry (rebuilt),38684,2026-02-24,37156,167,0.36,0.06,51.0,32945,151,1.79,0.18,51.0,23945,109,8.25,1.44,53.0,Investment Funnel,does the industry stage add to plain momentum? (all sessions),LIKE MOMENTUM,2026-11-19,172
+Funnel stages 1+2+4: …with an entry setup (rebuilt),517,2026-09-30,409,25,-0.26,-1.28,40.0,202,9,-1.6,-2.47,45.0,0,0,,,,Investment Funnel,"…and the entry stage? (since Technicals data began, 30 Sep 2026)",TOO NEW,2026-11-19,172
