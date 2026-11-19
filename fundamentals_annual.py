@@ -209,14 +209,31 @@ def main():
     ap.add_argument("--max-tickers", type=int, default=0)
     ap.add_argument("--delay", type=float, default=1.0)
     ap.add_argument("--skip-prices", action="store_true")
+    ap.add_argument("--only-stale", action="store_true",
+                    help="re-scrape only stocks whose latest annual figures are over 640 days old (or missing); "
+                         "everything else in the files is kept as it is, and monthly prices are not touched")
     args = ap.parse_args()
     tickers = sorted(set(TICKERS_1000))
     if args.max_tickers:
         tickers = tickers[:args.max_tickers]
+    subset = bool(args.only_stale)
+    if subset:
+        try:
+            old = pd.read_csv(ANNUAL, parse_dates=["period"])
+            last = old[old.field == "np"].groupby("ticker").period.max()
+            fresh = set(last[(pd.Timestamp.today() - last).dt.days <= 640].index)
+        except Exception:
+            fresh = set()
+        tickers = [t for t in tickers if t not in fresh]
+        args.skip_prices = True
+        print(f"[screener] --only-stale: {len(tickers)} stocks with figures over 640 days old or missing: "
+              + " ".join(t[:-3] for t in tickers[:60]), flush=True)
+        if not tickers:
+            return
 
     A, Q = scrape(tickers, args.delay)
     na, nq = A.ticker.nunique(), Q.ticker.nunique()
-    if na < 0.6 * len(tickers):
+    if na < 0.6 * len(tickers) and not subset:
         sys.exit(f"[screener] only {na}/{len(tickers)} stocks parsed -- keeping the previous files")
     # A stock Screener did not serve this time keeps its previous rows; a partial scrape used to
     # overwrite the file and silently drop up to 40% of the universe.
@@ -225,7 +242,7 @@ def main():
             try:
                 old = pd.read_csv(path)
                 keep = old[~old.ticker.isin(set(new.ticker))]
-                keep = keep[keep.ticker.isin(set(tickers))] if not args.max_tickers else keep
+                keep = keep[keep.ticker.isin(set(tickers))] if not (args.max_tickers or subset) else keep
                 if len(keep):
                     print(f"[{lab}] {keep.ticker.nunique()} stocks not parsed this run -- previous rows kept")
                     merged = pd.concat([new, keep.reindex(columns=new.columns)], ignore_index=True)

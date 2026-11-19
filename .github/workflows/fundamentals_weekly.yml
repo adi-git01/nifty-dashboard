@@ -7,6 +7,11 @@ on:
   schedule:
     - cron: '30 20 * * 6'   # Sunday 2:00 am IST
   workflow_dispatch:
+    inputs:
+      only_stale:
+        description: "Re-scrape only stocks whose annual figures are over 640 days old (fast; keeps everything else)"
+        type: boolean
+        default: false
 
 jobs:
   refresh:
@@ -29,7 +34,7 @@ jobs:
       - name: Scrape annual + quarterly fundamentals and monthly prices
         run: |
           set -o pipefail
-          python fundamentals_annual.py 2>&1 | tee fundamentals_output.txt
+          python fundamentals_annual.py ${{ inputs.only_stale && '--only-stale' || '' }} 2>&1 | tee fundamentals_output.txt
       - name: Re-run the valuation
         run: python valuation_run.py 2>&1 | tee -a fundamentals_output.txt
       - name: Extended list (stocks outside the universe with market cap of Rs 1,000 cr+)
