@@ -45,7 +45,7 @@ jobs:
       - name: Commit
         if: always()
         run: |
-          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv data/extended_universe.csv 'data/fundamentals_ext_*.csv.gz' data/business_scores.csv EQUITY_L.csv
+          bash scripts/commit_and_push.sh "Weekly valuation inputs refresh" data/fundamentals_annual.csv.gz data/fundamentals_quarterly.csv.gz data/monthly_prices.csv.gz data/valuation_snapshot.csv data/extended_universe.csv 'data/fundamentals_ext_*.csv.gz' data/business_scores.csv data/cache/valuation_features.parquet EQUITY_L.csv
       - name: Notify on failure
         if: failure()
         run: |

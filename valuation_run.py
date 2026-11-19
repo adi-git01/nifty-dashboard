@@ -31,6 +31,12 @@ def main():
     ctx = load_context()
     if ctx.annual.empty:
         sys.exit("[valuation] data/fundamentals_annual.csv.gz missing -- run fundamentals_annual.py first")
+    try:                                     # so the dashboard loads them instead of rebuilding on each restart
+        from utils.valuation import save_features, FEATURES_FILE
+        save_features(ctx)
+        print(f"[valuation] peer features -> {FEATURES_FILE}")
+    except Exception as e:
+        print(f"[valuation] could not save peer features: {e}")
     files = sorted(glob.glob("data/cache/market_master_*.parquet"))
     snap = pd.read_parquet(files[-1]) if files else pd.DataFrame()
     px = snap.set_index("ticker") if not snap.empty else pd.DataFrame()

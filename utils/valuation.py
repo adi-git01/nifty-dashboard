@@ -124,8 +124,38 @@ def load_context(root: str = ".", extended: bool = False) -> Context:
     ctx = Context(A, Q, M, F, ov)
     ctx.peer_cagr3 = _all_cagr3(A)
     ctx.peer_mult = _screener_multiples(A, Q)
-    ctx.features = _features(A, F, M, Q)
+    ctx.features = None
+    fp = features_fingerprint(root) if not extended else None
+    if fp:                                  # the nightly run's copy, when it was built from these same files
+        try:
+            X = pd.read_parquet(p(FEATURES_FILE))
+            if X.attrs.get("fingerprint") == fp or (len(X) and str(X.pop("_fp").iloc[0]) == fp):
+                ctx.features = X.drop(columns="_fp", errors="ignore")
+        except Exception:
+            ctx.features = None
+    if ctx.features is None:
+        ctx.features = _features(A, F, M, Q)
     return ctx
+
+
+FEATURES_FILE = "data/cache/valuation_features.parquet"
+
+
+def features_fingerprint(root: str = ".") -> str:
+    """Sizes of the files the peer features are built from: equal sizes = same data (mtimes change on every checkout)."""
+    parts = []
+    for f in ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz", "data/monthly_prices.csv.gz",
+              "data/fundamentals_cache.csv"):
+        q = os.path.join(root, f)
+        parts.append(str(os.path.getsize(q)) if os.path.exists(q) else "0")
+    return "|".join(parts)
+
+
+def save_features(ctx: "Context", root: str = ".") -> None:
+    """Written by the nightly valuation run: building the features took ~10-25 s on each dashboard restart."""
+    X = ctx.features.copy()
+    X["_fp"] = features_fingerprint(root)
+    X.to_parquet(os.path.join(root, FEATURES_FILE))
 
 
 PEER_FIT_WEAK = 0.22          # mean rank distance of the chosen peers above which they are a poor match
@@ -147,6 +177,13 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
     if A.empty or F is None or len(F) == 0:
         return pd.DataFrame()
     rows = {}
+    # promoter holding per ticker, looked up once (filtering the whole quarterly frame per stock was most of the
+    # ~25 s this took on each restart). Same value as before: the latest period's figure.
+    prom_last = {}
+    if Q is not None and len(Q) and "ticker" in Q:
+        pq_all = Q[Q.field == "promoters"]
+        for t_, pq in pq_all.groupby("ticker", sort=False):
+            prom_last[t_] = float(pq.sort_values("period").value.iloc[-1])
     for t, g in A.groupby("ticker"):
         piv = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
         if "np" not in piv:
@@ -173,10 +210,7 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
                 mm = (pxm / lev)[lev > 0]
                 mm = mm[mm < (15 if t_ else 150)]
                 own_m = float(mm.median()) if len(mm) >= 12 else np.nan
-        prom = np.nan
-        if Q is not None and len(Q):
-            pq = Q[(Q.ticker == t) & (Q.field == "promoters")] if "ticker" in Q else pd.DataFrame()
-            prom = float(pq.sort_values("period").value.iloc[-1]) if len(pq) else np.nan
+        prom = prom_last.get(t, np.nan)
         opm_s = piv["opm"].dropna() if "opm" in piv else pd.Series(dtype=float)
         npy = piv["np"].dropna()
         rows[t] = dict(attr=attr, own_mult=own_m, promoters=prom,
@@ -324,11 +358,37 @@ def _series(df, ticker, fld):
     if hit is None or hit[0]() is not df:
         if len(_GROUPS) > 8:
             _GROUPS.clear()
-        groups = {k: g.set_index("period")["value"].sort_index()
-                  for k, g in df.groupby(["ticker", "field"])} if not df.empty else {}
-        hit = _GROUPS[key] = (weakref.ref(df), groups)
-    s = hit[1].get((ticker, fld), pd.Series(dtype=float, index=pd.DatetimeIndex([])))
-    return s[~s.index.duplicated(keep="last")]
+        hit = _GROUPS[key] = (weakref.ref(df), _GroupIndex(df))
+    return hit[1].get(ticker, fld)
+
+
+class _GroupIndex:
+    """
+    (ticker, field) -> rows, from one stable sort of the frame. Building a Series for each of ~44,000
+    groups up front took about 20 s per frame, the first time a stock was valued after each restart;
+    a series is now cut from the sorted arrays when asked for.
+    """
+    def __init__(self, df):
+        self.pos, self.period, self.value = {}, None, None
+        if df is None or df.empty:
+            return
+        d = df[["ticker", "field", "period", "value"]]
+        order = np.lexsort((pd.to_datetime(d["period"]).values, d["field"].astype(str).values, d["ticker"].astype(str).values))
+        d = d.iloc[order]                                   # lexsort is stable: equal periods keep file order
+        self.period = pd.DatetimeIndex(pd.to_datetime(d["period"]).values)
+        self.value = d["value"].values
+        t, f = d["ticker"].astype(str).values, d["field"].astype(str).values
+        cut = np.flatnonzero((t[1:] != t[:-1]) | (f[1:] != f[:-1])) + 1
+        starts, ends = np.r_[0, cut], np.r_[cut, len(d)]
+        self.pos = {(t[i], f[i]): (i, j) for i, j in zip(starts, ends)}
+
+    def get(self, ticker, fld):
+        ij = self.pos.get((ticker, fld))
+        if ij is None:
+            return pd.Series(dtype=float, index=pd.DatetimeIndex([]))
+        i, j = ij
+        s = pd.Series(self.value[i:j], index=self.period[i:j])
+        return s[~s.index.duplicated(keep="last")]
 
 
 def _fy(s):
