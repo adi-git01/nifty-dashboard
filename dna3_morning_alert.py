@@ -64,7 +64,8 @@ def build_telegram_message(data):
         try:
             from datetime import timedelta
             last_reb_dt = datetime.strptime(last_reb, '%Y-%m-%d')
-            days_since = (datetime.now() - last_reb_dt).days
+            import numpy as _np                      # the interval is in trading sessions, not calendar days
+            days_since = int(_np.busday_count(last_reb_dt.date(), datetime.now().date()))
             days_left = max(0, rebal_freq - days_since)
             if days_left <= 1:
                 msg += f"\u26a1 <b>Rebalance DUE</b> (day {days_since}/{rebal_freq})\n"

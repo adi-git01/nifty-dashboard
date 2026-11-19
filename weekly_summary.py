@@ -117,21 +117,7 @@ def build_telegram_summary(data):
     peak_eq = equity_df['Equity'].max() if not equity_df.empty else equity
     dd_from_peak = (equity - peak_eq) / peak_eq * 100
 
-    # Regime duration
-    regime_days = "?"
-    if not equity_df.empty and 'Regime' in equity_df.columns:
-        try:
-            latest_regime = equity_df.iloc[-1].get('Regime', regime)
-            # Count consecutive days of same regime
-            regime_streak = 0
-            for i in range(len(equity_df) - 1, -1, -1):
-                if equity_df.iloc[i].get('Regime', '') == latest_regime:
-                    regime_streak += 1
-                else:
-                    break
-            regime_days = str(regime_streak)
-        except:
-            pass
+    regime_days = _regime_days(equity_df, regime)
 
     regime_icon = {'BULL': '\U0001f7e2', 'CAUTION': '\U0001f7e1', 'BEAR': '\U0001f7e0', 'CRISIS': '\U0001f534'}.get(regime, '\u26aa')
 
@@ -172,6 +158,21 @@ def build_telegram_summary(data):
     return msg
 
 
+def _regime_days(equity_df, regime) -> str:
+    """Sessions in a row the latest regime has held ("?" when unknown)."""
+    if equity_df is None or equity_df.empty or 'Regime' not in equity_df.columns:
+        return "?"
+    try:
+        latest, n = equity_df.iloc[-1].get('Regime', regime), 0
+        for i in range(len(equity_df) - 1, -1, -1):
+            if equity_df.iloc[i].get('Regime', '') != latest:
+                break
+            n += 1
+        return str(n)
+    except Exception:
+        return "?"
+
+
 def build_email_summary(data):
     """Build rich HTML email for weekly summary."""
     snap = data['snapshot']
@@ -183,6 +184,7 @@ def build_email_summary(data):
     count = snap.get('count', 0)
     config = snap.get('config', {})
     trail_pct = config.get('trailing_stop', 0.15)
+    regime_days = _regime_days(equity_df, regime)   # used in the email's header; was never defined here (Saturday crash)
 
     total_ret = (equity - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
     start = datetime(2026, 2, 1)

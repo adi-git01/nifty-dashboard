@@ -91,14 +91,24 @@ class TradingDatabase:
             'sub_industry_rotation': self.rotation_csv
         }
         
+        self._loaded = {}
         for table_name, csv_path in tables.items():
             if os.path.exists(csv_path):
                 try:
                     df = pd.read_csv(csv_path)
                     if not df.empty:
+                        # one duplicate key used to fail the whole insert, leave the table empty, and close() then
+                        # wrote the empty table over the CSV. Keep the last copy of each key; never insert all-or-nothing.
+                        cols = [r[1] for r in self.conn.execute(f"PRAGMA table_info({table_name})")]
+                        pk = [r[1] for r in self.conn.execute(f"PRAGMA table_info({table_name})") if r[5]]
+                        df = df[[c for c in df.columns if c in cols]]
+                        if pk and set(pk) <= set(df.columns):
+                            df = df.drop_duplicates(pk, keep="last")
                         df.to_sql(table_name, self.conn, if_exists='append', index=False)
+                    self._loaded[table_name] = len(df)
                 except Exception as e:
                     print(f"Error loading {table_name}: {e}")
+                    self._loaded[table_name] = None          # unreadable: never write this table back
 
     def commit_to_csv(self):
         """Dump in-memory SQLite tables back to persistent CSVs"""
@@ -110,9 +120,17 @@ class TradingDatabase:
             'sub_industry_rotation': self.rotation_csv
         }
         
+        loaded = getattr(self, "_loaded", {})
         for table_name, csv_path in tables.items():
             try:
+                if table_name in loaded and loaded[table_name] is None:
+                    print(f"Not saving {table_name}: it failed to load, and writing would replace {csv_path}")
+                    continue
                 df = pd.read_sql_query(f"SELECT * FROM {table_name}", self.conn)
+                before = loaded.get(table_name) or 0
+                if before >= 50 and len(df) < 0.5 * before:
+                    print(f"Not saving {table_name}: {len(df)} rows now vs {before} loaded -- refusing to shrink it by half")
+                    continue
                 atomic_to_csv(df, csv_path, index=False)
             except Exception as e:
                 print(f"Error saving {table_name}: {e}")

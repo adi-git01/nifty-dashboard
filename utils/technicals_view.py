@@ -180,11 +180,12 @@ def _table(df: pd.DataFrame):
     v["edge_6m"] = [E.get(c, (np.nan, np.nan))[1] for c in cells]
     v["edge_years"] = [E.get(c, (None, None, ""))[2] for c in cells]
     stop = pd.to_numeric(v.fx_stop, errors="coerce")
-    risk_ps = (v.price - stop).where(lambda x: x > 0)
+    entry = pd.to_numeric(v.fx_entry, errors="coerce").fillna(v.price) if "fx_entry" in v else v.price   # trigger price for BUY ON TRIGGER
+    risk_ps = (entry - stop).where(lambda x: x > 0)
     risk_rs = cap * riskp / 100 * np.where(v.fx_half_size, 0.5, 1.0)
     slot = cap / int(maxpos)
     by_risk = np.floor(risk_rs / risk_ps)
-    by_slot = np.floor(slot / v.price)
+    by_slot = np.floor(slot / entry)
     # no valid stop (price at or below it) -> no position; np.fmin would otherwise ignore the NaN risk
     # and hand out a full slot
     valid = risk_ps.notna()

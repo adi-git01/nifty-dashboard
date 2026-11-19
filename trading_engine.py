@@ -228,13 +228,15 @@ def check_portfolio_stops(df, db):
             if exit_reason:
                 print(f"STOP HIT: {ticker} (Price: {current_price:.2f} | Reason: {exit_reason})")
                 sells.append((ticker, current_price, exit_reason))
-                alerts.append(f"\xf0\x9f\x9a\xa8 *STOP LOSS HIT* \xf0\x9f\x9a\xa8\\n*{ticker}*\\nPrice: {current_price:,.2f}\\nReason: {exit_reason}")
+                alerts.append(f"🚨 STOP LOSS HIT 🚨\n{ticker}\nPrice: {current_price:,.2f}\nReason: {exit_reason}")
                 
             # Update peak price for trailing
             if current_price > pos.get('peak_price', pos['entry_price']):
                 db.cursor.execute("UPDATE portfolio SET peak_price = ? WHERE ticker = ?", (current_price, ticker))
 
-    # Execute Sells
+    # Execute Sells (the email rows are built here: after the DELETE below the position can no longer be read,
+    # which is why stop-loss emails never went out)
+    email_alerts = []
     for ticker, exit_price, reason in sells:
         # Move from portfolio to ledger
         db.cursor.execute("SELECT * FROM portfolio WHERE ticker = ?", (ticker,))
@@ -249,6 +251,12 @@ def check_portfolio_stops(df, db):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (ticker, pos[1], datetime.now().strftime("%Y-%m-%d"), entry_price, exit_price, pnl_pct, reason, pos[6]))
         
+        try:
+            _held = (datetime.now() - datetime.strptime(str(pos[1])[:10], "%Y-%m-%d")).days
+        except Exception:
+            _held = 0
+        email_alerts.append({'ticker': ticker, 'entry_trend_signal': 'ACTIVE', 'current_signal': f'🚨 STOP LOSS ({reason})',
+                             'return_pct': pnl_pct, 'days_tracked': _held})
         db.cursor.execute("DELETE FROM portfolio WHERE ticker = ?", (ticker,))
 
         # Also write to centralized trade log CSV
@@ -276,30 +284,15 @@ def check_portfolio_stops(df, db):
     
     # Send all alerts in ONE Telegram message
     if alerts:
-        send_telegram_message("\\n\\n".join(alerts))
+        send_telegram_message("\n\n".join(alerts))
         for alert in alerts:
             db.cursor.execute("INSERT INTO alerts_log (alert_date, ticker, alert_type, message) VALUES (?, ?, ?, ?)",
                               (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "SYSTEM", "SELL", alert))
         db.conn.commit()
     
     # Send all alerts in ONE Email
-    if sells:
-        email_alerts = []
-        for ticker, exit_price, reason in sells:
-            db.cursor.execute("SELECT * FROM portfolio WHERE ticker = ?", (ticker,))
-            pos = db.cursor.fetchone()
-            if pos:
-                entry_price = pos[2]
-                pnl_pct = ((exit_price - entry_price) / entry_price) * 100
-                email_alerts.append({
-                    'ticker': ticker,
-                    'entry_trend_signal': 'ACTIVE',
-                    'current_signal': f'🚨 STOP LOSS ({reason})',
-                    'return_pct': pnl_pct,
-                    'days_tracked': 0
-                })
-        if email_alerts:
-            send_trend_change_alert(email_alerts)
+    if email_alerts:
+        send_trend_change_alert(email_alerts)
 
 def run_rebalance(df, db):
     """
@@ -355,8 +348,8 @@ def run_rebalance(df, db):
         ticker = row['ticker']
         price = row['currentPrice']
         rs = row['comp_rs']
-        msg = (f"🟢 *SCANNER BUY* 🟢\\n*{ticker}*\\nPrice: ₹{price:,.2f}\\nRS vs Nifty: {rs:+.1f} "
-               f"(entry floor {floor:.0f})\\n_Scanner signal, not a model-portfolio trade_")
+        msg = (f"🟢 SCANNER BUY 🟢\n{ticker}\nPrice: ₹{price:,.2f}\nRS vs Nifty: {rs:+.1f} "
+               f"(entry floor {floor:.0f})\nScanner signal, not a model-portfolio trade")
         alerts.append(msg)
 
         # Add to watchlist natively
@@ -366,7 +359,7 @@ def run_rebalance(df, db):
         """, (ticker, today_s, row.get('overall', 0), rs, row.get('sector', ''), 'ACTIVE'))
 
     if alerts:
-        send_telegram_message("\\n\\n".join(alerts))
+        send_telegram_message("\n\n".join(alerts))
         for alert in alerts:
             db.cursor.execute("INSERT INTO alerts_log (alert_date, ticker, alert_type, message) VALUES (?, ?, ?, ?)",
                               (datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "SYSTEM", "BUY_ALERT", alert))

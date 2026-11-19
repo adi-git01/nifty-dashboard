@@ -43,25 +43,35 @@ def main() -> int:
         print(f"[IND] Snapshot older than {MAX_SNAPSHOT_AGE_DAYS}d — skipping.")
         return 0
 
-    msgs = check_industry_alerts(df, f"{date:%Y-%m-%d}", persist=not args.dry_run)
-    if not args.dry_run:
-        print(f"[IND] store: {storage_status()}")
-    for a in load_industry_alerts() if not args.dry_run else alerts:
+    # the session the prices are from, not the file's name (a holiday re-save must not count as a new day)
+    sess = f"{date:%Y-%m-%d}"
+    if "bar_date" in df.columns and df["bar_date"].notna().any():
+        sess = str(df["bar_date"].dropna().astype(str).mode().iloc[0])[:10]
+    msgs = check_industry_alerts(df, sess, persist=False)       # saved only after the message is out (below)
+    for a in alerts:
         r = a.get("last_reading") or {}
         print(f"     {a.get('name')}: {a.get('last_status')} (pending {a.get('pending_status')}) "
               f"score {r.get('score')}")
     if not msgs:
         print("[IND] No status changes or score crossings.")
+        if not args.dry_run:
+            check_industry_alerts(df, sess, persist=True)       # still advance pending-status counters
         return 0
     print("\n".join(msgs))
     if args.dry_run:
         return 0
     text = "🏭 INDUSTRY ALERT\n\n" + "\n\n".join(msgs) + f"\n\nSnapshot: {date:%d %b %Y}"
+    ok = True
     if is_telegram_configured():
         ok, info = send_telegram_message(text)
         print(f"[IND] Telegram: {'sent' if ok else 'failed — ' + str(info)}")
     else:
         print("[IND] Telegram not configured — logged only.")
+    if ok:
+        check_industry_alerts(df, sess, persist=True)
+        print(f"[IND] store: {storage_status()}")
+    else:
+        print("[IND] state not saved, so these changes are sent again on the next run")
     return 0
 
 

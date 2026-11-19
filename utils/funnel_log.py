@@ -47,7 +47,9 @@ def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] =
     for r in today.itertuples():
         prior = log[(log.ticker == r.ticker) & (log.kind == r.kind)]
         if len(prior) and (snap - pd.to_datetime(prior.last_seen).max()).days <= REENTRY_DAYS:
-            j = prior.index[-1]
+            # the most recent run of this signal; the log is sorted newest first, so index[-1] was the OLDEST row and
+            # a re-entry would have revived a long-closed one
+            j = pd.to_datetime(prior.first_seen).idxmax()
             log.loc[j, "last_seen"] = snap
             if r.kind == "NEAR":
                 log.loc[j, "missed"] = r.missed

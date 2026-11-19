@@ -1,6 +1,6 @@
 """
 Read holdings straight from Zerodha (Kite Connect) and Dhan (DhanHQ v2). Read-only: the only
-account endpoints called are the holdings endpoints and Zerodha's positions (today's trades). Nothing here can place or change an order
+account endpoints called are the holdings endpoints and each broker's positions (today's trades). Nothing here can place or change an order
 (orders, only when you switch them on, are in utils/dhan_orders.py).
 
 Both brokers issue a login token that lasts about a day and needs you to log in on the broker's
@@ -166,11 +166,62 @@ def dhan_holdings(access_token: str) -> pd.DataFrame:
                           "generate a new one or press Sync again.")
     if r.status_code != 200 or not isinstance(d, list):
         raise BrokerError(f"Dhan did not return holdings (HTTP {r.status_code}).")
+    return _rows(dhan_merge([h for h in d if str(h.get("exchange", "")).upper() in EQUITY_EXCHANGES],
+                            dhan_day_positions(access_token)))
+
+
+def dhan_day_positions(access_token: str) -> List[Dict[str, Any]]:
+    """Today's delivery (CNC) trades, read-only. Empty on any failure: holdings still sync without them."""
+    try:
+        r = _http().get(f"{DHAN_API}/positions", headers={"access-token": access_token, "Accept": "application/json"},
+                        timeout=TIMEOUT)
+        d = _json(r)
+        return [p for p in d if str(p.get("productType", "")).upper() == "CNC"] if r.status_code == 200 and isinstance(d, list) else []
+    except Exception:
+        return []
+
+
+def dhan_merge(holdings: List[Dict[str, Any]], day: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Holdings plus today's delivery trades, as rows of symbol / qty / avg / buy_px / sell_px.
+    Like Zerodha, a purchase made today is not in Dhan's holdings until the next day, so a model order bought and
+    synced the same day read as "sold". A sale made today stays in the holding's total until settlement, while its
+    available quantity drops; when that is so the sale is taken off here (otherwise the total is already net).
+    """
     g = lambda h, *ks: next((h[k] for k in ks if h.get(k) not in (None, "")), None)
-    items = [dict(symbol=g(h, "tradingSymbol", "tradingsymbol", "symbol"), name="",
-                  qty=g(h, "totalQty", "totalQuantity", "quantity"), avg=g(h, "avgCostPrice", "avgPrice", "averagePrice"))
-             for h in d if str(h.get("exchange", "")).upper() in EQUITY_EXCHANGES]
-    return _rows(items)
+    f = lambda h, *ks: float(g(h, *ks) or 0)
+    out: Dict[str, Dict[str, Any]] = {}
+    for h in holdings:
+        sym = str(g(h, "tradingSymbol", "tradingsymbol", "symbol") or "")
+        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0))
+        q, a = f(h, "totalQty", "totalQuantity", "quantity"), f(h, "avgCostPrice", "avgPrice", "averagePrice")
+        o["total"] += q
+        o["cost"] += q * a
+        if g(h, "availableQty") is not None:
+            o["avail"] = (o["avail"] or 0.0) + f(h, "availableQty") + f(h, "collateralQty")
+    for p in day:
+        sym = str(g(p, "tradingSymbol", "tradingsymbol") or "")
+        b, sl = f(p, "dayBuyQty"), f(p, "daySellQty")
+        if not (b or sl):
+            continue
+        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0))
+        o["b"] += b
+        o["s"] += sl
+        if b:
+            o["buy_px"] = f(p, "dayBuyValue") / b if f(p, "dayBuyValue") else f(p, "buyAvg")
+        if sl:
+            o["sell_px"] = f(p, "daySellValue") / sl if f(p, "daySellValue") else f(p, "sellAvg")
+    rows = []
+    for o in out.values():
+        used = min(o["s"], o["total"])                              # sold out of holdings today
+        pending = o["avail"] is not None and o["avail"] <= o["total"] - used + 0.5
+        base = o["total"] - (used if pending else 0.0)
+        add = max(o["b"] - max(o["s"] - o["total"], 0.0), 0.0)     # today's buys not sold again today
+        qty = base + add
+        avg = ((o["cost"] / o["total"] if o["total"] else 0.0) * base + (o["buy_px"] or 0.0) * add) / qty if qty else None
+        if qty > 0 or used > 0:
+            rows.append(dict(symbol=o["symbol"], name="", qty=qty, avg=avg, buy_px=o["buy_px"], sell_px=o["sell_px"]))
+    return rows
 
 
 def dhan_consent(client_id: str, app_id: str, app_secret: str) -> str:

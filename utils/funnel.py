@@ -95,7 +95,8 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     m, si = _num(d, "simba_m_since"), _num(d, "simba_si_since")
     x["simba_days"] = pd.concat([m, si], axis=1).min(axis=1)
     x["stop"], x["stop_pct"], x["t1"], x["t2"] = _num(d, "fx_stop"), _num(d, "fx_stop_pct"), _num(d, "fx_t1"), _num(d, "fx_t2")
-    x["risk_pct"] = ((x.price - x.stop) / x.price * 100).where(x.stop < x.price)
+    x["entry"] = _num(d, "fx_entry").fillna(x.price) if "fx_entry" in d else x.price      # the trigger for BUY ON TRIGGER
+    x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where(x.stop < x.entry)
     x["signal"] = x.technicals.isin(["BUY NOW", "BUY ON TRIGGER"]) | (x.simba_days <= SETUP_DAYS)
     x["s_setup"] = x.signal & (x.risk_pct <= MAX_RISK_PCT)
 
@@ -109,9 +110,10 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["val_upside"] = (x.val_p50 / x.price - 1) * 100
     x["s_value"] = x.val_pct.isna() | (x.val_pct <= VALUE_MAX_PCT)
 
-    # 3 business (lazy)
+    # 3 business: every stock (the scores are precomputed, ~0.05 s for all). Checking only trend passers left the rest
+    # blank, which counted as a second failed stage: trend near-misses vanished, and switching Trend off kept 24 picks, not 42
     from utils import fund_trends
-    todo = set(x.ticker[x.s_trend]) if business_for is None else set(business_for)
+    todo = set(x.ticker) if business_for is None else set(business_for)
     x["s_business"], x["biz_verdict"], x["biz_flags"], x["quarter"] = np.nan, "", "", ""
     x["biz_score"], x["biz_headline"] = np.nan, ""
     x["sales_yoy"], x["np_yoy"], x["roce"] = np.nan, np.nan, np.nan
