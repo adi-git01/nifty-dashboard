@@ -28,4 +28,4 @@ jobs:
       - name: Replay
         run: python signal_replay.py --start "${{ inputs.start }}" 2>&1 | tee signal_replay_output.txt
       - name: Commit results
-        run: bash scripts/commit_and_push.sh "Signal replay results" analysis/signal_replay_stocks.csv analysis/signal_replay_trades.csv analysis/SIGNAL_REPLAY.md signal_replay_output.txt
+        run: bash scripts/commit_and_push.sh "Signal replay results" analysis/signal_replay_stocks.csv analysis/signal_replay_trades.csv analysis/SIGNAL_REPLAY.md analysis/signal_replay_portfolio.csv signal_replay_output.txt

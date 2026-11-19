@@ -38,6 +38,7 @@ from utils.forensics import analyse
 from utils.valuation import combined_signal, load_context, signal_bucket, val_bucket, value_stock
 
 OUT_S, OUT_T, OUT_MD = "analysis/signal_replay_stocks.csv", "analysis/signal_replay_trades.csv", "analysis/SIGNAL_REPLAY.md"
+OUT_P = "analysis/signal_replay_portfolio.csv"
 LOGS = [("tc_log.csv", "signal_date", "Turnaround Catalyst"), ("breakout_log.csv", "breakout_date", "Breakout"),
         ("rs_divergence_log.csv", "signal_date", "RS Divergence"), ("earnings_shock_log.csv", "signal_date", "Earnings Shock"),
         ("ias_signal_log.csv", "signal_date", "Turnaround Radar"), ("watchlist_history.csv", "added_date", "V2.2 watchlist BUY")]
@@ -88,19 +89,46 @@ def exit_hit(c, ma50, since, i):
     return (c[i] < ma50[i] and c[i - 1] < ma50[i - 1]) or c[i] < 0.85 * c[since:i + 1].max()
 
 
-def run_exits(c, ma50, i0, entries=()):
-    """Buy at i0, sell on the technical exit, buy again on the next day in `entries` (none: stay out). -> % return."""
+def run_exits(c, ma50, i0, entries=(), legs=None):
+    """Buy at i0, sell on the technical exit, buy again on the next day in `entries` (none: stay out). -> % return.
+    Each holding period is appended to `legs` as (buy index, sell index or None while open)."""
     e, p, entries = 1.0, i0, set(entries)
+    legs = [] if legs is None else legs
     for j in range(i0 + 1, len(c)):
         if p is None:
             if j in entries:
                 p = j
         elif exit_hit(c, ma50, p, j):
             e *= c[j] / c[p]
+            legs.append((p, j))
             p = None
     if p is not None:
         e *= c[-1] / c[p]
+        legs.append((p, None))
     return (e - 1) * 100
+
+
+def path(c, days, legs):
+    """Daily value of 1 unit of money run through `legs` (cash between them earns nothing), on the days list."""
+    v = np.ones(len(days))
+    pos = {d: k for k, d in enumerate(days)}
+    e = 1.0
+    for p, x in sorted(legs):
+        end = len(c) - 1 if x is None else x
+        for i in range(p, end + 1):
+            if i in pos:
+                v[pos[i]] = e * c[i] / c[p]
+        e *= c[end] / c[p]
+        if x is not None:
+            for i in range(end + 1, len(c)):
+                if i in pos:
+                    v[pos[i]] = e
+    return v
+
+
+def max_dd(v):
+    v = np.asarray(v, float)
+    return float((1 - v / np.maximum.accumulate(v)).max() * 100) if len(v) else np.nan
 
 
 def main():
@@ -121,6 +149,7 @@ def main():
     A_all, Q_all = base.annual, base.quarterly
 
     rows, trades = [], []
+    curves = {}                                        # approach -> list of daily value Series (one per stock)
     t0 = time.time()
     for k, n in enumerate(sorted(H)):
         h = H[n]
@@ -149,6 +178,8 @@ def main():
             return val_bucket(v["dist"]["cmp_pct"]), v["quality"]["sev"], "OK"
 
         pos = {"T": None, "TV": None}
+        legs = {"T": [], "TV": [], "hold": [(days[0], None)], "hold_exit": [], "hold_exit_re": [], "sl_hold": [],
+                "sl_exit": [], "rde_exit": []}
         eq = {"T": 1.0, "TV": 1.0}
         inv = {"T": 0, "TV": 0}
         nbuy, ncomb, vstat, buy_days = 0, 0, {}, []
@@ -174,6 +205,7 @@ def main():
                         pos[m] = i
                 elif exit_hit(c, ma50, p, i) or (m == "TV" and comb == "SELL"):
                     eq[m] *= c[i] / c[p]
+                    legs[m].append((p, i))
                     trades.append(dict(stock=n, mode=m, buy=h.index[p].date(), buy_px=c[p], sell=h.index[i].date(),
                                        sell_px=c[i], ret=(c[i] / c[p] - 1) * 100, days=i - p))
                     pos[m] = None
@@ -181,34 +213,33 @@ def main():
             p = pos[m]
             if p is not None:
                 eq[m] *= c[-1] / c[p]
+                legs[m].append((p, None))
                 trades.append(dict(stock=n, mode=m, buy=h.index[p].date(), buy_px=c[p], sell="open", sell_px=c[-1],
                                    ret=(c[-1] / c[p] - 1) * 100, days=len(c) - 1 - p))
         rec = dict(stock=n, hold=(c[-1] / c[days[0]] - 1) * 100, buy_now_days=nbuy, comb_buy_days=ncomb,
                    tech=(eq["T"] - 1) * 100, techval=(eq["TV"] - 1) * 100, tech_inv_days=inv["T"], techval_inv_days=inv["TV"],
                    days=len(days), val_status=";".join(f"{k_}:{v_}" for k_, v_ in vstat.items()))
-        rec["hold_exit"] = run_exits(c, ma50, days[0])                       # every stock, technical exit, stay out
-        rec["hold_exit_re"] = run_exits(c, ma50, days[0], buy_days)          # ... and buy back on the next BUY NOW
+        rec["hold_exit"] = run_exits(c, ma50, days[0], legs=legs["hold_exit"])          # every stock, technical exit, stay out
+        rec["hold_exit_re"] = run_exits(c, ma50, days[0], buy_days, legs["hold_exit_re"])  # ... buy back on the next BUY NOW
         g2 = D[(D.stock == n) & D.src.isin(["RS Divergence", "Earnings Shock"])]
         sig2 = sorted({min(h.index.searchsorted(d), len(c) - 1) for d in g2.date if d <= h.index[-1]})
         if sig2:
-            rec.update(rde_date=h.index[sig2[0]].date(), rde_exit=run_exits(c, ma50, sig2[0], sig2), rde_n=len(g2))
+            rec.update(rde_date=h.index[sig2[0]].date(), rde_exit=run_exits(c, ma50, sig2[0], sig2, legs["rde_exit"]),
+                       rde_n=len(g2))
         g = D[D.stock == n]
         if len(g):
             sig = sorted({min(h.index.searchsorted(d), len(c) - 1) for d in g.date if d <= h.index[-1]})
             if sig:
                 i0 = sig[0]
                 rec.update(sl_date=h.index[i0].date(), sl_src=g.iloc[0].src, n_signals=len(g), sl_hold=(c[-1] / c[i0] - 1) * 100)
-                e, p = 1.0, i0
-                for j in range(i0 + 1, len(c)):
-                    if p is None:
-                        if j in sig:
-                            p = j
-                    elif exit_hit(c, ma50, p, j):
-                        e *= c[j] / c[p]
-                        p = None
-                if p is not None:
-                    e *= c[-1] / c[p]
-                rec["sl_exit"] = (e - 1) * 100
+                legs["sl_hold"].append((i0, None))
+                rec["sl_exit"] = run_exits(c, ma50, i0, sig, legs["sl_exit"])
+        idx = h.index[days]
+        for m, lg in legs.items():
+            col = {"T": "tech", "TV": "techval"}.get(m, m)
+            v = path(c, days, lg)
+            rec[col + "_dd"] = max_dd(v)
+            curves.setdefault(col, []).append(pd.Series(v, index=idx))
         rows.append(rec)
         if (k + 1) % 25 == 0:
             print(f"[replay] {k + 1}/{len(H)} stocks, {time.time() - t0:.0f}s", flush=True)
@@ -217,17 +248,40 @@ def main():
     os.makedirs("analysis", exist_ok=True)
     S.round(2).to_csv(OUT_S, index=False)
     T.round(2).to_csv(OUT_T, index=False)
-    summarise(S, T, nifty, START)
+    # portfolio: one equal slice of money per stock, every approach; uninvested slices sit in cash
+    P = pd.DataFrame({m: pd.concat(v, axis=1).ffill().fillna(1.0).mean(axis=1) for m, v in curves.items()})
+    nfs = nf[nf.index >= START]
+    P["nifty"] = (nfs / nfs.iloc[0]).reindex(P.index).ffill()
+    P.round(5).to_csv(OUT_P)
+    summarise(S, T, nifty, START, P)
 
 
-def summarise(S, T, nifty, START):
+def summarise(S, T, nifty, START, P=None):
     cols = {"hold": "Hold every stock", "hold_exit": "Hold every stock + technical exit (stay out after)",
             "hold_exit_re": "Hold every stock + technical exit, buy back on BUY NOW",
             "sl_hold": "Signal Lab: first signal, held", "sl_exit": "Signal Lab entries + technical exit",
             "rde_exit": "RS Divergence + Earnings Shock entries + technical exit",
             "tech": "Technicals only", "techval": "Technicals + valuation"}
     L = [f"# Signal replay: Nifty 500 from {START:%d %b %Y} to {pd.Timestamp.today():%d %b %Y}", "",
-         f"{len(S)} stocks with Yahoo data. Nifty 50 over the same days: {nifty:+.1f}%.", "",
+         f"{len(S)} stocks with Yahoo data. Nifty 50 over the same days: {nifty:+.1f}%.", ""]
+    if P is not None and len(P):
+        L += ["**Portfolio view** -- the same money split equally across every stock, each slice run by the approach "
+              "(cash while out, earning nothing). Absolute return = end value / start value - 1; worst drawdown = the "
+              "largest fall from a running peak of the whole portfolio, and the average of each stock's own worst fall.", "",
+              "| Approach | Absolute return | Worst drawdown (portfolio) | When (peak → trough) | Avg worst drawdown per stock |",
+              "|---|---|---|---|---|"]
+        for m, lab in list(cols.items()) + [("nifty", "Nifty 50 (index)")]:
+            if m not in P:
+                continue
+            v = P[m].dropna()
+            dd = 1 - v / v.cummax()
+            tr = dd.idxmax()
+            pk = v[:tr].idxmax()
+            per = S[f"{m}_dd"].mean() if f"{m}_dd" in S else np.nan
+            L.append(f"| {lab} | {(v.iloc[-1] / v.iloc[0] - 1) * 100:+.1f}% | -{dd.max() * 100:.1f}% | "
+                     f"{pk:%d %b} → {tr:%d %b} | {'' if pd.isna(per) else f'-{per:.1f}%'} |")
+        L += [""]
+    L += [
          "| Approach | Stocks acted on | Avg return per stock (all stocks, 0 if never bought) | Avg return on stocks acted on | Median (acted on) | Share of acted-on stocks up | Days invested (share of stock-days) |",
          "|---|---|---|---|---|---|---|"]
     for k, lab in cols.items():
