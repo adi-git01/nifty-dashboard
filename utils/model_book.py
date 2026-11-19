@@ -25,7 +25,7 @@ from __future__ import annotations
 import json
 import math
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
@@ -175,13 +175,13 @@ def ticket(snap: Dict[str, Any], meta: Dict[str, Any], book: List[Dict[str, Any]
 def pending(orders: List[Dict[str, Any]], log: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
     """Ticket orders not yet dealt with (an order id is used once: it cannot be sent twice)."""
     seen = {r["id"]: r for r in (LOG.load() if log is None else log)}
-    return [o for o in orders if seen.get(o["id"], {}).get("status") not in ("SENT", "FILLED", "SKIPPED")]   # refused / unfilled: offer again
+    return [o for o in orders if seen.get(o["id"], {}).get("status") not in ("SENDING", "SENT", "FILLED", "SKIPPED")]   # refused / unfilled: offer again
 
 
 # ------------------------------------------------------------------ recording
 def log_order(order: Dict[str, Any], status: str, **fields) -> Dict[str, Any]:
     """Create or update the log row for an order."""
-    row = {**order, "status": status, "ts": datetime.now().isoformat(timespec="seconds"), **fields}
+    row = {**order, "status": status, "ts": datetime.now(timezone(timedelta(hours=5, minutes=30))).isoformat(timespec="seconds"), **fields}
     if any(r.get("id") == order["id"] for r in LOG.load()):
         LOG.commit({"patches": {order["id"]: {k: v for k, v in row.items() if k != "id"}}}, f"order {order['id']}: {status}", background=True)
     else:

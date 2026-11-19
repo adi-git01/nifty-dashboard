@@ -71,7 +71,8 @@ def fill(df: pd.DataFrame, order: Dict[str, Any], qty: float, price: float, mode
     slip = (price / ref - 1) * 100 * (1 if order["side"] == "BUY" else -1) if ref else None      # + = worse than the model's price
     bv.journal(df, [(act, t, qty, price, False)], f"Model · {mode}", before, known, notes={t: order.get("reason", "")}, tags=TAG,
                extra={t: dict(model_price=ref or None, slippage_pct=round(slip, 2) if slip is not None else None)})
-    mb.log_order(order, "FILLED", fill_qty=qty, fill_price=price, slippage_pct=round(slip, 2) if slip is not None else None, mode=mode)
+    mb.log_order(order, "FILLED", fill_qty=qty, fill_price=price, slippage_pct=round(slip, 2) if slip is not None else None,
+                 mode=order.get("mode") or ("dhan" if mode == "Dhan" else "manual"))   # keep the stored mode: the daily caps count "dhan"
 
 
 def _setup(meta: Dict[str, Any]) -> bool:
@@ -115,7 +116,7 @@ def _awaiting(df: pd.DataFrame, log: List[Dict[str, Any]], ver: int) -> None:
     """Orders placed and not yet settled: fetch fills from Dhan, or type them in."""
     from utils import dhan_orders as do
     from utils.broker_sync import BrokerError
-    wait = [r for r in log if r.get("status") == "SENT"]
+    wait = [r for r in log if r.get("status") in ("SENT", "SENDING")]
     if not wait:
         return
     st.markdown("#### ⏳ Placed, waiting for fills")
@@ -180,15 +181,25 @@ def _send(orders: List[Dict[str, Any]], book: List[Dict[str, Any]], log: List[Di
         if why:
             st.warning(f"{o['side']} {o['ticker'].replace('.NS', '')} not sent: {why}.")
             continue
+        log.append(mb.log_order(o, "SENDING", mode="dhan"))  # recorded before the call: a rerun cannot send it twice
         try:
             r = do.place(token, o, cfg, ids)
-            row = mb.log_order(o, "SENT", mode="dhan", dhan_order_id=r["order_id"], broker_status=r["status"])
-            log.append(row)
+            log.append(mb.log_order(o, "SENT", mode="dhan", dhan_order_id=r["order_id"], broker_status=r["status"]))
             ok += 1
-        except BrokerError as e:
+        except do.UncertainOrder as e:
+            log.append(mb.log_order(o, "SENT", mode="dhan", dhan_order_id=None, message=str(e)))   # resolve by hand below
             st.error(f"{o['side']} {o['ticker'].replace('.NS', '')}: {e}")
-            if "IP" in str(e):
+            break                                            # stop the batch until you have looked
+        except BrokerError as e:
+            log.append(mb.log_order(o, "REJECTED", mode="dhan", message=str(e)[:200]))
+            st.error(f"{o['side']} {o['ticker'].replace('.NS', '')}: {e}")
+            if "registered IP" in str(e):
                 break                                        # the same refusal would repeat for every order
+        except Exception as e:
+            log.append(mb.log_order(o, "SENT", mode="dhan", dhan_order_id=None, message=f"unexpected error: {type(e).__name__}"))
+            st.error(f"{o['side']} {o['ticker'].replace('.NS', '')}: unexpected error ({type(e).__name__}). Check the Dhan "
+                     "order book; the order is listed below as waiting until you record what happened.")
+            break
     return ok
 
 

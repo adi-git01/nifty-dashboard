@@ -91,7 +91,7 @@ def _panel(n_files: int) -> pd.DataFrame:
         from utils import corp_actions
         for _, r in corp_actions.load().iterrows():
             if r["ticker"] in P.columns and float(r["factor"]) > 0:
-                P.loc[P.index < pd.Timestamp(r["date"]), r["ticker"]] /= float(r["factor"])
+                P.loc[P.index < pd.Timestamp(r["date"]), r["ticker"]] *= float(r["factor"])   # factor = new/old basis (0.1 for a 1:10 split)
     except Exception:
         pass
     return P

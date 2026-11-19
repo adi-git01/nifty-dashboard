@@ -123,11 +123,18 @@ def send_telegram(msg):
     if not token or not chat_id:
         return
     try:
-        requests.post(
+        r = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
             json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"},
             timeout=10,
         )
+        if r.status_code != 200:
+            # usually "can't parse entities": an '&' (Pharma & Healthcare, M&M) or '<' (Trend Break (< MA50)) in the text.
+            # Send it as plain text rather than not at all.
+            import re as _re
+            print(f"  Telegram HTML refused ({r.status_code}: {r.text[:120]}); resending as plain text")
+            plain = _re.sub(r"</?(b|i|u|code|pre|a)( [^>]*)?>", "", msg)
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": plain}, timeout=10)
     except Exception as e:
         print(f"  Telegram error: {e}")
 

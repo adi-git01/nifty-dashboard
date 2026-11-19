@@ -463,6 +463,11 @@ class OptCompV21Engine:
 
         today = self.data_cache['NIFTY'].index[-1].strftime('%Y-%m-%d')
         self.current_date = today
+        if state.get('date') and today < str(state['date'])[:10]:
+            # Yahoo served data older than the last run (seen 17 Nov 2026: 13 Nov bars after a 16 Nov run). Running on
+            # it re-wrote the 13 Nov equity row with Monday's holdings and cash. Keep the book as it is.
+            print(f"  ⚠️  Market data ends {today}, before the last run ({state['date']}). Nothing changed.")
+            return
 
         # ============================================================
         # V2.2 REGIME CLASSIFICATION

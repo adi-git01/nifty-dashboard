@@ -16,8 +16,10 @@ def normalize(value, min_val, max_val):
         return 5  # Neutral if missing
     try:
         value = float(value)
-    except:
+    except (TypeError, ValueError):
         return 5
+    if not np.isfinite(value):
+        return 5  # NaN / inf from Yahoo: missing, not a score of NaN
     if value < min_val:
         return 0
     if value > max_val:

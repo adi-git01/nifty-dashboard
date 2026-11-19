@@ -22,12 +22,17 @@ Outside market hours an order goes in as an after-market order for the next open
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 from utils.broker_sync import DHAN_API, TIMEOUT, BrokerError, _http, _json
+
+class UncertainOrder(BrokerError):
+    """No clear answer from Dhan: the order may or may not exist. Never resend it blindly."""
+
 
 SCRIP_MASTER = "https://images.dhan.co/api-data/api-scrip-master.csv"
 MAX_ORDERS_DAY = 40
@@ -90,12 +95,13 @@ def check(order: Dict[str, Any], held: Dict[str, float], log: List[Dict[str, Any
     q, lim = int(order.get("qty") or 0), float(order.get("limit") or 0)
     if order.get("side") not in ("BUY", "SELL") or q <= 0 or lim <= 0:
         return "not a valid limit order"
-    prior = next((r for r in log if r.get("id") == order["id"]), None)
-    if prior and prior.get("status") in ("SENT", "FILLED"):
+    prior = next((r for r in reversed(log) if r.get("id") == order["id"]), None)      # the latest state of this order
+    if prior and prior.get("status") in ("SENDING", "SENT", "FILLED"):
         return "already sent"
     if q * lim > max_order * 1.0001:
         return f"₹{q * lim:,.0f} is over the per-order cap of ₹{max_order:,.0f}"
-    sent = [r for r in log if str(r.get("ts", ""))[:10] == today and r.get("status") in ("SENT", "FILLED") and r.get("mode") == "dhan"]
+    sent = [r for r in log if str(r.get("ts", ""))[:10] == today and r.get("status") in ("SENDING", "SENT", "FILLED")
+            and str(r.get("mode", "")).lower() == "dhan"]
     if len(sent) >= MAX_ORDERS_DAY:
         return f"{MAX_ORDERS_DAY} orders already sent today"
     bought = sum(float(r.get("qty") or 0) * float(r.get("limit") or 0) for r in sent if r.get("side") == "BUY")
@@ -107,10 +113,20 @@ def check(order: Dict[str, Any], held: Dict[str, float], log: List[Dict[str, Any
 
 
 def body(order: Dict[str, Any], client_id: str, security_id: str, amo: bool) -> Dict[str, Any]:
-    return {"dhanClientId": client_id, "correlationId": str(order["id"])[:25], "transactionType": order["side"],
+    return {"dhanClientId": client_id, "correlationId": correlation_id(order["id"]), "transactionType": order["side"],
             "exchangeSegment": "NSE_EQ", "productType": "CNC", "orderType": "LIMIT", "validity": "DAY",
             "securityId": str(security_id), "quantity": int(order["qty"]), "disclosedQuantity": 0,
             "price": float(order["limit"]), "triggerPrice": 0, "afterMarketOrder": bool(amo), "amoTime": "OPEN"}
+
+
+def correlation_id(order_id: str) -> str:
+    """Dhan allows 25 characters; the order id (2026-11-13-EIMCOELECO-SELL) can be longer or hold '&' (M&M)."""
+    d, _, rest = str(order_id).partition("-")
+    parts = str(order_id).split("-")
+    date = "".join(parts[:3]) if len(parts) >= 5 else ""
+    sym, side = (parts[3], parts[-1]) if len(parts) >= 5 else (str(order_id), "")
+    sym = re.sub(r"[^A-Za-z0-9]", "", sym)[:13]
+    return f"{date}-{sym}-{side[:1]}"[:25] if date else re.sub(r"[^A-Za-z0-9-]", "", str(order_id))[:25]
 
 
 def _proxies(cfg: Dict[str, Any]) -> Optional[Dict[str, str]]:
@@ -121,7 +137,7 @@ def _error(d: Any, code: int) -> str:
     msg = ""
     if isinstance(d, dict):
         msg = str(d.get("errorMessage") or d.get("message") or d.get("omsErrorDescription") or d.get("errorCode") or "")
-    if "ip" in msg.lower():
+    if re.search(r"\bip\b|whitelist", msg, re.I):            # not "scrip"
         msg += (" — Dhan only accepts orders from a registered IP address. Register this server's address on web.dhan.co "
                 "(Profile → DhanHQ Trading APIs → Add IP), or set [dhan] order_proxy to a fixed-IP exit.")
     return msg or f"HTTP {code}"
@@ -155,10 +171,19 @@ def place(token: str, order: Dict[str, Any], cfg: Optional[Dict[str, Any]] = Non
     sid = (ids if ids is not None else security_ids()).get(sym)
     if not sid:
         raise BrokerError(f"{sym} was not found in Dhan's instrument list.")
-    r = _http().post(f"{DHAN_API}/orders", json=body(order, cfg["client_id"], sid, not market_open(now)), timeout=TIMEOUT,
-                     headers={"access-token": token, "Content-Type": "application/json", "Accept": "application/json"},
-                     proxies=_proxies(cfg))
-    d = _json(r)
+    try:
+        r = _http().post(f"{DHAN_API}/orders", json=body(order, cfg["client_id"], sid, not market_open(now)), timeout=TIMEOUT,
+                         headers={"access-token": token, "Content-Type": "application/json", "Accept": "application/json"},
+                         proxies=_proxies(cfg))
+    except Exception as e:                                   # timeout / dropped connection: Dhan may have taken it
+        raise UncertainOrder(f"No reply from Dhan ({type(e).__name__}). The order may have been placed: check the Dhan "
+                             "order book before doing anything else; it will not be resent from here.")
+    try:
+        d = _json(r)
+    except BrokerError:
+        if r.status_code in (200, 201, 202):
+            raise UncertainOrder("Dhan answered but the reply was unreadable; check the Dhan order book.")
+        raise
     if r.status_code not in (200, 201, 202) or not isinstance(d, dict) or not d.get("orderId"):
         raise BrokerError(f"Dhan refused the order: {_error(d, r.status_code)}")
     return dict(order_id=str(d["orderId"]), status=str(d.get("orderStatus") or "PENDING").upper())
