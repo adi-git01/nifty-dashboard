@@ -40,7 +40,9 @@ LOGS = [
     ("Turnaround Catalyst", "data/tc_log.csv", "signal_date", "Live Desk / Morning Pulse", "big up day or trend-score jump off the lows"),
     ("Earnings Shock", "data/earnings_shock_log.csv", "signal_date", "Live Desk", "4%+ jump on 2.5x volume"),
     ("RS Divergence", "data/rs_divergence_log.csv", "signal_date", "Live Desk", "up on a red market day, near highs"),
-    ("Breakouts (52W / ATH / squeeze)", "data/breakout_log.csv", "breakout_date", "Trend Scanner", "new high or squeeze release"),
+    # measured from the day the dashboard first showed it: 45% of breakouts were first seen 1-10 sessions after the
+    # breakout day, and counting from the breakout day credited the log with moves no one could have traded
+    ("Breakouts (52W / ATH / squeeze)", "data/breakout_log.csv", "first_seen", "Trend Scanner", "new high or squeeze release"),
     ("V2.2 watchlist BUY alert", "data/watchlist_history.csv", "added_date", "Live Desk / Telegram", "trend score 70+ with accumulation"),
     ("Agreement (2+ of SIMBA, Scanner, Technicals)", "data/consensus_log.csv", "first_seen", "Trend Scanner → Agreement", "three tools agree"),
 ]
@@ -147,6 +149,13 @@ def build(root: str = ".", save: bool = True) -> pd.DataFrame:
             r = _score(name, L.rename(columns={dcol: "date"}), F, idx)
             r.update(where=where, claim=claim)
             rows.append(r)
+            if name.startswith("Breakouts") and {"momentum", "kind", "ind_score"} <= set(L.columns):
+                lead = L.kind.astype(str).str.contains("52W|ATH") & (pd.to_numeric(L.ind_score, errors="coerce") > 66)
+                for sub, mask, why in (("   …momentum entry only", L.momentum.astype(str).str.lower() == "true", "the Scanner's Momentum entry tag"),
+                                       ("   …52W / ATH high in a leader industry", lead, "the 2014-26 study's edge: +2.2 pp at 3 months")):
+                    r = _score(sub, L[mask].rename(columns={dcol: "date"}), F, idx)
+                    r.update(where=where, claim=why)
+                    rows.append(r)
             if name.startswith("Turnaround Radar") and "signal_tier" in L:
                 for tier in ("ALERT", "READY"):
                     r = _score(f"   …{tier} tier only", L[L.signal_tier == tier].rename(columns={dcol: "date"}), F, idx)
