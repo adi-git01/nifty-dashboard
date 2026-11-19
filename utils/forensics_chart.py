@@ -35,11 +35,15 @@ LEVEL_STYLE = {           # kind: (colour, dash, width)
 MUTED = "#8a8984"
 
 
-def _fmt(x):
-    return f"₹{x:,.2f}"
+CUR = {"INR": "₹", "USD": "$"}
+
+
+def _fmt(x, cur="₹"):
+    return f"{cur}{x:,.2f}"
 
 
 def price_chart(P: dict, ticker: str, months: int = 9) -> go.Figure:
+    cur = CUR.get(P.get("currency", "INR"), "₹")
     r, d = P["r"], P["df"].copy()
     d = d.astype({k: float for k in ("High", "Low", "Close", "Volume")})
     for n in (20, 50, 100, 200):
@@ -95,7 +99,7 @@ def price_chart(P: dict, ticker: str, months: int = 9) -> go.Figure:
     for name, y, kind in lines:
         col, dash, w = LEVEL_STYLE.get(kind, (MUTED, "dot", 1))
         fig.add_hline(y=y, row=1, col=1, line=dict(color=col, dash=dash, width=w),
-                      annotation_text=f"{name.split(' (')[0].replace(' = clean-air trigger', ' → clean-air trigger')} {_fmt(y)}",
+                      annotation_text=f"{name.split(' (')[0].replace(' = clean-air trigger', ' → clean-air trigger')} {_fmt(y, cur)}",
                       annotation_position="right", annotation_font=dict(size=10, color=col))
 
     # volume events of the last 60 sessions
@@ -109,10 +113,10 @@ def price_chart(P: dict, ticker: str, months: int = 9) -> go.Figure:
                 x=g.date, y=y, mode="markers", name=f"Volume event {dirn.split()[0]}",
                 marker=dict(symbol=sym[dirn], size=np.clip(g.vol_ratio * 2.2 + 6, 9, 22), color=colr[dirn],
                             line=dict(color=np.where(g.anchor, "#0b0b0b", "#fcfcfb"), width=np.where(g.anchor, 2.5, 1.5))),
-                customdata=np.c_[g.vol_ratio, g.clv, g.turnover_cr, g.retention * 100, g.state, g.days,
+                customdata=np.c_[g.vol_ratio, g.clv, g.turnover_cr * (1 if cur == "₹" else 10), g.retention * 100, g.state, g.days,
                                  np.where(g.anchor, "ANCHOR (highest volume, 60 sessions)", "")],
                 hovertemplate="<b>%{x|%d %b %Y}</b> %{customdata[6]}<br>vol %{customdata[0]:.1f}× median · "
-                              "CLV %{customdata[1]:.2f}<br>turnover ₹%{customdata[2]:,.0f} cr<br>"
+                              "CLV %{customdata[1]:.2f}<br>turnover " + ("₹%{customdata[2]:,.0f} cr" if cur == "₹" else "$%{customdata[2]:,.0f}M") + "<br>"
                               "retention since %{customdata[3]:.0f}% · %{customdata[4]} · day %{customdata[5]}"
                               "<extra></extra>"), row=1, col=1)
         a = ev[ev.anchor]
@@ -124,7 +128,7 @@ def price_chart(P: dict, ticker: str, months: int = 9) -> go.Figure:
         sd = pd.Timestamp(r["shakeout_date"])
         fig.add_trace(go.Scatter(x=[sd], y=[float(d.loc[sd, "Low"]) * 0.985], mode="markers", name="Shakeout",
                                  marker=dict(symbol="star", size=16, color="#eda100", line=dict(color="#0b0b0b", width=1)),
-                                 hovertemplate=f"<b>Shakeout</b> %{{x|%d %b %Y}}<br>broke {_fmt(r['shakeout_level'])} "
+                                 hovertemplate=f"<b>Shakeout</b> %{{x|%d %b %Y}}<br>broke {_fmt(r['shakeout_level'], cur)} "
                                                f"intraday, closed back above<br>vol {r['shakeout_volx']:.2f}× · "
                                                f"CLV {r['shakeout_clv']:.2f}<extra></extra>"), row=1, col=1)
 
@@ -157,7 +161,7 @@ def price_chart(P: dict, ticker: str, months: int = 9) -> go.Figure:
     )
     fig.update_xaxes(range=[view.index[0], d.index[-1] + pd.Timedelta(days=3)],
                      rangebreaks=[dict(bounds=["sat", "mon"])], showgrid=False)
-    fig.update_yaxes(range=[lo - pad, hi + pad], row=1, col=1, title_text="Price (₹)", gridcolor="rgba(128,128,128,0.15)")
+    fig.update_yaxes(range=[lo - pad, hi + pad], row=1, col=1, title_text=f"Price ({cur})", gridcolor="rgba(128,128,128,0.15)")
     fig.update_yaxes(range=[0, vmax * 1.1], row=2, col=1, title_text="Volume", gridcolor="rgba(128,128,128,0.15)")
     return fig
 
@@ -166,6 +170,7 @@ def levels_ladder(P: dict) -> go.Figure:
     """Key levels, top to bottom, with distance from the close. Labels are
     nudged apart so close levels stay readable; a leader line joins each label
     to its true price."""
+    cur = CUR.get(P.get("currency", "INR"), "₹")
     r = P["r"]
     lv = [x for x in levels(P) if x["kind"] != "trail" or P["held"]]
     for t2 in [x for x in lv if x["name"].startswith("T2")]:
@@ -196,11 +201,11 @@ def levels_ladder(P: dict) -> go.Figure:
         elif x["kind"] == "shelf":
             col, dash, w = "#e34948" if r["supply"] == "NEAR OVERHANG" else MUTED, "solid", 1
         fig.add_trace(go.Scatter(x=[0, 0.55], y=[x["price"]] * 2, mode="lines", line=dict(color=col, dash=dash, width=w),
-                                 hovertemplate=f"{x['name']}: {_fmt(x['price'])}<extra></extra>", showlegend=False))
+                                 hovertemplate=f"{x['name']}: {_fmt(x['price'], cur)}<extra></extra>", showlegend=False))
         fig.add_trace(go.Scatter(x=[0.55, 0.62], y=[x["price"], pos[k]], mode="lines",
                                  line=dict(color=MUTED, width=0.8), hoverinfo="skip", showlegend=False))
         pct = (x["price"] / close - 1) * 100
-        txt = (f"<b>{x['name']}</b>  {_fmt(x['price'])}" + ("" if x["kind"] == "close" else f"  ({pct:+.1f}%)")
+        txt = (f"<b>{x['name']}</b>  {_fmt(x['price'], cur)}" + ("" if x["kind"] == "close" else f"  ({pct:+.1f}%)")
                + (f"  · {x['note']}" if x.get("note") else ""))
         fig.add_annotation(x=0.63, y=pos[k], text=txt, showarrow=False, xanchor="left", font=dict(size=11))
     for run in r.get("shelves_above", [])[:3]:
@@ -210,7 +215,7 @@ def levels_ladder(P: dict) -> go.Figure:
     fig.update_layout(height=max(360, 34 * len(lv) + 80), margin=dict(l=10, r=10, t=40, b=10),
                       title=dict(text="<b>Key levels</b> · distance from the close", x=0, font=dict(size=14)),
                       xaxis=dict(visible=False, range=[0, 1.6]),
-                      yaxis=dict(title="Price (₹)", range=[min(lo, min(pos.values())) - span * 0.05,
+                      yaxis=dict(title=f"Price ({cur})", range=[min(lo, min(pos.values())) - span * 0.05,
                                                            max(hi, max(pos.values())) + span * 0.05],
                                  gridcolor="rgba(128,128,128,0.12)"))
     return fig
@@ -218,6 +223,7 @@ def levels_ladder(P: dict) -> go.Figure:
 
 def retention_chart(P: dict) -> go.Figure | None:
     """Each close since the anchor vs the close before the anchor (the retention test)."""
+    cur = CUR.get(P.get("currency", "INR"), "₹")
     r, d = P["r"], P["df"]
     if "anchor_date" not in r:
         return None
@@ -231,15 +237,15 @@ def retention_chart(P: dict) -> go.Figure | None:
     held = post >= base
     fig = go.Figure(go.Bar(x=np.arange(1, len(post) + 1), y=pct, marker=dict(color=np.where(held, UP, DOWN)),
                            customdata=np.c_[post.index.strftime("%d %b"), post.values],
-                           hovertemplate="day %{x} · %{customdata[0]}<br>close ₹%{customdata[1]:,.2f}<br>"
+                           hovertemplate="day %{x} · %{customdata[0]}<br>close " + cur + "%{customdata[1]:,.2f}<br>"
                                          "%{y:+.1f}% vs pre-anchor close<extra></extra>", showlegend=False))
     fig.add_hline(y=0, line=dict(color="#0b0b0b", width=1),
-                  annotation_text=f"pre-anchor close {_fmt(base)}", annotation_position="top left",
+                  annotation_text=f"pre-anchor close {_fmt(base, cur)}", annotation_position="top left",
                   annotation_font=dict(size=10))
     if r["state"] in UP_STATES or r["state"] == "VETO":
         vy = (r["anchor_low"] / base - 1) * 100
         fig.add_hline(y=vy, line=dict(color="#e34948", dash="dot", width=1.5),
-                      annotation_text=f"anchor low {_fmt(r['anchor_low'])} (VETO below)", annotation_position="bottom right",
+                      annotation_text=f"anchor low {_fmt(r['anchor_low'], cur)} (VETO below)", annotation_position="bottom right",
                       annotation_font=dict(size=10, color="#e34948"))
     if len(post) >= 5:
         fig.add_vline(x=5.5, line=dict(color=MUTED, dash="dash", width=1),
