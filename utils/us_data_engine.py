@@ -16,7 +16,9 @@ from utils.volume_analysis import get_combined_volume_signal
 SP500_CSV         = "data/sp500_tickers.csv"
 US_PARQUET_PREFIX = "data/cache/us_market_master"
 
-DEFAULT_RS_WEIGHTS = [(5, 0.30), (21, 0.50), (63, 0.20)]
+# 12-month RS (analysis/TRANSFER_VERDICT.md): the most reliable ordering in every US test; the old 30/50/20
+# 1w/1m/3m blend scored below random on US sectors
+DEFAULT_RS_WEIGHTS = [(252, 1.0)]
 
 
 # ---------------------------------------------------------------------------
@@ -129,7 +131,7 @@ def _comp_rs(stock_series: pd.Series, bench_series: pd.Series,
     weights: list of (period, weight) tuples.
     """
     rs_vals = {}
-    for period, _ in weights:
+    for period in sorted({p for p, _ in weights} | {5, 21, 63}):     # the 1w / 1m / 3m columns are shown either way
         s_ret = _period_return(stock_series, period)
         b_ret = _period_return(bench_series, period)
         rs_vals[period] = s_ret - b_ret

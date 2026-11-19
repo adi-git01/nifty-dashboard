@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 AI_CAPEX_THEME = {
     'name': 'AI Datacenter Capex',
     'benchmark': 'SMH',           # VanEck Semiconductor ETF — better alpha baseline than SPY
-    'rs_weights': [(5, 0.30), (21, 0.50), (63, 0.20)],   # Config D (backtest-optimal)
+    'rs_weights': [(252, 1.0)],   # 12-month RS: beat the 1w/1m/3m blend at 8/8 starts (analysis/TRANSFER_VERDICT.md)
     'ma_period': 30,
     'lookback_days': 400,
     'min_volume_usd': 2_000_000,

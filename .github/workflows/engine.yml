@@ -52,6 +52,8 @@ jobs:
     env:
       TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # every step queues its Telegram message here; "Send the evening brief" sends them as one (scripts/send_brief.py)
+      TELEGRAM_BATCH: /tmp/telegram_batch.jsonl
       GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
       GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
     
@@ -178,6 +180,13 @@ jobs:
         python industry_alert_daemon.py
       continue-on-error: true
 
+    - name: Send the evening brief (one Telegram message for the whole run)
+      continue-on-error: true
+      env:
+        TELEGRAM_BATCH: ""
+      run: |
+        python scripts/send_brief.py /tmp/telegram_batch.jsonl
+
     - name: Mark today's run (later schedules skip)
       run: |
         # records the session the snapshot holds; later firings skip only once that is today's (scripts/engine_gate.py)
@@ -199,6 +208,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_BRANCH: ${{ github.ref_name }}
+        TELEGRAM_BATCH: ""          # after the brief: a failure is sent at once
       run: |
         python scripts/health_check.py
 

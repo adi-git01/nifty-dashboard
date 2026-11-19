@@ -79,7 +79,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     V = pd.DataFrame({
         "Stock": P.ticker.str.replace(".NS", "", regex=False), "Name": P.name, **{c: P[c] for c in extra},
         "Industry": P.industry, "Ind.": P.ind_group.str.title(), "Price": P.price, "RS": P.comp_rs,
-        "Technicals": P.technicals, "Stop": P.stop, "Risk %": P.risk_pct, "Target 1": P.t1,
+        "Technicals": P.technicals, "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1,
         "Business": P.biz_headline, "Latest qtr profit YoY": P.np_yoy, "Flags": P.biz_flags,
         "Value pctile": P.val_pct, "To mid value": P.val_upside})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
@@ -87,7 +87,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),
         "Stop": st.column_config.NumberColumn(format="₹%.1f", help="Technicals stop from the last close"),
         "Risk %": st.column_config.NumberColumn(format="%.1f%%", help="Distance from price to stop"),
-        "Target 1": st.column_config.NumberColumn(format="₹%.1f"),
+        "2× risk ref": st.column_config.NumberColumn(format="₹%.1f", help="A yardstick, not an exit: booking at 2× risk halved returns in the backtest"),
         "Latest qtr profit YoY": st.column_config.NumberColumn(format="%+.0f%%"),
         "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
         "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price")})

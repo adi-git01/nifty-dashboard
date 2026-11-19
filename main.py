@@ -955,7 +955,7 @@ elif page == "🚀 Live Trading Desk":
 
             @st.cache_data(ttl=3600, show_spinner=False)
             def _get_us_mkt_for_desk():
-                return fetch_us_market_data(benchmark="SPY", rs_weights=[(5, 0.30), (21, 0.50), (63, 0.20)], live_mode=False)
+                return fetch_us_market_data(benchmark="SPY", rs_weights=[(252, 1.0)], live_mode=False)
 
             @st.cache_data(ttl=3600, show_spinner=False)
             def _get_prev_day_maps():
@@ -7325,16 +7325,23 @@ elif page == "🇺🇸 US AI Play":
         "Benchmark", ["SMH", "SPY", "QQQ"], index=0, key="us_benchmark",
         help="SMH = Semis ETF (sector-relative alpha). SPY = broad market."
     )
-    st.sidebar.markdown("**RS Weights (Config D)**")
-    us_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_w5")
-    us_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_w21")
-    raw_us_w63 = round(1.0 - us_w5 - us_w21, 2)
-    us_w63 = max(0.05, raw_us_w63)
-    us_total_w = us_w5 + us_w21 + us_w63
-    us_w5_n, us_w21_n, us_w63_n = us_w5 / us_total_w, us_w21 / us_total_w, us_w63 / us_total_w
-    st.sidebar.caption(f"RS63 auto-set to **{us_w63_n:.0%}** | RS5={us_w5_n:.0%} RS21={us_w21_n:.0%}")
-    if us_w63_n >= us_w5_n:
-        st.sidebar.warning("⚠️ RS63 ≥ RS5 — raise RS5 to front-load theme momentum")
+    # Ranking: 12-month RS by default. analysis/TRANSFER_VERDICT.md: it beat the 1w/1m/3m blend at 8 of 8 starts for the
+    # AI theme (and the blend was below random on US sectors); the blend stays available to compare.
+    us_ai_rank = st.sidebar.radio("Rank by", ["12-month RS (recommended)", "Short blend (1w / 1m / 3m)"], key="us_ai_rank",
+                                  help="12-month RS ranked best in every US test; holding the whole list still beat rotating it")
+    if us_ai_rank.startswith("Short"):
+        st.sidebar.markdown("**RS Weights (Config D)**")
+        us_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_w5")
+        us_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_w21")
+        raw_us_w63 = round(1.0 - us_w5 - us_w21, 2)
+        us_w63 = max(0.05, raw_us_w63)
+        us_total_w = us_w5 + us_w21 + us_w63
+        us_w5_n, us_w21_n, us_w63_n = us_w5 / us_total_w, us_w21 / us_total_w, us_w63 / us_total_w
+        st.sidebar.caption(f"RS63 auto-set to **{us_w63_n:.0%}** | RS5={us_w5_n:.0%} RS21={us_w21_n:.0%}")
+        if us_w63_n >= us_w5_n:
+            st.sidebar.warning("⚠️ RS63 ≥ RS5 — raise RS5 to front-load theme momentum")
+    else:
+        us_w5_n = us_w21_n = us_w63_n = None
 
     # ── Cached ThemeEngine scan ───────────────────────────────────────────────
     @st.cache_data(ttl=3600, show_spinner=False)
@@ -7345,7 +7352,10 @@ elif page == "🇺🇸 US AI Play":
         engine = ThemeEngine(cfg)
         return engine.scan()
 
-    rs_weights_t = ((5, round(us_w5_n, 4)), (21, round(us_w21_n, 4)), (63, round(us_w63_n, 4)))
+    rs_weights_t = (((5, round(us_w5_n, 4)), (21, round(us_w21_n, 4)), (63, round(us_w63_n, 4)))
+                    if us_w5_n is not None else ((252, 1.0),))
+    _us_rank_txt = ("12-month RS" if us_w5_n is None else
+                    f"RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / RS63={us_w63_n:.0%}")
 
     col_refresh, _ = st.columns([1, 5])
     with col_refresh:
@@ -7381,7 +7391,7 @@ elif page == "🇺🇸 US AI Play":
     st.markdown("### 🔄 Layer Rotation Matrix")
     st.caption(
         f"Avg per supply-chain layer vs **{us_benchmark}** | "
-        f"RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / RS63={us_w63_n:.0%} | "
+        f"{_us_rank_txt} | "
         "Sorted best→worst Composite RS"
     )
 
@@ -7714,8 +7724,7 @@ elif page == "🇺🇸 US AI Play":
             height=min(len(_disp) * 38 + 42, 700),
         )
         st.caption(
-            f"Benchmark: {us_benchmark} | Weights: RS5={us_w5_n:.0%} / RS21={us_w21_n:.0%} / "
-            f"RS63={us_w63_n:.0%} | {len(_disp)} of {len(scan_df)} stocks shown"
+            f"Benchmark: {us_benchmark} | Ranked by: {_us_rank_txt} | {len(_disp)} of {len(scan_df)} stocks shown"
         )
 
     # ── Supply Chain Layer Map ────────────────────────────────────────────────
@@ -7744,7 +7753,11 @@ Power (L9) is the #1 near-term rate limiter for AI scaling.
         st.markdown(f"""
 **Standard OptComp-V22:** RS5 = 10%, RS21 = 50%, RS63 = 40%
 
-**AI Supply Chain (current):** RS5 = {us_w5_n:.0%}, RS21 = {us_w21_n:.0%}, RS63 = {us_w63_n:.0%}
+**AI Supply Chain (current):** {_us_rank_txt}
+
+**Backtest (analysis/TRANSFER_VERDICT.md):** 12-month RS beat the 1w/1m/3m blend at 8 of 8 starts, before and after
+costs, and the blend scored below random on US sectors. Holding the whole list still beat rotating it: use the ranking as
+a watchlist. The reasoning below was the case for the blend, kept for reference.
 
 AI datacenter is a **fast-rotating, news-driven theme.** The 3-month (RS63) lookback often
 includes time *before* the theme ignited, diluting the signal. Elevating RS5 catches
@@ -7774,14 +7787,20 @@ elif page == "🇺🇸 US Scanner":
         key="us_scan_bm",
         help="SPY = S&P 500 | QQQ = Nasdaq 100 | IWM = Russell 2000"
     )
-    st.sidebar.markdown("**RS Weights (Config D)**")
-    us_s_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_s_w5")
-    us_s_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_s_w21")
-    us_s_w63_n = round(1.0 - us_s_w5 - us_s_w21, 4)
-    st.sidebar.caption(f"RS63 auto-set to **{us_s_w63_n:.0%}**")
-    if us_s_w63_n < 0:
-        st.sidebar.error("Weights exceed 100% — reduce RS5 or RS21")
-        us_s_w63_n = 0.0
+    us_s_rank = st.sidebar.radio("Rank by", ["12-month RS (recommended)", "Short blend (1w / 1m / 3m)"], key="us_s_rank",
+                                 help="analysis/TRANSFER_VERDICT.md: 12-month RS was the most reliable ordering in every US test; "
+                                      "the short blend scored below random on US sectors")
+    if us_s_rank.startswith("Short"):
+        st.sidebar.markdown("**RS Weights (Config D)**")
+        us_s_w5  = st.sidebar.slider("RS5  (1-week)",  0.10, 0.50, 0.30, 0.05, key="us_s_w5")
+        us_s_w21 = st.sidebar.slider("RS21 (1-month)", 0.20, 0.60, 0.50, 0.05, key="us_s_w21")
+        us_s_w63_n = round(1.0 - us_s_w5 - us_s_w21, 4)
+        st.sidebar.caption(f"RS63 auto-set to **{us_s_w63_n:.0%}**")
+        if us_s_w63_n < 0:
+            st.sidebar.error("Weights exceed 100% — reduce RS5 or RS21")
+            us_s_w63_n = 0.0
+    else:
+        us_s_w5 = us_s_w21 = us_s_w63_n = None
 
     us_live_mode = st.sidebar.checkbox("Live Mode (bypass cache)", value=False, key="us_scan_live")
     if st.sidebar.button("🗑️ Clear US Cache", key="us_clear_cache", help="Force fresh download (needed after ticker list changes)"):
@@ -7793,8 +7812,8 @@ elif page == "🇺🇸 US Scanner":
 
     # --- Cached fetch wrapper ---
     @st.cache_data(ttl=3600, show_spinner=False)
-    def _run_us_scan(benchmark: str, w5: float, w21: float, w63: float, live: bool) -> pd.DataFrame:
-        weights = [(5, w5), (21, w21), (63, w63)]
+    def _run_us_scan(benchmark: str, w5, w21, w63, live: bool) -> pd.DataFrame:
+        weights = [(5, w5), (21, w21), (63, w63)] if w5 is not None else [(252, 1.0)]
         return fetch_us_market_data(benchmark=benchmark, rs_weights=weights, live_mode=live)
 
     with st.spinner("Downloading S&P 500 data…  (first load ~60 s, then cached)"):
@@ -8089,7 +8108,7 @@ elif page == "🇺🇸 US Scanner":
             try:
                 _ran = backfill_us_rotation_if_needed(
                     benchmark=us_scan_benchmark,
-                    rs_weights=[(5, us_s_w5), (21, us_s_w21), (63, us_s_w63_n)],
+                    rs_weights=[(5, us_s_w5), (21, us_s_w21), (63, us_s_w63_n)] if us_s_w5 is not None else [(252, 1.0)],
                 )
                 if _ran:
                     st.success("✅ Historical rotation data ready!")

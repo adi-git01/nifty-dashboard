@@ -93,12 +93,12 @@ def _funnel(df: pd.DataFrame, B: pd.DataFrame):
     V = pd.DataFrame({
         "": ["🆕" if t not in old else "" for t in P.ticker], "Stock": P.ticker.str.replace(".NS", "", regex=False),
         "Name": P.name, "Industry": P.industry, "Price": P.price, "RS": P.comp_rs, "Technicals": P.technicals,
-        "Stop": P.stop, "Risk %": P.risk_pct, "Target 1": P.t1, "Business": P.biz_headline})
+        "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Business": P.biz_headline})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 420), column_config={
         "": st.column_config.TextColumn("", width="small", help="🆕 = did not have both an uptrend and an entry yesterday"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),
         "Stop": st.column_config.NumberColumn(format="₹%.1f"), "Risk %": st.column_config.NumberColumn(format="%.1f%%"),
-        "Target 1": st.column_config.NumberColumn(format="₹%.1f")})
+        "2× risk ref": st.column_config.NumberColumn(format="₹%.1f", help="A yardstick, not an exit: booking at 2× risk halved returns in the backtest")})
     st.caption(f"{int((V[''] == '🆕').sum())} new today. Stage switches and near misses: **Investment Funnel**. "
                "Full write-up on any stock: **Analysis Lab → Stock Report**.")
 

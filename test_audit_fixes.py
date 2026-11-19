@@ -100,6 +100,6 @@ def test_trade_plan_orders_levels_and_flags_conflicts():
     assert tp["valid"] and tp["stop"] < tp["entry"] < tp["t1"]
     assert any("above the valuation's SELL level" in f for f in tp["flags"])
     assert any("stop is above fair value" in f for f in tp["flags"])
-    assert "Stop ₹" in tp["summary"] and "Target 1 ₹" in tp["summary"]
+    assert "Stop ₹" in tp["summary"] and "2× risk reference ₹" in tp["summary"]
     none = trade_plan.build(P, {"status": "OUT OF SCOPE", "reason": "loss-making"})
     assert any("No valuation" in f for f in none["flags"]) and "Valuation" not in set(none["levels"].source)
