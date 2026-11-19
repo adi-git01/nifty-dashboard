@@ -68,8 +68,11 @@ def indicators(close, high, low):
 # ----------------------------------------------------------------------------
 # Gate 2
 # ----------------------------------------------------------------------------
-def qualifying(c, v, vmed):
-    return (v >= 3 * vmed) & (c * v >= 5e7) & ~np.isnan(c)
+MIN_TURNOVER = {"INR": 5e7, "USD": 6e5}      # Rs 5 cr; about the same in dollars for a US stock (the rule was tested on NSE only)
+
+
+def qualifying(c, v, vmed, min_turnover: float = 5e7):
+    return (v >= 3 * vmed) & (c * v >= min_turnover) & ~np.isnan(c)
 
 
 def pick_anchors(qual, v, i):
@@ -221,7 +224,18 @@ def market_open_now() -> bool:
 
 
 def drop_provisional(df: pd.DataFrame) -> tuple[pd.DataFrame, bool]:
-    """Intraday rule: today's candle is provisional while NSE is open."""
+    """Intraday rule: today's candle is provisional while the exchange is open (NSE, or NYSE for a US stock)."""
+    if len(df) and df.attrs.get("currency") == "USD":
+        try:
+            from zoneinfo import ZoneInfo
+            ny = datetime.now(ZoneInfo("America/New_York"))
+            if ny.weekday() < 5 and dtime(9, 30) <= ny.time() < dtime(16, 0) and pd.Timestamp(df.index[-1]).date() == ny.date():
+                out = df.iloc[:-1]
+                out.attrs.update(df.attrs)
+                return out, True
+        except Exception:
+            pass
+        return df, False
     if len(df) and market_open_now():
         try:
             from zoneinfo import ZoneInfo
@@ -264,7 +278,7 @@ def analyse(df: pd.DataFrame) -> dict:
              dist_ma50=(c[i] / ma50[i] - 1) * 100, dist_hi=(c[i] / hi - 1) * 100,
              rsi=rsi[i], adx=adx[i], pdi=pdi[i], ndi=ndi[i], bbp=bbp[i], sessions=len(c))
     r["gate1"] = bool(c[i] > ma50[i] and not np.isnan(ma200[i]) and c[i] > ma200[i] and c[i] >= 0.85 * hi)
-    qual = qualifying(c, v, vmed)
+    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(df.attrs.get("currency", "INR"), 5e7))
     a6, _ = pick_anchors(qual, v, i)
     stop = ma50[i] - 0.5 * atr[i]
     if a6 is None:
@@ -359,7 +373,7 @@ def events(df: pd.DataFrame, look: int = LOOK) -> pd.DataFrame:
     atr = indicators(d.Close, d.High, d.Low)[0].values
     vmed = d.Volume.rolling(50, min_periods=30).median().shift(1).values
     clv = np.where(h > l, (c - l) / np.where(h > l, h - l, 1), np.nan)
-    qual = qualifying(c, v, vmed)
+    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(df.attrs.get("currency", "INR"), 5e7))
     lo = max(2, i - look + 1)
     idx = [k for k in range(lo, i + 1) if qual[k]]
     a6 = pick_anchors(qual, v, i)[0]
@@ -426,6 +440,7 @@ def plan(df: pd.DataFrame, held_price: float | None = None, held_date=None,
     rr_trig = ((r["t2"] - trigger) / (trigger - stop)
                if trigger and not np.isnan(r["t2"]) and trigger > stop and r["t2"] > trigger else np.nan)
     return dict(r=r, df=df, provisional=provisional, held=held, held_price=held_price, since=since,
+                currency=df.attrs.get("currency", "INR"),
                 peak=peak, trail=0.85 * peak, fired=fired, action=action, shares=shares, risk=risk,
                 risk_rupees=risk_rupees, trig_a=trig_a, trig_b=trig_b, trigger=trigger,
                 rr_now=rr_now, rr_trig=rr_trig)

@@ -90,11 +90,12 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
     rows.sort(key=lambda x: -x["price"])
     bits = []
     if valid_stop:
-        bits.append((f"Buy on a close above ₹{entry:,.2f}" if trigger else f"Entry ₹{entry:,.2f}"))
-        bits.append(f"Stop ₹{stop:,.2f} (−{(entry - stop) / entry * 100:.1f}%)")
-        bits.append(f"2× risk reference ₹{t1:,.2f} (+{(t1 / entry - 1) * 100:.1f}%; not an exit)")
+        cur = {"USD": "$"}.get(P.get("currency", "INR"), "₹")
+        bits.append((f"Buy on a close above {cur}{entry:,.2f}" if trigger else f"Entry {cur}{entry:,.2f}"))
+        bits.append(f"Stop {cur}{stop:,.2f} (−{(entry - stop) / entry * 100:.1f}%)")
+        bits.append(f"2× risk reference {cur}{t1:,.2f} (+{(t1 / entry - 1) * 100:.1f}%; not an exit)")
         if _fin(t2):
-            bits.append(f"Target 2 ₹{t2:,.2f} (+{(t2 / entry - 1) * 100:.1f}%)")
+            bits.append(f"Target 2 {cur}{t2:,.2f} (+{(t2 / entry - 1) * 100:.1f}%)")
         if P.get("shares"):
             bits.append(f"{P['shares']:,} shares")
     if zone:

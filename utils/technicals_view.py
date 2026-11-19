@@ -277,6 +277,9 @@ def _table(df: pd.DataFrame):
 def _deep_dive(df: pd.DataFrame):
 
     st.markdown("#### 🧾 Single-stock report (v6 format)")
+    mkt = st.radio("Market", ["🇮🇳 India (NSE)", "🇺🇸 US"], horizontal=True, key="tx_mkt", label_visibility="collapsed")
+    if mkt.endswith("US"):
+        return _deep_dive_us()
     st.caption("Fresh 2-year daily bars, same logic as the table. While NSE is open, today's candle is treated as "
                "provisional and left out.")
     tickers = sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df else []
@@ -335,6 +338,49 @@ def _deep_dive(df: pd.DataFrame):
         _update_holding(h, mine, hp, hd, risk)
 
 
+def _deep_dive_us():
+    """The same v6 technical read for a US stock: chart structure, volume anchor, supply, stop, size and exit rule."""
+    st.caption("Fresh 2-year daily bars from Yahoo. While New York is open, today's candle is provisional and left out. "
+               "⚠️ The v6 rules were built and backtested on NSE stocks only; on US stocks they are untested. The volume "
+               "anchor needs about $0.6M traded that day (the ₹5 cr rule), so nearly every US day qualifies on value.")
+    try:
+        sp = pd.read_csv("data/sp500_tickers.csv")
+        names = dict(zip(sp.iloc[:, 0].astype(str), sp.get("name", sp.iloc[:, 0]).astype(str)))
+    except Exception:
+        names = {}
+    c1, c2, c3, c4 = st.columns([2, 1, 1, 1])
+    with c1:
+        pick = st.selectbox("Stock", sorted(names), index=None, placeholder="Choose an S&P 500 stock", key="tx_us_pick",
+                            format_func=lambda t: f"{t} — {names.get(t, '')}")
+        custom = st.text_input("…or any US symbol", value="", key="tx_us_custom", placeholder="e.g. PLTR, ARM")
+    with c2:
+        held = st.toggle("I hold it", key="tx_us_held")
+    with c3:
+        hp = st.number_input("Bought @ ($)", min_value=0.0, step=0.5, key="tx_us_hp", disabled=not held)
+    with c4:
+        hd = st.date_input("Since", value=None, key="tx_us_hd", disabled=not held)
+    risk = st.number_input("Risk per trade ($)", min_value=10.0, value=500.0, step=50.0, key="tx_us_risk")
+    t = (custom.strip().upper() or pick or "").replace(".NS", "")
+    if not t:
+        return
+    if held and (hp <= 0 or hd is None):
+        st.warning("Held mode needs the buy price and date (the exit rule tracks the peak since then).")
+        return
+    key = ("US", t, hp if held else None, str(hd) if held else None, risk)
+    if st.button(f"Run report for {t}", key="tx_us_run", type="primary"):
+        st.session_state["tx_us_last"] = key
+    if st.session_state.get("tx_us_last") != key:
+        return
+    with st.spinner("Fetching 2 years of daily bars…"):
+        h = _history(t)
+    if h is None or h.empty:
+        st.error(f"No data for {t}.")
+        return
+    h = h.copy()
+    h.attrs["currency"] = "USD"
+    _visual_report(h, t, hp if held else None, hd if held else None, risk)
+
+
 def _holding(t, known: set):
     """The active My Book position for ticker `t` (old spellings resolved), or None."""
     if not t:
@@ -387,13 +433,15 @@ def _update_holding(h: pd.DataFrame, mine: dict, hp: float, hd, risk: float):
         st.rerun()
 
 
-def _trade_plan_card(P: dict, name: str, h: pd.DataFrame):
+def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
     """Entry, stop, targets and value zones in one place, with the dates the data is from."""
     from utils import trade_plan
     from utils.valuation import _series, value_stock
     from utils.valuation_view import ctx as _val_ctx
     r, val, c = P["r"], None, None
     try:
+        if us:
+            raise RuntimeError("no US valuation")
         c = _val_ctx()
         if not c.annual.empty:
             hh = h.tail(252)
@@ -407,11 +455,13 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame):
     for f in tp["flags"]:
         st.warning(f)
     st.dataframe(tp["levels"], hide_index=True, use_container_width=True,
-                 column_config={"level": "Level", "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
+                 column_config={"level": "Level", "price": st.column_config.NumberColumn("Price", format=("$" if us else "₹") + "%.2f"),
                                 "vs_now": st.column_config.NumberColumn("vs now", format="%+.1f%%"),
                                 "source": "From", "note": "What it means"})
     fresh = [f"prices to {pd.Timestamp(h.index[-1]):%d %b %Y}"]
     try:
+        if us:
+            raise RuntimeError("no Indian fundamentals")
         t = name if name.endswith(".NS") else name + ".NS"
         q = _series(c.quarterly, t, "np")
         if len(q):
@@ -433,9 +483,11 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
         st.error(f"{name}: fewer than 60 closed sessions -- aborted.")
         return
     r = P["r"]
+    us = P.get("currency") == "USD"
+    cur = "$" if us else "₹"
     cfg = {"displayModeBar": False}
     if P["provisional"]:
-        st.caption("⏱️ NSE is open: today's candle is provisional and left out.")
+        st.caption(f"⏱️ {'New York' if us else 'NSE'} is open: today's candle is provisional and left out.")
 
     # headline tiles -- the report's decision block at a glance
     k = st.columns(6)
@@ -444,20 +496,20 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     k[1].metric("Event", r["state"], f"day {r['days']}" if "days" in r else None, delta_color="off")
     k[2].metric("Supply", SUPPLY_LABEL.get(r["supply"], r["supply"]))
     if r["stop"] < r["close"]:
-        k[3].metric("Stop", f"₹{r['stop']:,.2f}", f"-{r['stop_pct']:.1f}%" + (" · ½ size" if r["half_size"] else ""),
+        k[3].metric("Stop", f"{cur}{r['stop']:,.2f}", f"-{r['stop_pct']:.1f}%" + (" · ½ size" if r["half_size"] else ""),
                     delta_color="inverse")
     else:
         k[3].metric("Stop", "—", "price below stop", delta_color="off")
     if P["trigger"]:
-        k[4].metric("Trigger (close >)", f"₹{P['trigger']:,.2f}", f"{(P['trigger'] / r['close'] - 1) * 100:+.1f}%",
+        k[4].metric("Trigger (close >)", f"{cur}{P['trigger']:,.2f}", f"{(P['trigger'] / r['close'] - 1) * 100:+.1f}%",
                     delta_color="off")
     else:
         k[4].metric("Trend (Gate 1)", "PASS" if r["gate1"] else "FAIL",
                     f"{r['dist_ma50']:+.1f}% vs MA50", delta_color="off")
-    k[5].metric("Size", f"{P['shares']:,} sh", f"₹{P['shares'] * r['close']:,.0f}", delta_color="off",
-                help=f"Risk ₹{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
+    k[5].metric("Size", f"{P['shares']:,} sh", f"{cur}{P['shares'] * r['close']:,.0f}", delta_color="off",
+                help=f"Risk {cur}{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
 
-    _trade_plan_card(P, name, h)
+    _trade_plan_card(P, name, h, us=us)
     st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
 
     c1, c2 = st.columns([1, 1])
@@ -479,21 +531,22 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
                          + (" ⭐ (best backtested cell with GO)" if sig == "ABSORPTION" else "")
                          + (" (not a warning in the backtest)" if sig == "DISTRIBUTION" else ""))
         if r.get("shakeout"):
-            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke ₹{r['shakeout_level']:,.2f} "
+            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke {cur}{r['shakeout_level']:,.2f} "
                          f"intraday, closed back above on {r['shakeout_volx']:.2f}× volume")
         notes.append(f"**Lens** · RSI {r['rsi']:.0f} · ADX {r['adx']:.0f} (+DI {r['pdi']:.0f} / −DI {r['ndi']:.0f}) · "
                      f"Bollinger width {r['bbp']:.0f} pct" + (" (squeeze)" if r["bbp"] < 20 else ""))
-        ex = (f"**Exit rule** · MA50 ₹{r['ma50']:,.2f} ({r['dist_ma50']:+.1f}%), closes below {r['closes_below_ma50']}/2"
-              + (f" · trail ₹{P['trail']:,.2f} (0.85 × peak ₹{P['peak']:,.2f})" if P["held"] else "")
+        ex = (f"**Exit rule** · MA50 {cur}{r['ma50']:,.2f} ({r['dist_ma50']:+.1f}%), closes below {r['closes_below_ma50']}/2"
+              + (f" · trail {cur}{P['trail']:,.2f} (0.85 × peak {cur}{P['peak']:,.2f})" if P["held"] else "")
               + (f" · **FIRED {pd.Timestamp(P['fired']):%d %b %Y}**" if P["fired"] is not None else " · not fired"))
         notes.append(ex)
         st.markdown("\n\n".join(f"- {n}" for n in notes))
 
     ev = events(P["df"])
     if len(ev):
-        st.markdown("**Volume events, last 60 sessions** (≥ 3× median volume, ≥ ₹5 cr) -- the highest-volume one is "
-                    "the anchor")
+        st.markdown(f"**Volume events, last 60 sessions** (≥ 3× median volume, ≥ {'$0.6M' if us else '₹5 cr'}) -- the "
+                    "highest-volume one is the anchor")
         show = ev.assign(date=ev.date.dt.strftime("%d %b %Y"), anchor=np.where(ev.anchor, "⚓", ""),
+                         turnover_cr=ev.turnover_cr * (10 if us else 1),
                          retention=ev.retention * 100).sort_values("date", ascending=False)
         st.dataframe(show[["anchor", "date", "vol_ratio", "clv", "direction", "turnover_cr", "close", "low", "days",
                            "retention", "state"]],
@@ -501,9 +554,9 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
                                     "vol_ratio": st.column_config.NumberColumn("Vol ×", format="%.1f×"),
                                     "clv": st.column_config.NumberColumn("CLV", format="%.2f"),
                                     "direction": "Dir",
-                                    "turnover_cr": st.column_config.NumberColumn("Turnover", format="₹%.0f cr"),
-                                    "close": st.column_config.NumberColumn("Close", format="₹%.2f"),
-                                    "low": st.column_config.NumberColumn("Low", format="₹%.2f"),
+                                    "turnover_cr": st.column_config.NumberColumn("Turnover", format="$%.0fM" if us else "₹%.0f cr"),
+                                    "close": st.column_config.NumberColumn("Close", format=cur + "%.2f"),
+                                    "low": st.column_config.NumberColumn("Low", format=cur + "%.2f"),
                                     "days": st.column_config.NumberColumn("Days ago", format="%d"),
                                     "retention": st.column_config.NumberColumn("Retention", format="%.0f%%"),
                                     "state": "Graded as anchor"},
@@ -511,6 +564,10 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     with st.expander("🧾 Full v6 report (text)"):
         st.code(report(h, name, P=P), language=None)
     st.divider()
+    if us:
+        st.info("💰 Valuation for US stocks is not built yet: the fair-value model runs on Indian (Screener) financials. "
+                "The technical read above stands on its own.")
+        return
     from utils.valuation_view import render_stock
     hh = h.tail(252)
     render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
