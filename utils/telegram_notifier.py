@@ -62,14 +62,13 @@ def _load_config() -> Dict:
 
 def _save_config(config: Dict) -> None:
     """Save configuration to file."""
-    print(f"DEBUG: Saving config: {config}")
     try:
         existing = _load_config()
-        print(f"DEBUG: Existing config before update: {existing}")
         existing.update(config)
+        # secrets come from st.secrets / the environment on every call; they are never written to disk or logs
+        safe = {k: v for k, v in existing.items() if not any(w in k for w in ("token", "password", "secret"))}
         with open(CONFIG_FILE, 'w') as f:
-            json.dump(existing, f, indent=2)
-        print("DEBUG: Config saved successfully to", os.path.abspath(CONFIG_FILE))
+            json.dump(safe, f, indent=2)
     except Exception as e:
         print(f"ERROR: Failed to save config: {e}")
 

@@ -830,7 +830,7 @@ def test_dhan_orders_are_guarded():
         do.place("tok", o, cfg, {})
     b = do.body(o, "1000", "11536", amo=True)
     assert (b["productType"], b["orderType"], b["exchangeSegment"], b["validity"]) == ("CNC", "LIMIT", "NSE_EQ", "DAY")
-    assert (b["securityId"], b["quantity"], b["price"], b["afterMarketOrder"], b["correlationId"]) == ("11536", 3, 3500.0, True, o["id"])
+    assert (b["securityId"], b["quantity"], b["price"], b["afterMarketOrder"], b["correlationId"]) == ("11536", 3, 3500.0, True, "20261113-TCS-B")
     chk = lambda order, log=(), held=None: do.check(order, held or {}, list(log), 15000.0, 200000.0, today="2026-11-14")
     assert chk(o) is None
     assert "per-order cap" in chk(dict(o, qty=5))
@@ -1003,3 +1003,46 @@ def test_engine_gate_runs_once_in_the_evening_window():
     assert g.decide(at("2026-11-19 21:00"), sch, {**stale, "tries": 2})[0]                 # then stop (holiday)
     assert not g.decide(at("2026-11-19 19:00"), sch, {"date": "2026-11-19"})[0]            # old-style mark from a late run: still runs
     assert not g.decide(at("2026-11-19 11:00"), "workflow_dispatch", done)[0]              # manual run always goes
+
+
+def test_audit_fixes_split_direction_scores_and_order_ids():
+    from utils import book_logic as bl, scoring, dhan_orders as do
+    bl._panel.cache_clear()
+    P = bl._panel(-7)
+    s = P["CONCORDBIO.NS"].dropna()                                    # 1:2 split on 4 Nov 2026 (factor 0.5)
+    before, after = s[s.index < "2026-11-04"].iloc[-1], s[s.index >= "2026-11-04"].iloc[0]
+    assert 0.7 < after / before < 1.4                                   # no fake halving / doubling across the split
+    assert s.max() < 2 * s.iloc[-1]                                     # no phantom peak that fires the exit rule
+    assert scoring.normalize(float("nan"), 0, 10) == 5 and scoring.normalize(float("inf"), 0, 10) == 5
+    for oid in ("2026-11-13-EIMCOELECO-SELL", "2026-11-13-M&M-BUY", "2026-11-13-BAJAJ-AUTO-BUY"):
+        c = do.correlation_id(oid)
+        assert len(c) <= 25 and all(ch.isalnum() or ch == "-" for ch in c), c
+    assert do.correlation_id("2026-11-13-EIMCOELECO-SELL") != do.correlation_id("2026-11-13-EIMCOELECO-BUY")
+    log = [dict(id="x", status="REJECTED"), dict(id="x", status="SENDING")]
+    assert do.check(dict(id="x", ticker="T.NS", side="BUY", qty=1, limit=10.0), {}, log, 1e6, 1e6) == "already sent"
+    assert "registered IP" in do._error({"errorMessage": "Invalid IP"}, 400) and "registered IP" not in do._error({"errorMessage": "Invalid scrip"}, 400)
+
+
+def test_github_read_over_1mb_is_never_treated_as_empty(monkeypatch):
+    from utils import repo_store as rs
+    import json as _j
+
+    class R:
+        def __init__(self, code, body=None, text=""):
+            self.status_code, self._b, self.text = code, body, text
+        def json(self): return self._b
+        def raise_for_status(self):
+            if self.status_code >= 400: raise RuntimeError(self.status_code)
+
+    calls = []
+    def get(url, headers=None, params=None, timeout=None):
+        calls.append(headers.get("Accept", ""))
+        if "raw" in headers.get("Accept", ""):
+            return R(200, text=_j.dumps([{"id": "a"}, {"id": "b"}]))
+        return R(200, {"content": "", "encoding": "none", "size": 1_500_000, "sha": "abc"})
+    monkeypatch.setattr(rs.requests, "get", get)
+    monkeypatch.setattr(rs, "is_configured", lambda: True)
+    monkeypatch.setattr(rs, "get_repo", lambda: "o/r")
+    monkeypatch.setattr(rs, "_headers", lambda: {"Authorization": "token x"})
+    data, sha, ok = rs.read_json("big.json", use_cache=False, branch="alert-state")
+    assert ok and sha == "abc" and [d["id"] for d in data] == ["a", "b"] and any("raw" in a for a in calls)

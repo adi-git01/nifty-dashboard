@@ -233,9 +233,9 @@ def render(df: pd.DataFrame):
                     "median stock over the following year in each of the five yearly cohorts (about 5 pp on average).")
         cols = st.columns(len(tr["pillars"]) or 1)
         arrow = lambda d: "improving" if d > 0.25 else "slipping" if d < -0.25 else "steady"
-        for col, (k, v) in zip(cols, tr["pillars"].items()):
-            col.metric(f"{k} ({v.get('weight', 0) * 100:.0f}%)", f"{v['score']}/100", arrow(v["dir"]), delta_color="off")
-            col.progress(int(v["score"]))
+        for col, (k, pv) in zip(cols, tr["pillars"].items()):
+            col.metric(f"{k} ({pv.get('weight', 0) * 100:.0f}%)", f"{pv['score']}/100", arrow(pv["dir"]), delta_color="off")
+            col.progress(int(pv["score"]))
             col.markdown("\n".join(f"- {fund_trends.ICON[x['way']]} **{x['metric']}** — {x['text']}" + ("" if x["scored"] else " *(not scored)*")
                                    for x in tr["findings"] if x["pillar"] == k))
         if tr.get("ownership"):

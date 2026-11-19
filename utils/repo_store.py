@@ -202,7 +202,16 @@ def _read_now(path: str, branch: str) -> Tuple[Optional[Any], Optional[str], boo
             return None, None, True
         r.raise_for_status()
         body = r.json()
-        raw = base64.b64decode(body.get("content", "")).decode("utf-8")
+        raw = base64.b64decode(body.get("content", "") or "").decode("utf-8")
+        if not raw.strip() and int(body.get("size") or 0) > 0:
+            # over 1 MB the Contents API sends no inline content; an empty read here would let the next write
+            # replace the whole file (trade journal, order log) with only the new rows
+            r2 = requests.get(f"{API}/repos/{get_repo()}/contents/{path}", params={"ref": branch}, timeout=TIMEOUT,
+                              headers={**_headers(), "Accept": "application/vnd.github.raw"})
+            r2.raise_for_status()
+            raw = r2.text
+            if not raw.strip():
+                raise ValueError(f"{path}: {body.get('size')} bytes on GitHub but nothing could be read")
         data = json.loads(raw) if raw.strip() else None
         _cache[ck] = (time.time(), data, body.get("sha"))
         return data, body.get("sha"), True
