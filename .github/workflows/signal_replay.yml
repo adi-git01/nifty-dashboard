@@ -1,0 +1,31 @@
+name: Signal Replay (Nifty 500)
+
+# What acting on Signal Lab, Technicals only, or Technicals + valuation would have returned per stock
+# since a start date, replayed day by day on Yahoo bars (signal_replay.py). Manual only.
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "Start date (YYYY-MM-DD)"
+        type: string
+        default: "2026-07-01"
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Replay
+        run: python signal_replay.py --start "${{ inputs.start }}" 2>&1 | tee signal_replay_output.txt
+      - name: Commit results
+        run: bash scripts/commit_and_push.sh "Signal replay results" analysis/signal_replay_stocks.csv analysis/signal_replay_trades.csv analysis/SIGNAL_REPLAY.md signal_replay_output.txt
