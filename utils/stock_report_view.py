@@ -202,7 +202,7 @@ def render(df: pd.DataFrame):
         m = st.columns(5)
         m[0].metric("Entry", f"₹{p['entry']:,.1f}")
         m[1].metric("Stop", f"₹{p['stop']:,.1f}", f"-{p['risk_pct']:.1f}%", delta_color="inverse")
-        m[2].metric("Target 1", f"₹{f(p['t1'], '{:,.1f}')}", f"{(p['t1'] / p['entry'] - 1) * 100:+.1f}%" if pd.notna(p["t1"]) else None)
+        m[2].metric("2× risk (reference)", f"₹{f(p['t1'], '{:,.1f}')}", f"{(p['t1'] / p['entry'] - 1) * 100:+.1f}%" if pd.notna(p["t1"]) else None)
         m[3].metric("Target 2", f"₹{f(p['t2'], '{:,.1f}')}" if pd.notna(p["t2"]) else "—")
         m[4].metric(f"Position size", f"{f(p['size_pct'], '{:.0f}')}%", f"of capital, risking {sr.RISK_PCT / (2 if p['half'] else 1):.1f}%" + (" (halved)" if p["half"] else ""), delta_color="off")
         notes = []

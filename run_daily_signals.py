@@ -117,6 +117,10 @@ def nifty_bars_for(bar_date):
 
 
 def send_telegram(msg):
+    if os.environ.get("TELEGRAM_BATCH", "").strip():           # part of the one evening brief (scripts/send_brief.py)
+        from utils.telegram_notifier import queue_message
+        print(f"  Telegram: {queue_message(msg, os.environ['TELEGRAM_BATCH'])[1]}")
+        return
     import requests
     token   = os.environ.get("TELEGRAM_TOKEN")
     chat_id = os.environ.get("TELEGRAM_CHAT_ID")

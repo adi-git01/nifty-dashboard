@@ -41,7 +41,8 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
         dict(level=name, price=float(lvl), vs_now=pct(float(lvl)), source=src, note=note)) if _fin(lvl) else None
 
     if valid_stop:
-        add(t1, "🎯 Target 1", "Technicals", "entry + 2× risk — book part, move the stop to entry")
+        add(t1, "🎯 Reference (2× risk)", "Technicals", "a yardstick, not an exit: booking here halved per-trade returns in "
+            "the backtest. Hold and exit on the 50-day line or the trailing stop")
         add(t2, "🎯 Target 2", "Technicals", f"next supply shelf — reward/risk {(t2 - entry) / risk:.1f}" if _fin(t2) else "")
     if trigger:
         add(trigger, "▶️ Entry (close above)", "Technicals", "supply overhang just above — wait for the close through it")
@@ -72,7 +73,8 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
             flags.append("Entry is above the valuation's SELL level (P88): a momentum trade, not a value one — "
                          "keep the stop tight and do not add.")
         elif _fin(t1) and t1 > d["P88"]:
-            flags.append("Target 1 is above the valuation's SELL level (P88): take P88 as the first place to book.")
+            flags.append("The 2× risk reference is above the valuation's SELL level (P88): the stock would be expensive by then; "
+                         "keep to the trailing stop rather than adding.")
         if valid_stop and stop > d["P50"]:
             flags.append("Even the stop is above fair value (P50): a stop-out would not be a bargain to re-buy.")
         if b and b["firmness"] == "WIDE":
@@ -90,7 +92,7 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
     if valid_stop:
         bits.append((f"Buy on a close above ₹{entry:,.2f}" if trigger else f"Entry ₹{entry:,.2f}"))
         bits.append(f"Stop ₹{stop:,.2f} (−{(entry - stop) / entry * 100:.1f}%)")
-        bits.append(f"Target 1 ₹{t1:,.2f} (+{(t1 / entry - 1) * 100:.1f}%)")
+        bits.append(f"2× risk reference ₹{t1:,.2f} (+{(t1 / entry - 1) * 100:.1f}%; not an exit)")
         if _fin(t2):
             bits.append(f"Target 2 ₹{t2:,.2f} (+{(t2 / entry - 1) * 100:.1f}%)")
         if P.get("shares"):

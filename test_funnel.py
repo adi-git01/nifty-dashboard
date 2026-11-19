@@ -1096,3 +1096,27 @@ def test_wave_a_logs_reentry_health_and_weekly(monkeypatch, tmp_path):
     assert any("17 Nov" in x for x in w + f)                                                     # file 18 Nov holds 17 Nov's prices
     import weekly_summary as ws
     assert "days)" in ws.build_email_summary(ws.load_data())                                     # the Saturday email builds
+
+
+def test_one_evening_brief_orders_and_splits(tmp_path, monkeypatch):
+    import sys as _sys
+    from utils import telegram_notifier as tn
+    q = str(tmp_path / "batch.jsonl")
+    monkeypatch.setenv("TELEGRAM_BATCH", q)
+    for src, text in (("rs_alert_daemon", "📈 RS ALERT\nA crossed"), ("trading_engine", "🟢 SCANNER BUY\nX"),
+                      ("run_daily_signals", "<b>📋 Daily Brief</b>\nmarket ok"), ("dna3_current_portfolio", "BUY TCS")):
+        monkeypatch.setattr(_sys, "argv", [f"/repo/{src}.py"])
+        assert tn.send_telegram_message(text) == (True, "queued for the daily brief")
+    sent = []
+    monkeypatch.setattr(tn, "_send_now", lambda m: sent.append(m) or (True, "ok"))
+    monkeypatch.delenv("TELEGRAM_BATCH")
+    ok, info = tn.send_batch(q)
+    assert ok and len(sent) == 1
+    body = sent[0]
+    order = [body.index(k) for k in ("Daily Brief", "BUY TCS", "RS ALERT", "SCANNER BUY")]
+    assert order == sorted(order)                                     # brief first, scanner buys last
+    sent.clear()
+    big = "\n".join(f"line {i} " + "x" * 80 for i in range(120))      # ~10,000 characters
+    open(q, "w").write(__import__("json").dumps({"src": "alert_daemon", "text": big}) + "\n")
+    tn.send_batch(q)
+    assert len(sent) >= 3 and all(len(c) <= tn.TG_LIMIT for c in sent)

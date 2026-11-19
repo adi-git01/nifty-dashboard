@@ -159,7 +159,8 @@ def markdown(R: Dict[str, Any]) -> str:
     L += ["", "## Entry plan"]
     if pd.notna(p["risk_pct"]):
         L += [f"- Entry near ₹{p['entry']:,.2f}; stop ₹{p['stop']:,.2f} ({p['risk_pct']:.1f}% risk)",
-              f"- Target 1 ₹{_f(p['t1'], '{:,.2f}')}; Target 2 ₹{_f(p['t2'], '{:,.2f}')}",
+              f"- 2× risk reference ₹{_f(p['t1'], '{:,.2f}')} (a yardstick, not an exit); next resistance ₹{_f(p['t2'], '{:,.2f}')}. "
+              "Exit on the 50-day line or the trailing stop: booking at 2× risk halved per-trade returns in the backtest",
               f"- Size: risking {RISK_PCT:.0f}% of capital means about {_f(p['size_pct'], '{:.0f}')}% of capital in this stock" + (" (already halved: the stop is more than 10% away)" if p["half"] else "")]
     else:
         L.append("- No valid stop below the price in today's data: no plan.")

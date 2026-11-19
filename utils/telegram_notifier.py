@@ -109,16 +109,84 @@ def disable_telegram() -> None:
     _save_config({'telegram_enabled': False})
 
 
+# ---------------------------------------------------------------------------------------------------
+# One daily brief. In the evening run every script's message used to arrive separately (five to eight
+# messages a night). With TELEGRAM_BATCH set to a file, messages are queued there instead, and the
+# workflow's last step (scripts/send_brief.py -> send_batch) sends them as one brief, in a fixed order.
+# ---------------------------------------------------------------------------------------------------
+BATCH_ORDER = ["run_daily_signals", "dna3_current_portfolio", "dna3_morning_alert", "alert_daemon", "rs_alert_daemon",
+               "industry_alert_daemon", "turnaround_screener", "trading_engine"]
+TG_LIMIT = 4000                                   # Telegram allows 4096 characters per message
+
+
+def queue_message(message: str, path: str) -> Tuple[bool, str]:
+    import sys
+    src = os.path.splitext(os.path.basename(sys.argv[0] or "unknown"))[0]
+    try:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"src": src, "text": str(message)}) + "\n")
+        return True, "queued for the daily brief"
+    except Exception as e:
+        return False, f"could not queue: {e}"
+
+
+def _chunks(parts: List[str]) -> List[str]:
+    out, cur = [], ""
+    for p in parts:
+        while len(p) > TG_LIMIT:                    # one oversized section: cut at line breaks
+            cut = p.rfind("\n", 0, TG_LIMIT)
+            cut = cut if cut > 0 else TG_LIMIT
+            out.append(p[:cut]); p = p[cut:].lstrip("\n")
+        if cur and len(cur) + len(p) + 2 > TG_LIMIT:
+            out.append(cur); cur = p
+        else:
+            cur = f"{cur}\n\n{p}" if cur else p
+    if cur:
+        out.append(cur)
+    return out
+
+
+def send_batch(path: str) -> Tuple[bool, str]:
+    """Send everything queued in `path` as one brief (split only where Telegram's length limit forces it)."""
+    if not os.path.exists(path):
+        return True, "nothing queued"
+    items = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                items.append(json.loads(line))
+            except Exception:
+                pass
+    if not items:
+        return True, "nothing queued"
+    rank = {s: i for i, s in enumerate(BATCH_ORDER)}
+    items.sort(key=lambda x: rank.get(x["src"], len(rank)))          # stable: a script's own messages keep their order
+    parts = [x["text"].strip() for x in items if x.get("text", "").strip()]
+    chunks = _chunks([p + "\n" + "─" * 14 if i < len(parts) - 1 else p for i, p in enumerate(parts)])
+    ok_all, last = True, ""
+    for c in chunks:
+        ok, last = _send_now(c)
+        ok_all &= ok
+    return ok_all, f"{len(parts)} message(s) sent as {len(chunks)} Telegram message(s)" if ok_all else last
+
+
 def send_telegram_message(message: str) -> Tuple[bool, str]:
     """
-    Send a message via Telegram bot.
-    
+    Send a message via Telegram bot (or queue it for the daily brief when TELEGRAM_BATCH is set).
+
     Args:
         message: Text message to send (supports HTML formatting)
-    
+
     Returns:
         (success, message)
     """
+    batch = os.environ.get("TELEGRAM_BATCH", "").strip()
+    if batch:
+        return queue_message(message, batch)
+    return _send_now(message)
+
+
+def _send_now(message: str) -> Tuple[bool, str]:
     config = _load_config()
     bot_token = config.get('telegram_bot_token', '')
     chat_id = config.get('telegram_chat_id', '')
