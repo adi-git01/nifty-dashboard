@@ -56,12 +56,15 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
     n = lambda k: pd.to_numeric(r.get(k), errors="coerce")
     px = float(T.price)
     stop, t1, t2 = n("fx_stop"), n("fx_t1"), n("fx_t2")
-    risk = (px - stop) / px * 100 if pd.notna(stop) and stop < px else np.nan
-    plan = dict(action=str(r.get("fx_action") or "—"), state=str(r.get("fx_state") or "—"), entry=px, stop=stop, risk_pct=risk,
-                t1=t1 if pd.notna(t1) and t1 > px else (px + 2 * (px - stop) if pd.notna(risk) else np.nan),
-                t2=t2 if pd.notna(t2) and t2 > px else np.nan, half=bool(r.get("fx_half_size")) if pd.notna(r.get("fx_half_size")) else False,
+    ent = n("fx_entry") if pd.notna(n("fx_entry")) else px              # the trigger for BUY ON TRIGGER
+    risk = (ent - stop) / ent * 100 if pd.notna(stop) and stop < ent else np.nan
+    half = bool(r.get("fx_half_size")) if pd.notna(r.get("fx_half_size")) else False
+    plan = dict(action=str(r.get("fx_action") or "—"), state=str(r.get("fx_state") or "—"), entry=ent, stop=stop, risk_pct=risk,
+                t1=t1 if pd.notna(t1) and t1 > ent else (ent + 2 * (ent - stop) if pd.notna(risk) else np.nan),
+                t2=t2 if pd.notna(t2) and t2 > ent else np.nan, half=half,
                 supply=str(r.get("fx_supply") or "—"), trail=n("simba_trail"),
-                size_pct=min(RISK_PCT / risk * 100, 25.0) if pd.notna(risk) and risk > 0 else np.nan)
+                # "(half size flagged)" used to sit next to the full figure
+                size_pct=min(RISK_PCT / risk * 100, 25.0) * (0.5 if half else 1.0) if pd.notna(risk) and risk > 0 else np.nan)
     vrow = None
     if val is not None and not val.empty and ticker in val.index:
         v = val.loc[ticker]
@@ -157,7 +160,7 @@ def markdown(R: Dict[str, Any]) -> str:
     if pd.notna(p["risk_pct"]):
         L += [f"- Entry near ₹{p['entry']:,.2f}; stop ₹{p['stop']:,.2f} ({p['risk_pct']:.1f}% risk)",
               f"- Target 1 ₹{_f(p['t1'], '{:,.2f}')}; Target 2 ₹{_f(p['t2'], '{:,.2f}')}",
-              f"- Size: risking {RISK_PCT:.0f}% of capital means about {_f(p['size_pct'], '{:.0f}')}% of capital in this stock" + (" (half size flagged)" if p["half"] else "")]
+              f"- Size: risking {RISK_PCT:.0f}% of capital means about {_f(p['size_pct'], '{:.0f}')}% of capital in this stock" + (" (already halved: the stop is more than 10% away)" if p["half"] else "")]
     else:
         L.append("- No valid stop below the price in today's data: no plan.")
     tr = R["trends"]

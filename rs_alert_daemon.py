@@ -93,12 +93,13 @@ def main() -> int:
               f"than evaluating alerts against stale prices.")
         return 0
 
-    triggered = check_rs_alerts(df, persist=not args.dry_run)
-    if not args.dry_run:
-        print(f"[RS] store: {storage_status()}")
+    # read without saving first: the crossing is saved only once the message is out, so a Telegram failure retries tonight
+    triggered = check_rs_alerts(df, persist=False)
 
     if not triggered:
         print("[RS] No crossings.")
+        if not args.dry_run:
+            check_rs_alerts(df, persist=True)                  # still record today's readings
         return 0
 
     print(f"[RS] {len(triggered)} crossing(s):")
@@ -118,11 +119,17 @@ def main() -> int:
                + (("\n\nNotes:\n" + "\n".join(notes)) if notes else "")
                + f"\n\nSnapshot: {date:%d %b %Y}")
 
+    ok = True
     if is_telegram_configured():
         ok, msg = send_telegram_message(message)
         print(f"[RS] Telegram: {'sent' if ok else 'failed — ' + str(msg)}")
     else:
         print("[RS] Telegram not configured — crossings logged only.")
+    if ok:
+        check_rs_alerts(df, persist=True)
+        print(f"[RS] store: {storage_status()}")
+    else:
+        print("[RS] state not saved, so these crossings are sent again on the next run")
     return 0
 
 

@@ -80,7 +80,7 @@ def update_log(df: pd.DataFrame, snap: pd.Timestamp, nifty_close: Optional[float
     for t, r in agree.iterrows():
         prior = log[log.ticker == t]
         if len(prior) and (snap - pd.to_datetime(prior.last_agree).max()).days <= REENTRY_DAYS:
-            j = prior.index[-1]
+            j = pd.to_datetime(prior.first_seen).idxmax()          # the latest run, not the oldest (log is newest first)
             log.loc[j, ["votes", "simba", "scanner", "technicals"]] = [int(r.votes), bool(r.simba), bool(r.scanner),
                                                                        bool(r.technicals)]
             log.loc[j, "max_votes"] = max(int(log.loc[j, "max_votes"]), int(r.votes))

@@ -30,7 +30,10 @@ BASE_LAG = 32            # base date = 32 sessions back: covers 10 fresh + 20 ba
 FRESH_SESSIONS = 10
 BASE_SESSIONS = 20
 MIN_HISTORY = 500        # ~2 years listed; before that "all-time" means little (as in the backtest)
-COLS = ["ticker", "base_max", "base_asof", "ath_close", "ath_date", "history_start", "sessions"]
+COLS = ["ticker", "base_max", "base_asof", "ath_close", "ath_date", "history_start", "sessions", "basis_close"]
+# basis_close: the adjusted close on base_asof when the row was written. Yahoo rescales a stock's whole history after a
+# split or bonus; the stored maximum did not follow, so a 1:5 split left a "high" five times the price (BUILDPRO -86% from
+# its ATH, BANSALWIRE -88%). Comparing today's close for base_asof with basis_close puts the stored levels on today's basis.
 
 
 def load_ath(path: str = ATH_FILE) -> dict:
@@ -38,6 +41,8 @@ def load_ath(path: str = ATH_FILE) -> dict:
         return {}
     try:
         t = pd.read_csv(path, parse_dates=["base_asof", "ath_date", "history_start"])
+        if "basis_close" not in t.columns:
+            t["basis_close"] = np.nan
         return {r["ticker"]: r for r in t.to_dict("records")}
     except Exception:
         return {}
@@ -47,8 +52,8 @@ def save_ath(rows: dict, path: str = ATH_FILE) -> None:
     if not rows:
         return
     from utils.atomic_io import atomic_to_csv
-    t = pd.DataFrame(list(rows.values()))[COLS].sort_values("ticker")
-    t[["base_max", "ath_close"]] = t[["base_max", "ath_close"]].astype(float).round(4)   # stable CSV round-trip
+    t = pd.DataFrame(list(rows.values())).reindex(columns=COLS).sort_values("ticker")
+    t[["base_max", "ath_close", "basis_close"]] = t[["base_max", "ath_close", "basis_close"]].astype(float).round(4)   # stable CSV round-trip
     for c in ("base_asof", "ath_date", "history_start"):
         t[c] = pd.to_datetime(t[c]).dt.strftime("%Y-%m-%d")
     atomic_to_csv(t, path, index=False)
@@ -62,7 +67,40 @@ def seed_row(ticker: str, close: pd.Series) -> dict | None:
     base = c.iloc[:-BASE_LAG]
     return dict(ticker=ticker, base_max=float(base.max()), base_asof=base.index[-1],
                 ath_close=float(c.max()), ath_date=c.idxmax(),
-                history_start=c.index[0], sessions=len(base))      # sessions up to base_asof
+                history_start=c.index[0], sessions=len(base),      # sessions up to base_asof
+                basis_close=float(base.iloc[-1]))
+
+
+SEEDED = pd.Timestamp("2026-09-30")      # data/ath_levels.csv was seeded from adjusted history on this day
+
+
+def _legacy_factor(ticker: str, after: pd.Timestamp) -> float:
+    """For rows written before basis_close existed: splits/bonuses recorded since then (utils/corp_actions.py)."""
+    try:
+        from utils import corp_actions
+        ca = corp_actions.load()
+        x = ca[(ca.ticker == ticker) & (pd.to_datetime(ca.date) > max(after, SEEDED))]
+        return float(np.prod(x.factor.astype(float))) if len(x) else 1.0
+    except Exception:
+        return 1.0
+
+
+def rebase(row: dict, close: pd.Series) -> dict:
+    """The stored levels on the basis of `close` (the engine's adjusted history)."""
+    row = dict(row)
+    asof = pd.Timestamp(row["base_asof"])
+    bc = row.get("basis_close")
+    if bc is not None and np.isfinite(float(bc)) and float(bc) > 0:
+        now = close.get(asof) if asof in close.index else None
+        fac = float(now) / float(bc) if now is not None and np.isfinite(now) and now > 0 else 1.0
+    else:
+        fac = _legacy_factor(row["ticker"], asof)
+    if abs(fac - 1) > 0.005:
+        row["base_max"] = float(row["base_max"]) * fac
+        row["ath_close"] = float(row["ath_close"]) * fac if pd.notna(row.get("ath_close")) else row.get("ath_close")
+    if asof in close.index:
+        row["basis_close"] = float(close[asof])
+    return row
 
 
 def ath_breakout(df: pd.DataFrame, row: dict | None) -> tuple[dict, dict | None]:
@@ -84,6 +122,7 @@ def ath_breakout(df: pd.DataFrame, row: dict | None) -> tuple[dict, dict | None]
     base_asof = pd.Timestamp(row["base_asof"])
     if c.index[0] > base_asof:                  # window no longer reaches the base: cannot be exact
         return out, None
+    row = rebase(row, c)                        # splits / bonuses since the row was written
     base_max = float(row["base_max"])
     after = c[c.index > base_asof]
     ath_now = max(base_max, float(after.max()) if len(after) else base_max)
@@ -109,5 +148,6 @@ def ath_breakout(df: pd.DataFrame, row: dict | None) -> tuple[dict, dict | None]
     new_row.update(base_max=max(base_max, float(moved.max())) if len(moved) else base_max,
                    base_asof=max(base_asof, new_asof), ath_close=ath_now,
                    ath_date=(after.idxmax() if len(after) and after.max() > base_max else row["ath_date"]),
-                   sessions=int(row.get("sessions", 0)) + len(moved))
+                   sessions=int(row.get("sessions", 0)) + len(moved),
+                   basis_close=float(c[max(base_asof, new_asof)]) if max(base_asof, new_asof) in c.index else row.get("basis_close"))
     return out, new_row

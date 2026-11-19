@@ -129,7 +129,7 @@ def test_funnel_stages_counts_near_misses_and_wide_stop(monkeypatch):
     lead = T[T.industry == groups[0]]
     assert lead.s_industry.all() and lead.s_trend.all() and not T[T.industry != groups[0]].s_trend.any()
     assert lead.s_setup.sum() == 1 and round(lead.risk_pct.iloc[0], 1) == 8.0          # only the BUY NOW stock, stop 8% away
-    assert T.s_business.isna().sum() == len(T) - len(lead)                             # business only evaluated after TREND
+    assert T.s_business.notna().all()                                                   # business is checked for every stock (near misses)
     R = funnel.run(T)
     assert R["counts"].left.tolist() == [len(T), 6, 6, 6, 1] and R["picks"].ticker.tolist() == [df.ticker.iloc[0]]
     assert len(R["near"]) == 5 and set(R["near"].missed) == {"🎯 Setup"}
@@ -619,7 +619,7 @@ def test_broker_sync_kite_and_dhan_read_holdings_only(monkeypatch):
     urls = {u for _, u, _ in calls}
     assert all("order" not in u and "/funds" not in u and "/margins" not in u for u in urls)   # holdings, today's positions (read) and login only
     assert {u for m, u, _ in calls if m == "GET"} == {"https://api.kite.trade/portfolio/holdings", "https://api.kite.trade/portfolio/positions",
-                                                           "https://api.dhan.co/v2/holdings"}
+                                                           "https://api.dhan.co/v2/holdings", "https://api.dhan.co/v2/positions"}
     from utils import portfolio_import as pi
     C = pi.combine([Z, Dn]).set_index("symbol")
     assert set(C.index) == {"CUMMINSIND", "SBIN", "HDFCBANK"}                                # both brokers feed one portfolio
@@ -1046,3 +1046,53 @@ def test_github_read_over_1mb_is_never_treated_as_empty(monkeypatch):
     monkeypatch.setattr(rs, "_headers", lambda: {"Authorization": "token x"})
     data, sha, ok = rs.read_json("big.json", use_cache=False, branch="alert-state")
     assert ok and sha == "abc" and [d["id"] for d in data] == ["a", "b"] and any("raw" in a for a in calls)
+
+
+def test_wave_a_sync_tickers_ath_and_db(tmp_path):
+    from utils import broker_sync as bs, ath
+    from utils.positions import resolve_ticker
+    H = lambda s, t, av, a: dict(tradingSymbol=s, exchange="NSE", totalQty=t, availableQty=av, avgCostPrice=a)
+    P = lambda s, b=0, bv=0, sl=0, sv=0: dict(tradingSymbol=s, productType="CNC", dayBuyQty=b, dayBuyValue=bv, daySellQty=sl, daySellValue=sv)
+    R = bs._rows(bs.dhan_merge([H("TCS", 10, 10, 3000.0), H("INFY", 8, 3, 1500.0)],
+                               [P("SBIN", b=20, bv=16000), P("INFY", sl=5, sv=7750), P("TCS", b=2, bv=6200)])).set_index("symbol")
+    assert R.qty.to_dict() == {"TCS": 12, "INFY": 3, "SBIN": 20} and R.sell_px["INFY"] == 1550   # today's buy kept, sale taken off
+    known = {"ITC.NS", "FEDERALBNK.NS", "MANKIND.NS", "BEL.NS"}
+    assert resolve_ticker("FEDERALBANK.NS", known) == "FEDERALBNK.NS"                            # a misspelling is still fixed
+    assert resolve_ticker("ITDC.NS", known) is None and resolve_ticker("MBEL.NS", known) is None  # a real other company is not
+    idx = pd.bdate_range(end="2026-11-17", periods=260)
+    c = pd.Series(np.linspace(230, 262, 260), index=idx)
+    row = dict(ticker="BUILDPRO.NS", base_max=1347.8, base_asof=pd.Timestamp("2026-09-30"), ath_close=1347.8,
+               ath_date=pd.Timestamp("2026-08-05"), history_start=pd.Timestamp("2026-01-09"), sessions=181, basis_close=np.nan)
+    out, new = ath.ath_breakout(pd.DataFrame({"Close": c, "High": c, "Low": c, "Volume": 1e6}, index=idx), row)
+    assert -10 < out["dist_ath"] < 0 and round(new["base_max"], 1) == 269.6                       # 1:5 split applied once
+    import trading_db
+    d = tmp_path
+    pd.DataFrame({"record_date": ["2026-11-01", "2026-11-01", "2026-11-02"], "sub_industry": ["Banks", "Banks", "Banks"],
+                  "rs_momentum": [1, 2, 3], "top_components": ["a", "b", "c"], "score_0_100": [50, 60, 70],
+                  "members": [5, 5, 5], "breadth_pct": [40, 41, 42]}).to_csv(d / "sub_industry_rotation.csv", index=False)
+    db = trading_db.TradingDatabase(str(d)); db.close()
+    out = pd.read_csv(d / "sub_industry_rotation.csv")
+    assert len(out) == 2 and out.rs_momentum.tolist() == [2, 3]                                   # duplicate key: kept, not wiped
+
+
+def test_wave_a_logs_reentry_health_and_weekly(monkeypatch, tmp_path):
+    import importlib.util, sys
+    from utils import funnel_log
+    old = dict(first_seen=pd.Timestamp("2026-10-01"), ticker="AAA.NS", name="A", kind="PASS", missed="", industry="", ind_group="",
+               signal_price=100.0, biz_score=60, technicals="", risk_pct=5.0, last_seen=pd.Timestamp("2026-10-05"), active=False)
+    recent = {**old, "first_seen": pd.Timestamp("2026-11-10"), "last_seen": pd.Timestamp("2026-11-12"), "signal_price": 130.0}
+    log = pd.DataFrame([recent, old])                                                            # newest first, as saved
+    monkeypatch.setattr(funnel_log, "load", lambda: log.copy())
+    pick = pd.DataFrame([dict(ticker="AAA.NS", name="A", industry="", ind_group="", price=131.0, biz_score=60, technicals="",
+                              risk_pct=5.0, missed="")])
+    monkeypatch.setattr(funnel_log.funnel, "run", lambda T: {"picks": pick, "near": pick.iloc[0:0]})
+    monkeypatch.setattr(funnel_log.funnel, "table", lambda *a, **k: None)
+    out, new = funnel_log.update(pd.DataFrame(), pd.Timestamp("2026-11-13"), board=pd.DataFrame(), val=pd.DataFrame(), save=False)
+    o = out.set_index("first_seen")
+    assert new.empty and o.loc["2026-11-10", "active"] and not o.loc["2026-10-01", "active"]      # the recent run continues
+    spec = importlib.util.spec_from_file_location("health_check", "scripts/health_check.py")
+    h = importlib.util.module_from_spec(spec); spec.loader.exec_module(h)
+    f, w = h.check("2026_11_18")
+    assert any("17 Nov" in x for x in w + f)                                                     # file 18 Nov holds 17 Nov's prices
+    import weekly_summary as ws
+    assert "days)" in ws.build_email_summary(ws.load_data())                                     # the Saturday email builds

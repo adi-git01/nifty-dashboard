@@ -283,10 +283,15 @@ def analyse(df: pd.DataFrame) -> dict:
     r.update(supply_at(c, c * v, atr[i], i))
     r.setdefault("supply", "NOT COMPUTED")
     r["stop"] = stop
-    r["stop_pct"] = (c[i] - stop) / c[i] * 100 if stop < c[i] else np.nan
+    # where the trade starts: under a near overhang the entry is the close through the shelf top (BUY ON TRIGGER), so
+    # risk, half size and the share count are measured from there -- from the close they came out up to ~6x too big
+    top = r.get("shelf_top")
+    entry = float(top) if r.get("supply") == "NEAR OVERHANG" and top is not None and np.isfinite(top) and top > c[i] else c[i]
+    r["entry"] = entry
+    r["stop_pct"] = (entry - stop) / entry * 100 if stop < entry else np.nan
     r["half_size"] = bool(r["stop_pct"] > 10) if not np.isnan(r["stop_pct"]) else False
-    risk = c[i] - stop
-    r["t1"] = c[i] + 2 * risk if risk > 0 else np.nan
+    risk = entry - stop
+    r["t1"] = entry + 2 * risk if risk > 0 else np.nan
     # T2: next resistance beyond where the trade starts. With a near overhang the
     # entry is the clean-air trigger (shelf top), so T2 is the next shelf above it
     # or, if none, a measured move of one trigger-to-stop height; otherwise the
@@ -306,7 +311,7 @@ def analyse(df: pd.DataFrame) -> dict:
 
 
 FIELDS = ["gate1", "dist_hi", "state", "anchor_date", "anchor_volx", "days", "retention", "signature", "shakeout",
-          "gap", "supply", "shelf_low", "shelf_top", "stop", "stop_pct", "half_size", "t1", "t2",
+          "gap", "supply", "shelf_low", "shelf_top", "stop", "stop_pct", "half_size", "t1", "t2", "entry",
           "adx", "pdi", "ndi", "bbp", "rsi", "action"]
 
 
@@ -383,7 +388,8 @@ def plan(df: pd.DataFrame, held_price: float | None = None, held_date=None,
     close = r["close"]
     held = held_price is not None
     state, supply, stop = r["state"], r["supply"], r["stop"]
-    risk = close - stop if stop < close else np.nan
+    entry = r.get("entry", close)
+    risk = entry - stop if stop < entry else np.nan
     shares = int(risk_rupees / risk) if risk and risk > 0 else 0
     if r["half_size"]:
         shares //= 2

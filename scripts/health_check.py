@@ -10,6 +10,8 @@ notification -- when today's snapshot is missing or thin, and prints warnings fo
     python scripts/health_check.py            # exit 1 on a hard failure
     python scripts/health_check.py --no-fail  # report only
 """
+from __future__ import annotations
+
 import glob
 import os
 import re
@@ -32,6 +34,19 @@ def check(today: str | None = None) -> tuple[list, list]:
                      "Alerts, logs and the dashboard are running on old prices.")
         return fails, warns
     df = pd.read_parquet(path)
+    # the session the prices are from: the file is named by the run's clock, which said nothing when a run after
+    # midnight IST saved the previous session (16-18 Nov 2026, each snapshot a day behind, health check green)
+    if "bar_date" in df.columns and df["bar_date"].notna().any():
+        bar = pd.Timestamp(str(df["bar_date"].dropna().astype(str).mode().iloc[0])[:10])
+        ref = pd.Timestamp(today.replace("_", "-"))
+        behind = len(pd.bdate_range(bar, ref)) - 1
+        if behind >= 2:
+            fails.append(f"today's snapshot holds prices from {bar:%a %d %b}, {behind} weekdays old: the fetch returned old bars")
+        elif behind == 1:
+            warns.append(f"today's snapshot holds {bar:%a %d %b}'s prices, not today's (a market holiday, or Yahoo served "
+                         "the session before)")
+    else:
+        warns.append("snapshot has no bar_date: cannot tell which session its prices are from")
     try:
         universe = len(pd.read_csv("data/nifty1000_list.csv"))
     except Exception:
@@ -53,7 +68,8 @@ def check(today: str | None = None) -> tuple[list, list]:
     try:
         from utils.positions import get_all_positions, resolve_ticker
         known = set(df["ticker"])
-        lost = [p.get("ticker") for p in get_all_positions() if not resolve_ticker(p.get("ticker", ""), known)]
+        lost = [p.get("ticker") for p in get_all_positions()
+                if p.get("status") in ("active", "watching") and not resolve_ticker(p.get("ticker", ""), known)]
         if lost:
             warns.append(f"positions with no market data (stop-loss and target never checked): {', '.join(map(str, lost))}")
     except Exception:

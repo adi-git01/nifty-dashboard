@@ -65,10 +65,9 @@ def _save_config(config: Dict) -> None:
     try:
         existing = _load_config()
         existing.update(config)
-        # secrets come from st.secrets / the environment on every call; they are never written to disk or logs
-        safe = {k: v for k, v in existing.items() if not any(w in k for w in ("token", "password", "secret"))}
+        # config.json is gitignored and is where a local (non-cloud) setup keeps its keys; they are never printed
         with open(CONFIG_FILE, 'w') as f:
-            json.dump(safe, f, indent=2)
+            json.dump(existing, f, indent=2)
     except Exception as e:
         print(f"ERROR: Failed to save config: {e}")
 

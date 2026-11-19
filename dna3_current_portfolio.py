@@ -80,6 +80,11 @@ def _send_trade_alerts(trade_events, regime=''):
         from utils.email_notifier import send_trend_change_alert, is_email_configured
         if is_email_configured():
             email_changes = []
+            try:                                     # how long each sold stock was held: its last BUY in the trade log
+                _tl = pd.read_csv(TRADE_LOG_FILE) if os.path.exists(TRADE_LOG_FILE) else pd.DataFrame()
+                _buys = _tl[_tl.Action == 'BUY'].groupby('Ticker').Date.max().to_dict() if len(_tl) else {}
+            except Exception:
+                _buys = {}
             for ev in trade_events:
                 ticker = ev['Ticker']
                 action = ev['Action']
@@ -92,7 +97,8 @@ def _send_trade_alerts(trade_events, regime=''):
                     'entry_trend_signal': 'ACTIVE' if action == 'SELL' else 'CASH',
                     'current_signal': signal,
                     'return_pct': ev.get('PnL%', 0),
-                    'days_tracked': 0,
+                    'days_tracked': (int((pd.Timestamp(ev.get('Date')) - pd.Timestamp(_buys[ticker])).days)
+                                     if action == 'SELL' and ticker in _buys else 0),
                 })
             send_trend_change_alert(email_changes)
     except Exception as e:
@@ -210,6 +216,7 @@ class OptCompV21Engine:
         bulk_data = safe_download(
             self.tickers, start=start_date,
             group_by='ticker', threads=False, auto_adjust=True, min_coverage=0.5,
+            actions=True,   # 'Stock Splits' tells a real split/bonus from a dividend adjustment (adjust_for_corporate_actions)
         )
 
         loaded = 0
@@ -309,6 +316,16 @@ class OptCompV21Engine:
             if not np.isfinite(raw) or abs(raw - 1) <= CORP_ACTION_TOL:
                 continue
             ratio = min(CORP_ACTION_RATIOS, key=lambda r: abs(r / raw - 1))
+            if 'Stock Splits' in df.columns:
+                # Yahoo also rescales history for dividends: a 7-12% special dividend looked like a 1:10 bonus and
+                # added ~10% phantom shares. Only a split or bonus Yahoo itself records after the entry counts.
+                sp = pd.to_numeric(df.loc[df.index > ed, 'Stock Splits'], errors='coerce').fillna(0)
+                sp = sp[sp > 0]
+                if sp.empty:
+                    print(f"  [CORP ACTION?] {t}: entry-date close / entry = {raw:.3f} but no split or bonus recorded "
+                          f"-- a dividend adjustment, NOT adjusted")
+                    continue
+                ratio = float(1.0 / sp.prod())
             if abs(ratio / raw - 1) > 0.03:
                 print(f"  [CORP ACTION?] {t}: entry-date close / entry = {raw:.3f}, "
                       f"no simple split ratio -- NOT adjusted, check manually")
@@ -711,7 +728,9 @@ class OptCompV21Engine:
                 if free_slots > 0 and candidates:
                     print(f"     {len(candidates)} candidates found, {free_slots} slots open")
                     
-                    for cand in candidates[:free_slots]:
+                    for cand in candidates:
+                        if free_slots <= 0:
+                            break
                         # Equal-weight sizing (held_price never values a
                         # fetch-missed position at zero, which would deflate
                         # total_equity and under-size every new buy)
@@ -726,6 +745,10 @@ class OptCompV21Engine:
                             price = cand['Price']
                             shares = int(invest_amount / price)
                             cost = shares * price * 1.002  # Impact cost
+                            if shares <= 0:
+                                # one share costs more than a slot (MRF at Rs 1.28 lakh): a 0-share "position" took a slot
+                                print(f"    SKIP {cand['Ticker']}: one share (Rs{price:,.0f}) is more than a slot (Rs{invest_amount:,.0f})")
+                                continue
 
                             if cash >= cost:
                                 cash -= cost

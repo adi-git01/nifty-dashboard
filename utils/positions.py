@@ -69,11 +69,23 @@ def resolve_ticker(ticker: str, known) -> Optional[str]:
     known = set(known)
     if ticker in known:
         return ticker
+    if not ticker:
+        return None
+    base = str(ticker).upper().replace(".NS", "").replace(".BO", "")
+    # A real NSE symbol is never "corrected" into another company: comparing with the ".NS" suffix included made
+    # ITDC -> ITC, MANINDS -> MANKIND, MBEL -> BEL, and their stops fired on the wrong stock's price.
+    try:
+        from utils.extended import eq_symbols
+        if base in set(eq_symbols()):
+            return None
+    except Exception:
+        pass
     import difflib
-    m = difflib.get_close_matches(ticker, list(known), n=2, cutoff=0.9)
-    if len(m) == 1 or (len(m) == 2 and difflib.SequenceMatcher(None, ticker, m[0]).ratio()
-                       - difflib.SequenceMatcher(None, ticker, m[1]).ratio() > 0.03):
-        return m[0]
+    bases = {k.upper().replace(".NS", "").replace(".BO", ""): k for k in known}
+    m = difflib.get_close_matches(base, list(bases), n=2, cutoff=0.9)
+    if len(m) == 1 or (len(m) == 2 and difflib.SequenceMatcher(None, base, m[0]).ratio()
+                       - difflib.SequenceMatcher(None, base, m[1]).ratio() > 0.03):
+        return bases[m[0]]
     return None
 
 
