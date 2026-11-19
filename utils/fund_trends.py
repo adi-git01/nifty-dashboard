@@ -37,6 +37,9 @@ UP, FLAT, DOWN, BUILD = "IMPROVING", "STABLE", "WORSENING", "INVESTING"
 ICON = {UP: "🟢", FLAT: "⚪", DOWN: "🔴", BUILD: "🏗️"}
 WEIGHTS = {"Growth": 0.30, "Margins": 0.25, "Cash & balance sheet": 0.25, "Returns on capital": 0.20}
 LABELS = ((70, "STRONG"), (55, "HEALTHY"), (40, "MIXED"), (0, "WEAK"))
+SCORE_VERSION = "s2"       # bump when the scoring changes (invalidates data/business_scores.csv)
+STALE_DAYS = 640           # ~21 months after the fiscal year end: a year's results should have come in by then
+MIN_PILLARS = 3            # of 4
 PASS_SCORE = 45            # the funnel's business stage passes at or above this, with no hard flag
 INVEST_JUMP = 50           # capital employed up this % in one of the last 3 years = investment phase
 INVEST_CWIP = 20           # or work-in-progress at least this % of capital employed
@@ -152,8 +155,17 @@ def roa_tree(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     T["int_income"] = pc(y["sales"])
     T["int_cost"] = pc(y["interest"])
     T["nii"] = T["int_income"] - T["int_cost"]
-    T["other_income"] = pc(y["pbt"] - y["op"] + dep)
-    T["costs"] = pc(y["sales"] - y["interest"] - y["op"] + dep)
+    # Screener shows lenders in one of two layouts and the scraper files both profit lines as "op":
+    #   bank layout:     Financing profit = revenue - interest - expenses;  PBT = op + other income - dep
+    #   standard layout: Operating profit = revenue - expenses (before interest);  PBT = op + other income - interest - dep
+    # Reading a standard-layout NBFC with the bank formula made other income about -4% of assets and costs 4 pp too
+    # low (BAJAJFINSV). Each year takes the layout that leaves the smaller other income, which is a small line for lenders.
+    oi_bank = y["pbt"] - y["op"] + dep
+    oi_std = oi_bank + y["interest"]
+    std = oi_std.abs() < oi_bank.abs()
+    T["other_income"] = pc(oi_bank.where(~std, oi_std))
+    T["costs"] = pc((y["sales"] - y["interest"] - y["op"] + dep).where(~std, y["sales"] - y["op"] + dep))
+    T.attrs["layout"] = "standard" if bool(std.iloc[-1]) else "bank"
     T["pretax_roa"] = pc(y["pbt"])
     T["tax"] = pc(y["pbt"] - y["np"])
     T["roa"] = pc(y["np"])
@@ -213,6 +225,7 @@ def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
         out["cap_employed"] = ce
         out["ce_growth"] = (ce.pct_change() * 100).where(ce.shift(1) > 0)
         out["cwip_share"] = _div(g("cwip").fillna(0), ce) * 100
+        out["gross_block"] = gross
         # ROCE on capital that is already working: operating profit after depreciation over average
         # capital employed less work-in-progress (assets not yet earning)
         out["roce_core"] = _div(g("op") - g("dep").fillna(0), (ce - g("cwip").fillna(0)).rolling(2, min_periods=1).mean()) * 100
@@ -282,9 +295,17 @@ def investment_phase(a: pd.DataFrame) -> Optional[Dict[str, Any]]:
     """
     if a.empty or "ce_growth" not in a or a["financial"].iloc[-1]:
         return None
+    # Capital employed also jumps on an IPO or QIP parked in cash, or on mark-to-market gains; that is not an
+    # investment phase, and loss-making cash burners were being excused (AURUM, MOBIKWIK). It counts only when the
+    # business makes an operating profit and fixed assets plus work-in-progress took at least 40% of the increase.
+    if "op" in a and a["op"].dropna().size and float(a["op"].dropna().iloc[-1]) <= 0:
+        return None
     g = a["ce_growth"].dropna().tail(3)
     cw = a["cwip_share"].dropna()
     big = g[g >= INVEST_JUMP]
+    if len(big) and "gross_block" in a:
+        d_ce, d_fa = a["cap_employed"].diff(), a["gross_block"].diff()
+        big = big[[bool(d_ce.get(y) and np.isfinite(d_fa.get(y, np.nan)) and d_fa.get(y) >= 0.4 * d_ce.get(y)) for y in big.index]]
     if len(big):
         y = big.index[-1]
         prev = a["cap_employed"].shift(1).get(y)
@@ -455,7 +476,21 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
                 f"{t['now']:.0f}% (last {t['n']} yrs vs the {t['n']} before: {t['was']:.0f}%); latest {t['last']:.0f}%"
                 + (" — interest and depreciation on the new capital" if dil else ""), scored=False)
     if lv:
-        P["Margins"] = dict(score=_mean(lv), dir=_mean(dr))
+        # LEVEL plus direction, like every other pillar: scored on change alone, a loss-maker whose losses narrowed
+        # came out STRONG on margins (URBANCO -16% margin -> 82, SCILAL -179% -> 71)
+        lvl = None
+        if not a.empty and a["opm"].notna().sum() >= 1:
+            lvl = float(a["opm"].dropna().iloc[-3:].mean())
+        elif len(r) >= 4:
+            lvl = float((r["opm"] if r["opm"].notna().sum() >= 4 else r["npm"]).iloc[-4:].mean())
+        if lvl is not None and np.isfinite(lvl):
+            lvl_pts = _lin(lvl, [(-10, 0), (0, 10), (5, 35), (12, 60), (20, 85), (30, 100)])
+            score = 0.5 * lvl_pts + 0.5 * _mean(lv)
+            if lvl < 0:
+                score = min(score, 25.0)                  # losing money at the operating line: never a good margin pillar
+            P["Margins"] = dict(score=score, dir=_mean(dr))
+        else:
+            P["Margins"] = dict(score=_mean(lv), dir=_mean(dr))
 
     # ---------------------------------------------------------------- cash and balance sheet
     hard: List[str] = []
@@ -543,6 +578,15 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
                 own.append(dict(pillar="Ownership", metric=lab, way=FLAT if abs(d) < tol else UP if d > 0 else DOWN,
                                 text=f"{s.iloc[-1]:.1f}% ({d:+.1f} pp over a year)", scored=False))
 
+    # Too old or too thin to score: Screener's consolidated page for some companies stops years ago (PFIZER's ends in
+    # 2008 and scored STRONG 100), and a score built on one or two pillars said more than the data could.
+    ref = pd.Timestamp(as_of) if as_of is not None else pd.Timestamp.today()
+    if not a.empty and (ref - a.index.max()).days > STALE_DAYS:
+        add("Data", "Annual figures", DOWN, f"latest annual figures are for {a.index.max():%b %Y}: too old to score", scored=False)
+        P = {}
+    elif 0 < len(P) < MIN_PILLARS:
+        add("Data", "Coverage", FLAT, f"only {len(P)} of 4 pillars could be measured: not enough to score", scored=False)
+        P = {}
     w = {k: (LENDER_WEIGHTS if fin else WEIGHTS)[k] for k in P}
     score = float(sum(P[k]["score"] * w[k] for k in P) / sum(w.values())) if P else np.nan
     drift = float(sum(P[k]["dir"] * w[k] for k in P) / sum(w.values())) if P else 0.0
@@ -592,7 +636,9 @@ _BRIEF_COLS = ["ticker", "verdict", "score", "direction", "investing", "headline
 
 def fingerprint(root: str = ".") -> str:
     """Identifies the fundamentals files by size, which is the same on every checkout (file times are not)."""
-    return "|".join(str(os.path.getsize(os.path.join(root, f))) if os.path.exists(os.path.join(root, f)) else "-" for f in FILES + QFILES)
+    # SCORE_VERSION: a change to the scoring must not be served from scores the old code saved
+    return SCORE_VERSION + "|" + "|".join(str(os.path.getsize(os.path.join(root, f))) if os.path.exists(os.path.join(root, f)) else "-"
+                                         for f in FILES + QFILES)
 
 
 @lru_cache(maxsize=4)

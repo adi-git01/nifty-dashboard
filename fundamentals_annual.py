@@ -152,9 +152,14 @@ def scrape(tickers, delay, industries=None, deadline=None, checkpoint=None, ever
             if industries is not None and broad_industry(r.text):
                 industries[t] = broad_industry(r.text)
             years = sum(1 for (f, _) in a if f == "np")
-            if years >= 3 or not best_a:
+            last = max((p for (f, p) in a if f == "np"), default=None)
+            recent = last is not None and (pd.Timestamp.today() - pd.Timestamp(last)).days <= 640
+            # consolidated first, but only if it is current: for some companies it stops years ago (PFIZER 2008,
+            # COLPAL 2010) while the standalone page is up to date
+            best_last = max((p for (f, p) in best_a if f == "np"), default=None)
+            if not best_a or (years >= 3 and (best_last is None or (last is not None and last > best_last))):
                 best_a, best_q, basis = a, q, b
-            if years >= 3:
+            if years >= 3 and recent:
                 break
         if not best_a:
             fails.append(t)

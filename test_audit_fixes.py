@@ -98,7 +98,7 @@ def test_trade_plan_orders_levels_and_flags_conflicts():
     tp = trade_plan.build(P, val)
     assert tp["levels"].price.is_monotonic_decreasing
     assert tp["valid"] and tp["stop"] < tp["entry"] < tp["t1"]
-    assert any("above the valuation's trim level" in f for f in tp["flags"])
+    assert any("above the valuation's SELL level" in f for f in tp["flags"])
     assert any("stop is above fair value" in f for f in tp["flags"])
     assert "Stop ₹" in tp["summary"] and "Target 1 ₹" in tp["summary"]
     none = trade_plan.build(P, {"status": "OUT OF SCOPE", "reason": "loss-making"})
