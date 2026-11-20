@@ -1,0 +1,17 @@
+[
+  {
+    "id": "20261120150629808197",
+    "ticker": "SGIL.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 700.0,
+    "entry_price": 700.0,
+    "stop_loss": 543.0,
+    "target": null,
+    "notes": "Classic high-beta Stage 1 Stressed J-Curve. Do not pre-empt the turnaround at 8.8x Book Value\u2014wait for Q3FY27 confirmation that the 5% OEM price reset + machine-shop ramp actually restore positive PBT and 15%+ OPM.\nMonitor 1 (Breakeven & Margin Proof): Q3FY27 core OPM jumping \u2265 15% (toward guided 17\u201318% H2) and returning to positive quarterly PAT (EBITDA \u2265 \u20b922 Cr/qtr).\nMonitor 2 (Revenue Realization): Delivering \u2265 \u20b9145\u2013150 Cr/qtr in Q3\u2013Q4FY27 to hit the \u20b9500 Cr full-year target as port-trapped export inventory clears.\nMonitor 3 (Falsification Trigger): If Q3FY27 OPM stays below 12% or Interest Coverage remains < 1.5x, downgrade to debt-stressed commodity trap",
+    "created": "2026-11-20T15:06:29.808227",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
+  }
+]
