@@ -103,5 +103,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120153037539954",
+    "ticker": "SGIL.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 420.0,
+    "entry_price": 420.0,
+    "stop_loss": 380.0,
+    "target": 680.0,
+    "notes": "AVOID UNTIL Q3 PROOF (Out of scope for EPS\u00d7PE; 9x P/B while loss-making)",
+    "created": "2026-11-20T15:30:37.539978",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
