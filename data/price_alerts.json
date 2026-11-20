@@ -88,5 +88,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152928156027",
+    "ticker": "MAGNA ELECTRO.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 1150.0,
+    "entry_price": 1150.0,
+    "stop_loss": 1100.0,
+    "target": 1600.0,
+    "notes": "WAIT / WATCH (Clean J-curve, but 36x P/E is ~3.5x historical foundry multiple)",
+    "created": "2026-11-20T15:29:28.156057",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
