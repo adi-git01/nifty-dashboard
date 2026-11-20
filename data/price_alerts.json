@@ -43,5 +43,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152519634348",
+    "ticker": "ROLEXRINGS.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 170.0,
+    "entry_price": 170.0,
+    "stop_loss": 170.0,
+    "target": 220.0,
+    "notes": "WAIT FOR PULLBACK (Overbought after Q2; cyclical recovery, not a pivot)",
+    "created": "2026-11-20T15:25:19.634369",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
