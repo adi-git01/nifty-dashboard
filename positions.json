@@ -24,11 +24,11 @@
     "name": "Acutaas Chemicals Limited",
     "sector": "Unknown",
     "status": "active",
-    "entry_price": 3331.11,
+    "entry_price": 3385.35,
     "entry_date": "2026-11-15",
     "stop_loss": null,
     "target": null,
-    "quantity": 22,
+    "quantity": 24,
     "notes": "",
     "alerts_enabled": true,
     "entry_signal": "N/A",
@@ -37,12 +37,12 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.110102",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.337440",
+    "synced_at": "2026-11-20",
+    "updated_at": "2026-11-20T14:59:47.200555",
     "lots": {
       "Zerodha": {
-        "qty": 22,
-        "avg": 3331.11
+        "qty": 24,
+        "avg": 3385.35
       }
     }
   },
@@ -767,5 +767,33 @@
       }
     },
     "updated_at": "2026-11-18T11:27:15.969831"
+  },
+  {
+    "id": "0829595b-1414-47ac-8199-dd64f8b4131c",
+    "ticker": "AUTOAXLES.NS",
+    "name": "Automotive Axles Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 1791.4,
+    "entry_date": "2026-11-20",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 2,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-20T14:59:47.195024",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-20",
+    "lots": {
+      "Zerodha": {
+        "qty": 2,
+        "avg": 1791.4
+      }
+    },
+    "updated_at": "2026-11-20T14:59:47.199019"
   }
 ]
