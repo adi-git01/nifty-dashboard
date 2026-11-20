@@ -28,5 +28,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152428148291",
+    "ticker": "HAPPYFORGE.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 1660.0,
+    "entry_price": 1660.0,
+    "stop_loss": 1650.0,
+    "target": 2100.0,
+    "notes": "ACCUMULATE ON DIPS (Best business quality; ~8\u201315% above ideal MoS)",
+    "created": "2026-11-20T15:24:28.148311",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
