@@ -13,5 +13,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152254949140",
+    "ticker": "BALUFORGE.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 510.0,
+    "entry_price": 510.0,
+    "stop_loss": 460.0,
+    "target": 660.0,
+    "notes": "ACCUMULATE (Only name with MoS at CMP; verify H2 rev & pledge)",
+    "created": "2026-11-20T15:22:54.949166",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
