@@ -118,5 +118,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120153144139879",
+    "ticker": "PTC INDUSTRIES .NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 20000.0,
+    "entry_price": 20000.0,
+    "stop_loss": 18000.0,
+    "target": 26000.0,
+    "notes": "AVOID FRESH / WAIT (48x TTM Sales prices in FY30 perfection)",
+    "created": "2026-11-20T15:31:44.139900",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
