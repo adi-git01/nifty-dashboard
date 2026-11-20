@@ -58,5 +58,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152625743936",
+    "ticker": "SANSERA.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 4400.0,
+    "entry_price": 4400.0,
+    "stop_loss": 4380.0,
+    "target": 5400.0,
+    "notes": "AVOID FRESH / MOM-ONLY (Multiple-de-rating risk at 77x P/E; in ASM)",
+    "created": "2026-11-20T15:26:25.743963",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
