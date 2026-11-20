@@ -73,5 +73,20 @@
     "triggered": false,
     "last_triggered": null,
     "trigger_type": null
+  },
+  {
+    "id": "20261120152831159646",
+    "ticker": "INVPRVECQ.NS",
+    "metric": "price",
+    "condition": "range",
+    "threshold": 1200.0,
+    "entry_price": 1200.0,
+    "stop_loss": 11050.0,
+    "target": 1550.0,
+    "notes": "WAIT FOR PULLBACK (Great A&D inflection, but 74x P/E + weak H1 OCF)",
+    "created": "2026-11-20T15:28:31.159667",
+    "triggered": false,
+    "last_triggered": null,
+    "trigger_type": null
   }
 ]
