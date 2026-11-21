@@ -127,6 +127,11 @@ def update_alert_notes(alert_id: str, notes: str) -> bool:
     return True
 
 
+def update_alert_ticker(alert_id: str, ticker: str) -> None:
+    """Point an alert at the right symbol (a mistyped or unlisted one never got a price)."""
+    STORE.commit({"patches": {alert_id: {"ticker": ticker}}}, f"symbol -> {ticker}", background=_BG)
+
+
 def remove_alert(alert_id: str) -> None:
     """Remove an alert by ID (only that alert)."""
     STORE.commit({"removes": [alert_id]}, "remove alert", background=_BG)

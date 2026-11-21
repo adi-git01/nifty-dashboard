@@ -31,6 +31,7 @@ MIN_MCAP_CR = 1000
 MAX_TRACKED = 150
 EQ_LIST = "EQUITY_L.csv"
 _SYM = re.compile(r"^[A-Z0-9&\-]{1,20}\.NS$")
+_BSE_SYM = re.compile(r"^(\d{6}|[A-Z0-9&\-]{1,20})\.BO$")      # BSE-only companies, priced from Yahoo
 
 
 def norm(t: str) -> str:
@@ -87,6 +88,11 @@ def tracked(core: Optional[Iterable[str]] = None, positions: Optional[List[dict]
             positions = pos.get_all_positions()
         except Exception:
             positions = []
+        try:                                      # price alerts too: an alert on a stock outside the universe never had a price
+            from utils.alerts import load_alerts
+            positions = list(positions) + [dict(ticker=a.get("ticker"), status="watching") for a in load_alerts()]
+        except Exception:
+            pass
     # Only real NSE equity symbols outside the universe count. A misspelt holding (FEDERALBANK for
     # FEDERALBNK) resolves to a universe stock and is not an extra; an unknown symbol is skipped
     # rather than downloaded -- trying one stalled every cold start by ~25 s of retries.
@@ -100,7 +106,12 @@ def tracked(core: Optional[Iterable[str]] = None, positions: Optional[List[dict]
         if p.get("status") not in ("active", "watching"):
             continue
         t = norm(p.get("ticker"))
-        if not t or t in core or not _SYM.match(t) or t in out:
+        if not t or t in core or t in out:
+            continue
+        if _BSE_SYM.match(t):                     # a BSE code the picker accepted: no NSE list to check it against
+            out.append(t)
+            continue
+        if not _SYM.match(t):
             continue
         if resolve_ticker(t, core):
             continue

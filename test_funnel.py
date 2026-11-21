@@ -1120,3 +1120,18 @@ def test_one_evening_brief_orders_and_splits(tmp_path, monkeypatch):
     open(q, "w").write(__import__("json").dumps({"src": "alert_daemon", "text": big}) + "\n")
     tn.send_batch(q)
     assert len(sent) >= 3 and all(len(c) <= tn.TG_LIMIT for c in sent)
+
+
+def test_stock_picker_and_alert_tracking():
+    """Mistyped / unlisted alert symbols are caught; alert stocks outside the universe are priced nightly."""
+    import pandas as pd
+    from utils import stock_picker as sp, extended as ex
+    df = pd.DataFrame(dict(ticker=["SANSERA.NS", "FEDERALBNK.NS"], name=["Sansera Engineering", "The Federal Bank"]))
+    nm = sp.names(df)
+    if "INVPRECQ.NS" in nm:                                   # needs EQUITY_L.csv
+        assert sp.suggest("INVPRVECQ.NS", df)[0] == "INVPRECQ.NS"
+        assert "SGIL.NS" in ex.tracked(set(df.ticker), [dict(ticker="SGIL.NS", status="watching")])
+    assert sp.suggest("FEDERALBANK.NS", df)[0] == "FEDERALBNK.NS"
+    assert sp.matches("federal", "FEDERALBNK.NS", "The Federal Bank") and not sp.matches("sbi", "FEDERALBNK.NS", "The Federal Bank")
+    tr = ex.tracked(set(df.ticker), [dict(ticker="500325.BO", status="watching"), dict(ticker="MAGNA ELECTRO", status="watching")])
+    assert "500325.BO" in tr and not any("MAGNA" in t for t in tr)
