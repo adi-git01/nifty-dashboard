@@ -208,6 +208,18 @@ def main():
         else:
             L += ["", f"(no dashboard snapshot for {day:%d %b} in this checkout to compare with)"]
 
+    # quote-equity answers 403 to a bare session; does opening the quote page first help?
+    try:
+        from utils.nse_data import Session
+        S2 = Session()
+        S2.warm_quote("RELIANCE")
+        j = S2.json("/api/quote-equity?symbol=RELIANCE", tries=2, timeout=15)
+        md = j.get("metadata") or {}
+        L += ["", f"## Quote after opening the quote page: ✅ P/E {md.get('pdSymbolPe')} · "
+                  f"shares {(j.get('securityInfo') or {}).get('issuedSize')} · industry {(j.get('industryInfo') or {}).get('basicIndustry')}"]
+    except Exception as e:
+        L += ["", f"## Quote after opening the quote page: ❌ {e}"]
+
     L += ["", "## Samples", ""]
     for name, d in samples:
         L += [f"**{name}**", "", "```", d.to_string(max_cols=14, max_colwidth=24)[:1800], "```", ""]

@@ -1285,7 +1285,8 @@ def test_fundamentals_quote_breakers(monkeypatch):
     import utils.fundamentals_build as fb
     from utils.nifty1000_list import TICKERS_1000
     tickers = list(TICKERS_1000)[:40]
-    monkeypatch.setattr(nd, "Session", lambda: object())
+    import types
+    monkeypatch.setattr(nd, "Session", lambda: types.SimpleNamespace(warm_quote=lambda *a: None))
     calls = {"n": 0}
 
     def dead(S, sym):
@@ -1294,7 +1295,20 @@ def test_fundamentals_quote_breakers(monkeypatch):
     monkeypatch.setattr(fb, "nse_quote", dead)
     logs = []
     df = fb.build(tickers, log=logs.append, sleep=0)
-    assert calls["n"] == 15 and len(df) == len(tickers) and any("stopped at 15/" in m for m in logs)
+    # refused outright (HTTP 403 on the test call): one call, then Screener for everything
+    assert calls["n"] == 1 and len(df) == len(tickers) and any("unavailable" in m for m in logs)
+
+    calls["n"] = 0
+
+    def dies_later(S, sym):                    # answers the test call, then stops answering
+        calls["n"] += 1
+        if calls["n"] > 1:
+            raise RuntimeError("quote-equity: HTTP 403")
+        return {}
+    monkeypatch.setattr(fb, "nse_quote", dies_later)
+    logs.clear()
+    fb.build(tickers, log=logs.append, sleep=0)
+    assert calls["n"] == 16 and any("stopped at 15/" in m for m in logs)
 
     calls["n"] = 0
     clock = {"t": 0.0}
@@ -1303,13 +1317,13 @@ def test_fundamentals_quote_breakers(monkeypatch):
     def flaky(S, sym):
         calls["n"] += 1
         clock["t"] += 100                      # each call "takes" 100 s
-        if calls["n"] % 2:
+        if calls["n"] % 2 == 0:                # the test call (1st) answers, then every other call fails
             raise RuntimeError("timeout")
         return {}
     monkeypatch.setattr(fb, "nse_quote", flaky)
     logs.clear()
     fb.build(tickers, log=logs.append, sleep=0, quote_budget_s=1000)
-    assert calls["n"] == 11 and any("stopped at 11/" in m for m in logs)
+    assert calls["n"] == 12 and any("stopped at 11/" in m for m in logs)    # test call + 11 within the 1,000 s budget
 
 
 def test_yahoo_fill_core_gaps_first_and_budget(monkeypatch):
