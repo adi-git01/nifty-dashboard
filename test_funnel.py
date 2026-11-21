@@ -1266,3 +1266,13 @@ def test_nse_same_day_split_and_bonus_multiply():
     g2 = pd.DataFrame({"date": pd.to_datetime(["2026-07-09", "2026-07-10"]), "open": [426.0, 321.5], "high": [430.0, 380.0],
                        "low": [420.0, 320.0], "close": [420.5, 378.0], "prev_close": [425.05, 420.5], "volume": 1.0})
     assert abs(npx.factors(g2, [(pd.Timestamp("2026-07-10"), 0.75, "bonus")])[1] - 0.75) < 1e-9
+
+
+def test_nse_rights_issue_theoretical_price():
+    """GANGAFORGE 2 Jul 2026, Rights 3:2 at Re 1 face + Re 0.63 premium: factor (2 x 2.48 + 3 x 1.63) / 5 / 2.48 = 0.794."""
+    import pandas as pd
+    from utils import nse_prices as npx
+    g = pd.DataFrame({"date": pd.to_datetime(["2026-07-01", "2026-07-02"]), "open": [2.49, 2.33], "high": [2.5, 2.5],
+                      "low": [2.4, 2.3], "close": [2.48, 2.36], "prev_close": [2.45, 2.48], "volume": 1.0})
+    f = npx.factors(g, [(pd.Timestamp("2026-07-02"), float("nan"), "rights", (3.0, 2.0, 1.63))])
+    assert abs(f[1] - (2 * 2.48 + 3 * 1.63) / 5 / 2.48) < 1e-9
