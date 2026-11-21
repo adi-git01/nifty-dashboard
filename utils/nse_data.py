@@ -137,6 +137,8 @@ def action_factor(subject: str) -> Tuple[str, float]:
         return "dividend", np.nan
     if "right" in low:
         return "rights", np.nan
+    if "demerger" in low:
+        return "demerger", np.nan                             # the price drops by the spun-off part: no simple factor
     return "other", np.nan
 
 
@@ -186,8 +188,12 @@ def fetch_events(S: Session, today: pd.Timestamp) -> pd.DataFrame:
         try:
             j = S.json(path)
             for x in j if isinstance(j, list) else []:
+                p_, desc = str(x.get(purpose) or "").strip(), str(x.get("bm_desc") or "").strip()
+                # "Board Meeting Intimation" says nothing; the description says what for ("...to consider financial results")
+                if re.search(r"result", desc, re.I) and not re.search(r"result", p_, re.I):
+                    p_ = "Financial Results"
                 rows.append(dict(symbol=str(x.get(sym, "")).strip(), date=pd.to_datetime(x.get(date), errors="coerce", dayfirst=True),
-                                 purpose=str(x.get(purpose) or x.get("bm_desc") or "").strip()))
+                                 purpose=p_ or desc[:60]))
         except Exception as e:
             print(f"[nse] events {path.split('?')[0]}: {e}")
     out = pd.DataFrame(rows, columns=["symbol", "date", "purpose"]).dropna(subset=["date"])
@@ -316,10 +322,11 @@ def upcoming_events(days: int = 30, today: Optional[pd.Timestamp] = None) -> Dic
     ev = _read(F["events"], ["date"])
     for x in ev.to_dict("records") if len(ev) else []:
         p = str(x.get("purpose") or "")
-        put(f"{x['symbol']}.NS", x["date"], "results" if re.search(r"result", p, re.I) else (p[:28] or "board meeting"))
+        put(f"{x['symbol']}.NS", x["date"], "results" if re.search(r"result", p, re.I) else
+            "board meeting" if re.search(r"board meeting", p, re.I) or not p else p[:28])
     ca = _read(F["ca"], ["ex_date"])
     for x in ca.to_dict("records") if len(ca) else []:
-        if x.get("kind") in ("split", "bonus", "consolidation", "dividend"):
+        if x.get("kind") in ("split", "bonus", "consolidation", "dividend", "demerger"):
             put(f"{x['symbol']}.NS", x["ex_date"], f"ex-{x['kind']}")
     return {t: f"{txt} {d:%d %b}" + ("" if d > today else " (today)") for t, (d, txt) in out.items()}
 
