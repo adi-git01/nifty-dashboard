@@ -291,7 +291,7 @@ def fetch_missing_fundamentals(df):
 
     return df
 
-def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, update_ath=False, save=True):
+def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, update_ath=False, save=True, price_source=None):
     """
     Vectorized fetch of price data for all tickers + merging with fundamentals.
     save=False: compute rows for a few tickers on demand (utils/extended.py) -- no coverage gate, no
@@ -330,7 +330,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     try:
         from utils.simba import HISTORY_DAYS
         nifty = safe_history("^NSEI", start=(pd.Timestamp.today().normalize()
-                                             - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"))
+                                             - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"), source=price_source)
         nifty_3m_ret = 0
         if not nifty.empty:
             nifty.index = nifty.index.tz_localize(None)
@@ -354,6 +354,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             threads=False,      # <-- KEY FIX: avoid parallel request storm
             auto_adjust=True,
             min_coverage=0.5,   # below this, treat the whole attempt as failed and retry
+            source=price_source,  # None: NSE's files first (utils/yf_safe.py); "yahoo": the dashboard's Live Mode
             # on-demand rows (save=False) run while a page is loading: one attempt, no 8 s + 16 s back-off
             **({} if save else {"retries": 1}),
         )
@@ -380,7 +381,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     try:
         from utils.simba import BENCH, HISTORY_DAYS
         _b = safe_history(BENCH, start=(pd.Timestamp.today().normalize()
-                                        - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"))
+                                        - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"), source=price_source)
         if _b is None or _b.empty:
             _b = nifty
         if _b is not None and not _b.empty:

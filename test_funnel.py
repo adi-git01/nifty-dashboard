@@ -993,7 +993,8 @@ def test_engine_gate_runs_once_in_the_evening_window():
     at = lambda s: datetime.fromisoformat(s).replace(tzinfo=g.IST)
     sch = "schedule"
     assert g.decide(at("2026-11-19 10:30"), sch, {})[0]                                   # market hours: would be intraday prices
-    assert not g.decide(at("2026-11-19 16:05"), sch, {})[0]                               # after the close: run
+    assert g.decide(at("2026-11-19 16:05"), sch, {})[0]                                   # before NSE publishes: wait
+    assert not g.decide(at("2026-11-19 19:05"), sch, {})[0]                               # NSE files out: run
     assert g.decide(at("2026-11-20 00:19"), sch, {})[0]                                   # after midnight: Yahoo lacks the day's bar
     assert g.decide(at("2026-11-21 18:00"), sch, {})[0]                                   # Saturday
     done = {"date": "2026-11-19", "bar_date": "2026-11-19", "tries": 1}
@@ -1154,3 +1155,29 @@ def test_nse_corporate_actions_and_flags():
     out = reconcile(tab, pd.Timestamp("2026-02-24"), pd.Timestamp("2026-11-20"), off).set_index("ticker")
     assert out.at["A.NS", "factor"] == 0.5 and out.at["A.NS", "source"] == "nse"
     assert out.at["B.NS", "source"] == "detected" and "D.NS" in out.index and "E.NS" not in out.index
+
+
+def test_nse_price_store_adjusts_and_serves(tmp_path, monkeypatch):
+    """NSE day files -> store -> split-adjusted bars via PREV_CLOSE; yf_safe serves them without Yahoo."""
+    import pandas as pd
+    import yfinance as yf
+    from utils import nse_prices as npx, yf_safe as ys
+    monkeypatch.chdir(tmp_path)
+    npx._load.cache_clear()
+    H = ("SYMBOL, SERIES, DATE1, PREV_CLOSE, OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE, CLOSE_PRICE, AVG_PRICE, "
+         "TTL_TRD_QNTY, TURNOVER_LACS, NO_OF_TRADES, DELIV_QTY, DELIV_PER\n")
+    rows = {"18-Nov-2026": [("ABC", 990, 1000, 1000)], "19-Nov-2026": [("ABC", 1000, 1010, 1000)], "20-Nov-2026": [("ABC", 202, 205, 5000)]}
+    for d, rr in rows.items():
+        txt = H + "".join(f"{s}, EQ, {d}, {pc}, {c}, {c}, {c}, {c}, {c}, {c}, {v}, 1, 1, {v // 2}, 50.00\n" for s, pc, c, v in rr)
+        npx.write_day("stocks", pd.Timestamp(d), npx.parse_stocks(txt.encode()))
+    h = npx.history(["ABC.NS"])["ABC.NS"]
+    assert h.Close.round(2).tolist() == [200.0, 202.0, 205.0] and h["Stock Splits"].tolist() == [0.0, 0.0, 5.0]
+    assert h.Volume.tolist() == [5000, 5000, 5000]
+    monkeypatch.setattr(npx, "is_current", lambda now=None: True)
+    monkeypatch.setattr(yf, "download", lambda *a, **k: (_ for _ in ()).throw(AssertionError("Yahoo must not be called")))
+    d = ys.safe_download(["ABC.NS"], start="2026-11-01", group_by="ticker", auto_adjust=True)
+    assert d["ABC.NS"]["Close"].iloc[-1] == 205.0
+    monkeypatch.setenv("PRICE_SOURCE", "yahoo")                    # the rollback switch
+    monkeypatch.setattr(yf, "download", lambda *a, **k: pd.DataFrame())
+    assert ys.safe_download(["ABC.NS"], start="2026-11-01", retries=1, backoff=0) is not None
+    npx._load.cache_clear()

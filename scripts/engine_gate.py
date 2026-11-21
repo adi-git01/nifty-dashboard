@@ -8,7 +8,7 @@ GitHub starts scheduled runs up to ~9 hours late, so a single 3:45 pm slot often
 
 So the workflow fires often (morning slots that land in the evening when delayed, evening slots that
 land on time), and this gate lets a run through only:
-  - between 15:45 and 23:50 IST on a weekday (after the close, before Yahoo's midnight gap), and
+  - between 19:00 and 23:50 IST on a weekday (after NSE publishes its day files; before Yahoo's midnight gap, the fallback), and
   - until today's session is captured (or two attempts were made, e.g. on a market holiday).
 A manual run always goes through.
 
@@ -25,7 +25,7 @@ from datetime import datetime, timedelta, timezone
 
 MARK = "data/engine_last_run.json"
 IST = timezone(timedelta(hours=5, minutes=30))
-OPEN_FROM, OPEN_TO = (15, 45), (23, 50)
+OPEN_FROM, OPEN_TO = (19, 0), (23, 50)       # after NSE publishes its day files (~18-19h)
 MAX_TRIES = 2
 
 
@@ -45,7 +45,7 @@ def decide(now: datetime, event: str, mark: dict) -> tuple[bool, str]:
         return True, "weekend"
     hm = (now.hour, now.minute)
     if hm < OPEN_FROM:
-        return True, f"{now:%H:%M} IST is before the close window (15:45)"
+        return True, f"{now:%H:%M} IST is before 19:00, when NSE's day files are out"
     if hm >= OPEN_TO:
         return True, f"{now:%H:%M} IST is after 23:50: Yahoo would not have today's bar yet"
     if mark.get("date") == today and mark.get("bar_date") == today:

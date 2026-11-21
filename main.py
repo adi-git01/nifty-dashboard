@@ -257,7 +257,8 @@ def _load_market_data(live: bool, key: str) -> pd.DataFrame:
     if hit and time.time() - hit[0] < AUTO_REFRESH_MINUTES * 60:
         return hit[1].copy()
     fundamentals = load_base_fundamentals(live_mode=live)
-    out = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live)
+    out = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live,
+                                        price_source="yahoo" if live else None)   # Live Mode: intraday prices are Yahoo's
     if out is not None and not out.empty:
         store.clear()                                   # keep one entry: frames are ~1,170 x 125
         store[(live, key)] = (time.time(), out)

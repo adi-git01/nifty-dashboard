@@ -15,7 +15,7 @@ on:
     - cron: '47 7 * * 1-5'
     - cron: '53 8 * * 1-5'
     - cron: '47 11 * * 1-5'
-    - cron: '23 13 * * 1-5'
+    - cron: '37 13 * * 1-5'
     - cron: '41 14 * * 1-5'
     - cron: '53 15 * * 1-5'
     - cron: '59 16 * * 1-5'
@@ -81,6 +81,16 @@ jobs:
         python scripts/repair_logs.py
       continue-on-error: true
 
+    - name: "NSE data: daily prices, delivery %, corporate actions, surveillance, results dates, deals, market context"
+      # NSE's free daily files (utils/nse_prices.py, utils/nse_data.py). FIRST: every later step reads its daily
+      # bars from the NSE price store (utils/yf_safe.py) and asks Yahoo only for what NSE cannot serve. Never fails the run.
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
+      run: |
+        python scripts/nse_daily.py
+
     - name: "Step 1/5: Trading Engine (Cache + Sub-Industry Rotation)"
       # ✅ FIX #4: This used to be the ONLY step without continue-on-error,
       # despite being the one most exposed to Yahoo Finance flakiness (the
@@ -110,16 +120,6 @@ jobs:
         done
         echo "Trading Engine failed after 2 attempts — continuing to later steps with continue-on-error."
         exit 1
-
-    - name: "NSE data: delivery %, corporate actions, surveillance, results dates, deals, market context"
-      # NSE's free daily files (utils/nse_data.py). Before the signal logger, so corporate actions reach
-      # corp_actions.build() and the NSE section joins the evening brief. Never fails the run.
-      continue-on-error: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        python scripts/nse_daily.py
 
     - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
       continue-on-error: true  # Screener failure must not block portfolio engine or commit
