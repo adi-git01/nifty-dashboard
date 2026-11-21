@@ -1,0 +1,126 @@
+[backfill] 530 weekdays to fetch from 11 Nov 2024
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:354: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  new = pd.concat([old, pd.DataFrame({"date": pd.to_datetime(list(days))})]).drop_duplicates()
+[backfill] 25/530 · 13 Dec 2024 · {'sessions': 24, 'holidays': 1, 'index_days': 23} · 44s
+[backfill] 50/530 · 17 Jan 2025 · {'sessions': 49, 'holidays': 1, 'index_days': 47} · 75s
+[backfill] 75/530 · 21 Feb 2025 · {'sessions': 74, 'holidays': 1, 'index_days': 72} · 106s
+[backfill] 100/530 · 28 Mar 2025 · {'sessions': 97, 'holidays': 3, 'index_days': 95} · 154s
+[backfill] 125/530 · 02 May 2025 · {'sessions': 117, 'holidays': 8, 'index_days': 115} · 240s
+[backfill] 150/530 · 06 Jun 2025 · {'sessions': 142, 'holidays': 8, 'index_days': 140} · 265s
+[backfill] 175/530 · 11 Jul 2025 · {'sessions': 167, 'holidays': 8, 'index_days': 165} · 289s
+[backfill] 200/530 · 15 Aug 2025 · {'sessions': 191, 'holidays': 9, 'index_days': 189} · 325s
+[backfill] 225/530 · 19 Sep 2025 · {'sessions': 215, 'holidays': 10, 'index_days': 213} · 361s
+[backfill] 250/530 · 24 Oct 2025 · {'sessions': 239, 'holidays': 11, 'index_days': 236} · 405s
+[backfill] 275/530 · 28 Nov 2025 · {'sessions': 264, 'holidays': 11, 'index_days': 260} · 437s
+[backfill] 300/530 · 02 Jan 2026 · {'sessions': 289, 'holidays': 11, 'index_days': 284} · 468s
+[backfill] 325/530 · 06 Feb 2026 · {'sessions': 314, 'holidays': 11, 'index_days': 307} · 504s
+[backfill] 350/530 · 13 Mar 2026 · {'sessions': 339, 'holidays': 11, 'index_days': 331} · 535s
+[backfill] 375/530 · 17 Apr 2026 · {'sessions': 364, 'holidays': 11, 'index_days': 352} · 583s
+[backfill] 400/530 · 22 May 2026 · {'sessions': 389, 'holidays': 11, 'index_days': 376} · 613s
+[backfill] 425/530 · 26 Jun 2026 · {'sessions': 414, 'holidays': 11, 'index_days': 399} · 648s
+[backfill] 450/530 · 31 Jul 2026 · {'sessions': 439, 'holidays': 11, 'index_days': 424} · 673s
+[backfill] 475/530 · 04 Sep 2026 · {'sessions': 464, 'holidays': 11, 'index_days': 449} · 696s
+[backfill] 500/530 · 09 Oct 2026 · {'sessions': 489, 'holidays': 11, 'index_days': 472} · 731s
+[backfill] 525/530 · 13 Nov 2026 · {'sessions': 514, 'holidays': 11, 'index_days': 495} · 768s
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:192: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  d["date"] = pd.to_datetime(d["date"].astype(str).str.strip(), errors="coerce", dayfirst=True)
+[backfill] done in 774s: {'sessions': 519, 'holidays': 11, 'index_days': 500}; store 11 Nov 2024 -> 20 Nov 2026, 3,872 symbols, 1,475,706 rows; 68.5 MB
+2026-11-21 13:53:24.715 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+2026-11-21 13:53:24.723 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+[ENGINE] Merged bi-weekly fundamentals cache (1178 stocks, 6d old)
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:288: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  R["symbol"] = R["symbol"].astype(str)
+[yf_safe] bulk download attempt 1/3: 100% coverage (1170/1170 tickers)
+[ENGINE] live_mode=True — skipping fetch_missing_fundamentals (PE not needed for signals)
+[FAST ENGINE] Fetching data for 1170 stocks...
+[ENGINE] Starting yf.download for 1170 tickers...
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:288: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  R["symbol"] = R["symbol"].astype(str)
+[yf_safe] 1170/1170 tickers from NSE's files (no Yahoo call)
+[ENGINE] yf.download complete. Shape=(290, 5850), MultiIndex=True, Cols preview=['20MICRONS.NS', '21STCENMGM.NS', '360ONE.NS', '3IINFOLTD.NS']
+[ENGINE] Processing complete: 1170/1170 tickers returned valid data (100% coverage).
+[ENGINE] Output shape=(1170, 128), key_cols=['ticker', 'currentPrice', 'dna_signal', 'comp_rs']
+[ENGINE] live_mode=True — skipping fetch_missing_fundamentals (PE not needed for signals)
+[FAST ENGINE] Fetching data for 1170 stocks...
+[ENGINE] Starting yf.download for 1170 tickers...
+[yf_safe] bulk download attempt 1/1: 100% coverage (1170/1170 tickers)
+[ENGINE] yf.download complete. Shape=(291, 5850), MultiIndex=True, Cols preview=['20MICRONS.NS', '21STCENMGM.NS', '360ONE.NS', '3IINFOLTD.NS']
+[ENGINE] Processing complete: 1168/1170 tickers returned valid data (100% coverage).
+[ENGINE] Output shape=(1168, 128), key_cols=['ticker', 'currentPrice', 'dna_signal', 'comp_rs']
+# NSE store vs Yahoo
+
+Store: sessions to 20 Nov 2026; current: True
+
+## 1 · Price histories (split-adjusted close, last ~14 months)
+
+- 1,170 tickers · NSE has 1,170 · Yahoo has 1,170 · both 1,170
+- NSE only: 
+- Yahoo only: 
+- last close within 0.1%: 99.7% · median daily gap 1.211%
+- stocks whose history differs by > 2% on some day: 750 (corporate action handled differently, or Yahoo's dividend adjustment)
+
+| Stock | Max gap | On | Last gap | NSE last | Yahoo last |
+|---|---|---|---|---|---|
+| DELPHIFX | 1454.6% | 2025-10-08 | +0.00% | 2026-11-20 | 2026-11-20 |
+| AHCL | 930.7% | 2026-03-30 | -0.00% | 2026-11-20 | 2026-11-20 |
+| V2RETAIL | 924.2% | 2026-01-16 | +0.00% | 2026-11-20 | 2026-11-20 |
+| AQYLON | 920.4% | 2026-02-20 | +0.00% | 2026-11-20 | 2026-11-20 |
+| FCL | 918.6% | 2025-10-10 | +0.00% | 2026-11-20 | 2026-11-20 |
+| ANGELONE | 905.6% | 2026-02-11 | +0.00% | 2026-11-20 | 2026-11-20 |
+| AVROIND | 883.5% | 2026-02-05 | -0.00% | 2026-11-20 | 2026-11-20 |
+| TATAINVEST | 880.8% | 2025-09-22 | -0.00% | 2026-11-20 | 2026-11-20 |
+| ABINFRA | 873.9% | 2025-09-30 | -0.00% | 2026-11-20 | 2026-11-20 |
+| WEBELSOLAR | 823.5% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
+| ZFCVINDIA | 508.8% | 2025-09-29 | -0.00% | 2026-11-20 | 2026-11-20 |
+| CUPID | 412.5% | 2025-11-25 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BANSALWIRE | 405.1% | 2026-10-15 | -0.00% | 2026-11-20 | 2026-11-20 |
+| AIIL | 405.1% | 2025-12-01 | +0.00% | 2026-11-20 | 2026-11-20 |
+| KOTAKBANK | 400.0% | 2026-01-09 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BECTORFOOD | 394.9% | 2025-11-12 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BUILDPRO | 392.1% | 2026-10-06 | +0.00% | 2026-11-20 | 2026-11-20 |
+| ADANIPOWER | 390.7% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
+| CAMS | 389.1% | 2025-09-30 | -0.00% | 2026-11-20 | 2026-11-20 |
+| AGIIL | 382.4% | 2025-10-06 | +0.00% | 2026-11-20 | 2026-11-20 |
+| NUVAMA | 371.4% | 2025-09-24 | -0.00% | 2026-11-20 | 2026-11-20 |
+| AJMERA | 354.1% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
+| MCX | 345.3% | 2025-12-19 | +0.00% | 2026-11-20 | 2026-11-20 |
+| METROPOLIS | 311.3% | 2025-10-07 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BHARATRAS | 294.5% | 2025-09-18 | -0.00% | 2026-11-20 | 2026-11-20 |
+
+Fetch time: NSE store 5.7s · Yahoo 175s
+
+## 2 · Engine snapshot built from each
+
+- rows: NSE 1,170 · Yahoo 1,168 · build time NSE 50s · Yahoo 145s · sources used {'nse': 1172, 'yahoo': 1172}
+- compared on 1,168 stocks
+
+| Column | Within 1% (or 1 pt) | Median abs diff | Worst |
+|---|---|---|---|
+| currentPrice | 99.7% | 3.05e-06 | ICICIPRULI (431 vs 462) |
+| previousClose | 99.6% | 3.66e-06 | HEG (237.1 vs 264.5) |
+| fiftyDayAverage | 54.6% | 3.08 | MRF (1.248e+05 vs 1.237e+05) |
+| twoHundredDayAverage | 41.0% | 5.08 | ZFCVINDIA (8340 vs 2409) |
+| fiftyTwoWeekHigh | 40.7% | 6.62 | ZFCVINDIA (1.666e+04 vs 3039) |
+| comp_rs | 43.6% | 1.19 | CONCORDBIO (-63.87 vs -29.65) |
+| trend_score | 74.3% | 1 | METROPOLIS (0 vs 98) |
+| volatility | 91.6% | 0.1 | BUILDPRO (173.4 vs 54.2) |
+| dist_52w | 44.7% | 1.2 | ANGELONE (-87.67 vs -8.14) |
+| overall | 99.8% | 0 | PGIL (7.4 vs 8.8) |
+| volume_signal_score | 98.6% | 0 | HEG (2 vs 8) |
+
+| Signal | Same on | Different (NSE → Yahoo), examples |
+|---|---|---|
+| dna_signal | 97.2% | 33: 63MOONS HOLD→BUY, ANTHEM HOLD→BUY, ANUP HOLD→BUY, AWFIS HOLD→BUY, BANCOINDIA HOLD→BUY, BEARDSELL HOLD→WATCH, BFINVEST HOLD→BUY, BLUSPRING HOLD→BUY |
+| trend_signal | 85.3% | 172: 21STCENMGM STRONG UPTREND→UPTREND, AAATECH STRONG DOWNTREND→DOWNTREND, AARTECH STRONG DOWNTREND→DOWNTREND, AARVI STRONG DOWNTREND→DOWNTREND, ABB UPTREND→STRONG UPTREND, ABBOTINDIA DOWNTREND→UPTREND, ABCOTS STRONG DOWNTREND→DOWNTREND, AEGISVOPAK UPTREND→STRONG UPTREND |
+| fx_action | 98.8% | 14: ALLDIGI WATCH→WAIT, BELRISE WATCH→WAIT, BHARTIHEXA WATCH→BUY NOW, CANBK BUY ON TRIGGER→BUY NOW, CENTUM WATCH→BUY NOW, CUB WATCH→WAIT, CUPID WATCH→BUY NOW, DIXON BUY NOW→WATCH |
+| fx_state | 98.5% | 18: ACC VETO→GO, ACCELYA VETO→GO, ALIVUS VETO→FADE, BAYERCROP MIXED anchor→BEAR anchor, BLSE WAIT (running)→MIXED anchor, CGPOWER FADE→WAIT (40-80%), CIEINDIA FADE→WAIT (40-80%), CONCORDBIO BEAR anchor→VETO |
+
+Technicals BUY NOW: NSE 77 · Yahoo 85 · both 76 · only NSE ['DIXON'] · only Yahoo ['BHARTIHEXA', 'CANBK', 'CENTUM', 'CUPID', 'FILATEX', 'HDFCAMC', 'MRPL', 'ONESOURCE', 'PGIL']
