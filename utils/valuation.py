@@ -594,7 +594,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         out["label"] = "MECHANICAL + OVERRIDES"
 
     f = ctx.funda.loc[t] if t in ctx.funda.index else None
-    gran = (f["sector_granular"] if f is not None else "") or ""
+    gran = f["sector_granular"] if f is not None else ""
+    gran = gran if isinstance(gran, str) else ""       # NaN for a stock with no sub-industry
     name = (f["name"] if f is not None else t) or t
     out.update(name=name, sector=f["sector"] if f is not None else "", sub_industry=gran)
     if price is None or not np.isfinite(price):
@@ -1057,7 +1058,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         # earnings x multiple went negative in the low or middle case: a loss-making path, where the method says
         # nothing (NSLNISP P50 -Rs270, SPARC P10 -Rs1,895). Such ranges were still used as percentiles and zones.
         return {**out, "status": "OUT OF SCOPE",
-                "reason": f"loss-making earnings path: fair value P10 Rs{Q['P10']:,.0f}, P50 Rs{Q['P50']:,.0f}"}
+                "reason": f"loss-making earnings path: fair value P10 {'$' if us else 'Rs'}{Q['P10']:,.0f}, "
+                          f"P50 {'$' if us else 'Rs'}{Q['P50']:,.0f}"}
     out["grid"] = [float(x) for x in np.percentile(V, np.arange(1, 100))]
     out["blends"] = bl
     out["regimes"] = {s: dict(share=float((reg == k).mean()), mean=float(V[reg == k].mean()) if (reg == k).any() else np.nan)

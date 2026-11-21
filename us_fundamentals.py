@@ -243,6 +243,8 @@ def main():
             try:
                 r = requests.get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{c:010d}.json", headers=h, timeout=60)
                 if r.status_code == 429:
+                    if attempt == 2:
+                        miss.append(t)
                     time.sleep(5 * (attempt + 1))
                     continue
                 if r.status_code != 200:
