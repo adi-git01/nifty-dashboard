@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Dict, Iterable, List, Optional, Tuple
 
+import re
 import numpy as np
 import pandas as pd
 
@@ -266,10 +267,31 @@ def _actions() -> Dict[str, list]:
     except Exception:
         return {}
     ca = ca[ca["kind"].isin(["split", "bonus", "consolidation", "demerger", "rights"])]
+    fv = _face_values()
     out: Dict[str, list] = {}
     for r in ca.itertuples():
-        out.setdefault(str(r.symbol), []).append((r.ex_date, float(r.factor) if r.factor == r.factor else np.nan, r.kind))
+        fac = float(r.factor) if r.factor == r.factor else np.nan
+        info = None
+        if r.kind == "rights":
+            # "Rights 3:2 @ Premium Re. 0.63/-": 3 new for every 2 held at face value + premium
+            m = re.search(r"(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)\s*@?\s*(?:Premium|Prm)?\s*(?:Rs\.?|Re\.?)?\s*(\d+(?:\.\d+)?)",
+                          str(r.subject), re.I)
+            f0 = fv.get(str(r.symbol))
+            if m and f0:
+                info = (float(m.group(1)), float(m.group(2)), f0 + float(m.group(3)))
+        out.setdefault(str(r.symbol), []).append((r.ex_date, fac, r.kind, info))
     return out
+
+
+@lru_cache(maxsize=1)
+def _face_values() -> Dict[str, float]:
+    """symbol -> face value from NSE's equity list (EQUITY_L.csv), for the issue price of a rights issue."""
+    try:
+        e = pd.read_csv("EQUITY_L.csv")
+        e.columns = [c.strip().upper() for c in e.columns]
+        return dict(zip(e["SYMBOL"].astype(str), pd.to_numeric(e["FACE VALUE"], errors="coerce")))
+    except Exception:
+        return {}
 
 
 def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
@@ -278,7 +300,8 @@ def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
     1:5 split on 9 Mar 2026 kept 402.20), so, in order:
       1. NSE's announced split / bonus / consolidation ratio, on the first session on or after its ex-date, when the
          price moved toward it;
-      2. a demerger or rights issue: the session's own price ratio (what the stock lost to the spun-off part);
+      2. a rights issue: the theoretical ex-rights price (issue price = face value + premium); a demerger: the
+         opening gap on the ex-date (what the stock lost to the spun-off part);
       3. any other overnight move beyond 50% / -33%: PREV_CLOSE's ratio if NSE adjusted it, else the nearest common
          split / bonus ratio of the opening gap if within 4%, else left alone (a real crash).
     """
@@ -291,14 +314,23 @@ def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
     used = set()
     qo_all = np.r_[np.nan, o[1:] / c[:-1]]
     ratio: Dict[int, float] = {}                     # a split and a bonus on the same day multiply (DELPHIFX 0.2 x 1/3)
-    for ex, fac, kind in acts or []:
+    for act in acts or []:
+        ex, fac, kind = act[:3]
+        info = act[3] if len(act) > 3 else None
         k = int(np.searchsorted(d.values, np.datetime64(ex)))
         if k <= 0 or k >= len(g) or (d[k] - ex).days > 6 or not np.isfinite(q[k]):
             continue
         if kind in ("split", "bonus", "consolidation") and fac == fac and fac > 0:
             ratio[k] = ratio.get(k, 1.0) * fac
+        elif kind == "rights" and info and k not in ratio:
+            # theoretical ex-rights price: (held x last close + new x issue price) / (held + new), as Zerodha does
+            new, held, price = info
+            terp = (held * c[k - 1] + new * price) / (held + new)
+            if 0 < price < c[k - 1] and terp / c[k - 1] < 0.995:
+                f[k], _ = terp / c[k - 1], used.add(k)
         elif kind in ("demerger", "rights") and abs(np.log(q[k])) > np.log(1.08) and k not in ratio:
-            f[k], _ = q[k], used.add(k)
+            # a demerger's value goes at the special pre-open session: the opening gap, not the day's close
+            f[k], _ = (qo_all[k] if np.isfinite(qo_all[k]) and qo_all[k] > 0 else q[k]), used.add(k)
     for k, fac in ratio.items():
         # the close can run far on an ex-date (GOLDIAM +17% after its 1:3 bonus): the opening gap is checked as well
         near = min(abs(np.log(x / fac)) - abs(np.log(x)) for x in (q[k], qo_all[k]) if np.isfinite(x) and x > 0)
