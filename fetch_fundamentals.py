@@ -229,7 +229,48 @@ def fetch_one(ticker: str) -> dict | None:
         return None
 
 
+def main_nse():
+    """
+    Default since Nov 2026: no Yahoo. P/E and shares from NSE's quote API, ratios from the Screener files,
+    close and beta from the NSE price store (utils/fundamentals_build.py). grossMargins / forwardPE have no free
+    source: the previous values are carried forward. A comparison with the previous cache goes to
+    analysis/FUNDAMENTALS_NSE_VS_YAHOO.md.
+    """
+    from utils.fundamentals_build import CARRY, build, compare
+    os.makedirs("data", exist_ok=True)
+    tickers = list(TICKERS_1000)
+    df = build(tickers)
+    old = pd.read_csv(OUTPUT_PATH) if os.path.exists(OUTPUT_PATH) else pd.DataFrame()
+    if len(old):
+        prev = old.set_index("ticker")
+        for c in CARRY:                                     # no free source: keep the last known value
+            if c in prev:
+                df[c] = df["ticker"].map(prev[c])
+        try:
+            os.makedirs("analysis", exist_ok=True)
+            with open("analysis/FUNDAMENTALS_NSE_VS_YAHOO.md", "w") as f:
+                f.write("# Fundamentals: NSE + Screener build vs the previous cache\n\n" + "\n".join(compare(df, old)) + "\n")
+        except Exception as e:
+            print(f"[FUND] comparison skipped: {e}")
+        keep = old[~old["ticker"].isin(df["ticker"])]
+        if len(keep):
+            df = pd.concat([df, keep], ignore_index=True)
+    _text = {"ticker", "name", "sector", "sector_granular", "fund_last_updated", "fund_source"}
+    for col in df.columns:
+        if col not in _text:
+            df[col] = pd.to_numeric(df[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    have = df["pe"].notna() | df["roe"].notna()
+    coverage = have[df["ticker"].isin(tickers)].sum() / max(len(tickers), 1)
+    print(f"[FUND] built {len(df)} rows; coverage {coverage:.1%}; sources {df['fund_source'].value_counts().to_dict()}")
+    if coverage < MIN_COVERAGE:
+        print(f"[FUND] ERROR: coverage below {MIN_COVERAGE:.0%}; previous cache left intact.")
+        raise SystemExit(1)
+    atomic_to_csv(df, OUTPUT_PATH, index=False)
+    print(f"[FUND] Saved {len(df)} rows -> {OUTPUT_PATH}")
+
+
 def main():
+    """The previous Yahoo-based fetch (python fetch_fundamentals.py --source yahoo)."""
     os.makedirs("data", exist_ok=True)
     tickers = TICKERS_1000
     total   = len(tickers)
@@ -306,4 +347,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys as _sys
+    if "--source" in _sys.argv and _sys.argv[_sys.argv.index("--source") + 1:][:1] == ["yahoo"]:
+        main()
+    else:
+        main_nse()

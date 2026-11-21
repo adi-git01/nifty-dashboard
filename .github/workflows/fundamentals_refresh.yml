@@ -3,7 +3,6 @@ name: Bi-Weekly Fundamentals Refresh
 on:
   schedule:
     # 1st and 15th of each month at 11 PM IST (5:30 PM UTC)
-    # Runs after markets close, before the nightly engine at 3:45 PM IST next day
     - cron: '30 17 1 * *'
     - cron: '30 17 15 * *'
   workflow_dispatch:  # Allow manual trigger
@@ -33,16 +32,16 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Fetch fundamentals for all Nifty 1000 stocks
+    - name: Fundamentals for all Nifty 1000 stocks (NSE quote API + Screener files + NSE price store; no Yahoo)
       run: python fetch_fundamentals.py
-      # ~750 stocks × 0.6s delay ≈ 7-8 minutes. Sequential to stay under Yahoo rate limits.
+      # ~1,170 NSE quote calls at ~0.3 s ≈ 6-8 minutes. `--source yahoo` runs the old Yahoo fetch.
 
     - name: Commit fundamentals cache
       # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).
       run: >
         bash scripts/commit_and_push.sh
         "🤖 System: Bi-weekly fundamentals refresh (PE, ROE, margins, growth)"
-        data/fundamentals_cache.csv
+        data/fundamentals_cache.csv analysis/FUNDAMENTALS_NSE_VS_YAHOO.md
 
     - name: Notify on failure
       if: failure()

@@ -1181,3 +1181,19 @@ def test_nse_price_store_adjusts_and_serves(tmp_path, monkeypatch):
     monkeypatch.setattr(yf, "download", lambda *a, **k: pd.DataFrame())
     assert ys.safe_download(["ABC.NS"], start="2026-11-01", retries=1, backoff=0) is not None
     npx._load.cache_clear()
+
+
+def test_fundamentals_without_yahoo_units():
+    """Screener-built ratios use Yahoo's units: fractions for ROE / margins, percent for debt / equity."""
+    import pandas as pd
+    from utils.fundamentals_build import screener_ratios
+    idx = pd.to_datetime(["2024-03-31", "2025-03-31", "2026-03-31"])
+    A = {"X.NS": pd.DataFrame(dict(np=[80, 90, 100.0], eq_cap=[10] * 3, reserves=[390, 440, 490.0], borrowings=[100, 100, 150.0],
+                                   total_liab=[900, 1000, 1100.0], cfo=[90, 95, 120.0], sales=[800, 900, 1000.0], dep=[20, 25, 30.0]),
+                              index=idx)}
+    qi = pd.to_datetime(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31", "2026-06-30"])
+    Q = {"X.NS": pd.DataFrame(dict(sales=[240, 250, 260, 270, 300.0], np=[24, 25, 26, 27, 30.0], op=[40, 42, 44, 46, 50.0]), index=qi)}
+    r = screener_ratios("X.NS", A, Q, mcap_cr=2000.0)
+    assert abs(r["roe"] - 100 / 475) < 1e-9 and abs(r["debtToEquity"] - 30.0) < 1e-9 and abs(r["pb"] - 4.0) < 1e-9
+    assert abs(r["profitMargins"] - 108 / 1080) < 1e-9 and abs(r["revenueGrowth"] - 0.25) < 1e-9
+    assert abs(r["operatingMargins"] - (182 / 1080 - 0.03)) < 1e-9 and abs(r["earningsQuality"] - 1.2) < 1e-9
