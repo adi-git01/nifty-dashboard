@@ -1215,3 +1215,20 @@ def test_yahoo_only_fills_gaps(monkeypatch):
     out = yahoo_fill(df, fields=["pe", "grossMargins", "forwardPE"], sleep=0, log=lambda *a: None)
     assert out.loc[0, "pe"] == 20.0 and out.loc[0, "grossMargins"] == 0.41 and out.loc[0, "fund_source"] == "nse+screener+yahoo"
     assert np.isnan(out.loc[1, "pe"]) and out.loc[1, "fund_source"] == "screener"
+
+
+def test_nse_split_without_prev_close_adjustment():
+    """NSE sometimes leaves PREV_CLOSE unadjusted on a split (CUPID 9 Mar 2026): the opening gap must still find 1:5."""
+    import pandas as pd
+    from utils import nse_prices as npx
+    g = pd.DataFrame({"date": pd.to_datetime(["2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10"]),
+                      "open": [380.0, 412.85, 82.0, 92.0], "close": [405.5, 402.2, 91.6, 92.85],
+                      "prev_close": [379.15, 405.5, 402.2, 91.6]})
+    g["high"], g["low"], g["volume"] = g[["open", "close"]].max(axis=1), g[["open", "close"]].min(axis=1), 1000.0
+    f = npx.factors(g)
+    assert abs(f[2] - 0.2) < 1e-9 and (f[[0, 1, 3]] == 1).all()
+    # an official record wins over the guess
+    f = npx.factors(g, [(pd.Timestamp("2026-03-09"), 0.25, "split")])
+    assert abs(f[2] - 0.25) < 1e-9
+    a = npx.adjust(g)
+    assert abs(a["Close"].iloc[1] - 80.44) < 0.01 and a["Stock Splits"].iloc[2] == 5.0

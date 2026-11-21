@@ -142,11 +142,23 @@ def action_factor(subject: str) -> Tuple[str, float]:
     return "other", np.nan
 
 
-def fetch_corp_actions(S: Session, today: pd.Timestamp) -> pd.DataFrame:
-    frm, to = (today - pd.Timedelta(days=45)).strftime("%d-%m-%Y"), (today + pd.Timedelta(days=90)).strftime("%d-%m-%Y")
-    j = S.json(f"/api/corporates-corporateActions?index=equities&from_date={frm}&to_date={to}")
+def fetch_corp_actions(S: Session, today: pd.Timestamp, start: Optional[pd.Timestamp] = None) -> pd.DataFrame:
+    """NSE's corporate actions, 45 days back to 90 ahead; with `start`, everything from then in 90-day windows."""
+    lo = pd.Timestamp(start) if start is not None else today - pd.Timedelta(days=45)
+    hi = today + pd.Timedelta(days=90)
+    got = []
+    while lo < hi:
+        to_ = min(lo + pd.Timedelta(days=90), hi)
+        try:
+            j = S.json(f"/api/corporates-corporateActions?index=equities&from_date={lo:%d-%m-%Y}&to_date={to_:%d-%m-%Y}")
+            got += j if isinstance(j, list) else []
+        except Exception as e:
+            print(f"[nse] corporate actions {lo:%d %b %Y}: {e}")
+        lo = to_ + pd.Timedelta(days=1)
+        if start is not None:
+            time.sleep(0.5)
     rows = []
-    for x in j if isinstance(j, list) else []:
+    for x in got:
         kind, fac = action_factor(x.get("subject"))
         rows.append(dict(symbol=str(x.get("symbol", "")).strip(), ex_date=pd.to_datetime(x.get("exDate"), errors="coerce"),
                          record_date=pd.to_datetime(x.get("recDate"), errors="coerce"), subject=str(x.get("subject", "")).strip(),
