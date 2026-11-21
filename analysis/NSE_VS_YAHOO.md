@@ -7,63 +7,63 @@ Store: sessions to 20 Nov 2026; current: True
 - 1,170 tickers · NSE has 1,170 · Yahoo has 1,170 · both 1,170
 - NSE only: 
 - Yahoo only: 
-- last close within 0.1%: 99.7% · median daily gap 1.211%
-- stocks whose history differs by > 2% on some day: 750 (corporate action handled differently, or Yahoo's dividend adjustment)
+- last close within 0.1%: 99.7% · median daily gap 0.000%
+- stocks whose history differs by > 2% on some day: 28 (corporate action handled differently, or Yahoo's dividend adjustment)
 
 | Stock | Max gap | On | Last gap | NSE last | Yahoo last |
 |---|---|---|---|---|---|
-| DELPHIFX | 1454.6% | 2025-10-08 | +0.00% | 2026-11-20 | 2026-11-20 |
-| AHCL | 930.7% | 2026-03-30 | -0.00% | 2026-11-20 | 2026-11-20 |
-| V2RETAIL | 924.2% | 2026-01-16 | +0.00% | 2026-11-20 | 2026-11-20 |
-| AQYLON | 920.4% | 2026-02-20 | +0.00% | 2026-11-20 | 2026-11-20 |
-| FCL | 918.6% | 2025-10-10 | +0.00% | 2026-11-20 | 2026-11-20 |
-| ANGELONE | 905.6% | 2026-02-11 | +0.00% | 2026-11-20 | 2026-11-20 |
-| AVROIND | 883.5% | 2026-02-05 | -0.00% | 2026-11-20 | 2026-11-20 |
-| TATAINVEST | 880.8% | 2025-09-22 | -0.00% | 2026-11-20 | 2026-11-20 |
-| ABINFRA | 873.9% | 2025-09-30 | -0.00% | 2026-11-20 | 2026-11-20 |
-| WEBELSOLAR | 823.5% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
-| ZFCVINDIA | 508.8% | 2025-09-29 | -0.00% | 2026-11-20 | 2026-11-20 |
-| CUPID | 412.5% | 2025-11-25 | +0.00% | 2026-11-20 | 2026-11-20 |
-| BANSALWIRE | 405.1% | 2026-10-15 | -0.00% | 2026-11-20 | 2026-11-20 |
-| AIIL | 405.1% | 2025-12-01 | +0.00% | 2026-11-20 | 2026-11-20 |
-| KOTAKBANK | 400.0% | 2026-01-09 | +0.00% | 2026-11-20 | 2026-11-20 |
-| BECTORFOOD | 394.9% | 2025-11-12 | +0.00% | 2026-11-20 | 2026-11-20 |
-| BUILDPRO | 392.1% | 2026-10-06 | +0.00% | 2026-11-20 | 2026-11-20 |
-| ADANIPOWER | 390.7% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
-| CAMS | 389.1% | 2025-09-30 | -0.00% | 2026-11-20 | 2026-11-20 |
-| AGIIL | 382.4% | 2025-10-06 | +0.00% | 2026-11-20 | 2026-11-20 |
-| NUVAMA | 371.4% | 2025-09-24 | -0.00% | 2026-11-20 | 2026-11-20 |
-| AJMERA | 354.1% | 2025-09-18 | +0.00% | 2026-11-20 | 2026-11-20 |
-| MCX | 345.3% | 2025-12-19 | +0.00% | 2026-11-20 | 2026-11-20 |
-| METROPOLIS | 311.3% | 2025-10-07 | +0.00% | 2026-11-20 | 2026-11-20 |
-| BHARATRAS | 294.5% | 2025-09-18 | -0.00% | 2026-11-20 | 2026-11-20 |
+| DELPHIFX | 222.4% | 2025-10-08 | +0.00% | 2026-11-20 | 2026-11-20 |
+| AHCL | 100.0% | 2025-12-01 | -0.00% | 2026-11-20 | 2026-11-20 |
+| NAZARA | 100.0% | 2025-09-23 | +0.00% | 2026-11-20 | 2026-11-20 |
+| FCL | 100.0% | 2025-10-10 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BHARATRAS | 100.0% | 2025-09-18 | -0.00% | 2026-11-20 | 2026-11-20 |
+| AQYLON | 90.0% | 2025-12-03 | +0.00% | 2026-11-20 | 2026-11-20 |
+| BANSALWIRE | 80.0% | 2026-04-08 | -0.00% | 2026-11-20 | 2026-11-20 |
+| INDIAGLYCO | 78.8% | 2026-07-01 | -0.00% | 2026-11-20 | 2026-11-20 |
+| DCMSRIND | 68.3% | 2025-11-21 | +0.00% | 2026-11-20 | 2026-11-20 |
+| HEG | 66.7% | 2026-07-24 | +0.00% | 2026-09-21 | 2026-11-20 |
+| ALLCARGO | 64.9% | 2025-10-27 | +0.00% | 2026-11-20 | 2026-11-20 |
+| VEDL | 64.9% | 2025-12-09 | +0.00% | 2026-11-20 | 2026-11-20 |
+| SKFINDIA | 54.8% | 2025-10-01 | +0.00% | 2026-11-20 | 2026-11-20 |
+| TRIVENI | 41.6% | 2026-01-20 | +0.00% | 2026-11-20 | 2026-11-20 |
+| TMPV | 40.2% | 2025-09-26 | -0.00% | 2026-11-20 | 2026-11-20 |
+| GOLDIAM | 33.3% | 2026-03-02 | +0.00% | 2026-11-20 | 2026-11-20 |
+| TRENT | 33.3% | 2025-12-16 | -0.00% | 2026-11-20 | 2026-11-20 |
+| GENESYS | 30.3% | 2026-04-17 | -0.00% | 2026-11-20 | 2026-11-20 |
+| GANGAFORGE | 25.9% | 2026-06-25 | +0.00% | 2026-11-20 | 2026-11-20 |
+| HCC | 23.3% | 2025-11-26 | +0.00% | 2026-11-20 | 2026-11-20 |
+| ATL | 14.5% | 2025-10-21 | -0.00% | 2026-11-20 | 2026-11-20 |
+| CENTEXT | 10.7% | 2026-03-02 | -0.00% | 2026-11-20 | 2026-11-20 |
+| CCAVENUE | 5.3% | 2026-02-03 | +0.00% | 2026-11-20 | 2026-11-20 |
+| PATELENG | 3.5% | 2025-11-28 | -0.00% | 2026-11-20 | 2026-11-20 |
+| ADANIENT | 3.1% | 2025-11-11 | +0.00% | 2026-11-20 | 2026-11-20 |
 
-Fetch time: NSE store 5.7s · Yahoo 175s
+Fetch time: NSE store 4.9s · Yahoo 296s
 
 ## 2 · Engine snapshot built from each
 
-- rows: NSE 1,170 · Yahoo 1,168 · build time NSE 50s · Yahoo 145s · sources used {'nse': 1172, 'yahoo': 1172}
+- rows: NSE 1,170 · Yahoo 1,168 · build time NSE 49s · Yahoo 210s · sources used {'nse': 1172, 'yahoo': 1172}
 - compared on 1,168 stocks
 
 | Column | Within 1% (or 1 pt) | Median abs diff | Worst |
 |---|---|---|---|
 | currentPrice | 99.7% | 3.05e-06 | ICICIPRULI (431 vs 462) |
 | previousClose | 99.6% | 3.66e-06 | HEG (237.1 vs 264.5) |
-| fiftyDayAverage | 54.6% | 3.08 | MRF (1.248e+05 vs 1.237e+05) |
-| twoHundredDayAverage | 41.0% | 5.08 | ZFCVINDIA (8340 vs 2409) |
-| fiftyTwoWeekHigh | 40.7% | 6.62 | ZFCVINDIA (1.666e+04 vs 3039) |
-| comp_rs | 43.6% | 1.19 | CONCORDBIO (-63.87 vs -29.65) |
-| trend_score | 74.3% | 1 | METROPOLIS (0 vs 98) |
-| volatility | 91.6% | 0.1 | BUILDPRO (173.4 vs 54.2) |
-| dist_52w | 44.7% | 1.2 | ANGELONE (-87.67 vs -8.14) |
-| overall | 99.8% | 0 | PGIL (7.4 vs 8.8) |
-| volume_signal_score | 98.6% | 0 | HEG (2 vs 8) |
+| fiftyDayAverage | 97.3% | 0.663 | PAGEIND (3.529e+04 vs 3.513e+04) |
+| twoHundredDayAverage | 87.6% | 1.14 | INDIAGLYCO (237.4 vs 811.9) |
+| fiftyTwoWeekHigh | 79.5% | 0.278 | BHARATRAS (5300 vs 2852) |
+| comp_rs | 60.4% | 0.82 | HEG (21.12 vs -24.63) |
+| trend_score | 91.4% | 0 | ICICIPRULI (0 vs 65) |
+| volatility | 89.1% | 0.2 | BANSALWIRE (32.9 vs 166.3) |
+| dist_52w | 83.3% | 0.06 | BANSALWIRE (-25.65 vs -85.13) |
+| overall | 99.9% | 0 | HEG (8 vs 6.5) |
+| volume_signal_score | 94.6% | 0 | EMUDHRA (9 vs 3) |
 
 | Signal | Same on | Different (NSE → Yahoo), examples |
 |---|---|---|
-| dna_signal | 97.2% | 33: 63MOONS HOLD→BUY, ANTHEM HOLD→BUY, ANUP HOLD→BUY, AWFIS HOLD→BUY, BANCOINDIA HOLD→BUY, BEARDSELL HOLD→WATCH, BFINVEST HOLD→BUY, BLUSPRING HOLD→BUY |
-| trend_signal | 85.3% | 172: 21STCENMGM STRONG UPTREND→UPTREND, AAATECH STRONG DOWNTREND→DOWNTREND, AARTECH STRONG DOWNTREND→DOWNTREND, AARVI STRONG DOWNTREND→DOWNTREND, ABB UPTREND→STRONG UPTREND, ABBOTINDIA DOWNTREND→UPTREND, ABCOTS STRONG DOWNTREND→DOWNTREND, AEGISVOPAK UPTREND→STRONG UPTREND |
-| fx_action | 98.8% | 14: ALLDIGI WATCH→WAIT, BELRISE WATCH→WAIT, BHARTIHEXA WATCH→BUY NOW, CANBK BUY ON TRIGGER→BUY NOW, CENTUM WATCH→BUY NOW, CUB WATCH→WAIT, CUPID WATCH→BUY NOW, DIXON BUY NOW→WATCH |
-| fx_state | 98.5% | 18: ACC VETO→GO, ACCELYA VETO→GO, ALIVUS VETO→FADE, BAYERCROP MIXED anchor→BEAR anchor, BLSE WAIT (running)→MIXED anchor, CGPOWER FADE→WAIT (40-80%), CIEINDIA FADE→WAIT (40-80%), CONCORDBIO BEAR anchor→VETO |
+| dna_signal | 98.3% | 20: 360ONE HOLD→BUY, AEGISVOPAK BUY→HOLD, ASTERDM BUY→HOLD, BFINVEST HOLD→BUY, COFORGE HOLD→BUY, CPPLUS HOLD→BUY, CSLFINANCE HOLD→WATCH, DYNAMATECH BUY→HOLD |
+| trend_signal | 95.6% | 51: AARVI STRONG DOWNTREND→DOWNTREND, ABBOTINDIA NEUTRAL→UPTREND, ABCOTS STRONG DOWNTREND→DOWNTREND, ALLDIGI UPTREND→STRONG UPTREND, AMBIKCO STRONG DOWNTREND→DOWNTREND, ANUHPHR DOWNTREND→UPTREND, ARIHANTCAP UPTREND→STRONG UPTREND, ARTNIRMAN DOWNTREND→NEUTRAL |
+| fx_action | 99.4% | 7: ALLDIGI WATCH→WAIT, ASIANPAINT BUY NOW→BUY ON TRIGGER, BANCOINDIA BUY NOW→WATCH, BOROLTD BUY NOW→WATCH, KFINTECH WATCH→BUY NOW, MRPL WATCH→BUY NOW, TATACONSUM BUY ON TRIGGER→BUY NOW |
+| fx_state | 98.0% | 23: ADVENTHTL BEAR anchor→VETO, APOLLOPIPE WAIT (running)→VETO, ARCHIDPLY NO ANCHOR→BEAR anchor, AWL FADE→VETO, BAJAJHIND VETO→BEAR anchor, BANCOINDIA GO→MIXED anchor, BOROLTD GO→BEAR anchor, CHALET BEAR anchor→VETO |
 
-Technicals BUY NOW: NSE 77 · Yahoo 85 · both 76 · only NSE ['DIXON'] · only Yahoo ['BHARTIHEXA', 'CANBK', 'CENTUM', 'CUPID', 'FILATEX', 'HDFCAMC', 'MRPL', 'ONESOURCE', 'PGIL']
+Technicals BUY NOW: NSE 85 · Yahoo 85 · both 82 · only NSE ['ASIANPAINT', 'BANCOINDIA', 'BOROLTD'] · only Yahoo ['KFINTECH', 'MRPL', 'TATACONSUM']
