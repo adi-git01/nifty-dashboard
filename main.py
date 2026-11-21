@@ -455,6 +455,22 @@ try:
 except Exception as _e:
     print(f"[extended] tracked rows skipped: {_e}", flush=True)
 
+# NSE's daily data (scripts/nse_daily.py): delivery %, surveillance lists, results / ex-dates. Cached per file set.
+@st.cache_data(ttl=3600, show_spinner=False)
+def _nse_cols(key: str, tickers: tuple) -> pd.DataFrame:
+    from utils import nse_data as _nd
+    return _nd.attach(pd.DataFrame({"ticker": list(tickers)})).set_index("ticker")
+
+try:
+    import glob as _glob_nse
+    _nse_key = "|".join(str(os.path.getmtime(_f)) for _f in sorted(_glob_nse.glob("data/nse/*"))[-6:])
+    if _nse_key:
+        _nc = _nse_cols(_nse_key, tuple(df['ticker']))
+        for _c in _nc.columns:
+            df[_c] = df['ticker'].map(_nc[_c])
+except Exception as _e:
+    print(f"[nse] columns skipped: {_e}", flush=True)
+
 # --- Auto-refresh heartbeat (placed here, AFTER the data-load block) ---
 # A Streamlit script only reruns on user interaction, not on a timer, so a
 # tab left open and just watched never refreshes — data could sit hours
@@ -2402,6 +2418,9 @@ elif page == "🌊 Trend Scanner":
                             'momo_entry', 'size_tier', 'watch_flags',
                             'entry_label', 'edge_3m', 'breakout_label', 'ind_score',
                             'dist_ma50', 'volatility', 'dna_signal', 'dist_52w', 'dist_ath', 'dist_200dma']
+            for _nc_col in ('nse_flags', 'deliv_avg20', 'deliv_pct'):        # NSE daily data, when present (inserted in reverse)
+                if _nc_col in filtered_df.columns:
+                    display_cols.insert(display_cols.index('watch_flags') + 1, _nc_col)
             # Add 5-pillar fundamental columns + RS Score for user request
             display_cols.extend(['quality', 'value', 'growth', 'momentum', 'volume_signal_score'])
 
@@ -2435,6 +2454,9 @@ elif page == "🌊 Trend Scanner":
                     "dist_ma50": st.column_config.NumberColumn("% vs MA50", format="%+.1f%%", help="Distance above the 50-day MA. High = extended / already run up."),
                     "volatility": st.column_config.NumberColumn("Volatility", format="%.0f%%", help="Annualized Price Volatility"),
                     "dna_signal": st.column_config.TextColumn("DNA Signal", help="BUY = All DNA-3 filters pass"),
+                    "deliv_pct": st.column_config.NumberColumn("Delivery %", format="%.0f%%", help="Share of the day's traded shares actually delivered (NSE). High = real buying or selling, low = intraday churn"),
+                    "deliv_avg20": st.column_config.NumberColumn("Deliv 20d", format="%.0f%%", help="Average delivery % over the last 20 sessions"),
+                    "nse_flags": st.column_config.TextColumn("NSE", help="Exchange surveillance (ASM / GSM) and the next results date or split / bonus / dividend ex-date"),
                 },
                 height=500,
                 use_container_width=True,
@@ -2900,6 +2922,10 @@ elif page == "📊 Return Tracker":
                             st.write(" | ".join(parts))
                             if alert.get('notes'):
                                 st.caption(f"📝 {alert['notes'][:80]}...")
+                            if 'nse_flags' in df.columns:
+                                _fl = df.loc[df['ticker'] == alert.get('ticker'), 'nse_flags']
+                                if len(_fl) and str(_fl.iloc[0]):
+                                    st.caption(str(_fl.iloc[0]))
                             if alert.get('ticker') not in _priced:
                                 _t_raw = str(alert.get('ticker', ''))
                                 _sug = _sp.suggest(_t_raw, df)

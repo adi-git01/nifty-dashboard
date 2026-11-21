@@ -64,6 +64,54 @@ def _market(df: pd.DataFrame):
     st.plotly_chart(fig, use_container_width=True)
     st.caption("Breadth is the share of the ~1,170 stocks above their own averages. Falling breadth while the index holds "
                "means fewer stocks are carrying the market: be pickier.")
+    _nse_context()
+
+
+def _nse_context():
+    """NSE's daily valuation and flows (scripts/nse_daily.py): Nifty P/E, FII / DII cash, FII index-futures positioning."""
+    try:
+        from utils import nse_data as nd
+        C = nd.market_context()
+    except Exception:
+        return
+    if C is None or C.empty:
+        return
+    C = C.sort_values("date")
+    now = C.iloc[-1]
+    prev = C.iloc[-2] if len(C) > 1 else None
+    g = lambda r, k: float(r[k]) if r is not None and k in r and pd.notna(r[k]) else None
+    st.markdown(f"**Valuation & flows** · NSE, {pd.Timestamp(now['date']):%d %b}")
+    c = st.columns(5)
+    pe, pb = g(now, "nifty_pe"), g(now, "nifty_pb")
+    if pe is not None:
+        c[0].metric("Nifty P/E", f"{pe:.1f}", f"{pe - g(prev, 'nifty_pe'):+.2f}" if g(prev, "nifty_pe") else None, delta_color="off",
+                    help="Trailing P/E of the Nifty 50 from NSE. Its 10-year range is roughly 18-28")
+    if pb is not None:
+        c[1].metric("Nifty P/B", f"{pb:.2f}", f"yield {g(now, 'nifty_dy') or 0:.2f}%", delta_color="off")
+    for col, k, lab in ((c[2], "fii_net", "FII cash"), (c[3], "dii_net", "DII cash")):
+        v = g(now, k)
+        if v is not None:
+            col.metric(lab, f"₹{v:+,.0f} cr", "net bought" if v >= 0 else "net sold", delta_color="normal" if v >= 0 else "inverse")
+    lp = g(now, "fii_idx_long_pct")
+    if lp is not None:
+        c[4].metric("FII index futures", f"{lp:.0f}% long", f"{lp - g(prev, 'fii_idx_long_pct'):+.1f} pp" if g(prev, "fii_idx_long_pct") else None,
+                    help="FIIs' long contracts as a share of their long + short index futures. Readings under ~30% have marked "
+                         "heavy bearish positioning; a rise from there often comes with short covering")
+    mid, small = g(now, "midcap_pe"), g(now, "smallcap_pe")
+    if mid or small:
+        st.caption(" · ".join(x for x in (f"Midcap 150 P/E {mid:.1f}" if mid else "", f"Smallcap 250 P/E {small:.1f}" if small else "") if x))
+    try:
+        D = nd.deals_for(None, days=3)
+    except Exception:
+        D = pd.DataFrame()
+    if len(D):
+        with st.expander(f"🐋 Bulk & block deals, last 3 sessions ({len(D)})"):
+            st.dataframe(D[["date", "symbol", "side", "client", "qty", "price", "value_cr", "kind"]], hide_index=True, use_container_width=True,
+                         column_config={"date": st.column_config.DateColumn("Date", format="DD MMM"), "price": st.column_config.NumberColumn(format="₹%.2f"),
+                                        "qty": st.column_config.NumberColumn("Qty", format="%,d"),
+                                        "value_cr": st.column_config.NumberColumn("Value", format="₹%.1f cr")})
+            st.caption("A large disclosed trade (over 0.5% of a company's shares). Who is buying matters more than that someone bought: "
+                       "promoters and long-only funds mean more than arbitrage desks.")
 
 
 def _industries(B: pd.DataFrame):
@@ -140,6 +188,7 @@ def _positions(df: pd.DataFrame, B: pd.DataFrame):
             flag = "✅ on track"
         rows.append({"Stock": str(p.get("ticker", "")).replace(".NS", ""), "Status": flag, "P&L %": p.get("pnl_pct"), "Price": px,
                      "Stop": sl, "Above stop %": gap, "Target": tg, "Scanner": scan,
+                     "NSE": str(r.get("nse_flags") or "") if r is not None and "nse_flags" in r else "",
                      "Industry": ib.GROUP_ICON.get(grp.get(SUB_INDUSTRY_MAP.get(t, ""), ""), "—")})
     V = pd.DataFrame(rows)
     need = V[~V.Status.str.startswith("✅")]

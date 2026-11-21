@@ -111,6 +111,16 @@ jobs:
         echo "Trading Engine failed after 2 attempts — continuing to later steps with continue-on-error."
         exit 1
 
+    - name: "NSE data: delivery %, corporate actions, surveillance, results dates, deals, market context"
+      # NSE's free daily files (utils/nse_data.py). Before the signal logger, so corporate actions reach
+      # corp_actions.build() and the NSE section joins the evening brief. Never fails the run.
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_BRANCH: ${{ github.ref_name }}
+      run: |
+        python scripts/nse_daily.py
+
     - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
       continue-on-error: true  # Screener failure must not block portfolio engine or commit
       run: |
@@ -199,7 +209,7 @@ jobs:
       run: >
         bash scripts/commit_and_push.sh
         "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
-        'data/*.csv' 'data/*.json' 'data/cache/*.parquet' positions.json
+        'data/*.csv' 'data/*.json' 'data/cache/*.parquet' 'data/nse/*' positions.json
 
 
     - name: Data health check (fails the run if today's snapshot is missing)

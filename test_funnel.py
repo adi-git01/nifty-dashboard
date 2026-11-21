@@ -1135,3 +1135,22 @@ def test_stock_picker_and_alert_tracking():
     assert sp.matches("federal", "FEDERALBNK.NS", "The Federal Bank") and not sp.matches("sbi", "FEDERALBNK.NS", "The Federal Bank")
     tr = ex.tracked(set(df.ticker), [dict(ticker="500325.BO", status="watching"), dict(ticker="MAGNA ELECTRO", status="watching")])
     assert "500325.BO" in tr and not any("MAGNA" in t for t in tr)
+
+
+def test_nse_corporate_actions_and_flags():
+    """NSE purpose text -> price factor; official factors override detected ones; surveillance / events flags."""
+    import numpy as np
+    import pandas as pd
+    from utils.nse_data import action_factor
+    from utils.corp_actions import reconcile
+    assert action_factor("Face Value Split (Sub-Division) - From Rs 10/- Per Share To Rs 2/- Per Share") == ("split", 0.2)
+    assert action_factor("Bonus 1:1") == ("bonus", 0.5) and action_factor("Bonus 3:2")[1] == 0.4
+    assert action_factor("Consolidation Of Shares From Rs 1/- Per Share To Rs 10/- Per Share") == ("consolidation", 10.0)
+    k, f = action_factor("Interim Dividend - Rs 5 Per Share")
+    assert k == "dividend" and np.isnan(f)
+    tab = pd.DataFrame(dict(ticker=["A.NS", "B.NS"], date=["2026-03-13", "2026-04-02"], factor=[0.48, 1.4], prev_snapshot=["x", "x"]))
+    off = pd.DataFrame(dict(ticker=["A.NS", "D.NS", "E.NS"], date=pd.to_datetime(["2026-03-12", "2026-06-01", "2027-01-01"]),
+                            factor=[0.5, 0.2, 0.5]))
+    out = reconcile(tab, pd.Timestamp("2026-02-24"), pd.Timestamp("2026-11-20"), off).set_index("ticker")
+    assert out.at["A.NS", "factor"] == 0.5 and out.at["A.NS", "source"] == "nse"
+    assert out.at["B.NS", "source"] == "detected" and "D.NS" in out.index and "E.NS" not in out.index
