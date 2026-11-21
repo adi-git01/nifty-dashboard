@@ -41,7 +41,7 @@ jobs:
         run: python scripts/nse_backfill.py --years "${{ inputs.years }}" 2>&1 | tee nse_prices_output.txt
       - name: Commit the store (before the long comparison)
         if: inputs.mode != 'compare'
-        run: bash scripts/commit_and_push.sh "NSE price store back-fill" 'data/nse/prices' 'data/nse/indices' data/nse/symbol_changes.csv data/nse/holidays.csv nse_prices_output.txt
+        run: bash scripts/commit_and_push.sh "NSE price store back-fill" 'data/nse/prices' 'data/nse/indices' data/nse/symbol_changes.csv data/nse/holidays.csv data/nse/corp_actions.csv nse_prices_output.txt
       - name: NSE vs Yahoo
         if: inputs.mode != 'backfill'
         run: python scripts/nse_vs_yahoo.py 2>&1 | tee -a nse_prices_output.txt
