@@ -1276,3 +1276,62 @@ def test_nse_rights_issue_theoretical_price():
                       "low": [2.4, 2.3], "close": [2.48, 2.36], "prev_close": [2.45, 2.48], "volume": 1.0})
     f = npx.factors(g, [(pd.Timestamp("2026-07-02"), float("nan"), "rights", (3.0, 2.0, 1.63))])
     assert abs(f[1] - (2 * 2.48 + 3 * 1.63) / 5 / 2.48) < 1e-9
+
+
+def test_fundamentals_quote_breakers(monkeypatch):
+    """NSE down: quoting stops after 15 failures in a row. Flaky NSE (every other call fails): the time budget stops it."""
+    import time as _t
+    import utils.nse_data as nd
+    import utils.fundamentals_build as fb
+    from utils.nifty1000_list import TICKERS_1000
+    tickers = list(TICKERS_1000)[:40]
+    monkeypatch.setattr(nd, "Session", lambda: object())
+    calls = {"n": 0}
+
+    def dead(S, sym):
+        calls["n"] += 1
+        raise RuntimeError("quote-equity: HTTP 403")
+    monkeypatch.setattr(fb, "nse_quote", dead)
+    logs = []
+    df = fb.build(tickers, log=logs.append, sleep=0)
+    assert calls["n"] == 15 and len(df) == len(tickers) and any("stopped at 15/" in m for m in logs)
+
+    calls["n"] = 0
+    clock = {"t": 0.0}
+    monkeypatch.setattr(fb.time, "time", lambda: clock["t"])
+
+    def flaky(S, sym):
+        calls["n"] += 1
+        clock["t"] += 100                      # each call "takes" 100 s
+        if calls["n"] % 2:
+            raise RuntimeError("timeout")
+        return {}
+    monkeypatch.setattr(fb, "nse_quote", flaky)
+    logs.clear()
+    fb.build(tickers, log=logs.append, sleep=0, quote_budget_s=1000)
+    assert calls["n"] == 11 and any("stopped at 11/" in m for m in logs)
+
+
+def test_yahoo_fill_core_gaps_first_and_budget(monkeypatch):
+    import sys
+    import types
+    import pandas as pd
+    import utils.fundamentals_build as fb
+    asked = []
+    fake = types.SimpleNamespace(Ticker=lambda t: (asked.append(t), types.SimpleNamespace(info={"grossMargins": 0.3}))[1])
+    monkeypatch.setitem(sys.modules, "yfinance", fake)
+    df = pd.DataFrame({"ticker": [f"T{i}.NS" for i in range(6)], "fund_source": "nse"})
+    for c in fb.YAHOO_FIELDS:
+        df[c] = 1.0
+    df["grossMargins"] = float("nan")
+    df.loc[4, "roe"] = float("nan")                       # the one real gap
+    out = fb.yahoo_fill(df, sleep=0, log=lambda m: None)
+    assert asked[0] == "T4.NS" and len(asked) == 6 and out["grossMargins"].eq(0.3).all()
+    asked.clear()
+    clock = {"t": 0.0}
+    monkeypatch.setattr(fb.time, "time", lambda: clock["t"])
+    slow = types.SimpleNamespace(Ticker=lambda t: (asked.append(t), clock.__setitem__("t", clock["t"] + 60),
+                                                   types.SimpleNamespace(info={}))[2])
+    monkeypatch.setitem(sys.modules, "yfinance", slow)
+    fb.yahoo_fill(df, sleep=0, log=lambda m: None, budget_s=100)
+    assert asked[0] == "T4.NS" and len(asked) == 2      # 60 s per call, 100 s budget: the real gap, then one more

@@ -58,7 +58,7 @@ class Session:
                     return r
                 last = f"HTTP {r.status_code}"
                 if r.status_code in (401, 403) and url.startswith(WWW):
-                    self.s.get(WWW, headers=HDR, timeout=20)     # cookie expired: refresh once
+                    self.s.get(WWW, headers=HDR, timeout=min(timeout, 20))     # cookie expired: refresh once
             except Exception as e:
                 last = type(e).__name__
             if k + 1 < tries:

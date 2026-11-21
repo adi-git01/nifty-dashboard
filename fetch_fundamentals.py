@@ -232,9 +232,9 @@ def fetch_one(ticker: str) -> dict | None:
 
 def main_nse():
     """
-    Default since Nov 2026: no Yahoo. P/E and shares from NSE's quote API, ratios from the Screener files,
-    close and beta from the NSE price store (utils/fundamentals_build.py). grossMargins / forwardPE have no free
-    source: the previous values are carried forward. A comparison with the previous cache goes to
+    Default since Nov 2026. P/E and shares from NSE's quote API, ratios from the Screener files, close and beta from
+    the NSE price store (utils/fundamentals_build.py). Yahoo only fills gaps (grossMargins / forwardPE have no free
+    source), within a time budget; what it does not reach carries the previous values forward. A comparison with the previous cache goes to
     analysis/FUNDAMENTALS_NSE_VS_YAHOO.md.
     """
     from utils.fundamentals_build import CARRY, build, compare, yahoo_fill

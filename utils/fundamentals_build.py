@@ -43,6 +43,15 @@ def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max
         return df
     out = df.copy()
     need = out[out[fields].isna().any(axis=1)]
+    # stocks missing a core field first; then the ones missing only grossMargins / forwardPE, starting at a different
+    # point each run, so a budget cut-off does not leave the same tail of the list stale every time
+    core = [c for c in fields if c not in CARRY]
+    gap = need[core].isna().any(axis=1) if core else pd.Series(False, index=need.index)
+    rest = need[~gap]
+    if len(rest):
+        k = pd.Timestamp.today().dayofyear * 97 % len(rest)
+        rest = pd.concat([rest.iloc[k:], rest.iloc[:k]])
+    need = pd.concat([need[gap], rest])
     calls = filled = 0
     t0 = time.time()
     for i, r in need.iterrows():
@@ -154,7 +163,7 @@ def beta_1y(px: pd.Series, bench: pd.Series) -> float:
     return float(j.cov().iloc[0, 1] / j.iloc[:, 1].var())
 
 
-def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3) -> pd.DataFrame:
+def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3, quote_budget_s: float = 1800) -> pd.DataFrame:
     from utils import nse_prices as npx
     try:
         from utils.nifty1000_list import SUB_INDUSTRY_MAP
@@ -180,8 +189,12 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             log(f"[fund] NSE session failed ({e}); P/E and shares from Screener")
     rows, nq, fails, t0 = [], 0, 0, time.time()
     for i, t in enumerate(tickers):
-        if S is not None and fails >= 15:     # NSE stopped answering: Screener's P/E and share count for the rest
-            log(f"[fund] NSE quote: {fails} failures in a row at {i}/{len(tickers)}; Screener for the rest")
+        # NSE stopped answering (15 failures in a row) or is too slow overall (a flaky NSE that fails every other call
+        # never trips the first test and would run the job into its 90-minute limit, losing everything): Screener's
+        # P/E and share count for the rest
+        if S is not None and (fails >= 15 or time.time() - t0 > quote_budget_s):
+            log(f"[fund] NSE quote stopped at {i}/{len(tickers)} ({fails} failures in a row, {time.time() - t0:.0f}s); "
+                "Screener for the rest")
             S = None
         if i and i % 100 == 0:
             log(f"[fund] {i}/{len(tickers)} · NSE quotes {nq} · {time.time() - t0:.0f}s")
