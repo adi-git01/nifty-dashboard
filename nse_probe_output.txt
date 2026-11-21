@@ -1,0 +1,67 @@
+[nse] session Fri 20 Nov 2026
+# What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
+
+Run at 21 Nov 2026 15:55 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+
+## Daily archive files (no login)
+
+| Source | Status | Rows | Columns | Use |
+|---|---|---|---|---|
+| CM bhavcopy (UDiFF) | ✅ | 3,742 | TradDt, BizDt, Sgmt, Src, FinInstrmTp, FinInstrmId, ISIN, TckrSymb, SctySrs, XpryDt, FininstrmActlXpryDt, StrkPric, OptnTp, FinInstrmNm … | official OHLC, volume, turnover, trades for every security |
+| Security-wise delivery (sec_bhavdata_full) | ✅ | 3,583 | SYMBOL, SERIES, DATE1, PREV_CLOSE, OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE, CLOSE_PRICE, AVG_PRICE, TTL_TRD_QNTY, TURNOVER_LACS, NO_OF_TRADES, DELIV_QTY … | OHLC + DELIVERY quantity and %: real buying vs intraday churn |
+| MTO delivery file | ⚠️ got 131,561 bytes, unreadable (ParserError) | | | delivery position (older format) |
+| 52-week high/low | ⚠️ got 325,335 bytes, unreadable (ParserError) | | | official 52W high/low per stock |
+| Index closes (all indices) | ✅ | 169 | Index Name, Index Date, Open Index Value, High Index Value, Low Index Value, Closing Index Value, Points Change, Change(%), Volume, Turnover (Rs. Cr.), P/E, P/B, Div Yield | close, P/E, P/B, dividend yield of every NSE index (sector indices too) |
+| Bulk deals (today) | ✅ | 108 | Date, Symbol, Security Name, Client Name, Buy/Sell, Quantity Traded, Trade Price / Wght. Avg. Price, Remarks | large disclosed deals: who bought/sold |
+| Block deals (today) | ✅ | 5 | Date, Symbol, Security Name, Client Name, Buy/Sell, Quantity Traded, Trade Price / Wght. Avg. Price | block-window deals |
+| Short selling | ✅ | 84 | Security Name, Symbol Name, Trade Date, Quantity | shares sold short per stock |
+| Price band changes | ✅ | 7 | Sr. No, Symbol, Series, Security Name, From, To | circuit band changes |
+| Daily volatility (CMVOLT) | ✅ | 5,002 | Date, Symbol, Underlying Close Price (A), Underlying Previous Day Close Price (B), Underlying Log Returns (C) = LN(A/B), Previous Day Underlying Volatility (D), Current Day Underlying Daily Volatility (E) = Sqrt(0.995*D*D + 0.005*C*C), Underlying Annualised Volatility (F) = E*Sqrt(365) | daily and annualised volatility |
+| F&O ban list | ❌ HTTP 404 | | | stocks in the F&O ban period |
+| F&O participant OI | ✅ | 6 | Participant wise Open Interest (no. of contracts) in Equity Derivatives as on Nov 20, 2026"", Unnamed: 2, Unnamed: 3, Unnamed: 4, Unnamed: 5, Unnamed: 6, Unnamed: 7, Unnamed: 8, Unnamed: 9, Unnamed: 10, Unnamed: 11, Unnamed: 12, Unnamed: 13 … | FII / DII / Pro / Client positions in index & stock futures/options |
+| F&O bhavcopy (UDiFF) | ✅ | 45,082 | TradDt, BizDt, Sgmt, Src, FinInstrmTp, FinInstrmId, ISIN, TckrSymb, SctySrs, XpryDt, FininstrmActlXpryDt, StrkPric, OptnTp, FinInstrmNm … | futures/options OHLC and open interest |
+
+## JSON endpoints behind nseindia.com (session cookie, no account)
+
+| Source | Status | Records | Fields | Use |
+|---|---|---|---|---|
+| FII / DII cash activity | ✅ | 2 | buyValue, category, date, netValue, sellValue | net buying by FIIs and DIIs in the cash market |
+| Corporate actions (upcoming) | ✅ | 7 | bcEndDate, bcStartDate, caBroadcastDate, comp, exDate, faceVal, ind, isin, ndEndDate, ndStartDate, recDate, series | splits, bonuses, dividends with ex-dates |
+| Board meetings / results calendar | ✅ | 20 | bm_symbol, bm_date, bm_purpose, bm_desc, sm_indusrty, bm_timestamp, sm_name, sm_isin, diff, sysTime, attFileSize, attachment | results dates ahead |
+| Event calendar | ✅ | 19 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
+| Insider trading (PIT) | ✅ | 0 |  | promoter / insider buys and sells |
+| Pledged shares | ✅ | 1,555 |  | promoter pledge levels |
+| ASM list (surveillance) | ✅ | 1 | longterm, shortterm | stocks under additional surveillance |
+| GSM list (surveillance) | ✅ | 76 | companyName, gsmStage, gsmTime, isin, survCode, survDesc, symbol, srno | graded surveillance |
+| Announcements | ✅ | 20 | an_dt, attFilePath, attFileSize, attchmntFile, attchmntText, bflag, csvName, desc, difference, dt, exchdisstime, fileSize | filings: orders, results, management changes |
+| Market status | ✅ | 6 | market, marketStatus, tradeDate, index, last, variation, percentChange, marketStatusMessage | is the market open, last session |
+| Nifty 50 constituents live | ❌ HTTP 404 | | | live prices of an index's stocks |
+
+## Saved: `data/nse/eod_20261120.csv.gz` -- 3,461 stocks (EQ/BE/BZ/SME series)
+
+Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
+
+## Yahoo snapshot vs NSE official close (20 Nov)
+
+- 1,141 of 1,168 snapshot stocks matched; median gap 0.000%
+- within 0.1%: 100% · off by more than 0.5%: 0 · not in NSE's EQ list: 27
+
+## Samples
+
+**CM bhavcopy (UDiFF)**
+
+```
+       TradDt       BizDt Sgmt  Src FinInstrmTp  FinInstrmId          ISIN  ... SsnId NewBrdLotQty  Rmks  Rsvd1  Rsvd2  Rsvd3 Rsvd4
+0  2026-11-20  2026-11-20   CM  NSE         STK        19078  IN0020200104  ...    F1            1   NaN    NaN    NaN    NaN   NaN
+1  2026-11-20  2026-11-20   CM  NSE         STK         1342  IN0020200286  ...    F1            1   NaN    NaN    NaN    NaN   NaN
+2  2026-11-20  2026-11-20   CM  NSE         STK         3742  IN0020210053  ...    F1            1   NaN    NaN    NaN    NaN   NaN
+```
+
+**Security-wise delivery (sec_bhavdata_full)**
+
+```
+       SYMBOL SERIES         DATE1  PREV_CLOSE  OPEN_PRICE  HIGH_PRICE  LOW_PRICE  ...  CLOSE_PRICE  AVG_PRICE  TTL_TRD_QNTY  TURNOVER_LACS  NO_OF_TRADES  DELIV_QTY DELIV_PER
+0   20MICRONS     EQ   20-Nov-2026      180.30       180.0      181.77     177.72  ...       179.49     179.55         34452          61.86          1470      17830     51.75
+1  21STCENMGM     BE   20-Nov-2026       48.51        47.0       47.00      46.09  ...        46.09      46.20          6249           2.89            62          -         -
+2      360ONE     EQ   20-Nov-2026     1197.90      1194.0     1224.60    1191.55  ...      1208.10    1212.82       1133648       13749.16         32363     545332     48.10
+```
