@@ -185,8 +185,11 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
         try:
             from utils.nse_data import Session
             S = Session()
+            S.warm_quote()
+            nse_quote(S, "RELIANCE")                  # one test call: a refused endpoint costs one call, not fifteen
         except Exception as e:
-            log(f"[fund] NSE session failed ({e}); P/E and shares from Screener")
+            log(f"[fund] NSE quote unavailable ({e}); P/E and shares from Screener")
+            S = None
     rows, nq, fails, t0 = [], 0, 0, time.time()
     for i, t in enumerate(tickers):
         # NSE stopped answering (15 failures in a row) or is too slow overall (a flaky NSE that fails every other call
@@ -205,8 +208,10 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             try:
                 q = nse_quote(S, t[:-3])
                 nq, fails = nq + 1, 0
-            except Exception:
+            except Exception as e:
                 q, fails = {}, fails + 1
+                if fails in (1, 15):                  # say why, once at the start and once at the cut-off
+                    log(f"[fund] NSE quote {t[:-3]} failed: {e}")
             if sleep:
                 time.sleep(sleep)
         shares = q.get("shares")

@@ -65,6 +65,14 @@ class Session:
                 time.sleep(2 * (k + 1))
         raise RuntimeError(f"{url.split('?')[0].rsplit('/', 1)[-1]}: {last}")
 
+    def warm_quote(self, symbol: str = "RELIANCE") -> None:
+        """quote-equity sits behind stricter bot protection than the other JSON endpoints (HTTP 403 from a bare session):
+        opening the stock's quote page first collects the cookies it asks for."""
+        try:
+            self.s.get(f"{WWW}/get-quotes/equity?symbol={symbol}", headers=HDR, timeout=20)
+        except Exception:
+            pass
+
     def json(self, path: str, tries: int = 3, timeout: float = 30):
         return self.get(WWW + path, tries=tries, timeout=timeout).json()
 
