@@ -14,6 +14,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -236,16 +237,18 @@ def main_nse():
     source: the previous values are carried forward. A comparison with the previous cache goes to
     analysis/FUNDAMENTALS_NSE_VS_YAHOO.md.
     """
-    from utils.fundamentals_build import CARRY, build, compare
+    from utils.fundamentals_build import CARRY, build, compare, yahoo_fill
     os.makedirs("data", exist_ok=True)
     tickers = list(TICKERS_1000)
     df = build(tickers)
     old = pd.read_csv(OUTPUT_PATH) if os.path.exists(OUTPUT_PATH) else pd.DataFrame()
+    if "--no-yahoo" not in sys.argv:
+        df = yahoo_fill(df)                                 # only the gaps: grossMargins, forwardPE, and any NaN field
     if len(old):
         prev = old.set_index("ticker")
-        for c in CARRY:                                     # no free source: keep the last known value
+        for c in CARRY:                                     # Yahoo also had nothing: keep the last known value
             if c in prev:
-                df[c] = df["ticker"].map(prev[c])
+                df[c] = df[c].fillna(df["ticker"].map(prev[c]))
         try:
             os.makedirs("analysis", exist_ok=True)
             with open("analysis/FUNDAMENTALS_NSE_VS_YAHOO.md", "w") as f:

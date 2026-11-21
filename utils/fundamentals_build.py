@@ -20,7 +20,53 @@ import numpy as np
 import pandas as pd
 
 ANNUAL, QUARTERLY = "data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz"
-CARRY = ["grossMargins", "forwardPE"]
+CARRY = ["grossMargins", "forwardPE"]                 # no NSE / broker source: Yahoo fills them (yahoo_fill)
+# Yahoo .info field for each cache column, used only where NSE and Screener left a gap
+YAHOO_FIELDS = {"grossMargins": "grossMargins", "forwardPE": "forwardPE", "pe": "trailingPE", "pb": "priceToBook",
+                "roe": "returnOnEquity", "roa": "returnOnAssets", "profitMargins": "profitMargins",
+                "operatingMargins": "operatingMargins", "ebitdaMargins": "ebitdaMargins", "revenueGrowth": "revenueGrowth",
+                "earningsGrowth": "earningsGrowth", "earningsQuarterlyGrowth": "earningsQuarterlyGrowth",
+                "debtToEquity": "debtToEquity", "marketCap": "marketCap", "beta": "beta"}
+
+
+def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max_calls: int = 2000) -> pd.DataFrame:
+    """
+    The last resort: Yahoo's .info, only for cells NSE and Screener could not fill (always grossMargins and forwardPE,
+    for which no free NSE / broker source exists). A stock whose gaps Yahoo also cannot fill keeps NaN; the caller
+    then carries the previous cache's value. Marks fund_source with '+yahoo' where Yahoo supplied something.
+    """
+    fields = fields or list(YAHOO_FIELDS)
+    try:
+        import yfinance as yf
+    except Exception:
+        return df
+    out = df.copy()
+    need = out[out[fields].isna().any(axis=1)]
+    calls = filled = 0
+    for i, r in need.iterrows():
+        if calls >= max_calls:
+            break
+        try:
+            info = yf.Ticker(r["ticker"]).info or {}
+        except Exception:
+            info = {}
+        calls += 1
+        got = False
+        for c in fields:
+            if pd.isna(out.at[i, c]):
+                v = pd.to_numeric(info.get(YAHOO_FIELDS[c]), errors="coerce")
+                if v == v and v not in (float("inf"), float("-inf")):
+                    out.at[i, c] = float(v)
+                    got = True
+        if got:
+            filled += 1
+            out.at[i, "fund_source"] = f"{out.at[i, 'fund_source'] or 'screener'}+yahoo"
+        if sleep:
+            time.sleep(sleep)
+        if calls % 100 == 0:
+            log(f"[fund] Yahoo fallback: {calls}/{len(need)} asked, {filled} filled")
+    log(f"[fund] Yahoo fallback: {calls} stocks asked for {', '.join(fields[:4])}…; {filled} got at least one value")
+    return out
 COLS = ["ticker", "name", "sector", "sector_granular", "pe", "forwardPE", "pegRatio", "pb", "roe", "roa", "profitMargins",
         "grossMargins", "operatingMargins", "ebitdaMargins", "revenueGrowth", "earningsGrowth", "earningsQuarterlyGrowth",
         "debtToEquity", "marketCap", "beta", "earningsQuality", "earningsTrend", "fund_last_updated", "fund_source"]

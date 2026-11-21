@@ -1197,3 +1197,21 @@ def test_fundamentals_without_yahoo_units():
     assert abs(r["roe"] - 100 / 475) < 1e-9 and abs(r["debtToEquity"] - 30.0) < 1e-9 and abs(r["pb"] - 4.0) < 1e-9
     assert abs(r["profitMargins"] - 108 / 1080) < 1e-9 and abs(r["revenueGrowth"] - 0.25) < 1e-9
     assert abs(r["operatingMargins"] - (182 / 1080 - 0.03)) < 1e-9 and abs(r["earningsQuality"] - 1.2) < 1e-9
+
+
+def test_yahoo_only_fills_gaps(monkeypatch):
+    """Yahoo is the last resort: it fills NaN cells only, never overwrites NSE / Screener values."""
+    import numpy as np
+    import pandas as pd
+    import yfinance as yf
+    from utils.fundamentals_build import yahoo_fill
+
+    class T:
+        def __init__(self, t):
+            self.info = {"grossMargins": 0.41, "forwardPE": 18.5, "trailingPE": 99.0} if t == "A.NS" else {}
+    monkeypatch.setattr(yf, "Ticker", T)
+    df = pd.DataFrame(dict(ticker=["A.NS", "B.NS"], pe=[20.0, np.nan], grossMargins=[np.nan] * 2, forwardPE=[np.nan] * 2,
+                           fund_source=["nse+screener", "screener"]))
+    out = yahoo_fill(df, fields=["pe", "grossMargins", "forwardPE"], sleep=0, log=lambda *a: None)
+    assert out.loc[0, "pe"] == 20.0 and out.loc[0, "grossMargins"] == 0.41 and out.loc[0, "fund_source"] == "nse+screener+yahoo"
+    assert np.isnan(out.loc[1, "pe"]) and out.loc[1, "fund_source"] == "screener"

@@ -67,6 +67,10 @@ API = [
     ("GSM list (surveillance)", "/api/reportGSM", "graded surveillance"),
     ("Announcements", "/api/corporate-announcements?index=equities", "filings: orders, results, management changes"),
     ("Market status", "/api/marketStatus", "is the market open, last session"),
+    ("Quote: RELIANCE", "/api/quote-equity?symbol=RELIANCE", "P/E, sector P/E, shares issued, industry classification"),
+    ("Results comparison: RELIANCE", "/api/results-comparision?symbol=RELIANCE", "last quarters' P&L lines: revenue, costs, profit, EPS"),
+    ("Financial results list", "/api/corporates-financial-results?index=equities&period=Quarterly", "latest quarterly results filed"),
+    ("Shareholding: RELIANCE", "/api/corporate-share-holdings-master?index=equities&symbol=RELIANCE", "promoter / public holding by quarter"),
     ("Nifty 50 constituents live", "/api/equity-stockIndices?index=NIFTY%2050", "live prices of an index's stocks"),
 ]
 
