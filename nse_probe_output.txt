@@ -1,7 +1,7 @@
 [nse] session Fri 20 Nov 2026
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 21:52 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -28,13 +28,17 @@ Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refuse
 | FII / DII cash activity | ✅ | 2 | buyValue, category, date, netValue, sellValue | net buying by FIIs and DIIs in the cash market |
 | Corporate actions (upcoming) | ✅ | 7 | bcEndDate, bcStartDate, caBroadcastDate, comp, exDate, faceVal, ind, isin, ndEndDate, ndStartDate, recDate, series | splits, bonuses, dividends with ex-dates |
 | Board meetings / results calendar | ✅ | 20 | bm_symbol, bm_date, bm_purpose, bm_desc, sm_indusrty, bm_timestamp, sm_name, sm_isin, diff, sysTime, attFileSize, attachment | results dates ahead |
-| Event calendar | ✅ | 19 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
+| Event calendar | ✅ | 21 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
 | Insider trading (PIT) | ✅ | 0 |  | promoter / insider buys and sells |
 | Pledged shares | ✅ | 0 |  | promoter pledge levels |
 | ASM list (surveillance) | ✅ | 1 | longterm, shortterm | stocks under additional surveillance |
 | GSM list (surveillance) | ✅ | 76 | companyName, gsmStage, gsmTime, isin, survCode, survDesc, symbol, srno | graded surveillance |
 | Announcements | ✅ | 20 | an_dt, attFilePath, attFileSize, attchmntFile, attchmntText, bflag, csvName, desc, difference, dt, exchdisstime, fileSize | filings: orders, results, management changes |
 | Market status | ✅ | 6 | market, marketStatus, tradeDate, index, last, variation, percentChange, marketStatusMessage | is the market open, last session |
+| Quote: RELIANCE | ❌ HTTP 403 | | | P/E, sector P/E, shares issued, industry classification |
+| Results comparison: RELIANCE | ✅ | 5 | re_amt_grs_np_asst, re_bal_rbi_oth_bnk_funds, re_basic_eps, re_basic_eps_for_cont_dic_opr, re_bsc_eps_bfr_exi, re_cap_ade_rat, re_cet_1_ret, re_con_pro_loss, re_create_dt, re_curr_tax, re_debt_eqt_rat, re_debt_rdmption | last quarters' P&L lines: revenue, costs, profit, EPS |
+| Financial results list | ✅ | 3,816 | audited, bank, broadCastDate, companyName, consolidated, cumulative, difference, exchdisstime, filingDate, financialYear, format, fromDate | latest quarterly results filed |
+| Shareholding: RELIANCE | ✅ | 23 | broadcastDate, cgTimeStamp, countString, date, desc, employeeTrusts, format, index, industry, isin, name, newColumn | promoter / public holding by quarter |
 | Nifty 50 constituents live | ❌ HTTP 404 | | | live prices of an index's stocks |
 
 ## Saved: `data/nse/eod_20261120.csv.gz` -- 3,461 stocks (EQ/BE/BZ/SME series)
@@ -58,21 +62,16 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 ```
 
 **Security-wise delivery (sec_bhavdata_full)**
-
-```
-       SYMBOL SERIES         DATE1  PREV_CLOSE  OPEN_PRICE  HIGH_PRICE  LOW_PRICE  ...  CLOSE_PRICE  AVG_PRICE  TTL_TRD_QNTY  TURNOVER_LACS  NO_OF_TRADES  DELIV_QTY DELIV_PER
-0   20MICRONS     EQ   20-Nov-2026      180.30       180.0      181.77     177.72  ...       179.49     179.55         34452          61.86          1470      17830     51.75
-1  21STCENMGM     BE   20-Nov-2026       48.51        47.0       47.00      46.09  ...        46.09      46.20          6249           2.89            62          -         -
-2      360ONE     EQ   20-Nov-2026     1197.90      1194.0     1224.60    1191.55  ...      1208.10    1212.82       1133648       13749.16         32363     545332     48.10
-```
-[nse] delivery 20 Nov: 3,461 stocks -> data/nse/eod_20261120.csv.gz
+/home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:195: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  d["date"] = pd.to_datetime(d["date"].astype(str).str.strip(), errors="coerce", dayfirst=True)
+[nse] prices: {'sessions': 0, 'holidays': 0, 'index_days': 0} · store holds sessions to 20 Nov 2026 · current: True
 [nse] corporate actions: 246 rows
 [nse] surveillance: 253 rows
-[nse] events: 24 rows
+[nse] events: 25 rows
 [nse] deals: 113 rows
 [nse] market context: {'date': '2026-11-20', 'nifty_close': np.float64(25800.6), 'nifty_pe': np.float64(21.02), 'nifty_pb': np.float64(3.17), 'nifty_dy': np.float64(1.32), 'midcap_pe': np.float64(28.21), 'smallcap_pe': np.float64(32.14), 'dii_net': np.float64(-4859.8), 'dii_date': '20-Nov-2026', 'fii_net': np.float64(10308.42), 'fii_date': '20-Nov-2026', 'fii_idx_long': np.int64(75864), 'fii_idx_short': np.int64(146318), 'fii_idx_long_pct': np.float64(34.144980241423696)}
 <b>📊 NSE</b>
 Nifty P/E 21.0 · P/B 3.17 · yield 1.32%
 Cash: DII -4,860 cr · FII +10,308 cr
 FII index futures 34% long
-[nse] done: delivery, corporate actions, surveillance, events, deals, context
+[nse] done: prices, corporate actions, surveillance, events, deals, context

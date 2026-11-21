@@ -1,6 +1,6 @@
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 21:52 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -27,13 +27,17 @@ Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refuse
 | FII / DII cash activity | ✅ | 2 | buyValue, category, date, netValue, sellValue | net buying by FIIs and DIIs in the cash market |
 | Corporate actions (upcoming) | ✅ | 7 | bcEndDate, bcStartDate, caBroadcastDate, comp, exDate, faceVal, ind, isin, ndEndDate, ndStartDate, recDate, series | splits, bonuses, dividends with ex-dates |
 | Board meetings / results calendar | ✅ | 20 | bm_symbol, bm_date, bm_purpose, bm_desc, sm_indusrty, bm_timestamp, sm_name, sm_isin, diff, sysTime, attFileSize, attachment | results dates ahead |
-| Event calendar | ✅ | 19 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
+| Event calendar | ✅ | 21 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
 | Insider trading (PIT) | ✅ | 0 |  | promoter / insider buys and sells |
 | Pledged shares | ✅ | 0 |  | promoter pledge levels |
 | ASM list (surveillance) | ✅ | 1 | longterm, shortterm | stocks under additional surveillance |
 | GSM list (surveillance) | ✅ | 76 | companyName, gsmStage, gsmTime, isin, survCode, survDesc, symbol, srno | graded surveillance |
 | Announcements | ✅ | 20 | an_dt, attFilePath, attFileSize, attchmntFile, attchmntText, bflag, csvName, desc, difference, dt, exchdisstime, fileSize | filings: orders, results, management changes |
 | Market status | ✅ | 6 | market, marketStatus, tradeDate, index, last, variation, percentChange, marketStatusMessage | is the market open, last session |
+| Quote: RELIANCE | ❌ HTTP 403 | | | P/E, sector P/E, shares issued, industry classification |
+| Results comparison: RELIANCE | ✅ | 5 | re_amt_grs_np_asst, re_bal_rbi_oth_bnk_funds, re_basic_eps, re_basic_eps_for_cont_dic_opr, re_bsc_eps_bfr_exi, re_cap_ade_rat, re_cet_1_ret, re_con_pro_loss, re_create_dt, re_curr_tax, re_debt_eqt_rat, re_debt_rdmption | last quarters' P&L lines: revenue, costs, profit, EPS |
+| Financial results list | ✅ | 3,816 | audited, bank, broadCastDate, companyName, consolidated, cumulative, difference, exchdisstime, filingDate, financialYear, format, fromDate | latest quarterly results filed |
+| Shareholding: RELIANCE | ✅ | 23 | broadcastDate, cgTimeStamp, countString, date, desc, employeeTrusts, format, index, industry, isin, name, newColumn | promoter / public holding by quarter |
 | Nifty 50 constituents live | ❌ HTTP 404 | | | live prices of an index's stocks |
 
 ## Saved: `data/nse/eod_20261120.csv.gz` -- 3,461 stocks (EQ/BE/BZ/SME series)
@@ -157,10 +161,10 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 **Board meetings / results calendar**
 
 ```
-  bm_symbol      bm_date               bm_purpose                  bm_desc sm_indusrty          bm_timestamp                  sm_name  ...               attachment intimationType                    ixbrl ixbrlFileSize meetingType oriiginalMeetingDate proposedMeetingDate
-0  RAJRATAN  25-Nov-2026  Board Meeting Intima...  RAJRATAN GLOBAL WIRE...           -  21-Nov-2026 17:02:57  Rajratan Global Wire...  ...  https://nsearchives....           None  https://nsearchives....       2.78 KB        None                 None                None
-1   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:11:21  Team India Guaranty ...  ...  https://nsearchives....           None                     None          None        None                 None                None
-2   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:10:45  Team India Guaranty ...  ...  https://nsearchives....           None                     None          None        None                 None                None
+   bm_symbol      bm_date               bm_purpose                  bm_desc sm_indusrty          bm_timestamp                  sm_name  ...               attachment intimationType                    ixbrl ixbrlFileSize meetingType oriiginalMeetingDate proposedMeetingDate
+0  DAVANGERE  26-Nov-2026  Board Meeting Intima...  Davangere Sugar Comp...           -  21-Nov-2026 18:29:19  Davangere Sugar Comp...  ...  https://nsearchives....           None  https://nsearchives....       3.12 KB        None                 None                None
+1  DAVANGERE  26-Nov-2026   Other business matters  To consider and disc...           -  21-Nov-2026 18:22:55  Davangere Sugar Comp...  ...  https://nsearchives....           None                     None          None        None                 None                None
+2   RAJRATAN  25-Nov-2026   Other business matters  To consider other bu...           -  21-Nov-2026 17:17:03  Rajratan Global Wire...  ...  https://nsearchives....           None                     None          None        None                 None                None
 ```
 
 **Event calendar**
@@ -192,9 +196,9 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 
 ```
                   an_dt attFilePath attFileSize             attchmntFile             attchmntText bflag csvName  ... smIndustry       sm_isin                  sm_name            sort_date     symbol             voiceSummary                 voiceUrl
-0  21-Nov-2026 17:16:07        None     6.07 MB  https://nsearchives....  Aditya Birla Capital...  None    None  ...       None  INE674K01013  Aditya Birla Capital...  2026-11-21 17:16:07  ABCAPITAL                     None                     None
-1  21-Nov-2026 17:11:02        None     2.12 MB  https://nsearchives....  Steel City Securitie...  None    None  ...       None  INE395H01011  Steel City Securitie...  2026-11-21 17:11:02  STEELCITY  Steel City Securitie...  https://nsearchives....
-2  21-Nov-2026 17:10:12        None   275.55 KB  https://nsearchives....  Rajratan Global Wire...  None    None  ...       None  INE451D01011  Rajratan Global Wire...  2026-11-21 17:10:12   RAJRATAN  Rajratan Global Wire...  https://nsearchives....
+0  21-Nov-2026 21:50:17        None   503.07 KB  https://nsearchives....  ESDS Software Soluti...  None    None  ...       None  INE0DRI01029  ESDS Software Soluti...  2026-11-21 21:50:17       ESDS  ESDS Software Soluti...  https://nsearchives....
+1  21-Nov-2026 21:26:32        None   326.91 KB  https://nsearchives....  Intellect Design Are...  None    None  ...       None  INE306R01017  Intellect Design Are...  2026-11-21 21:26:32  INTELLECT  Intellect Design Are...  https://nsearchives....
+2  21-Nov-2026 21:23:04        None   205.74 KB  https://nsearchives....  Coforge Limited has ...  None    None  ...       None  INE591G01017          Coforge Limited  2026-11-21 21:23:04    COFORGE  Coforge Limited has ...  https://nsearchives....
 ```
 
 **Market status**
@@ -204,5 +208,32 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 0  Capital Market        Close  20-Nov-2026 15:30  NIFTY 50  25800.6     286.3          1.12    Market is Closed
 1        Currency        Close        20-Nov-2026                                               Market is Closed
 2       Commodity        Close        20-Nov-2026                                               Market is Closed
+```
+
+**Results comparison: RELIANCE**
+
+```
+  re_amt_grs_np_asst re_bal_rbi_oth_bnk_funds re_basic_eps re_basic_eps_for_cont_dic_opr re_bsc_eps_bfr_exi re_cap_ade_rat re_cet_1_ret  ... re_staff_cost  re_tax re_tax_expens_of_dis_opr     re_to_dt re_tot_exp_exc_pro_cont re_tot_inc re_total_inc
+0               None                     None         None                     6.44                    None           None         None  ...        218100  287600                        0  31-DEC-2024                    None       None     13147400
+1               None                     None         None                     11.4                    None           None         None  ...        207700  250100                        0  30-SEP-2024                    None       None     13785500
+2               None                     None         None                    11.25                    None           None         None  ...        215600  253500                        0  30-JUN-2024                    None       None     13783300
+```
+
+**Financial results list**
+
+```
+      audited bank         broadCastDate              companyName      consolidated      cumulative difference  ...     relatingTo resultDescription resultDetailedDataLink seqNumber      symbol       toDate                     xbrl
+0  Un-Audited    N  30-Jul-2026 17:17:53  V.S.T Tillers Tracto...      Consolidated  Non-cumulative   00:00:49  ...  Third Quarter              None                   None   1197616  VSTTILLERS  31-Dec-2024  https://nsearchives....
+1  Un-Audited    N  30-Jul-2026 17:15:56  V.S.T Tillers Tracto...  Non-Consolidated  Non-cumulative   00:00:32  ...  Third Quarter              None                   None   1197614  VSTTILLERS  31-Dec-2024  https://nsearchives....
+2  Un-Audited    N  25-Jun-2026 16:39:17  Videocon Industries ...  Non-Consolidated  Non-cumulative   00:00:59  ...  Third Quarter              None                   None   1197606    VIDEOIND  31-Dec-2024  https://nsearchives....
+```
+
+**Shareholding: RELIANCE**
+
+```
+          broadcastDate cgTimeStamp countString         date   desc employeeTrusts format  ...    symbol            systemDate timeDifference typeOfSubmission  underlyingDrs                     xbrl xbrlFileSize
+0  21-OCT-2026 16:25:15        None        None  30-SEP-2026  NEW_1              0   None  ...  RELIANCE  21-OCT-2026 16:25:19       00:00:04             None           None  https://nsearchives....    511.30 KB
+1  16-JUL-2026 19:24:44        None        None  30-JUN-2026  NEW_1              0   None  ...  RELIANCE  16-JUL-2026 19:24:48       00:00:04             None           None  https://nsearchives....    510.29 KB
+2  21-APR-2026 13:25:14        None        None  31-MAR-2026  NEW_1              0   None  ...  RELIANCE  21-APR-2026 13:25:18       00:00:04             None           None  https://nsearchives....    511.88 KB
 ```
 
