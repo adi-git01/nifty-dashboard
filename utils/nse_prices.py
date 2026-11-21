@@ -289,15 +289,21 @@ def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
     f = np.ones(len(g))
     q = np.r_[np.nan, c[1:] / c[:-1]]
     used = set()
+    qo_all = np.r_[np.nan, o[1:] / c[:-1]]
+    ratio: Dict[int, float] = {}                     # a split and a bonus on the same day multiply (DELPHIFX 0.2 x 1/3)
     for ex, fac, kind in acts or []:
         k = int(np.searchsorted(d.values, np.datetime64(ex)))
         if k <= 0 or k >= len(g) or (d[k] - ex).days > 6 or not np.isfinite(q[k]):
             continue
         if kind in ("split", "bonus", "consolidation") and fac == fac and fac > 0:
-            if abs(np.log(q[k] / fac)) < abs(np.log(q[k])):
-                f[k], _ = fac, used.add(k)
-        elif kind in ("demerger", "rights") and abs(np.log(q[k])) > np.log(1.08):
+            ratio[k] = ratio.get(k, 1.0) * fac
+        elif kind in ("demerger", "rights") and abs(np.log(q[k])) > np.log(1.08) and k not in ratio:
             f[k], _ = q[k], used.add(k)
+    for k, fac in ratio.items():
+        # the close can run far on an ex-date (GOLDIAM +17% after its 1:3 bonus): the opening gap is checked as well
+        near = min(abs(np.log(x / fac)) - abs(np.log(x)) for x in (q[k], qo_all[k]) if np.isfinite(x) and x > 0)
+        if near < 0:
+            f[k], _ = fac, used.add(k)
     for k in np.flatnonzero(np.abs(np.log(np.where(np.isfinite(q), q, 1.0))) > JUMP):
         if k in used:
             continue
@@ -341,13 +347,13 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
     if st:
         chg = _symbol_map()
         # an old symbol asked for (ICICIPRULI after it became ICICILIFE) is served from its newest name, stitched
-        fwd = {o: n for n, olds in chg.items() for o, _ in olds}
+        fwd = {o: (n, w) for n, olds in chg.items() for o, w in olds}
 
         def newest(x: str) -> str:
             seen = set()
             while x in fwd and x not in seen:
                 seen.add(x)
-                x = fwd[x]
+                x = fwd[x][0]
             return x
         cur = {t: newest(t[:-3]) for t in st}
         syms = set(cur.values()) | {t[:-3] for t in st} | {o for v in cur.values() for o, _ in chg.get(v, [])}
@@ -360,8 +366,9 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
             for t in st:
                 sym = cur[t]
                 own = by.get(t[:-3])
-                if sym != t[:-3] and own is not None and own["date"].max() > dict(chg.get(sym, [])).get(t[:-3], own["date"].max()) + pd.Timedelta(days=7):
-                    sym = t[:-3]                       # the old name still trades: it was reused, not renamed
+                # the old name still trades after it was given up (DTIL, renamed DPTL in 2010, is another company now)
+                if sym != t[:-3] and own is not None and own["date"].max() > fwd[t[:-3]][1] + pd.Timedelta(days=7):
+                    sym = t[:-3]
                 parts = [by[sym]] if sym in by else []
                 for old, when in chg.get(sym, []):
                     if old in by:

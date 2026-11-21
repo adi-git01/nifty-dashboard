@@ -1253,3 +1253,16 @@ def test_nse_renamed_symbol_served_from_new_name(tmp_path, monkeypatch):
     g = pd.DataFrame({"date": pd.to_datetime(["2026-09-04", "2026-09-07"]), "open": [709.0, 260.0], "high": [730.0, 275.0],
                       "low": [705.0, 255.0], "close": [728.25, 272.2], "prev_close": [707.45, 728.25], "volume": 1.0})
     assert (npx.factors(g) == 1).all()
+
+
+def test_nse_same_day_split_and_bonus_multiply():
+    """DELPHIFX 13 Feb 2026: a 1:5 split and a 2:1 bonus on one day = 1/15; GOLDIAM's bonus is judged by the opening gap."""
+    import pandas as pd
+    from utils import nse_prices as npx
+    g = pd.DataFrame({"date": pd.to_datetime(["2026-02-12", "2026-02-13"]), "open": [100.0, 6.97], "high": [101.0, 7.5],
+                      "low": [99.0, 6.9], "close": [100.0, 7.32], "prev_close": [99.0, 100.0], "volume": 1.0})
+    acts = [(pd.Timestamp("2026-02-13"), 1 / 3, "bonus"), (pd.Timestamp("2026-02-13"), 0.2, "split")]
+    assert abs(npx.factors(g, acts)[1] - 1 / 15) < 1e-9
+    g2 = pd.DataFrame({"date": pd.to_datetime(["2026-07-09", "2026-07-10"]), "open": [426.0, 321.5], "high": [430.0, 380.0],
+                       "low": [420.0, 320.0], "close": [420.5, 378.0], "prev_close": [425.05, 420.5], "volume": 1.0})
+    assert abs(npx.factors(g2, [(pd.Timestamp("2026-07-10"), 0.75, "bonus")])[1] - 0.75) < 1e-9
