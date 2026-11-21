@@ -145,7 +145,8 @@ def calculate_breadth_from_prices(tickers):
     
     try:
         # Download 60 days of data for MA50 calculation
-        data = yf.download(tickers, period="3mo", progress=False, threads=True)
+        from utils.yf_safe import safe_download            # NSE's files first, Yahoo for the rest
+        data = safe_download(tickers, period="3mo", retries=2, min_coverage=0.3)
         
         if data.empty:
             return None
