@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "backfill = fetch history; compare = NSE vs Yahoo report; both"
+        description: "backfill = fetch history; compare = NSE vs Yahoo report; both; tradingview = NSE vs TradingView report"
         type: choice
-        options: [both, backfill, compare]
+        options: [both, backfill, compare, tradingview]
         default: both
       years:
         description: "Years of history to back-fill"
@@ -37,14 +37,20 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - name: Back-fill the NSE price store
-        if: inputs.mode != 'compare'
+        if: inputs.mode == 'backfill' || inputs.mode == 'both'
         run: python scripts/nse_backfill.py --years "${{ inputs.years }}" 2>&1 | tee nse_prices_output.txt
       - name: Commit the store (before the long comparison)
-        if: inputs.mode != 'compare'
+        if: inputs.mode == 'backfill' || inputs.mode == 'both'
         run: bash scripts/commit_and_push.sh "NSE price store back-fill" 'data/nse/prices' 'data/nse/indices' data/nse/symbol_changes.csv data/nse/holidays.csv data/nse/corp_actions.csv nse_prices_output.txt
       - name: NSE vs Yahoo
-        if: inputs.mode != 'backfill'
+        if: inputs.mode == 'compare' || inputs.mode == 'both'
         run: python scripts/nse_vs_yahoo.py 2>&1 | tee -a nse_prices_output.txt
       - name: Commit the report
-        if: inputs.mode != 'backfill'
+        if: inputs.mode == 'compare' || inputs.mode == 'both'
         run: bash scripts/commit_and_push.sh "NSE vs Yahoo report" analysis/NSE_VS_YAHOO.md nse_prices_output.txt
+      - name: NSE vs TradingView
+        if: inputs.mode == 'tradingview'
+        run: python scripts/nse_vs_tradingview.py 2>&1 | tee tv_output.txt
+      - name: Commit the TradingView report
+        if: inputs.mode == 'tradingview'
+        run: bash scripts/commit_and_push.sh "NSE vs TradingView report" analysis/NSE_VS_TRADINGVIEW.md analysis/nse_vs_tradingview.csv
