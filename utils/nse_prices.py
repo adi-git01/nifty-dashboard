@@ -166,16 +166,18 @@ def parse_indices(content: bytes) -> pd.DataFrame:
     }).dropna(subset=["date", "close"])
 
 
-def fetch_day(S, day: pd.Timestamp) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+def fetch_day(S, day: pd.Timestamp, tries: int = 2) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
     """(stocks, indices) for one session, None for a file NSE does not have (holiday / not out yet)."""
     from utils.nse_data import ARCH
     st = ix = None
     try:
-        st = parse_stocks(S.get(f"{ARCH}/products/content/sec_bhavdata_full_{day:%d%m%Y}.csv", tries=2).content)
+        st = parse_stocks(S.get(f"{ARCH}/products/content/sec_bhavdata_full_{day:%d%m%Y}.csv", tries=tries).content)
     except Exception:
         st = None
+    if st is None and day.weekday() >= 5:
+        return None, None                                # no weekend session: skip the index file too
     try:
-        ix = parse_indices(S.get(f"{ARCH}/content/indices/ind_close_all_{day:%d%m%Y}.csv", tries=2).content)
+        ix = parse_indices(S.get(f"{ARCH}/content/indices/ind_close_all_{day:%d%m%Y}.csv", tries=tries).content)
     except Exception:
         ix = None
     return st, ix
@@ -210,21 +212,21 @@ def update(S=None, upto: Optional[pd.Timestamp] = None, start: Optional[pd.Times
     got = dict(sessions=0, holidays=0, index_days=0)
     closed = []
     while day <= upto:
-        if day.weekday() < 5:
-            st, ix = fetch_day(S, day)
-            if st is not None and len(st):
-                write_day("stocks", day, st)
-                got["sessions"] += 1
-            elif day < pd.Timestamp(now.date()) or (now.hour, now.minute) >= (22, 0):
-                got["holidays"] += 1                     # a past weekday with no file: NSE was closed
-                closed.append(day)
-            if ix is not None and len(ix):
-                write_day("indices", day, ix)
-                got["index_days"] += 1
-            if sleep:
-                time.sleep(sleep)
-            if (got["sessions"] + got["holidays"]) % 50 == 0:
-                log(f"[nse-prices] {day:%d %b %Y}: {got}")
+        weekend = day.weekday() >= 5                     # NSE trades some weekends: budget day, Muhurat
+        st, ix = fetch_day(S, day, tries=1 if weekend else 2)
+        if st is not None and len(st):
+            write_day("stocks", day, st)
+            got["sessions"] += 1
+        elif not weekend and (day < pd.Timestamp(now.date()) or (now.hour, now.minute) >= (22, 0)):
+            got["holidays"] += 1                         # a past weekday with no file: NSE was closed
+            closed.append(day)
+        if ix is not None and len(ix):
+            write_day("indices", day, ix)
+            got["index_days"] += 1
+        if sleep and (st is not None or not weekend):
+            time.sleep(sleep)
+        if not weekend and (got["sessions"] + got["holidays"]) % 50 == 0:
+            log(f"[nse-prices] {day:%d %b %Y}: {got}")
         day += pd.Timedelta(days=1)
     if closed:
         note_holidays(closed)
@@ -252,12 +254,69 @@ def _symbol_map() -> Dict[str, List[Tuple[str, pd.Timestamp]]]:
     return out
 
 
-def adjust(g: pd.DataFrame) -> pd.DataFrame:
+JUMP = np.log(1.5)                                    # an overnight move this big is outside every price band: an action
+COMMON = np.array([1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 10, 2 / 5, 2 / 3, 3 / 5, 1 / 6, 1 / 8, 1 / 20, 2.0, 5.0, 10.0])
+
+
+def _actions() -> Dict[str, list]:
+    """symbol -> [(ex_date, factor | nan, kind)] from NSE's corporate-action records (data/nse/corp_actions.csv)."""
+    try:
+        from utils.nse_data import F
+        ca = pd.read_csv(F["ca"], parse_dates=["ex_date"])
+    except Exception:
+        return {}
+    ca = ca[ca["kind"].isin(["split", "bonus", "consolidation", "demerger", "rights"])]
+    out: Dict[str, list] = {}
+    for r in ca.itertuples():
+        out.setdefault(str(r.symbol), []).append((r.ex_date, float(r.factor) if r.factor == r.factor else np.nan, r.kind))
+    return out
+
+
+def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
+    """
+    Price factor on each session (1 = nothing happened). NSE's PREV_CLOSE is not adjusted on every ex-date (CUPID's
+    1:5 split on 9 Mar 2026 kept 402.20), so, in order:
+      1. NSE's announced split / bonus / consolidation ratio, on the first session on or after its ex-date, when the
+         price moved toward it;
+      2. a demerger or rights issue: the session's own price ratio (what the stock lost to the spun-off part);
+      3. any other overnight move beyond 50% / -33%: PREV_CLOSE's ratio if NSE adjusted it, else the nearest common
+         split / bonus ratio of the opening gap if within 10%, else left alone (a real crash).
+    """
+    c = g["close"].values.astype(float)
+    o = g["open"].values.astype(float) if "open" in g else np.full(len(g), np.nan)
+    pc_nse = g["prev_close"].values.astype(float)
+    d = pd.DatetimeIndex(g["date"].values)
+    f = np.ones(len(g))
+    q = np.r_[np.nan, c[1:] / c[:-1]]
+    used = set()
+    for ex, fac, kind in acts or []:
+        k = int(np.searchsorted(d.values, np.datetime64(ex)))
+        if k <= 0 or k >= len(g) or (d[k] - ex).days > 6 or not np.isfinite(q[k]):
+            continue
+        if kind in ("split", "bonus", "consolidation") and fac == fac and fac > 0:
+            if abs(np.log(q[k] / fac)) < abs(np.log(q[k])):
+                f[k], _ = fac, used.add(k)
+        elif kind in ("demerger", "rights") and abs(np.log(q[k])) > np.log(1.08):
+            f[k], _ = q[k], used.add(k)
+    for k in np.flatnonzero(np.abs(np.log(np.where(np.isfinite(q), q, 1.0))) > JUMP):
+        if k in used:
+            continue
+        r = pc_nse[k] / c[k - 1] if c[k - 1] > 0 else np.nan
+        if np.isfinite(r) and abs(r - 1) > ADJ_TOL and abs(np.log(q[k] / r)) < 0.25:
+            f[k] = r
+            continue
+        # the opening gap carries the action without the day's own move (CUPID 9 Mar 2026: open 82.0 / 402.2 = 0.204)
+        qo = o[k] / c[k - 1] if np.isfinite(o[k]) and o[k] > 0 and c[k - 1] > 0 else q[k]
+        best = COMMON[np.argmin(np.abs(np.log(qo / COMMON)))]
+        if abs(np.log(qo / best)) < np.log(1.1):
+            f[k] = best
+    return f
+
+
+def adjust(g: pd.DataFrame, acts: Optional[list] = None) -> pd.DataFrame:
     """One symbol's raw rows (sorted by date) -> adjusted OHLCV with Stock Splits on each ex-date."""
     g = g.sort_values("date")
-    prev_close = g["close"].shift(1)
-    f = (g["prev_close"] / prev_close).where(prev_close > 0)
-    f = f.where((f - 1).abs() > ADJ_TOL, 1.0).fillna(1.0)
+    f = pd.Series(factors(g, acts), index=g.index)
     # every price before an ex-date is multiplied by that day's factor (and all later ones)
     cum = f[::-1].cumprod()[::-1].shift(-1).fillna(1.0).values
     out = pd.DataFrame(index=pd.DatetimeIndex(g["date"].values, name="Date"))
@@ -286,6 +345,7 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
         if len(R):
             R = R[R["symbol"].isin(syms)]
             R["symbol"] = R["symbol"].astype(str)
+            acts = _actions()
             by = {k: g for k, g in R.groupby("symbol", sort=False)}
             for t in st:
                 sym = t[:-3]
@@ -296,7 +356,7 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
                 if not parts:
                     continue
                 g = pd.concat(parts).drop_duplicates("date", keep="first")
-                a = adjust(g)
+                a = adjust(g, acts.get(sym, []) + [x for o, _ in chg.get(sym, []) for x in acts.get(o, [])])
                 if e0 is not None:
                     a = a[a.index < e0]
                 a = cut(a)

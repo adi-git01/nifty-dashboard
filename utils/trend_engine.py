@@ -132,7 +132,8 @@ def calculate_sector_history(nifty500_df):
         print(f"Sector history from snapshots failed: {e}")
     try:
         tickers = [t for t in nifty500_df['ticker'].unique().tolist() if t.endswith(('.NS', '.BO'))]
-        data = yf.download(tickers, period="1y", interval="1d", progress=False)['Close']
+        from utils.yf_safe import safe_download            # NSE's files first, Yahoo for the rest
+        data = safe_download(tickers, period="1y", interval="1d", retries=2, min_coverage=0.3)['Close']
         return sector_indices(data, sector_map)
     except Exception as e:
         print(f"Error calculating sector history: {e}")

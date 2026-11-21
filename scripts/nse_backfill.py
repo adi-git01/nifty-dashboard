@@ -33,14 +33,26 @@ def main() -> int:
     if not a.redo and len(npx.raw("stocks")):
         have = set(pd.to_datetime(npx.raw("stocks")["date"].unique()))
     # fetch only the weekdays not in the store yet (resumes after an interruption)
-    todo = [d for d in pd.bdate_range(start, pd.Timestamp.today().normalize()) if d not in have]
+    # every calendar day: NSE trades some weekends (budget day, Muhurat); a missing session breaks the series
+    known_closed = set()
+    try:
+        known_closed = set(pd.read_csv("data/nse/holidays.csv", parse_dates=["date"])["date"])
+    except Exception:
+        pass
+    todo = [d for d in pd.date_range(start, pd.Timestamp.today().normalize()) if d not in have and d not in known_closed]
+    try:                                       # NSE's official split / bonus ratios for the whole period
+        from utils.nse_data import fetch_corp_actions
+        ca = fetch_corp_actions(S, pd.Timestamp.today().normalize(), start=start)
+        print(f"[backfill] corporate actions: {len(ca):,} records since {start:%d %b %Y}", flush=True)
+    except Exception as e:
+        print(f"[backfill] corporate actions: {e}", flush=True)
     print(f"[backfill] {len(todo)} weekdays to fetch from {start:%d %b %Y}", flush=True)
     got = dict(sessions=0, holidays=0, index_days=0)
     for i, day in enumerate(todo):
         r = npx.update(S, upto=day, start=day, sleep=0.2, log=lambda *x: None, finish=False)
         for k in got:
             got[k] += r[k]
-        if (i + 1) % 25 == 0:
+        if (i + 1) % 50 == 0:
             npx.compact("stocks")
             npx.compact("indices")
             print(f"[backfill] {i + 1}/{len(todo)} · {day:%d %b %Y} · {got} · {time.time() - t0:.0f}s", flush=True)
