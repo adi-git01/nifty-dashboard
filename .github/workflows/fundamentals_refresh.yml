@@ -35,7 +35,7 @@ jobs:
 
     - name: Fundamentals for all Nifty 1000 stocks (NSE quote API + Screener files + NSE price store; Yahoo only for gaps)
       run: python fetch_fundamentals.py
-      # ~1,170 NSE quote calls (≈ 8-15 min; stops after 15 failures in a row) + Yahoo for gaps (capped at 25 min). `--source yahoo` runs the old Yahoo fetch.
+      # ~1,170 NSE quote calls (≈ 8-15 min; stops after 15 failures in a row or 30 min) + Yahoo for gaps (capped at 25 min). `--source yahoo` runs the old Yahoo fetch.
 
     - name: Commit fundamentals cache
       # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).
@@ -45,7 +45,7 @@ jobs:
         data/fundamentals_cache.csv analysis/FUNDAMENTALS_NSE_VS_YAHOO.md
 
     - name: Notify on failure
-      if: failure()
+      if: failure() || cancelled()     # a timed-out job counts as cancelled, not failed
       run: |
         python -c "
         import os, requests
