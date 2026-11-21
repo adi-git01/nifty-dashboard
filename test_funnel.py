@@ -1232,3 +1232,24 @@ def test_nse_split_without_prev_close_adjustment():
     assert abs(f[2] - 0.25) < 1e-9
     a = npx.adjust(g)
     assert abs(a["Close"].iloc[1] - 80.44) < 0.01 and a["Stock Splits"].iloc[2] == 5.0
+
+
+def test_nse_renamed_symbol_served_from_new_name(tmp_path, monkeypatch):
+    """A universe still listing ICICIPRULI must get ICICILIFE's prices after the rename, not a frozen series."""
+    import pandas as pd
+    from utils import nse_prices as npx
+    sc = tmp_path / "symbol_changes.csv"
+    pd.DataFrame({"company": ["x"], "old": ["OLDX"], "new": ["NEWX"], "date": ["2026-10-23"]}).to_csv(sc, index=False)
+    monkeypatch.setattr(npx, "SYMCHG", str(sc))
+    d = pd.to_datetime(["2026-10-21", "2026-10-22", "2026-10-23", "2026-10-26"])
+    rows = pd.DataFrame({"date": list(d[:2]) + list(d[2:]), "symbol": ["OLDX", "OLDX", "NEWX", "NEWX"], "series": "EQ",
+                         "open": [100.0, 101, 102, 103], "high": [101.0, 102, 103, 104], "low": [99.0, 100, 101, 102],
+                         "close": [100.5, 101.5, 102.5, 103.5], "prev_close": [100.0, 100.5, 101.5, 102.5], "volume": 1000.0})
+    monkeypatch.setattr(npx, "_rows_for", lambda syms: rows[rows.symbol.isin(syms)].copy())
+    monkeypatch.setattr(npx, "_actions", lambda: {})
+    h = npx.history(["OLDX.NS"])["OLDX.NS"]
+    assert len(h) == 4 and h["Close"].iloc[-1] == 103.5
+    # a demerger-sized gap (0.357) is not snapped to a 1:3 split
+    g = pd.DataFrame({"date": pd.to_datetime(["2026-09-04", "2026-09-07"]), "open": [709.0, 260.0], "high": [730.0, 275.0],
+                      "low": [705.0, 255.0], "close": [728.25, 272.2], "prev_close": [707.45, 728.25], "volume": 1.0})
+    assert (npx.factors(g) == 1).all()

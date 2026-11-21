@@ -280,7 +280,7 @@ def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
          price moved toward it;
       2. a demerger or rights issue: the session's own price ratio (what the stock lost to the spun-off part);
       3. any other overnight move beyond 50% / -33%: PREV_CLOSE's ratio if NSE adjusted it, else the nearest common
-         split / bonus ratio of the opening gap if within 10%, else left alone (a real crash).
+         split / bonus ratio of the opening gap if within 4%, else left alone (a real crash).
     """
     c = g["close"].values.astype(float)
     o = g["open"].values.astype(float) if "open" in g else np.full(len(g), np.nan)
@@ -308,7 +308,7 @@ def factors(g: pd.DataFrame, acts: Optional[list] = None) -> np.ndarray:
         # the opening gap carries the action without the day's own move (CUPID 9 Mar 2026: open 82.0 / 402.2 = 0.204)
         qo = o[k] / c[k - 1] if np.isfinite(o[k]) and o[k] > 0 and c[k - 1] > 0 else q[k]
         best = COMMON[np.argmin(np.abs(np.log(qo / COMMON)))]
-        if abs(np.log(qo / best)) < np.log(1.1):
+        if abs(np.log(qo / best)) < np.log(1.04):        # HEG's demerger gap (0.357) is not a 1:3 split
             f[k] = best
     return f
 
@@ -340,7 +340,17 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
     cut = lambda d: d[d.index >= s0] if s0 is not None else d
     if st:
         chg = _symbol_map()
-        syms = {t[:-3] for t in st} | {o for t in st for o, _ in chg.get(t[:-3], [])}
+        # an old symbol asked for (ICICIPRULI after it became ICICILIFE) is served from its newest name, stitched
+        fwd = {o: n for n, olds in chg.items() for o, _ in olds}
+
+        def newest(x: str) -> str:
+            seen = set()
+            while x in fwd and x not in seen:
+                seen.add(x)
+                x = fwd[x]
+            return x
+        cur = {t: newest(t[:-3]) for t in st}
+        syms = set(cur.values()) | {t[:-3] for t in st} | {o for v in cur.values() for o, _ in chg.get(v, [])}
         R = raw("stocks") if len(syms) > 40 else _rows_for(syms)
         if len(R):
             R = R[R["symbol"].isin(syms)]
@@ -348,7 +358,10 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
             acts = _actions()
             by = {k: g for k, g in R.groupby("symbol", sort=False)}
             for t in st:
-                sym = t[:-3]
+                sym = cur[t]
+                own = by.get(t[:-3])
+                if sym != t[:-3] and own is not None and own["date"].max() > dict(chg.get(sym, [])).get(t[:-3], own["date"].max()) + pd.Timedelta(days=7):
+                    sym = t[:-3]                       # the old name still trades: it was reused, not renamed
                 parts = [by[sym]] if sym in by else []
                 for old, when in chg.get(sym, []):
                     if old in by:
