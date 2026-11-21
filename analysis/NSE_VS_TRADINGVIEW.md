@@ -1,6 +1,6 @@
 # NSE store vs TradingView
 
-Store to 20 Nov 2026 · 1,170 tickers · NSE has 1,170 · TradingView returned 1,161 · NSE 4s · TradingView 3s
+Store to 20 Nov 2026 · 1,170 tickers · NSE has 1,170 · TradingView returned 1,161 · NSE 4s · TradingView 4s
 
 Compared on 1,161 stocks.
 
@@ -8,21 +8,17 @@ Compared on 1,161 stocks.
 |---|---|---|---|---|
 | close | 100.0% | 100.0% | 0.000% | 20MICRONS (179.5 vs 179.5) |
 | SMA50 | 99.9% | 100.0% | 0.000% | OLAELEC (35.54 vs 35.25) |
-| SMA200 | 98.8% | 99.5% | 0.000% | AHCL (20.36 vs 17.01) |
-| price_52_week_high | 93.9% | 98.0% | 0.000% | DELPHIFX (52.8 vs 18.25) |
-| price_52_week_low | 99.1% | 99.3% | 0.000% | GOLDIAM (265 vs 198.8) |
+| SMA200 | 99.0% | 99.7% | 0.000% | GANGAFORGE (2.233 vs 1.948) |
+| price_52_week_high | 94.1% | 98.3% | 0.000% | GANGAFORGE (4.1 vs 3.259) |
+| price_52_week_low | 99.2% | 99.5% | 0.000% | VEDL (173.3 vs 185.7) |
 | Perf.3M | 28.7% | 82.4% | 0.879 pts | ALLCARGO (-22.76 vs -10.9) |
-| Perf.6M | 28.3% | 75.4% | 1.007 pts | GOLDIAM (-24.6 vs 2.182) |
-| Perf.Y | 29.0% | 79.5% | 0.908 pts | AHCL (-19.49 vs 52.82) |
+| Perf.6M | 28.3% | 75.5% | 1.007 pts | GENESYS (-10.5 vs 5.255) |
+| Perf.Y | 29.0% | 79.7% | 0.907 pts | SOUTHBANK (55.2 vs 41.77) |
 
-Stocks with a gap > 2% in the 50/200-day average, 52-week high or 1-year return: 249
+Stocks with a gap > 2% in the 50/200-day average, 52-week high or 1-year return: 247
 
 | Stock | Close | SMA50 | SMA200 | 52w high | 1y return (pts) | NSE close / TV close |
 |---|---|---|---|---|---|---|
-| DELPHIFX | 0.00% | 0.0% | 16.9% | 189.3% | 32.3 | 6.60 / 6.60 |
-| BHARATRAS | 0.00% | 0.0% | 0.0% | 85.8% | 17.1 | 916.40 / 916.40 |
-| AHCL | 0.00% | 0.0% | 19.7% | 0.0% | 72.3 | 25.17 / 25.17 |
-| GOLDIAM | 0.00% | 0.0% | 16.6% | 27.4% | 27.7 | 295.05 / 295.05 |
 | GANGAFORGE | 0.00% | 0.0% | 14.6% | 25.8% | 8.5 | 1.04 / 1.04 |
 | GENESYS | 0.00% | 0.0% | 1.2% | 2.2% | 2.8 | 172.97 / 172.97 |
 | SPARC | 0.00% | 0.0% | 0.0% | 0.0% | 8.6 | 190.16 / 190.16 |
@@ -42,6 +38,7 @@ Stocks with a gap > 2% in the 50/200-day average, 52-week high or 1-year return:
 | DCBBANK | 0.00% | 0.0% | 0.0% | 0.0% | 3.7 | 233.53 / 233.53 |
 | AARVI | 0.00% | 0.0% | 0.0% | 0.0% | 8.4 | 123.58 / 123.58 |
 | CPPLUS | 0.00% | 0.0% | 0.0% | 0.0% | 8.3 | 4026.20 / 4026.20 |
+| AHCL | 0.00% | 0.0% | 0.0% | 0.0% | 8.2 | 25.17 / 25.17 |
 | DREDGECORP | 0.00% | 0.0% | 0.0% | 0.0% | 8.1 | 818.40 / 818.40 |
 | FCL | 0.00% | 0.0% | 0.0% | 0.0% | 5.2 | 44.82 / 44.82 |
 | AQYLON | 0.00% | 0.0% | nan% | 7.8% | 4.0 | 11.20 / 11.20 |
@@ -59,3 +56,6 @@ Stocks with a gap > 2% in the 50/200-day average, 52-week high or 1-year return:
 | 5PAISA | 0.00% | 0.0% | 0.0% | 0.0% | 6.6 | 340.05 / 340.05 |
 | ATLANTAELE | 0.00% | 0.0% | 0.0% | 0.0% | 6.5 | 1450.80 / 1450.80 |
 | GLENMARK | 0.00% | 0.0% | 0.0% | 0.0% | 2.5 | 2648.00 / 2648.00 |
+| CRAMC | 0.00% | 0.0% | 0.0% | 0.0% | 6.4 | 228.62 / 228.62 |
+| MAXESTATES | 0.00% | 0.0% | 0.0% | 0.0% | 2.3 | 602.75 / 602.75 |
+| GALAPREC | 0.00% | 0.0% | 0.0% | 0.0% | 2.4 | 1168.80 / 1168.80 |
