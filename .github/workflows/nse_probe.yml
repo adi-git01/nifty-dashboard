@@ -1,0 +1,31 @@
+name: NSE Data Probe (bhavcopy, delivery and more)
+
+# What NSE publishes for free and whether a GitHub runner can fetch it (nse_probe.py).
+# Writes analysis/NSE_DATA_PROBE.md and the day's official EOD file with delivery %.
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Session date (YYYY-MM-DD); blank = latest"
+        type: string
+        default: ""
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Probe NSE
+        run: python nse_probe.py ${{ inputs.date && format('--date {0}', inputs.date) || '' }} 2>&1 | tee nse_probe_output.txt
+      - name: Commit results
+        run: bash scripts/commit_and_push.sh "NSE data probe" analysis/NSE_DATA_PROBE.md 'data/nse/eod_*.csv.gz' nse_probe_output.txt
