@@ -1,7 +1,7 @@
 [nse] session Fri 20 Nov 2026
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 21:52 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 21:59 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -50,6 +50,8 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 - 1,141 of 1,168 snapshot stocks matched; median gap 0.000%
 - within 0.1%: 100% · off by more than 0.5%: 0 · not in NSE's EQ list: 27
 
+## Quote after opening the quote page: ❌ quote-equity: HTTP 403
+
 ## Samples
 
 **CM bhavcopy (UDiFF)**
@@ -60,8 +62,6 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 1  2026-11-20  2026-11-20   CM  NSE         STK         1342  IN0020200286  ...    F1            1   NaN    NaN    NaN    NaN   NaN
 2  2026-11-20  2026-11-20   CM  NSE         STK         3742  IN0020210053  ...    F1            1   NaN    NaN    NaN    NaN   NaN
 ```
-
-**Security-wise delivery (sec_bhavdata_full)**
 /home/runner/work/nifty-dashboard/nifty-dashboard/utils/nse_prices.py:195: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
   d["date"] = pd.to_datetime(d["date"].astype(str).str.strip(), errors="coerce", dayfirst=True)
 [nse] prices: {'sessions': 0, 'holidays': 0, 'index_days': 0} · store holds sessions to 20 Nov 2026 · current: True

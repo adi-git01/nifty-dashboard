@@ -1,6 +1,6 @@
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 21:52 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 21:59 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -48,6 +48,8 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 
 - 1,141 of 1,168 snapshot stocks matched; median gap 0.000%
 - within 0.1%: 100% · off by more than 0.5%: 0 · not in NSE's EQ list: 27
+
+## Quote after opening the quote page: ❌ quote-equity: HTTP 403
 
 ## Samples
 
