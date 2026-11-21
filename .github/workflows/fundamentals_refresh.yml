@@ -10,6 +10,7 @@ on:
 jobs:
   fetch-fundamentals:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
       contents: write
 
@@ -32,9 +33,9 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: Fundamentals for all Nifty 1000 stocks (NSE quote API + Screener files + NSE price store; no Yahoo)
+    - name: Fundamentals for all Nifty 1000 stocks (NSE quote API + Screener files + NSE price store; Yahoo only for gaps)
       run: python fetch_fundamentals.py
-      # ~1,170 NSE quote calls at ~0.3 s ≈ 6-8 minutes. `--source yahoo` runs the old Yahoo fetch.
+      # ~1,170 NSE quote calls (≈ 8-15 min; stops after 15 failures in a row) + Yahoo for gaps (capped at 25 min). `--source yahoo` runs the old Yahoo fetch.
 
     - name: Commit fundamentals cache
       # Rebase-and-retry instead of a force push (see scripts/commit_and_push.sh).

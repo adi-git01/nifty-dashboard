@@ -49,11 +49,11 @@ class Session:
         except Exception:
             pass
 
-    def get(self, url: str, tries: int = 3):
+    def get(self, url: str, tries: int = 3, timeout: float = 30):
         last = None
         for k in range(tries):
             try:
-                r = self.s.get(url, headers=HDR, timeout=30)
+                r = self.s.get(url, headers=HDR, timeout=timeout)
                 if r.status_code == 200 and r.content:
                     return r
                 last = f"HTTP {r.status_code}"
@@ -61,11 +61,12 @@ class Session:
                     self.s.get(WWW, headers=HDR, timeout=20)     # cookie expired: refresh once
             except Exception as e:
                 last = type(e).__name__
-            time.sleep(2 * (k + 1))
+            if k + 1 < tries:
+                time.sleep(2 * (k + 1))
         raise RuntimeError(f"{url.split('?')[0].rsplit('/', 1)[-1]}: {last}")
 
-    def json(self, path: str):
-        return self.get(WWW + path).json()
+    def json(self, path: str, tries: int = 3, timeout: float = 30):
+        return self.get(WWW + path, tries=tries, timeout=timeout).json()
 
 
 def _d(day: pd.Timestamp) -> str:

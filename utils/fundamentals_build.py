@@ -29,7 +29,8 @@ YAHOO_FIELDS = {"grossMargins": "grossMargins", "forwardPE": "forwardPE", "pe": 
                 "debtToEquity": "debtToEquity", "marketCap": "marketCap", "beta": "beta"}
 
 
-def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max_calls: int = 2000) -> pd.DataFrame:
+def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max_calls: int = 2000,
+               budget_s: float = 1500) -> pd.DataFrame:
     """
     The last resort: Yahoo's .info, only for cells NSE and Screener could not fill (always grossMargins and forwardPE,
     for which no free NSE / broker source exists). A stock whose gaps Yahoo also cannot fill keeps NaN; the caller
@@ -43,8 +44,10 @@ def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max
     out = df.copy()
     need = out[out[fields].isna().any(axis=1)]
     calls = filled = 0
+    t0 = time.time()
     for i, r in need.iterrows():
-        if calls >= max_calls:
+        if calls >= max_calls or time.time() - t0 > budget_s:     # the rest carry the previous cache's values
+            log(f"[fund] Yahoo fallback stopped after {calls} calls / {time.time() - t0:.0f}s")
             break
         try:
             info = yf.Ticker(r["ticker"]).info or {}
@@ -134,7 +137,7 @@ def screener_ratios(t: str, A: Dict[str, pd.DataFrame], Q: Dict[str, pd.DataFram
 
 
 def nse_quote(S, symbol: str) -> dict:
-    j = S.json(f"/api/quote-equity?symbol={symbol.replace('&', '%26')}")
+    j = S.json(f"/api/quote-equity?symbol={symbol.replace('&', '%26')}", tries=2, timeout=12)
     md, si, inf = j.get("metadata") or {}, j.get("securityInfo") or {}, j.get("info") or {}
     ind = j.get("industryInfo") or {}
     pe = pd.to_numeric(md.get("pdSymbolPe"), errors="coerce")
@@ -175,17 +178,22 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             S = Session()
         except Exception as e:
             log(f"[fund] NSE session failed ({e}); P/E and shares from Screener")
-    rows, nq = [], 0
+    rows, nq, fails, t0 = [], 0, 0, time.time()
     for i, t in enumerate(tickers):
+        if S is not None and fails >= 15:     # NSE stopped answering: Screener's P/E and share count for the rest
+            log(f"[fund] NSE quote: {fails} failures in a row at {i}/{len(tickers)}; Screener for the rest")
+            S = None
+        if i and i % 100 == 0:
+            log(f"[fund] {i}/{len(tickers)} · NSE quotes {nq} · {time.time() - t0:.0f}s")
         close = float(H[t]["Close"].iloc[-1]) if t in H and len(H[t]) else (
             float(sc.at[t, "price_scr"]) if t in sc.index and sc.at[t, "price_scr"] == sc.at[t, "price_scr"] else np.nan)
         q = {}
         if S is not None:
             try:
                 q = nse_quote(S, t[:-3])
-                nq += 1
+                nq, fails = nq + 1, 0
             except Exception:
-                q = {}
+                q, fails = {}, fails + 1
             if sleep:
                 time.sleep(sleep)
         shares = q.get("shares")
