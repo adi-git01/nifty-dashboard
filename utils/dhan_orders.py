@@ -121,10 +121,9 @@ def body(order: Dict[str, Any], client_id: str, security_id: str, amo: bool) -> 
 
 def correlation_id(order_id: str) -> str:
     """Dhan allows 25 characters; the order id (2026-11-13-EIMCOELECO-SELL) can be longer or hold '&' (M&M)."""
-    d, _, rest = str(order_id).partition("-")
     parts = str(order_id).split("-")
     date = "".join(parts[:3]) if len(parts) >= 5 else ""
-    sym, side = (parts[3], parts[-1]) if len(parts) >= 5 else (str(order_id), "")
+    sym, side = ("".join(parts[3:-1]), parts[-1]) if len(parts) >= 5 else (str(order_id), "")   # BAJAJ-AUTO -> BAJAJAUTO
     sym = re.sub(r"[^A-Za-z0-9]", "", sym)[:13]
     return f"{date}-{sym}-{side[:1]}"[:25] if date else re.sub(r"[^A-Za-z0-9-]", "", str(order_id))[:25]
 

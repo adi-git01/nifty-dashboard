@@ -155,3 +155,17 @@ def test_main_offline(tmp_path, monkeypatch):
     assert F.set_index("ticker").at["AAA", "pe"] > 0
     c = load_context(".", market="US")
     assert value_stock("BRK.B", c, price=30.0)["status"] == "OUT OF SCOPE"     # holding company
+
+
+def test_audit_regressions(tmp_path):
+    """PR 126-137 audit: hyphenated symbols in Dhan ids; a stock with no sub-industry must not crash valuation."""
+    from utils.dhan_orders import correlation_id
+    assert correlation_id("2026-11-13-BAJAJ-AUTO-BUY") == "20261113-BAJAJAUTO-B"
+    assert correlation_id("2026-11-13-BAJAJ-BUY") != correlation_id("2026-11-13-BAJAJ-AUTO-BUY")
+    assert len(correlation_id("2026-11-13-VERYLONGSYMBOLNAME-SELL")) <= 25
+    test_value_us_stock(tmp_path)                                  # builds the synthetic US files
+    F = pd.read_csv(tmp_path / "data/us_fundamentals_cache.csv")
+    F.loc[F.ticker == "T05", "sector_granular"] = np.nan
+    F.to_csv(tmp_path / "data/us_fundamentals_cache.csv", index=False)
+    c = load_context(str(tmp_path), market="US")
+    assert value_stock("T05", c, price=float(c.monthly["T05"].iloc[-1]), n=500)["status"] in ("OK", "NO DATA", "OUT OF SCOPE")

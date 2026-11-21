@@ -362,7 +362,7 @@ def _deep_dive_us():
     with c4:
         hd = st.date_input("Since", value=None, key="tx_us_hd", disabled=not held)
     risk = st.number_input("Risk per trade ($)", min_value=10.0, value=500.0, step=50.0, key="tx_us_risk")
-    t = (custom.strip().upper() or pick or "").replace(".NS", "")
+    t = (custom.strip().upper() or pick or "").replace(".NS", "").replace(".", "-")   # Yahoo: BRK-B, not BRK.B
     if not t:
         return
     if held and (hp <= 0 or hd is None):
