@@ -25,7 +25,8 @@ import pandas as pd
 
 CACHE_GLOB = "data/cache/market_master_*.parquet"
 TABLE = "data/corporate_actions.csv"
-COLS = ["ticker", "date", "factor", "prev_snapshot"]
+COLS = ["ticker", "date", "factor", "prev_snapshot", "source"]   # source: detected (from snapshots) | nse (official)
+MATCH_DAYS = 4           # a detected action this close to NSE's ex-date is the same action
 MIN_MOVE = 0.20          # |factor - 1| below this is noise
 MIN_MOVE_GAP = 0.45      # ... when sessions are missing between the two snapshots
 MAX_GAP_DAYS = 5         # snapshots further apart than this are not compared
@@ -85,10 +86,43 @@ def build(save: bool = True) -> pd.DataFrame:
             out = pd.concat([old, out], ignore_index=True).drop_duplicates(["ticker", "date"], keep="last")
         except Exception:
             pass
+    if files:
+        out = reconcile(out, _date(files[0]), _date(files[-1]))
     out = out.sort_values(["date", "ticker"]).reset_index(drop=True)
     if save:
         out.to_csv(TABLE, index=False)
     return out
+
+
+def reconcile(tab: pd.DataFrame, lo: pd.Timestamp, hi: pd.Timestamp, official: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    """
+    NSE's announced splits / bonuses (utils/nse_data.official_factors) over the detected ones. A detected
+    factor is an inferred ratio (and a big real move can pass for one); NSE's is exact. A detected action
+    near an NSE ex-date takes NSE's factor; an NSE action between the first and last snapshot that was not
+    detected is added. Detected actions NSE did not list are kept (its feed may not reach back that far).
+    """
+    if official is None:
+        try:
+            from utils.nse_data import official_factors
+            official = official_factors()
+        except Exception:
+            official = pd.DataFrame()
+    tab = tab.reindex(columns=COLS).copy()
+    tab["source"] = tab["source"].fillna("detected")
+    if official is None or official.empty:
+        return tab
+    tab["date"] = pd.to_datetime(tab["date"])
+    for r in official.dropna(subset=["date", "factor"]).itertuples():
+        m = (tab.ticker == r.ticker) & ((tab.date - pd.Timestamp(r.date)).abs() <= pd.Timedelta(days=MATCH_DAYS))
+        if m.any():
+            idx = list(tab.index[m])
+            tab.loc[idx[0], ["factor", "source"]] = [float(r.factor), "nse"]
+            tab = tab.drop(idx[1:])                       # one action, one row
+        elif lo < pd.Timestamp(r.date) <= hi:
+            tab = pd.concat([tab, pd.DataFrame([dict(ticker=r.ticker, date=pd.Timestamp(r.date), factor=float(r.factor),
+                                                     prev_snapshot="", source="nse")])], ignore_index=True)
+    tab["date"] = tab["date"].dt.strftime("%Y-%m-%d")
+    return tab
 
 
 def load() -> pd.DataFrame:

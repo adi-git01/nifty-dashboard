@@ -114,7 +114,7 @@ def disable_telegram() -> None:
 # messages a night). With TELEGRAM_BATCH set to a file, messages are queued there instead, and the
 # workflow's last step (scripts/send_brief.py -> send_batch) sends them as one brief, in a fixed order.
 # ---------------------------------------------------------------------------------------------------
-BATCH_ORDER = ["run_daily_signals", "dna3_current_portfolio", "dna3_morning_alert", "alert_daemon", "rs_alert_daemon",
+BATCH_ORDER = ["run_daily_signals", "nse_daily", "dna3_current_portfolio", "dna3_morning_alert", "alert_daemon", "rs_alert_daemon",
                "industry_alert_daemon", "turnaround_screener", "trading_engine"]
 TG_LIMIT = 4000                                   # Telegram allows 4096 characters per message
 

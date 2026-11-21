@@ -369,6 +369,8 @@ def render(df: pd.DataFrame):
     res = {p["ticker"]: (pos.resolve_ticker(p["ticker"], known) or p["ticker"]) for p in hold + watch}
     C = _context(df, list(res.values()))
     row = lambda t: C.loc[res[t]] if len(C) and res[t] in C.index else None
+    nse = dict(zip(df["ticker"], df["nse_flags"])) if "nse_flags" in df.columns else {}     # surveillance + next results / ex-date
+    nse_of = lambda t: str(nse.get(res[t], "") or "")
     ver = st.session_state.setdefault("book_ver", 0)
     money = lambda t: st.column_config.NumberColumn(t, format="₹%.2f", min_value=0.0)
 
@@ -389,16 +391,20 @@ def render(df: pd.DataFrame):
                   "Daily traded": float(r.traded) if r is not None and pd.notna(r.traded) else None,
                   "Status": status(px, sl, tg, r.scanner if r is not None else "", bool(r.below50) if r is not None else False,
                                    float(r.caution) if r is not None else 0),
-                  "Technicals": r.technicals if r is not None else "—",
+                  "Technicals": r.technicals if r is not None else "—", "NSE": nse_of(p["ticker"]),
                   "Industry": str(r.ind_group).title() if r is not None and r.ind_group else "—"})
     Hall = pd.DataFrame(H, columns=["Stock", "Entry", "Qty", "Stop", "Target", "Notes", "Price", "P&L %", "Above stop %", "Status",
-                                    "Exit below", "Exit guide", "Technicals", "Industry", "Sector", "Daily traded"])
+                                    "NSE", "Exit below", "Exit guide", "Technicals", "Industry", "Sector", "Daily traded"])
     Hd = Hall.drop(columns=["Sector", "Daily traded"])
     Hd["Sold"], Hd["Sold at"] = False, np.nan
     need = Hd[~Hd.Status.str.startswith("✅") | Hd["Exit guide"].str.startswith("🔴")] if len(Hd) else Hd
     if len(need):
         st.warning("Needs a look: " + ", ".join(
             f"{r['Stock']} ({'exit rule hit' if str(r['Exit guide']).startswith('🔴') else r['Status']})" for _, r in need.iterrows()))
+    surv = Hd[Hd.NSE.str.contains("⚠️", na=False)] if len(Hd) else Hd
+    if len(surv):
+        st.warning("Under exchange surveillance (tighter margins, can trade in a narrow band or trade-for-trade): "
+                   + ", ".join(f"{r['Stock']} ({r['NSE'].split(' · 📅')[0].replace('⚠️ ', '')})" for _, r in surv.iterrows()))
     if len(Hall):
         cap = st.session_state.get("book_capital") or None
         K = risk_summary(Hall, cap)
@@ -436,7 +442,8 @@ def render(df: pd.DataFrame):
         "Above stop %": st.column_config.NumberColumn(format="%.1f%%"),
         "Exit below": st.column_config.NumberColumn(format="₹%.1f", help=f"Higher of the 50-day average and {trail * 100:.0f}% below the "
                                                     "highest close since entry — the live engine's exit, kept by the exit studies"),
-        "Exit guide": st.column_config.TextColumn("Exit guide", width="medium")})
+        "Exit guide": st.column_config.TextColumn("Exit guide", width="medium"),
+        "NSE": st.column_config.TextColumn("NSE", help="Exchange surveillance (ASM / GSM) and the next results date or split / bonus / dividend ex-date")})
     st.caption("Click a cell to edit · add a row at the bottom · tick **Sold** (far right) when you sell — it goes to the 📓 Journal · "
                "deleting a row erases it without a trace (for mistakes). Nothing is saved until you press **Save changes**.")
 
@@ -452,8 +459,8 @@ def render(df: pd.DataFrame):
                   "Stop if bought": float(r.stop) if r is not None and pd.notna(r.stop) and px and r.stop < px else None,
                   "Risk %": float(r.risk_pct) if r is not None and pd.notna(r.risk_pct) else None,
                   "Since added %": (px / e - 1) * 100 if px and e else None, "Added": str(p.get("entry_date") or "")[:10],
-                  "Industry": str(r.ind_group).title() if r is not None and r.ind_group else "—"})
-    Wd = pd.DataFrame(W, columns=["Stock", "Notes", "Bought", "Funnel", "Technicals", "Price", "Stop if bought", "Risk %",
+                  "NSE": nse_of(p["ticker"]), "Industry": str(r.ind_group).title() if r is not None and r.ind_group else "—"})
+    Wd = pd.DataFrame(W, columns=["Stock", "Notes", "Bought", "Funnel", "Technicals", "NSE", "Price", "Stop if bought", "Risk %",
                                   "Since added %", "Added", "Industry"])
     ready = Wd[Wd.Funnel.str.startswith("✅")] if len(Wd) else Wd
     if len(ready):

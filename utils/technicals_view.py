@@ -512,6 +512,23 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     _trade_plan_card(P, name, h, us=us)
     st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
 
+    if P.get("currency", "INR") == "INR":                        # NSE delivery %, surveillance, next results (utils/nse_data.py)
+        try:
+            from utils import nse_data as _nd
+            _t = name if name.endswith(".NS") else name + ".NS"
+            _dp = _nd.delivery_panel(20)
+            _bits = []
+            if len(_dp) and _t in _dp.columns and _dp[_t].notna().any():
+                _bits.append(f"Delivery {_dp[_t].iloc[-1]:.0f}% on {pd.Timestamp(_dp.index[-1]):%d %b} (20-day avg {_dp[_t].mean():.0f}%)")
+            _sv, _ev = _nd.surveillance_map().get(_t), _nd.upcoming_events(30).get(_t)
+            if _sv:
+                _bits.append(f"⚠️ {_sv}")
+            if _ev:
+                _bits.append(f"📅 {_ev}")
+            if _bits:
+                st.caption(" · ".join(_bits))
+        except Exception:
+            pass
     c1, c2 = st.columns([1, 1])
     with c1:
         st.plotly_chart(levels_ladder(P), use_container_width=True, config=cfg)

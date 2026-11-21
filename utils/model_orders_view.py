@@ -236,6 +236,18 @@ def render(df: pd.DataFrame):
     else:
         E = _ticket_table(orders, ver)
         chosen = _chosen(orders, E)
+        try:                                                     # exchange surveillance on a buy (utils/nse_data.py)
+            from utils.nse_data import surveillance_map, upcoming_events
+            _sv, _ev = surveillance_map(), upcoming_events(5)
+            _flag = [f"{o['ticker'].replace('.NS', '')} ({_sv[o['ticker']]})" for o in chosen if o["side"] == "BUY" and o["ticker"] in _sv]
+            if _flag:
+                st.warning("⚠️ Under exchange surveillance: " + ", ".join(_flag) + ". Margins are higher and the stock may trade in a "
+                           "narrow band or trade-for-trade (no intraday netting). The model does not look at this: decide before sending.")
+            _soon = [f"{o['ticker'].replace('.NS', '')} ({_ev[o['ticker']]})" for o in chosen if o["side"] == "BUY" and o["ticker"] in _ev]
+            if _soon:
+                st.caption("📅 Coming up for buys: " + ", ".join(_soon) + ".")
+        except Exception:
+            pass
         buy = sum(o["value"] for o in chosen if o["side"] == "BUY")
         sell = sum(o["value"] for o in chosen if o["side"] == "SELL")
         st.caption(f"{len(chosen)} order(s): buy ₹{buy:,.0f}, sell ₹{sell:,.0f}; cash afterwards about ₹{S['cash'] + sell - buy:,.0f}. "

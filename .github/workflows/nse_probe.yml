@@ -27,5 +27,8 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Probe NSE
         run: python nse_probe.py ${{ inputs.date && format('--date {0}', inputs.date) || '' }} 2>&1 | tee nse_probe_output.txt
+      - name: NSE daily data (same as the evening run's step)
+        continue-on-error: true
+        run: python scripts/nse_daily.py 2>&1 | tee -a nse_probe_output.txt
       - name: Commit results
-        run: bash scripts/commit_and_push.sh "NSE data probe" analysis/NSE_DATA_PROBE.md 'data/nse/eod_*.csv.gz' nse_probe_output.txt
+        run: bash scripts/commit_and_push.sh "NSE data probe" analysis/NSE_DATA_PROBE.md 'data/nse/*' nse_probe_output.txt
