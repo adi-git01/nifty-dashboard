@@ -441,7 +441,13 @@ def _tracked_rows(key: str, tickers: tuple) -> pd.DataFrame:
 
 try:
     from utils import extended as _ext_main
-    _need = tuple(t for t in _ext_main.tracked(set(df['ticker']), get_all_positions()) if t not in set(df['ticker']))
+    try:                                   # price-alert stocks outside the universe get a price too
+        from utils.alerts import load_alerts as _load_px_alerts
+        _px_alert_rows = [dict(ticker=_a.get('ticker'), status='watching') for _a in _load_px_alerts()]
+    except Exception:
+        _px_alert_rows = []
+    _need = tuple(t for t in _ext_main.tracked(set(df['ticker']), list(get_all_positions()) + _px_alert_rows)
+                  if t not in set(df['ticker']))
     if _need:
         _rows = _tracked_rows(f"{len(df)}|{df['bar_date'].iloc[0] if 'bar_date' in df.columns else ''}", _need)
         if len(_rows):
@@ -2636,8 +2642,12 @@ elif page == "📊 Return Tracker":
             st.markdown("### 📈 Your Positions")
             
             # Build portfolio data from positions.json
+            from utils import stock_picker as _sp_pos
+            _pos_names = _sp_pos.names(df)
+            _q_pos = _sp_pos.name_filter("🔎 Filter positions", "pos_filter") if len(active_positions) > 5 else ""
             portfolio_data = []
-            for pos in active_positions:
+            for pos in [p for p in active_positions
+                        if _sp_pos.matches(_q_pos, p.get('ticker', ''), p.get('name') or _pos_names.get(p.get('ticker', ''), ''))]:
                 ticker = pos.get('ticker', '')
                 entry_price = pos.get('entry_price') or 0
                 current_price = pos.get('current_price') or 0
@@ -2845,15 +2855,28 @@ elif page == "📊 Return Tracker":
                 st.markdown("#### Active Alerts")
             
                 # Fetch alerts using the utility function from alerts.py
-                from utils.alerts import get_alerts_with_pnl, remove_alert, add_price_alert
+                from utils.alerts import get_alerts_with_pnl, remove_alert, add_price_alert, update_alert_ticker
+                from utils import stock_picker as _sp
                 all_alerts = get_alerts_with_pnl(df)
+                _px_names = _sp.names(df)
+                _q_alert = _sp.name_filter("🔎 Filter alerts", "px_alert_filter") if len(all_alerts) > 3 else ""
+                _priced = set(df['ticker'])
+                _shown = [a for a in all_alerts if _sp.matches(_q_alert, a.get('ticker', ''), _px_names.get(a.get('ticker', ''), ''))]
+                _unpriced = [a for a in all_alerts if a.get('ticker') not in _priced]
+                if _unpriced:
+                    st.warning(f"⚠️ {len(_unpriced)} alert(s) have no price, so their stop and target are not checked: "
+                               + ", ".join(str(a.get('ticker', '')).replace('.NS', '') for a in _unpriced)
+                               + ". See the note under each one.")
+                if all_alerts and not _shown:
+                    st.caption("No alert matches the filter.")
             
                 if all_alerts:
-                    for alert in all_alerts:
+                    for alert in _shown:
                         ticker = alert.get('ticker', '').replace('.NS', '')
+                        _cname = _px_names.get(alert.get('ticker', ''), '')
                     
                         # Build status line
-                        parts = [f"**{ticker}**"]
+                        parts = [f"**{ticker}**" + (f" :grey[{_cname[:28]}]" if _cname and _cname.upper() != ticker else "")]
                     
                         metric = alert.get('metric', '')
                         if metric and metric != 'price':
@@ -2870,11 +2893,27 @@ elif page == "📊 Return Tracker":
                             pnl_color = "green" if pnl >= 0 else "red"
                             parts.append(f":{pnl_color}[{pnl:+.1f}%]")
                     
+                        if alert.get('current_price') is not None and pnl is None:
+                            parts.append(f"now ₹{float(alert['current_price']):,.0f}")
                         col_info, col_del = st.columns([5, 1])
                         with col_info:
                             st.write(" | ".join(parts))
                             if alert.get('notes'):
                                 st.caption(f"📝 {alert['notes'][:80]}...")
+                            if alert.get('ticker') not in _priced:
+                                _t_raw = str(alert.get('ticker', ''))
+                                _sug = _sp.suggest(_t_raw, df)
+                                if _t_raw in _px_names or _t_raw.endswith('.BO'):
+                                    st.caption("⏳ Outside the ranked universe: it gets a price from the next evening run.")
+                                elif _sug and _sug[0] != _t_raw:
+                                    st.caption(f"⚠️ No stock is listed as **{ticker}**. Did you mean **{_sug[0].replace('.NS', '')}** "
+                                               f"({_sug[1]})?")
+                                    if st.button(f"Use {_sug[0].replace('.NS', '')}", key=f"fix_alert_{alert.get('id')}"):
+                                        update_alert_ticker(alert.get('id'), _sug[0])
+                                        _rerun_fragment()
+                                else:
+                                    st.caption(f"⚠️ No NSE stock is listed as **{ticker}**. If it trades only on BSE, delete this "
+                                               "alert and add it again with its 6-digit BSE code.")
                         with col_del:
                             if st.button("🗑️", key=f"del_alert_{alert.get('id')}", help="Delete this alert"):
                                 remove_alert(alert.get('id'))
@@ -2894,7 +2933,8 @@ elif page == "📊 Return Tracker":
                     if prefill:
                         del st.session_state['prefill_alert_ticker']
                 
-                    new_ticker = st.text_input("Ticker", value=prefill.replace('.NS', ''), placeholder="HDFCBANK")
+                    from utils.stock_picker import pick as _pick_stock
+                    new_ticker = _pick_stock("Stock", "new_alert_stock", df, default=prefill or None)
                 
                     col_a, col_b = st.columns(2)
                     with col_a:
@@ -2907,9 +2947,11 @@ elif page == "📊 Return Tracker":
                 
                     submitted = st.form_submit_button("✅ Create Alert", use_container_width=True, type="primary")
                 
+                    if submitted and not new_ticker:
+                        st.error("Pick a stock from the list (or type a valid 6-digit BSE code).")
                     if submitted and new_ticker:
                         ticker = new_ticker.upper()
-                        if not ticker.endswith(".NS"):
+                        if not ticker.endswith((".NS", ".BO")):
                             ticker += ".NS"
                         add_price_alert(
                             ticker,
@@ -2943,8 +2985,9 @@ elif page == "📊 Return Tracker":
             with rs_col2:
                 st.markdown("#### ➕ New RS Alert")
                 with st.form("new_rs_alert_form", clear_on_submit=True):
-                    rs_ticker = st.text_input("Ticker", placeholder="AEGISLOG",
-                                              key="rs_alert_ticker")
+                    from utils.stock_picker import pick as _pick_stock_rs
+                    rs_ticker = _pick_stock_rs("Stock", "rs_alert_ticker", df, universe_only=True,
+                                               help="RS is computed for the loaded universe only")
                     rs_metric = st.selectbox(
                         "Metric", options=list(RS_METRICS.keys()),
                         format_func=lambda k: RS_METRICS[k][0], index=0,
@@ -2991,7 +3034,10 @@ elif page == "📊 Return Tracker":
                 if not _rs_all:
                     st.info("No RS alerts yet. Create one →")
                 else:
-                    for _a in _rs_all:
+                    from utils import stock_picker as _sp_rs
+                    _rs_names = _sp_rs.names(df)
+                    _q_rs = _sp_rs.name_filter("🔎 Filter RS alerts", "rs_alert_filter") if len(_rs_all) > 3 else ""
+                    for _a in [x for x in _rs_all if _sp_rs.matches(_q_rs, x['ticker'], _rs_names.get(x['ticker'], ''))]:
                         _name = _a['ticker'].replace('.NS', '').replace('.BO', '')
                         _label = RS_METRICS.get(_a['metric'], (_a['metric'], None))[0]
                         _cur = _a.get('current_value')
@@ -3172,25 +3218,10 @@ elif page == "📊 Return Tracker":
         with st.form("add_position_form", clear_on_submit=True):
             add_col1, add_col2 = st.columns(2)
             
-            # Build ticker options from full NIFTY 500 list (not just loaded data)
-            from utils.nifty500_list import TICKERS
-            ticker_options = [""] + sorted(TICKERS)
-            # Build display names from df where available
-            ticker_display = {}
-            _names = dict(zip(df['ticker'], df['name']))        # was one frame filter per ticker, twice
-            for t in ticker_options:
-                if t and t in _names:
-                    ticker_display[t] = f"{t.replace('.NS', '')} - {_names[t]}"
-                elif t:
-                    ticker_display[t] = t.replace('.NS', '')
-            
+            # every NSE equity plus the universe, searchable by company name (was the Nifty 500 list only)
+            from utils.stock_picker import pick as _pick_stock_add, names as _stock_names
             with add_col1:
-                new_ticker = st.selectbox(
-                    "Ticker (type to search)", 
-                    options=ticker_options,
-                    format_func=lambda x: ticker_display.get(x, x) if x else "Select a stock...",
-                    index=0
-                )
+                new_ticker = _pick_stock_add("Stock (type a name or symbol)", "add_pos_stock", df)
                 new_entry = st.number_input("Entry Price ₹", value=0.0, step=10.0, format="%.2f")
                 new_quantity = st.number_input("Quantity", value=1, min_value=1, step=1)
                 
@@ -3203,14 +3234,17 @@ elif page == "📊 Return Tracker":
             
             submitted = st.form_submit_button("✅ Add Position", use_container_width=True, type="primary")
             
+            if submitted and not new_ticker:
+                st.error("Pick a stock from the list (or type a valid 6-digit BSE code).")
             if submitted and new_ticker:
                 ticker = new_ticker.upper()
-                if not ticker.endswith(".NS"):
+                if not ticker.endswith((".NS", ".BO")):
                     ticker += ".NS"
                 
                 # Get stock info from market data
                 stock_row = df[df['ticker'] == ticker]
-                stock_name = stock_row.iloc[0].get('name', ticker) if not stock_row.empty else ticker.replace('.NS', '')
+                stock_name = (stock_row.iloc[0].get('name', ticker) if not stock_row.empty
+                              else _stock_names(df).get(ticker) or ticker.replace('.NS', ''))
                 stock_sector = stock_row.iloc[0].get('sector', 'Unknown') if not stock_row.empty else 'Unknown'
                 stock_signal = stock_row.iloc[0].get('trend_signal', 'N/A') if not stock_row.empty else 'N/A'
                 stock_score = stock_row.iloc[0].get('trend_score', 0) if not stock_row.empty else 0
