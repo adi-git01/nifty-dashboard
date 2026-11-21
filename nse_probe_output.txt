@@ -1,7 +1,7 @@
 [nse] session Fri 20 Nov 2026
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 15:55 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -30,7 +30,7 @@ Run at 21 Nov 2026 15:55 IST. ✅ = reachable from a GitHub runner; ❌ = refuse
 | Board meetings / results calendar | ✅ | 20 | bm_symbol, bm_date, bm_purpose, bm_desc, sm_indusrty, bm_timestamp, sm_name, sm_isin, diff, sysTime, attFileSize, attachment | results dates ahead |
 | Event calendar | ✅ | 19 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
 | Insider trading (PIT) | ✅ | 0 |  | promoter / insider buys and sells |
-| Pledged shares | ✅ | 1,555 |  | promoter pledge levels |
+| Pledged shares | ✅ | 0 |  | promoter pledge levels |
 | ASM list (surveillance) | ✅ | 1 | longterm, shortterm | stocks under additional surveillance |
 | GSM list (surveillance) | ✅ | 76 | companyName, gsmStage, gsmTime, isin, survCode, survDesc, symbol, srno | graded surveillance |
 | Announcements | ✅ | 20 | an_dt, attFilePath, attFileSize, attchmntFile, attchmntText, bflag, csvName, desc, difference, dt, exchdisstime, fileSize | filings: orders, results, management changes |
@@ -65,3 +65,14 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 1  21STCENMGM     BE   20-Nov-2026       48.51        47.0       47.00      46.09  ...        46.09      46.20          6249           2.89            62          -         -
 2      360ONE     EQ   20-Nov-2026     1197.90      1194.0     1224.60    1191.55  ...      1208.10    1212.82       1133648       13749.16         32363     545332     48.10
 ```
+[nse] delivery 20 Nov: 3,461 stocks -> data/nse/eod_20261120.csv.gz
+[nse] corporate actions: 246 rows
+[nse] surveillance: 253 rows
+[nse] events: 24 rows
+[nse] deals: 113 rows
+[nse] market context: {'date': '2026-11-20', 'nifty_close': np.float64(25800.6), 'nifty_pe': np.float64(21.02), 'nifty_pb': np.float64(3.17), 'nifty_dy': np.float64(1.32), 'midcap_pe': np.float64(28.21), 'smallcap_pe': np.float64(32.14), 'dii_net': np.float64(-4859.8), 'dii_date': '20-Nov-2026', 'fii_net': np.float64(10308.42), 'fii_date': '20-Nov-2026', 'fii_idx_long': np.int64(75864), 'fii_idx_short': np.int64(146318), 'fii_idx_long_pct': np.float64(34.144980241423696)}
+<b>📊 NSE</b>
+Nifty P/E 21.0 · P/B 3.17 · yield 1.32%
+Cash: DII -4,860 cr · FII +10,308 cr
+FII index futures 34% long
+[nse] done: delivery, corporate actions, surveillance, events, deals, context

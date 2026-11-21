@@ -1,6 +1,6 @@
 # What NSE gives for free -- probe of 20 Nov 2026 from GitHub Actions
 
-Run at 21 Nov 2026 15:55 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
+Run at 21 Nov 2026 17:17 IST. ✅ = reachable from a GitHub runner; ❌ = refused or missing.
 
 ## Daily archive files (no login)
 
@@ -29,7 +29,7 @@ Run at 21 Nov 2026 15:55 IST. ✅ = reachable from a GitHub runner; ❌ = refuse
 | Board meetings / results calendar | ✅ | 20 | bm_symbol, bm_date, bm_purpose, bm_desc, sm_indusrty, bm_timestamp, sm_name, sm_isin, diff, sysTime, attFileSize, attachment | results dates ahead |
 | Event calendar | ✅ | 19 | symbol, company, purpose, bm_desc, date | results, AGMs, dividends |
 | Insider trading (PIT) | ✅ | 0 |  | promoter / insider buys and sells |
-| Pledged shares | ✅ | 1,555 |  | promoter pledge levels |
+| Pledged shares | ✅ | 0 |  | promoter pledge levels |
 | ASM list (surveillance) | ✅ | 1 | longterm, shortterm | stocks under additional surveillance |
 | GSM list (surveillance) | ✅ | 76 | companyName, gsmStage, gsmTime, isin, survCode, survDesc, symbol, srno | graded surveillance |
 | Announcements | ✅ | 20 | an_dt, attFilePath, attFileSize, attchmntFile, attchmntText, bflag, csvName, desc, difference, dt, exchdisstime, fileSize | filings: orders, results, management changes |
@@ -157,10 +157,10 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 **Board meetings / results calendar**
 
 ```
-  bm_symbol      bm_date               bm_purpose                  bm_desc sm_indusrty          bm_timestamp                  sm_name  ...               attachment intimationType ixbrl ixbrlFileSize meetingType oriiginalMeetingDate proposedMeetingDate
-0   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:11:21  Team India Guaranty ...  ...  https://nsearchives....           None  None          None        None                 None                None
-1   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:10:45  Team India Guaranty ...  ...  https://nsearchives....           None  None          None        None                 None                None
-2   TEAMGTY  26-Nov-2026  Fund Raising/Other b...  To consider Fund Rai...           -  21-Nov-2026 14:36:00  Team India Guaranty ...  ...  https://nsearchives....           None  None          None        None                 None                None
+  bm_symbol      bm_date               bm_purpose                  bm_desc sm_indusrty          bm_timestamp                  sm_name  ...               attachment intimationType                    ixbrl ixbrlFileSize meetingType oriiginalMeetingDate proposedMeetingDate
+0  RAJRATAN  25-Nov-2026  Board Meeting Intima...  RAJRATAN GLOBAL WIRE...           -  21-Nov-2026 17:02:57  Rajratan Global Wire...  ...  https://nsearchives....           None  https://nsearchives....       2.78 KB        None                 None                None
+1   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:11:21  Team India Guaranty ...  ...  https://nsearchives....           None                     None          None        None                 None                None
+2   TEAMGTY  26-Nov-2026  Board Meeting Intima...  TEAM INDIA GUARANTY ...           -  21-Nov-2026 15:10:45  Team India Guaranty ...  ...  https://nsearchives....           None                     None          None        None                 None                None
 ```
 
 **Event calendar**
@@ -191,10 +191,10 @@ Delivery %: median 60% · stocks with ≥ 60% delivery: 1,625
 **Announcements**
 
 ```
-                  an_dt attFilePath attFileSize             attchmntFile             attchmntText bflag csvName  ...    smIndustry       sm_isin                  sm_name            sort_date     symbol             voiceSummary                 voiceUrl
-0  21-Nov-2026 15:51:29        None   175.72 KB  https://nsearchives....  Veegaland Developers...  None    None  ...          None  INE1JTV01015  Veegaland Developers...  2026-11-21 15:51:29  VEEGALAND  Veegaland Developers...  https://nsearchives....
-1  21-Nov-2026 15:47:21        None     2.86 MB  https://nsearchives....  Ansal Properties & I...  None    None  ...  Construction  INE436A01026  Ansal Properties & I...  2026-11-21 15:47:21   ANSALAPI  Ansal Properties and...  https://nsearchives....
-2  21-Nov-2026 15:47:12        None   255.85 KB  https://nsearchives....  Belrise Industries L...  None    None  ...          None  INE894V01022  Belrise Industries L...  2026-11-21 15:47:12    BELRISE  Belrise Industries L...  https://nsearchives....
+                  an_dt attFilePath attFileSize             attchmntFile             attchmntText bflag csvName  ... smIndustry       sm_isin                  sm_name            sort_date     symbol             voiceSummary                 voiceUrl
+0  21-Nov-2026 17:16:07        None     6.07 MB  https://nsearchives....  Aditya Birla Capital...  None    None  ...       None  INE674K01013  Aditya Birla Capital...  2026-11-21 17:16:07  ABCAPITAL                     None                     None
+1  21-Nov-2026 17:11:02        None     2.12 MB  https://nsearchives....  Steel City Securitie...  None    None  ...       None  INE395H01011  Steel City Securitie...  2026-11-21 17:11:02  STEELCITY  Steel City Securitie...  https://nsearchives....
+2  21-Nov-2026 17:10:12        None   275.55 KB  https://nsearchives....  Rajratan Global Wire...  None    None  ...       None  INE451D01011  Rajratan Global Wire...  2026-11-21 17:10:12   RAJRATAN  Rajratan Global Wire...  https://nsearchives....
 ```
 
 **Market status**
