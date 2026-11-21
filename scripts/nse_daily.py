@@ -69,17 +69,18 @@ def main() -> int:
     a = ap.parse_args()
     S = nd.Session()
     start = pd.Timestamp(a.date) if a.date else pd.Timestamp(datetime.now(nd.IST).date())
-    day = nd.latest_session(S, start)
     ok = {}
+    from utils import nse_prices as npx
+    try:                                       # the daily price store every later step reads (utils/yf_safe.py)
+        got = npx.update(S, upto=start)
+        day = npx.last_date("stocks")
+        print(f"[nse] prices: {got} · store holds sessions to {day:%d %b %Y} · current: {npx.is_current()}")
+        ok["prices"] = True
+    except Exception as x:
+        print(f"[nse] prices: {x}")
+        day = None
     if day is None:
-        print("[nse] no delivery file in the last week (NSE down, or no session yet)")
-    else:
-        try:
-            e = nd.fetch_delivery(S, day)
-            print(f"[nse] delivery {day:%d %b}: {len(e):,} stocks -> {nd.save_delivery(e)}")
-            ok["delivery"] = True
-        except Exception as x:
-            print(f"[nse] delivery: {x}")
+        day = nd.latest_session(S, start)
     today = start
     steps = [("corporate actions", lambda: nd.fetch_corp_actions(S, today)), ("surveillance", lambda: nd.fetch_surveillance(S)),
              ("events", lambda: nd.fetch_events(S, today)), ("deals", lambda: nd.fetch_deals(S))]

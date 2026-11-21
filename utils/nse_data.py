@@ -285,7 +285,17 @@ def _read(path: str, dates: Optional[List[str]] = None) -> pd.DataFrame:
 
 
 def delivery_panel(n: int = 20) -> pd.DataFrame:
-    """Last n sessions of delivery %: index date, columns SYMBOL.NS."""
+    """Last n sessions of delivery %: index date, columns SYMBOL.NS. From the price store (utils/nse_prices.py)."""
+    try:
+        from utils import nse_prices
+        R = nse_prices.raw("stocks")
+        if len(R):
+            days = sorted(R["date"].unique())[-n:]
+            d = R[R["date"].isin(days) & R["series"].isin(["EQ", "BE", "BZ"])]
+            return d.assign(ticker=d["symbol"] + ".NS").pivot_table(index="date", columns="ticker", values="deliv_pct",
+                                                                    aggfunc="last").sort_index()
+    except Exception:
+        pass
     files = sorted(glob.glob(os.path.join(DIR, "eod_*.csv.gz")))[-n:]
     parts = []
     for f in files:

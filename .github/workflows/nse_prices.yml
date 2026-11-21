@@ -1,0 +1,50 @@
+name: NSE Prices (back-fill and NSE-vs-Yahoo check)
+
+# Builds / extends the NSE daily price store (utils/nse_prices.py) and compares the engine's snapshot built
+# from NSE with the one built from Yahoo (scripts/nse_vs_yahoo.py -> analysis/NSE_VS_YAHOO.md). Manual.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "backfill = fetch history; compare = NSE vs Yahoo report; both"
+        type: choice
+        options: [both, backfill, compare]
+        default: both
+      years:
+        description: "Years of history to back-fill"
+        type: string
+        default: "2"
+
+concurrency:
+  group: nse-prices
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+    env:
+      REPO_STORE_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Back-fill the NSE price store
+        if: inputs.mode != 'compare'
+        run: python scripts/nse_backfill.py --years "${{ inputs.years }}" 2>&1 | tee nse_prices_output.txt
+      - name: Commit the store (before the long comparison)
+        if: inputs.mode != 'compare'
+        run: bash scripts/commit_and_push.sh "NSE price store back-fill" 'data/nse/prices' 'data/nse/indices' data/nse/symbol_changes.csv data/nse/holidays.csv nse_prices_output.txt
+      - name: NSE vs Yahoo
+        if: inputs.mode != 'backfill'
+        run: python scripts/nse_vs_yahoo.py 2>&1 | tee -a nse_prices_output.txt
+      - name: Commit the report
+        if: inputs.mode != 'backfill'
+        run: bash scripts/commit_and_push.sh "NSE vs Yahoo report" analysis/NSE_VS_YAHOO.md nse_prices_output.txt
