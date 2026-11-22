@@ -396,3 +396,26 @@ def test_valuation_fingerprint_warnings_and_fmt():
     assert valuation_view._fmt(np.nan, "{:.1f}") == "—"
     assert valuation_view._fmt(np.inf, "{:.1f}") == "—"
     assert valuation_view._fmt(12.34, "{:.1f}") == "12.3"
+
+
+def test_technicals_view_distance_columns():
+    from utils import technicals_view
+
+    sample = pd.DataFrame(
+        {
+            "price": [100.0, 100.0, 100.0],
+            "fx_stop": [90.0, 105.0, 0.0],
+            "fiftyDayAverage": [95.0, 102.0, 0.0],
+            "dist_52w": [-4.0, -12.0, np.nan],
+            "fx_dist_hi": [-3.0, -10.0, -6.5],
+        }
+    )
+    res = technicals_view._add_distance_cols(sample)
+    assert math.isclose(float(res.loc[0, "dist_stop_pct"]), 10.0, abs_tol=1e-6)
+    assert math.isclose(float(res.loc[0, "dist_ma50_pct"]), (100.0 / 95.0 - 1.0) * 100.0, rel_tol=1e-6)
+    assert math.isclose(float(res.loc[0, "dist_52w_pct"]), -4.0, abs_tol=1e-6)
+
+    assert math.isclose(float(res.loc[1, "dist_stop_pct"]), -5.0, abs_tol=1e-6)
+    assert pd.isna(res.loc[2, "dist_stop_pct"])
+    assert pd.isna(res.loc[2, "dist_ma50_pct"])
+    assert math.isclose(float(res.loc[2, "dist_52w_pct"]), -6.5, abs_tol=1e-6)
