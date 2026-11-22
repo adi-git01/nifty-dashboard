@@ -28,13 +28,23 @@ def normalize(value, min_val, max_val):
 
 
 def safe_num(val, default=0):
-    """Safely convert to float."""
+    """Safely convert to finite float."""
     if val is None:
         return default
     try:
-        return float(val)
-    except:
+        r = float(val)
+        return r if np.isfinite(r) else default
+    except Exception:
         return default
+
+
+def _is_missing(val) -> bool:
+    if val is None:
+        return True
+    try:
+        return not np.isfinite(float(val))
+    except Exception:
+        return True
 
 
 def calculate_scores(data, sector_pe_median=None, sector=None):
@@ -69,16 +79,16 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     ranges = quality_config.get("ranges", {})
     bonuses = quality_config.get("bonuses", {})
     
-    # Extract raw metrics — use None-passthrough so normalize() returns neutral 5
+    # Screener/pipeline caches ALWAYS store roe/roa/margins as decimals (even > 5.0 = 500% on thin equity);
+    # direct ad-hoc callers without fund_source keep the historical <= 5.0 heuristic.
+    _decimal_src = bool(data.get("fund_source"))
+
     def _to_pct(val):
-        if val is None:
+        if _is_missing(val):
             return None
-        try:
-            r = float(val)
-        except (TypeError, ValueError):
-            return None
-        if r != r or abs(r) == float("inf"):
-            return None
+        r = float(val)
+        if _decimal_src:
+            return r * 100.0
         return r * 100.0 if abs(r) <= 5.0 else r
 
     roe_pct = _to_pct(data.get("roe"))
@@ -88,7 +98,7 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
 
     de_raw = data.get("debtToEquity")
 
-    if de_raw is None:
+    if _is_missing(de_raw):
         s_debt = 5  # Neutral penalty for missing data
         de = 0 # Default for other calculations if needed, but score is fixed
     else:
@@ -118,9 +128,9 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     s_pb_bonus = 0
     if weights.get("pb_bonus", 0) > 0:
         pb_threshold = bonuses.get("low_pb", {}).get("threshold", 1.5)
-        if pb < pb_threshold and pb > 0:
+        if 0 < pb < pb_threshold:
             s_pb_bonus = 10
-        elif pb < 3:
+        elif 0 < pb < 3:
             s_pb_bonus = 5
         else:
             s_pb_bonus = 0
@@ -187,10 +197,12 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     use_pb_primary = value_config.get("use_pb_primary", False)
 
     # Handle missing PE (return neutral 5) vs loss-making (return 0)
-    if pe_raw is None:
+    pe_missing = _is_missing(pe_raw)
+    peg_missing = _is_missing(peg_raw)
+    if pe_missing:
         s_rel_pe = 5
         s_fwd = 5
-        s_peg = 5 if peg_raw is None else (0 if peg <= 0 or peg > 5 else 10 - normalize(peg, 0.5, 3.0))
+        s_peg = 5 if peg_missing else (0 if peg <= 0 or peg > 5 else 10 - normalize(peg, 0.5, 3.0))
     elif pe <= 0:
         s_rel_pe = 0  # Loss-making = no value score from PE
         s_fwd = 0
@@ -212,23 +224,24 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
             s_fwd = 5
 
         # PEG scoring
-        if peg <= 0 or peg > 5:
-            s_peg = 0 if peg_raw is not None else 5  # missing → neutral, bad value → 0
+        if peg_missing:
+            s_peg = 5
+        elif peg <= 0 or peg > 5:
+            s_peg = 0
         else:
             s_peg = 10 - normalize(peg, 0.5, 3.0)
-    
+
     # P/B scoring with sector-specific range
     if pb <= 0:
         s_pb = 5
     else:
         s_pb = 10 - normalize(pb, pb_range[0], pb_range[1])
 
-    # For high-growth stocks (earningsGrowth > 30%), PEG is more informative than
-    # absolute PE — shift 15pp from PE weight to PEG weight so a PEG of 1-1.5
-    # isn't drowned out by a legitimately high PE (e.g. Amber: PE 107x, PEG 1.34).
+    # For high-growth stocks (earningsGrowth > 30%), shift 15pp from PE to PEG ONLY when real PEG exists.
     _eg_for_val = data.get("earningsGrowth")
-    if (_eg_for_val is not None and float(_eg_for_val) * 100 > 30
-            and s_peg > 0 and not use_pb_primary):
+    _has_real_peg = (not peg_missing) and (0 < peg <= 5) and (not pe_missing) and (pe > 0)
+    if ((not _is_missing(_eg_for_val)) and float(_eg_for_val) * 100 > 30
+            and _has_real_peg and s_peg > 0 and not use_pb_primary):
         v_pe_weight  = max(v_pe_weight  - 0.15, 0.05)
         v_peg_weight = min(v_peg_weight + 0.15, 0.50)
 
@@ -245,13 +258,10 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     # Use None-passthrough: normalize() returns 5 (neutral) for None.
     # safe_num(..., 0) was silently mapping missing data to 0% growth → ~2-3/10.
     def _pct(raw):
-        """Decimal → percent, or None if unavailable."""
-        if raw is None:
+        """Decimal → percent, or None if unavailable/non-finite."""
+        if _is_missing(raw):
             return None
-        try:
-            return float(raw) * 100
-        except:
-            return None
+        return float(raw) * 100
 
     rev_g   = _pct(data.get("revenueGrowth"))
     earn_g  = _pct(data.get("earningsGrowth"))
@@ -308,9 +318,9 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     # ================================
     # PILLAR 5: VOLUME SIGNAL 
     # ================================
-    # Priority: Use Advanced M2 Score (VPT+A/D) if calculated in main loop
-    if "volume_signal_score" in data:
-        volume_signal_score = data["volume_signal_score"]
+    # Priority: Use Advanced M2 Score (VPT+A/D) if valid
+    if not _is_missing(data.get("volume_signal_score")):
+        volume_signal_score = float(data["volume_signal_score"])
     else:
         # Fallback: Simple Volume Ratio (Method 1)
         avg_vol = safe_num(data.get("averageVolume"), 0)
@@ -369,51 +379,51 @@ def calculate_trend_metrics(data):
     """
     if not data:
         return {"trend_score": 50, "trend_signal": "NEUTRAL", "dist_52w": 0}
-    
-    price = safe_num(data.get("currentPrice") or data.get("price"), 0)
-    ma50 = safe_num(data.get("fiftyDayAverage"), 0)
-    ma200 = safe_num(data.get("twoHundredDayAverage"), 0)
-    high_52 = safe_num(data.get("fiftyTwoWeekHigh"), 0)
-    low_52 = safe_num(data.get("fiftyTwoWeekLow"), 0)
-    
-    if price == 0 or high_52 == 0:
+
+    px_c = safe_num(data.get("currentPrice"), 0.0)
+    price = px_c if px_c > 0 else safe_num(data.get("price"), 0.0)
+    ma50 = safe_num(data.get("fiftyDayAverage"), 0.0)
+    ma200 = safe_num(data.get("twoHundredDayAverage"), 0.0)
+    high_52 = safe_num(data.get("fiftyTwoWeekHigh"), 0.0)
+    low_52 = safe_num(data.get("fiftyTwoWeekLow"), 0.0)
+
+    if price <= 0 or high_52 <= 0:
         return {"trend_score": 50, "trend_signal": "NEUTRAL", "dist_52w": 0}
-    
+
     score = 50  # Start neutral
-    
+
     # MA Position (40 pts max)
     if ma50 > 0:
         if price > ma50:
             score += 15
         else:
             score -= 10
-    
+
     if ma200 > 0:
         if price > ma200:
             score += 15
         else:
             score -= 15
-    
+
     if ma50 > 0 and ma200 > 0:
         if ma50 > ma200:  # Golden cross setup
             score += 10
         else:  # Death cross setup
             score -= 5
-    
+
+    dist_from_high = (price - high_52) / high_52 * 100
+
     # 52-Week Position (30 pts max)
-    if high_52 > low_52:
+    if low_52 > 0 and high_52 > low_52:
         range_52 = high_52 - low_52
         position = (price - low_52) / range_52  # 0 to 1
         score += int((position - 0.5) * 30)  # -15 to +15
-        
+
         # Near 52-week high bonus
-        dist_from_high = (price - high_52) / high_52 * 100
         if dist_from_high > -5:  # Within 5% of high
             score += 10
         elif dist_from_high < -30:  # More than 30% from high
             score -= 10
-    else:
-        dist_from_high = 0
     
     # Clamp score
     score = max(0, min(100, score))

@@ -31,7 +31,7 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
     close, stop = float(r["close"]), float(r["stop"])
     trigger = P.get("trigger")
     entry = float(trigger) if trigger else close
-    valid_stop = stop < entry
+    valid_stop = _fin(stop) and 0 < stop < min(close, entry)
     risk = entry - stop if valid_stop else np.nan
     t1 = entry + 2 * risk if valid_stop else np.nan
     t2 = float(r["t2"]) if _fin(r.get("t2")) and float(r["t2"]) > entry else np.nan
@@ -43,13 +43,14 @@ def build(P: Dict[str, Any], val: Optional[Dict[str, Any]] = None) -> Dict[str, 
     if valid_stop:
         add(t1, "🎯 Reference (2× risk)", "Technicals", "a yardstick, not an exit: booking here halved per-trade returns in "
             "the backtest. Hold and exit on the 50-day line or the trailing stop")
-        add(t2, "🎯 Target 2", "Technicals", f"next supply shelf — reward/risk {(t2 - entry) / risk:.1f}" if _fin(t2) else "")
+        t2_kind = r.get("t2_kind") or "next supply shelf"
+        add(t2, "🎯 Target 2", "Technicals", f"{t2_kind} — reward/risk {(t2 - entry) / risk:.1f}" if _fin(t2) else "")
     if trigger:
         add(trigger, "▶️ Entry (close above)", "Technicals", "supply overhang just above — wait for the close through it")
     add(close, "● Price now", "", "entry at the close" if not trigger else "")
     add(stop, "🛑 Stop-loss", "Technicals",
         (f"risk {(entry - stop) / entry * 100:.1f}% from entry" + (" — wider than 10%: half size" if r.get("half_size") else ""))
-        if valid_stop else "price is already below the stop — no trade")
+        if valid_stop else ("stop invalid (<= 0)" if not (_fin(stop) and stop > 0) else "price is already below the stop — no trade"))
     if _fin(r.get("ma50")):
         add(r["ma50"], "↘ Exit line (MA50)", "Technicals", "two closes below = exit")
     if P.get("held") and _fin(P.get("trail")):

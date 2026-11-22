@@ -39,20 +39,14 @@ def calculate_stock_trend_history(ticker, hist_df=None):
     
     # --- Vectorized Trend Calculation (faster than iterrows) ---
     
-    # 1. MA Alignment
-    # Price > MA50 (+15), Price > MA200 (+15), Golden Cross (+10)
-    # Penalties: Price < MA50 (-10), Price < MA200 (-15), Death Cross (-5)
-    
+    # 1. MA Alignment (leave uncomputed MAs neutral = 0 instead of penalizing IPOs / first 199 bars)
     ma_score = np.zeros(len(df))
-    
-    # Price vs MA50
-    ma_score += np.where(df['Close'] > df['MA50'], 15, -10)
-    
-    # Price vs MA200
-    ma_score += np.where(df['Close'] > df['MA200'], 15, -15)
-    
-    # Crosses
-    ma_score += np.where((df['MA50'] > 0) & (df['MA200'] > 0) & (df['MA50'] > df['MA200']), 10, -5)
+    has_ma50 = df['MA50'].notna() & (df['MA50'] > 0)
+    has_ma200 = df['MA200'].notna() & (df['MA200'] > 0)
+
+    ma_score += np.where(has_ma50, np.where(df['Close'] > df['MA50'], 15, -10), 0)
+    ma_score += np.where(has_ma200, np.where(df['Close'] > df['MA200'], 15, -15), 0)
+    ma_score += np.where(has_ma50 & has_ma200, np.where(df['MA50'] > df['MA200'], 10, -5), 0)
     
     # 2. 52-Week Position (30 pts max)
     # Range Position (-15 to +15) + Near High Bonus (+10) or Low Penalty (-10)
@@ -115,26 +109,40 @@ def sector_indices(prices: pd.DataFrame, sector_map: dict) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=3600*4)
+def _sector_history_cached(sector_items: tuple):
+    sector_map = dict(sector_items)
+    try:
+        from utils.signal_scorecard import price_panel
+        P, _ = price_panel()
+        if len(P) >= 30:
+            res = sector_indices(P, sector_map)
+            if not res.empty:
+                return res
+    except Exception as e:
+        print(f"Sector history from snapshots failed: {e}")
+    tickers = [t for t in sector_map if t.endswith(('.NS', '.BO'))]
+    from utils.yf_safe import safe_download            # NSE's files first, Yahoo for the rest
+    dl = safe_download(tickers, period="1y", interval="1d", retries=2, min_coverage=0.3)
+    if dl is None or dl.empty:
+        raise RuntimeError("empty sector download")
+    data = dl['Close']
+    res = sector_indices(data, sector_map)
+    if res.empty:
+        raise RuntimeError("empty sector indices")
+    return res
+
+
 def calculate_sector_history(nifty500_df):
     """
     Equal-weight sector indices (base 100) with a market benchmark column (BENCH).
 
     Built from the stored daily snapshots (no download, split-adjusted). Falls back to a one-year
-    Yahoo download only when there are fewer than 30 snapshots.
+    Yahoo download only when there are fewer than 30 snapshots. Do not cache empty failures.
     """
-    sector_map = nifty500_df.drop_duplicates('ticker').set_index('ticker')['sector'].to_dict()
+    core = nifty500_df[nifty500_df['extended'] != True] if 'extended' in nifty500_df.columns else nifty500_df
+    sector_items = tuple(sorted(core.drop_duplicates('ticker').set_index('ticker')['sector'].to_dict().items()))
     try:
-        from utils.signal_scorecard import price_panel
-        P, _ = price_panel()
-        if len(P) >= 30:
-            return sector_indices(P, sector_map)
-    except Exception as e:
-        print(f"Sector history from snapshots failed: {e}")
-    try:
-        tickers = [t for t in nifty500_df['ticker'].unique().tolist() if t.endswith(('.NS', '.BO'))]
-        from utils.yf_safe import safe_download            # NSE's files first, Yahoo for the rest
-        data = safe_download(tickers, period="1y", interval="1d", retries=2, min_coverage=0.3)['Close']
-        return sector_indices(data, sector_map)
+        return _sector_history_cached(sector_items)
     except Exception as e:
         print(f"Error calculating sector history: {e}")
         return pd.DataFrame()

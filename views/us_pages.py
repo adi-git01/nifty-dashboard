@@ -627,7 +627,7 @@ def render_us_scanner(*, us_quote_url, us_display_re) -> None:
     _bkouts = us_df[us_df["dist_52w"] > -2.0].copy()
     if not _bkouts.empty:
         with st.expander(f"🚨 **{len(_bkouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
-            _bkouts_s = _bkouts.nsmallest(20, "dist_52w").copy()
+            _bkouts_s = _bkouts.nlargest(20, "dist_52w").copy()
             _bkouts_s["yf_link"] = _bkouts_s.apply(lambda r: us_quote_url(r['ticker']), axis=1)
             st.dataframe(
                 _bkouts_s[["yf_link", "name", "currentPrice", "dist_52w", "trend_score", "overall"]],
@@ -674,10 +674,10 @@ def render_us_scanner(*, us_quote_url, us_display_re) -> None:
     # Apply filters
     us_fdf = us_df.copy()
     if us_search:
-        _q = us_search.lower()
+        _q = us_search.lower().strip()
         us_fdf = us_fdf[
-            us_fdf["ticker"].str.lower().str.contains(_q) |
-            us_fdf["name"].str.lower().str.contains(_q)
+            us_fdf["ticker"].fillna("").astype(str).str.lower().str.contains(_q, regex=False) |
+            us_fdf["name"].fillna("").astype(str).str.lower().str.contains(_q, regex=False)
         ]
     if us_sel_sector:
         us_fdf = us_fdf[us_fdf["sector"].isin(us_sel_sector)]
@@ -782,7 +782,7 @@ def render_us_scanner(*, us_quote_url, us_display_re) -> None:
         )
         with _us_dl:
             st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
-            _us_export_cols = [c for c in _us_disp if c != 'yf_link']
+            _us_export_cols = ['ticker'] + [c for c in _us_disp if c not in ('yf_link', 'ticker')]
             _us_export = us_fdf[_us_export_cols].sort_values('trend_score', ascending=False).copy()
             st.download_button(
                 label="⬇️ Download CSV",

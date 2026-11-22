@@ -228,8 +228,9 @@ def _fetch_day_checked(S, day: pd.Timestamp, tries: int = 2) -> Tuple[Optional[p
         ix = None
     if st is not None and ix is None:
         # Index file unavailable for an active stock session; do not treat as holiday.
-        pass
-    elif st is None and not holiday_confirmed and ix is not None:
+        holiday_confirmed = False
+    elif st is None and ix is not None:
+        # Index file exists for today, so NSE was open even if stock bhavcopy failed transiently.
         holiday_confirmed = False
     return st, ix, holiday_confirmed
 
@@ -273,7 +274,8 @@ def update(S=None, upto: Optional[pd.Timestamp] = None, start: Optional[pd.Times
         from utils.nse_data import ARCH
         ix_day = last_ix + pd.Timedelta(days=1)
         while ix_day <= last_st:
-            if ix_day.weekday() < 5:
+            st_p = os.path.join(PX, "d", f"{ix_day:%Y%m%d}.parquet")
+            if ix_day.weekday() < 5 or os.path.exists(st_p):
                 try:
                     raw_ix = parse_indices(S.get(f"{ARCH}/content/indices/ind_close_all_{ix_day:%d%m%Y}.csv", tries=2).content)
                     exact_ix = raw_ix[raw_ix["date"].dt.normalize() == ix_day.normalize()]
@@ -283,13 +285,14 @@ def update(S=None, upto: Optional[pd.Timestamp] = None, start: Optional[pd.Times
                 except Exception:
                     pass
             ix_day += pd.Timedelta(days=1)
-    closed = []
+    closed, opened = [], []
     while day <= upto:
         weekend = day.weekday() >= 5                     # NSE trades some weekends: budget day, Muhurat
         st, ix, holiday_confirmed = _fetch_day_checked(S, day, tries=1 if weekend else 2)
         if st is not None and len(st):
             write_day("stocks", day, st)
             got["sessions"] += 1
+            opened.append(day)
         elif not weekend and holiday_confirmed and (day < pd.Timestamp(now.date()) or (now.hour, now.minute) >= (20, 0)):
             got["holidays"] += 1                         # confirmed holiday / stale-date file: NSE was closed
             closed.append(day)
@@ -301,6 +304,8 @@ def update(S=None, upto: Optional[pd.Timestamp] = None, start: Optional[pd.Times
         if not weekend and (got["sessions"] + got["holidays"]) % 50 == 0:
             log(f"[nse-prices] {day:%d %b %Y}: {got}")
         day += pd.Timedelta(days=1)
+    if opened:
+        unnote_holidays(opened)
     if closed:
         note_holidays(closed)
     if finish:
@@ -421,14 +426,21 @@ def _factors_split_aware(g: pd.DataFrame, acts: Optional[list] = None) -> Tuple[
     d = pd.DatetimeIndex(g["date"].values)
     f_px = np.ones(len(g))
     f_sh = np.ones(len(g))
-    q = np.r_[np.nan, c[1:] / c[:-1]]
+    valid_c = (c[:-1] > 0) & (c[1:] > 0)
+    q = np.r_[np.nan, np.where(valid_c, c[1:] / np.where(c[:-1] > 0, c[:-1], np.nan), np.nan)]
     used = set()
-    qo_all = np.r_[np.nan, o[1:] / c[:-1]]
+    valid_o = (c[:-1] > 0) & (o[1:] > 0)
+    qo_all = np.r_[np.nan, np.where(valid_o, o[1:] / np.where(c[:-1] > 0, c[:-1], np.nan), np.nan)]
     ratio: Dict[int, float] = {}                     # a split and a bonus on the same day multiply (DELPHIFX 0.2 x 1/3)
     px_only: Dict[int, float] = {}                   # rights / demergers (price-only scaling)
+    seen_acts = set()
     for act in acts or []:
         ex, fac, kind = act[:3]
         info = act[3] if len(act) > 3 else None
+        dedup_key = (pd.Timestamp(ex).normalize(), str(kind), round(float(fac), 6) if fac == fac else None, info)
+        if dedup_key in seen_acts:
+            continue
+        seen_acts.add(dedup_key)
         k = int(np.searchsorted(d.values, np.datetime64(ex)))
         if k <= 0 or k >= len(g) or (d[k] - ex).days > 6 or not np.isfinite(q[k]):
             continue
@@ -471,7 +483,7 @@ def _factors_split_aware(g: pd.DataFrame, acts: Optional[list] = None) -> Tuple[
             used.add(k)
     for k, pfac in px_only.items():
         f_px[k] *= pfac
-    for k in np.flatnonzero(np.abs(np.log(np.where(np.isfinite(q), q, 1.0))) > JUMP):
+    for k in np.flatnonzero(np.abs(np.log(np.where(np.isfinite(q) & (q > 0), q, 1.0))) > JUMP):
         if k in used or (d[k] - d[k - 1]).days > 10:
             continue
         r = pc_nse[k] / c[k - 1] if c[k - 1] > 0 else np.nan
@@ -523,7 +535,11 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
     st = [t for t in want if str(t).endswith(".NS")]
     ix = [t for t in want if t in INDEX_SYMBOLS]
     s0 = pd.Timestamp(start) if start is not None else None
+    if s0 is not None and getattr(s0, "tzinfo", None) is not None:
+        s0 = s0.tz_localize(None)
     e0 = pd.Timestamp(end) if end is not None else None
+    if e0 is not None and getattr(e0, "tzinfo", None) is not None:
+        e0 = e0.tz_localize(None)
     cut = lambda d: d[d.index >= s0] if s0 is not None else d
     if st:
         chg = _symbol_map()
@@ -612,8 +628,9 @@ def is_current(now: Optional[datetime] = None) -> bool:
             return True
         try:
             if tried is None:
-                tried = set(pd.read_csv(os.path.join(ROOT, "holidays.csv"), parse_dates=["date"])["date"])
-            gap = [d for d in pd.bdate_range(last + pd.Timedelta(days=1), exp)]
+                hol_df = pd.read_csv(os.path.join(ROOT, "holidays.csv"), parse_dates=["date"])
+                tried = set(pd.to_datetime(hol_df["date"], errors="coerce").dropna().dt.normalize())
+            gap = [d.normalize() for d in pd.bdate_range(last + pd.Timedelta(days=1), exp)]
             return all(d in tried for d in gap)
         except Exception:
             return False
@@ -629,6 +646,19 @@ def is_current(now: Optional[datetime] = None) -> bool:
 def note_holidays(days: Iterable[pd.Timestamp]) -> None:
     p = os.path.join(ROOT, "holidays.csv")
     old = pd.read_csv(p, parse_dates=["date"]) if os.path.exists(p) else pd.DataFrame(columns=["date"])
-    new = pd.concat([old, pd.DataFrame({"date": pd.to_datetime(list(days))})]).drop_duplicates()
+    new = pd.concat([old, pd.DataFrame({"date": pd.to_datetime(list(days)).normalize()})]).drop_duplicates()
     os.makedirs(ROOT, exist_ok=True)
     new.sort_values("date").to_csv(p, index=False, date_format="%Y-%m-%d")
+
+
+def unnote_holidays(days: Iterable[pd.Timestamp]) -> None:
+    p = os.path.join(ROOT, "holidays.csv")
+    if not os.path.exists(p):
+        return
+    drop = {pd.Timestamp(d).normalize() for d in days}
+    old = pd.read_csv(p, parse_dates=["date"])
+    if old.empty:
+        return
+    keep = old[~pd.to_datetime(old["date"], errors="coerce").dt.normalize().isin(drop)]
+    if len(keep) < len(old):
+        keep.sort_values("date").to_csv(p, index=False, date_format="%Y-%m-%d")

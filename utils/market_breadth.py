@@ -18,10 +18,11 @@ Based on DNA3 research (Phase 7):
 import pandas as pd
 import numpy as np
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import streamlit as st
 from utils.atomic_io import atomic_to_csv
 
+_IST = timezone(timedelta(hours=5, minutes=30))
 BREADTH_FILE = "data/market_breadth_history.csv"
 
 # Thresholds (from 15Y backtest analysis)
@@ -72,55 +73,41 @@ def calculate_breadth_from_df(df):
     
     above_50dma = 0
     above_200dma = 0
-    
-    # dist_200dma is available in the dashboard (% distance from 200DMA)
+    pct_above_200dma = 0.0
+
+    # dist_200dma is available in the dashboard (% distance from 200DMA); divide by valid non-null count.
     if 'dist_200dma' in df.columns:
-        above_200dma = len(df[df['dist_200dma'] > 0])
-    
-    # For 50DMA: trend_score >= 55 roughly correlates with Price > MA50
-    # But we need the actual MA50 data. Let's check if it's available.
-    # The trend_engine calculates MA50 internally but doesn't expose it directly
-    # in the main df. However, a stock with trend_score >= 50 AND positive
-    # recent momentum is very likely above MA50.
-    #
-    # Best approach: compute directly from price histories if available,
-    # otherwise use trend_signal as proxy.
-    
-    # Proxy: Use trend_score breakdown from trend_engine.py
-    # trend_score includes +15 for Price > MA50, so:
-    # If trend_score >= 55, the stock has at least Price > MA50 (+15 from MA alignment)
-    # Actually, let's use the UPTREND signal which requires score >= 60
-    # But a more accurate proxy is to check if the stock is in an uptrend
-    # and has positive dist_200dma (since MA50 is faster)
-    
-    # Most accurate available proxy:
-    # - Stocks with trend_signal in STRONG UPTREND or UPTREND = above both MAs typically
-    # - Neutral stocks could be above or below
-    
-    # Use a combined approach
+        _d200 = pd.to_numeric(df['dist_200dma'], errors='coerce').dropna()
+        if len(_d200):
+            above_200dma = int((_d200 > 0).sum())
+            pct_above_200dma = round(above_200dma / len(_d200) * 100, 1)
+
     if 'trend_score' in df.columns:
-        # Score >= 50 means the stock has SOME positive MA alignment
-        # Score >= 65 is a more reliable "above MA50" proxy
         above_50dma = len(df[df['trend_score'] >= 50])
-    
-    # The snapshot now carries the 50-day average itself, so count it directly. The trend-score
-    # proxy above read 40.8% on 6 Nov 2026 when 33.8% of stocks were actually above their MA50.
+    pct_above_50dma = round(above_50dma / total * 100, 1) if total > 0 else 0
+
     if 'fiftyDayAverage' in df.columns and ('currentPrice' in df.columns or 'price' in df.columns):
         _px = pd.to_numeric(df['currentPrice'] if 'currentPrice' in df.columns else df['price'], errors='coerce')
         _m50 = pd.to_numeric(df['fiftyDayAverage'], errors='coerce')
-        if (_px.notna() & _m50.notna()).sum() >= 0.5 * total:
-            above_50dma = int((_px > _m50).sum())
+        _ok50 = _px.notna() & _m50.notna() & (_px > 0) & (_m50 > 0)
+        if _ok50.sum() >= 0.5 * total:
+            above_50dma = int((_px[_ok50] > _m50[_ok50]).sum())
+            pct_above_50dma = round(above_50dma / int(_ok50.sum()) * 100, 1)
 
-    pct_above_50dma = round(above_50dma / total * 100, 1) if total > 0 else 0
-    pct_above_200dma = round(above_200dma / total * 100, 1) if total > 0 else 0
-    
     # Additional breadth metrics
     strong_momentum = len(df[df['trend_score'] >= 80]) if 'trend_score' in df.columns else 0
     uptrends = len(df[df['trend_signal'].isin(['STRONG UPTREND', 'UPTREND'])]) if 'trend_signal' in df.columns else 0
     near_52w_high = len(df[df['dist_52w'] >= -5]) if 'dist_52w' in df.columns else 0
-    
+
+    try:
+        from utils.snapshots import bar_date as _snap_bar_date
+        _bd = _snap_bar_date(df)
+        _date_str = _bd.strftime('%Y-%m-%d') if _bd is not None else datetime.now(_IST).strftime('%Y-%m-%d')
+    except Exception:
+        _date_str = datetime.now(_IST).strftime('%Y-%m-%d')
+
     return {
-        'date': datetime.now().strftime('%Y-%m-%d'),
+        'date': _date_str,
         'pct_above_50dma': pct_above_50dma,
         'pct_above_200dma': pct_above_200dma,
         'pct_strong_momentum': round(strong_momentum / total * 100, 1),
@@ -237,6 +224,22 @@ def get_breadth_status(pct_above_50dma):
     Returns:
         Dict with status, color, icon, description, and action
     """
+    try:
+        pct_val = float(pct_above_50dma)
+    except (TypeError, ValueError):
+        pct_val = float('nan')
+    if not np.isfinite(pct_val):
+        return {
+            'status': 'UNKNOWN',
+            'color': '#94a3b8',
+            'icon': '⚪',
+            'description': 'Breadth reading unavailable',
+            'action': 'WAIT FOR DATA',
+            'momentum_safe': False,
+            'gradient_start': '#94a3b822',
+            'gradient_end': '#94a3b844',
+        }
+    pct_above_50dma = pct_val
     if pct_above_50dma < EXTREME_FEAR_THRESHOLD:
         return {
             'status': 'EXTREME FEAR',

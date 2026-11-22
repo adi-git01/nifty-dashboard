@@ -225,13 +225,18 @@ def retention_chart(P: dict) -> go.Figure | None:
     """Each close since the anchor vs the close before the anchor (the retention test)."""
     cur = CUR.get(P.get("currency", "INR"), "₹")
     r, d = P["r"], P["df"]
-    if "anchor_date" not in r:
+    if "anchor_date" not in r or r.get("state") not in UP_STATES:
         return None
-    c = d["Close"].astype(float)
-    a = c.index.get_loc(pd.Timestamp(r["anchor_date"]))
+    c = pd.to_numeric(d["Close"], errors="coerce").dropna()
+    ad = pd.Timestamp(r["anchor_date"])
+    if ad not in c.index:
+        return None
+    a = c.index.get_loc(ad)
+    if a < 1:
+        return None
     base = c.iloc[a - 1]
-    post = c.iloc[a + 1:]
-    if not len(post):
+    post = c.iloc[a + 1:].dropna()
+    if not len(post) or base <= 0:
         return None
     pct = (post / base - 1) * 100
     held = post >= base

@@ -58,11 +58,13 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
     stop, t1, t2 = n("fx_stop"), n("fx_t1"), n("fx_t2")
     ent = n("fx_entry") if pd.notna(n("fx_entry")) else px              # the trigger for BUY ON TRIGGER
     risk = (ent - stop) / ent * 100 if pd.notna(stop) and stop > 0 and stop < ent else np.nan
-    half = bool(r.get("fx_half_size")) if pd.notna(r.get("fx_half_size")) else False
-    plan = dict(action=str(r.get("fx_action") or "—"), state=str(r.get("fx_state") or "—"), entry=ent, stop=stop, risk_pct=risk,
+    _raw_half = r.get("half_size", r.get("fx_half_size"))
+    half = _raw_half is True or str(_raw_half).strip().lower() in ("true", "1")
+    _txt = lambda k: str(r.get(k)).strip() if pd.notna(r.get(k)) and str(r.get(k)).strip() not in ("", "nan", "None") else "—"
+    plan = dict(action=_txt("fx_action"), state=_txt("fx_state"), entry=ent, stop=stop, risk_pct=risk,
                 t1=t1 if pd.notna(t1) and t1 > ent else (ent + 2 * (ent - stop) if pd.notna(risk) else np.nan),
                 t2=t2 if pd.notna(t2) and t2 > ent else np.nan, half=half,
-                supply=str(r.get("fx_supply") or "—"), trail=n("simba_trail"),
+                supply=_txt("fx_supply"), trail=n("simba_trail"),
                 # "(half size flagged)" used to sit next to the full figure
                 size_pct=min(RISK_PCT / risk * 100, 25.0) * (0.5 if half else 1.0) if pd.notna(risk) and risk > 0 else np.nan)
     vrow = None

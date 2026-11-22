@@ -23,13 +23,68 @@ _FUND_COLS = [
     'revenueGrowth', 'earningsGrowth', 'earningsQuarterlyGrowth',
     'debtToEquity', 'marketCap', 'beta',
     'earningsQuality', 'earningsTrend',
-    'name', 'sector', 'sector_granular', 'fund_last_updated',
+    'name', 'sector', 'sector_granular', 'fund_last_updated', 'fund_source',
 ]
 
 # Columns that legitimately hold text; everything else exchanged between the
 # caches and yfinance is numeric and must come back out of _safe_update numeric.
 _TEXT_COLS = {'ticker', 'name', 'sector', 'sector_granular', 'industry',
-              'summary', 'fund_last_updated', 'trend_signal', 'dna_signal'}
+              'summary', 'fund_last_updated', 'fund_source', 'trend_signal', 'dna_signal'}
+
+
+def _recommendation_for(overall) -> str:
+    try:
+        v = float(overall)
+    except (TypeError, ValueError):
+        return "AVOID"
+    if not np.isfinite(v):
+        return "AVOID"
+    return "BUY" if v >= 7.5 else "HOLD" if v >= 5.0 else "AVOID"
+
+
+def _sector_pe_medians(df: pd.DataFrame) -> dict:
+    if 'pe' not in df.columns or 'sector' not in df.columns:
+        return {}
+    core_df = df[df["extended"] != True] if "extended" in df.columns else df
+    pe_numeric = pd.to_numeric(core_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+    pe_numeric = pe_numeric.where((pe_numeric > 0) & (pe_numeric < 500))
+    return core_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
+
+
+def _recompute_scores(df: pd.DataFrame, tickers_to_update) -> pd.DataFrame:
+    """Recompute pillar scores and recommendation for updated tickers when score columns exist."""
+    if df.empty or tickers_to_update is None or len(tickers_to_update) == 0 or 'trend_score' not in df.columns:
+        return df
+    sector_pe = _sector_pe_medians(df)
+    df_idx = df.drop_duplicates(subset=['ticker'], keep='last').set_index('ticker')
+    for t in tickers_to_update:
+        if t not in df_idx.index:
+            continue
+        row = df_idx.loc[t].to_dict()
+        row['ticker'] = t
+        sector = row.get('sector', 'Unknown')
+        scores = calculate_scores(row, sector_pe_median=sector_pe.get(sector, 20), sector=sector)
+        for k, v in scores.items():
+            df_idx.loc[t, k] = v
+        df_idx.loc[t, 'recommendation'] = _recommendation_for(scores.get('overall', 0))
+    return df_idx.reset_index()
+
+
+def _fallback_parquet_or(default_df: pd.DataFrame) -> pd.DataFrame:
+    """Return latest known-good market_master parquet tagged stale_fallback, else default_df tagged stale."""
+    prior_files = sorted(glob.glob("data/cache/market_master_*.parquet"))
+    for path in reversed(prior_files):
+        try:
+            fallback_df = pd.read_parquet(path)
+            if fallback_df is not None and not fallback_df.empty:
+                print(f"[ENGINE] Using fallback cache: {path} ({len(fallback_df)} rows)", flush=True)
+                fallback_df.attrs["stale_fallback"] = os.path.basename(path)
+                return fallback_df
+        except Exception as e:
+            print(f"[ENGINE] Fallback parquet unreadable ({path}: {e})", flush=True)
+    out = default_df.copy()
+    out.attrs["stale_fallback"] = "none"
+    return out
 
 def _safe_update(df: pd.DataFrame, other: pd.DataFrame) -> pd.DataFrame:
     """
@@ -114,14 +169,25 @@ def _merge_fundamentals_cache(df: pd.DataFrame) -> pd.DataFrame:
 
         # Only bring in columns this cache owns; don't clobber live price data
         cols_to_merge = [c for c in _FUND_COLS if c in fund.columns]
-        fund = fund[['ticker'] + cols_to_merge].set_index('ticker')
+        fund = fund[['ticker'] + cols_to_merge].drop_duplicates(subset=['ticker'], keep='last').set_index('ticker')
 
-        df = df.set_index('ticker')
-        df = _safe_update(df, fund)          # fills NaN + updates stale values
-        for col in fund.columns:             # add any columns missing from parquet
+        df = df.drop_duplicates(subset=['ticker'], keep='last').set_index('ticker')
+        overlap = df.index.intersection(fund.index)
+        for col in fund.columns:
             if col not in df.columns:
                 df[col] = fund[col]
+                continue
+            vals = fund[col].reindex(overlap)
+            if col in _TEXT_COLS:
+                keep_new = vals.notna() & ~vals.astype(str).str.strip().isin(["", "nan", "None", "Unknown"])
+                df[col] = df[col].astype(object)
+                df.loc[overlap[keep_new], col] = vals[keep_new]
+            else:
+                # Overwrite matched tickers even when the fresh cache explicitly cleared a metric to NaN (e.g. PE on loss)
+                df.loc[overlap, col] = pd.to_numeric(vals, errors='coerce').replace([np.inf, -np.inf], np.nan)
         df = df.reset_index()
+        if len(overlap) and {'quality', 'value', 'growth', 'overall'} & set(df.columns):
+            df = _recompute_scores(df, overlap)
 
         age_days = ""
         if 'fund_last_updated' in fund.columns:
@@ -255,10 +321,20 @@ def fetch_missing_fundamentals(df):
             except: pass
                 
     if new_data:
-        update_df = pd.DataFrame(new_data)
-        df = df.set_index('ticker')
-        update_df = update_df.set_index('ticker')
+        update_df = pd.DataFrame(new_data).drop_duplicates(subset=['ticker'], keep='last')
+        allowed = [c for c in _FUND_COLS if c in update_df.columns]
+        update_df = update_df[['ticker'] + allowed].set_index('ticker')
+        for col in allowed:
+            if col in _TEXT_COLS:
+                bad = update_df[col].astype(str).str.strip().isin(["", "nan", "None", "Unknown"])
+                update_df.loc[bad, col] = np.nan
+            else:
+                num = pd.to_numeric(update_df[col], errors='coerce').replace([np.inf, -np.inf], np.nan)
+                if col in ('pe', 'forwardPE', 'marketCap', 'pb', 'beta'):
+                    num = num.where(num > 0)
+                update_df[col] = num
 
+        df = df.drop_duplicates(subset=['ticker'], keep='last').set_index('ticker')
         df = _safe_update(df, update_df)
         for col in update_df.columns:
             if col not in df.columns:
@@ -266,31 +342,9 @@ def fetch_missing_fundamentals(df):
 
         df = df.reset_index()
 
-        # Recompute pillar scores for freshly-fetched stocks so stale cached
-        # scores (computed with all-zero fundamentals by the CI live_mode run)
-        # are replaced immediately rather than persisting until next full run.
+        # Recompute pillar scores and recommendation for freshly-fetched stocks.
         try:
-            if 'pe' in df.columns:
-                # errors='coerce' still parses 'Infinity'/'-Infinity' strings into
-                # real inf floats (Python float() semantics) instead of NaN — strip those too.
-                core_df = df[df["extended"] != True] if "extended" in df.columns else df
-                pe_numeric = pd.to_numeric(core_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
-                pe_numeric = pe_numeric.where((pe_numeric > 0) & (pe_numeric < 500))
-                sector_pe = core_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
-            else:
-                sector_pe = {}
-            updated_tickers = set(update_df.index)
-            df_idx = df.set_index('ticker')
-            for t in updated_tickers:
-                if t not in df_idx.index:
-                    continue
-                row = df_idx.loc[t].to_dict()
-                row['ticker'] = t
-                sector = row.get('sector', 'Unknown')
-                scores = calculate_scores(row, sector_pe_median=sector_pe.get(sector, 20), sector=sector)
-                for k, v in scores.items():
-                    df_idx.loc[t, k] = v
-            df = df_idx.reset_index()
+            df = _recompute_scores(df, set(update_df.index))
         except Exception as e:
             print(f"[ENGINE] Score recomputation after fundamental fetch failed: {e}")
 
@@ -336,13 +390,18 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
         from utils.simba import HISTORY_DAYS
         nifty = safe_history("^NSEI", start=(pd.Timestamp.today().normalize()
                                              - pd.Timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%d"), source=price_source)
-        nifty_3m_ret = 0
-        if not nifty.empty:
-            nifty.index = nifty.index.tz_localize(None)
-            curr_nifty = nifty['Close'].iloc[-1]
-            if len(nifty) > 63:
+        if nifty is not None and not nifty.empty:
+            nifty = nifty.copy()
+            if getattr(nifty.index, "tz", None) is not None:
+                nifty.index = nifty.index.tz_localize(None)
+            nifty.index = nifty.index.normalize()
+            nifty = nifty[~nifty.index.duplicated(keep="last")].sort_index()
+            if len(nifty) > 63 and nifty['Close'].iloc[-63] > 0:
+                curr_nifty = nifty['Close'].iloc[-1]
                 old_nifty = nifty['Close'].iloc[-63]
                 nifty_3m_ret = ((curr_nifty - old_nifty) / old_nifty) * 100
+        else:
+            nifty = pd.DataFrame()
 
         # ✅ FIX: threads=False prevents 20-thread storm that triggers Yahoo 401s on CI
         # Batch download is still fast (single HTTP session, vectorized)
@@ -371,13 +430,19 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
               f"Cols preview={list(history_data.columns[:4]) if not isinstance(history_data.columns, pd.MultiIndex) else list(history_data.columns.levels[0][:4])}",
               flush=True)
     except Exception as e:
-        # ✅ Graceful degradation: log but don't crash — use existing cache/fundamentals
-        print(f"[ENGINE] yfinance download failed ({e}), returning cached fundamentals")
+        # ✅ Graceful degradation: fall back to last known good snapshot when save=True
+        print(f"[ENGINE] yfinance download failed ({e}), falling back to cached snapshot")
         try:
             st.error(f"Failed to fetch market data: {e}")
         except Exception:
             pass
-        return fundamental_df
+        _fb = _fallback_parquet_or(fundamental_df)
+        _tag = _fb.attrs.get("stale_fallback")
+        if save:
+            _fb = _merge_fundamentals_cache(_fb)
+            if _tag is not None:
+                _fb.attrs["stale_fallback"] = _tag
+        return _fb
 
     processed_rows = []
 
@@ -410,7 +475,10 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     total_tickers = len(tickers)
     
     # Create lookup for fundamentals
-    fund_lookup = fundamental_df.set_index('ticker').to_dict('index') if not fundamental_df.empty else {}
+    fund_lookup = (
+        fundamental_df.drop_duplicates(subset=['ticker'], keep='last').set_index('ticker').to_dict('index')
+        if not fundamental_df.empty else {}
+    )
 
     # All-time highs (data/ath_levels.csv, seeded by seed_ath.py). Read here;
     # written back only by the EOD engine (update_ath=True) -- see below.
@@ -429,15 +497,16 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             if total_tickers > 1:
                 if ticker not in history_data.columns.levels[0]:
                     continue
-                df = history_data[ticker].dropna()
+                df = history_data[ticker].dropna(subset=["Close"])
             else:
                 # one ticker: newer yfinance still returns [Ticker, Field] columns for a list input
                 _h = history_data
                 if isinstance(_h.columns, pd.MultiIndex):
                     _lv0 = _h.columns.get_level_values(0)
                     _h = _h[ticker] if ticker in _lv0 else _h.droplevel(1 if "Close" in _lv0 else 0, axis=1)
-                df = _h.dropna()
-                
+                df = _h.dropna(subset=["Close"])
+
+            df = df[pd.to_numeric(df["Close"], errors="coerce") > 0]
             if df.empty or len(df) < 20:
                 continue
 
@@ -446,56 +515,64 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             # 52-week high/low and volatility in one place. Without this a
             # single bad Yahoo bar produced absurd RS like ARIHANT +759%.
             df = _sanitize_price_bars(df)
+            if getattr(df.index, "tz", None) is not None:
+                df = df.copy()
+                df.index = df.index.tz_localize(None)
 
-            _last_bars.append(df.index[-1])
-            # Get existing fundamentals (Sector, PE, Name, etc.)
-            base_data = fund_lookup.get(ticker, {})
+            _row_bar = pd.Timestamp(df.index[-1]).normalize()
+            _last_bars.append(_row_bar)
+            # Get existing fundamentals (Sector, PE, Name, etc.) — copy so fund_lookup is never mutated
+            base_data = dict(fund_lookup.get(ticker, {}))
+            base_data['_bar_date'] = _row_bar
             # Ensure ticker and name exist
             base_data['ticker'] = ticker
-            if 'name' not in base_data:
+            if not base_data.get('name'):
                 base_data['name'] = ticker
-            if 'sector' not in base_data:
+            if not base_data.get('sector'):
                 base_data['sector'] = "Unknown"
-                
+
             # --- CALCULATE LIVE METRICS ---
-            
+
             # 1. Price metrics
             current_price = float(df['Close'].iloc[-1])
             prev_close = float(df['Close'].iloc[-2]) if len(df) > 1 else current_price
-            change_p = ((current_price - prev_close) / prev_close) * 100
-            
+            change_p = ((current_price - prev_close) / prev_close) * 100 if prev_close > 0 else 0.0
+
             base_data['currentPrice'] = current_price
             base_data['price'] = current_price # Alias
             base_data['previousClose'] = prev_close
             base_data['change_p'] = change_p
-            
+
             # 1b. Multi-period Returns
             def calc_return(days):
                 # `days` sessions back is iloc[-(days + 1)]; iloc[-days] made every period one
                 # session short (the "1-week" return covered 4 sessions).
                 if len(df) > days:
                     old_price = float(df['Close'].iloc[-(days + 1)])
-                    return ((current_price - old_price) / old_price) * 100
+                    if old_price > 0:
+                        return ((current_price - old_price) / old_price) * 100
                 return 0.0
-            
+
             base_data['return_1w'] = calc_return(5)
             base_data['return_1m'] = calc_return(21)
             base_data['return_3m'] = calc_return(63)
             base_data['return_6m'] = calc_return(126)
             base_data['return_1y'] = calc_return(252) if len(df) > 252 else calc_return(len(df) - 1)
-            
-            # 2. Moving Averages & Highs
-            if len(df) >= 50:
-                base_data['fiftyDayAverage'] = float(df['Close'].rolling(50).mean().iloc[-1])
-            if len(df) >= 200:
-                base_data['twoHundredDayAverage'] = float(df['Close'].rolling(200).mean().iloc[-1])
-                
-            high_52 = df['High'].iloc[-252:].max() if len(df) >= 252 else df['High'].max()
-            low_52 = df['Low'].iloc[-252:].min() if len(df) >= 252 else df['Low'].min()
-            
-            base_data['fiftyTwoWeekHigh'] = float(high_52)
-            base_data['fiftyTwoWeekLow'] = float(low_52)
-            base_data['dist_52w'] = ((current_price - high_52) / high_52) * 100
+
+            # 2. Moving Averages & Highs (clear stale values before recomputing from bars)
+            base_data['fiftyDayAverage'] = (
+                float(df['Close'].rolling(50).mean().iloc[-1]) if len(df) >= 50 else np.nan
+            )
+            base_data['twoHundredDayAverage'] = (
+                float(df['Close'].rolling(200).mean().iloc[-1]) if len(df) >= 200 else np.nan
+            )
+
+            high_52 = float(df['High'].iloc[-252:].max() if len(df) >= 252 else df['High'].max())
+            low_52 = float(df['Low'].iloc[-252:].min() if len(df) >= 252 else df['Low'].min())
+
+            base_data['fiftyTwoWeekHigh'] = high_52 if np.isfinite(high_52) and high_52 > 0 else np.nan
+            base_data['fiftyTwoWeekLow'] = low_52 if np.isfinite(low_52) and low_52 > 0 else np.nan
+            base_data['dist_52w'] = ((current_price - high_52) / high_52) * 100 if np.isfinite(high_52) and high_52 > 0 else np.nan
 
             # 2b. Fresh 52-week-high breakout (Trend Scanner "Breakout" tag;
             # definition and backtest in utils/breakout_tags.py)
@@ -542,16 +619,20 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 base_data['volume_score'] = vol_sig['combined_score'] # Alias for sorting
                 
                 # Avg Volume
-                base_data['averageVolume'] = int(df['Volume'].iloc[-50:].mean())
-                
+                _v50 = pd.to_numeric(df['Volume'].iloc[-50:], errors='coerce').dropna()
+                base_data['averageVolume'] = int(_v50.mean()) if len(_v50) else 0
+
                 # Up/Down Volume Ratio (50 Days)
                 if len(df) >= 50:
                     price_change = df['Close'].diff()
-                    up_vol = df['Volume'].where(price_change > 0, 0).rolling(window=50).sum()
-                    down_vol = df['Volume'].where(price_change < 0, 0).rolling(window=50).sum()
-                    ud_ratio = up_vol / down_vol.replace(0, np.nan)
-                    val = float(ud_ratio.iloc[-1])
-                    base_data['ud_ratio'] = round(val, 2) if not np.isnan(val) else 1.0
+                    up_sum = float(df['Volume'].where(price_change > 0, 0).fillna(0).iloc[-50:].sum())
+                    dn_sum = float(df['Volume'].where(price_change < 0, 0).fillna(0).iloc[-50:].sum())
+                    if dn_sum > 0:
+                        base_data['ud_ratio'] = round(up_sum / dn_sum, 2)
+                    elif up_sum > 0:
+                        base_data['ud_ratio'] = 5.0
+                    else:
+                        base_data['ud_ratio'] = 1.0
                 else:
                     base_data['ud_ratio'] = 1.0
                     
@@ -573,75 +654,54 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             scores = calculate_scores(base_data, sector_pe_median=median_pe, sector=sector)
             base_data.update(scores)
             
-            # 6. OptComp-V22 Composite RS 
+            # 6. OptComp-V22 Composite RS
             # (10% 1W, 50% 1M, 40% 3M vs Nifty)
-            def _calc_rs(ret, bench_ret):
-                return ret - bench_ret
-                
-            rs_1w = _calc_rs(base_data.get('return_1w', 0), 0) # Simplification: Assume Nifty 1W ret ~ 0 for fast calc, ideally pass nifty_1w_ret
-            # We'll calculate true RS vs Nifty directly here
             idx = len(df) - 1
-            # Last Nifty bar on or before the stock's last bar. A plain searchsorted
-            # returned len(nifty) whenever the index series ended a day earlier than the
-            # stocks, and the IndexError below then dropped every ticker (9 Nov 2026).
-            _last = df.index[-1]
-            if getattr(_last, "tzinfo", None) is not None:
-                _last = _last.tz_localize(None)
-            nifty_idx = min(int(nifty.index.searchsorted(_last, side="right")) - 1, len(nifty) - 1)
-            
-            if nifty_idx >= 63 and idx >= 63:
-                n_ret_1w = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-5]) / nifty['Close'].iloc[nifty_idx-5] * 100
-                n_ret_1m = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-21]) / nifty['Close'].iloc[nifty_idx-21] * 100
-                n_ret_3m = (nifty['Close'].iloc[nifty_idx] - nifty['Close'].iloc[nifty_idx-63]) / nifty['Close'].iloc[nifty_idx-63] * 100
-                
-                t_ret_1w = (df['Close'].iloc[idx] - df['Close'].iloc[idx-5]) / df['Close'].iloc[idx-5] * 100
-                t_ret_1m = (df['Close'].iloc[idx] - df['Close'].iloc[idx-21]) / df['Close'].iloc[idx-21] * 100
-                t_ret_3m = (df['Close'].iloc[idx] - df['Close'].iloc[idx-63]) / df['Close'].iloc[idx-63] * 100
-                
-                rs_1w = t_ret_1w - n_ret_1w
-                rs_1m = t_ret_1m - n_ret_1m
-                rs_3m_val = t_ret_3m - n_ret_3m
-                
-                comp_rs = (rs_1w * 0.10) + (rs_1m * 0.50) + (rs_3m_val * 0.40)
-            else:
-                comp_rs = 0
-                rs_1w = 0
-                rs_1m = 0
-                rs_3m_val = base_data.get('return_3m', 0)
+            comp_rs = rs_1w = rs_1m = rs_3m_val = np.nan
+            if not nifty.empty and idx >= 63:
+                _last = pd.Timestamp(df.index[-1])
+                if getattr(_last, "tzinfo", None) is not None:
+                    _last = _last.tz_localize(None)
+                _last = _last.normalize()
+                nifty_idx = min(int(nifty.index.searchsorted(_last, side="right")) - 1, len(nifty) - 1)
+                if nifty_idx >= 63:
+                    n_c = float(nifty['Close'].iloc[nifty_idx])
+                    n5, n21, n63 = (float(nifty['Close'].iloc[nifty_idx - k]) for k in (5, 21, 63))
+                    t5, t21, t63 = (float(df['Close'].iloc[idx - k]) for k in (5, 21, 63))
+                    if min(n5, n21, n63, t5, t21, t63) > 0:
+                        rs_1w = (current_price - t5) / t5 * 100 - (n_c - n5) / n5 * 100
+                        rs_1m = (current_price - t21) / t21 * 100 - (n_c - n21) / n21 * 100
+                        rs_3m_val = (current_price - t63) / t63 * 100 - (n_c - n63) / n63 * 100
+                        comp_rs = (rs_1w * 0.10) + (rs_1m * 0.50) + (rs_3m_val * 0.40)
 
-            base_data['comp_rs'] = round(comp_rs, 2)
-            base_data['rs_3m']   = round(rs_3m_val, 2)
-            base_data['rs_1w']   = round(rs_1w, 2)
-            base_data['rs_1m']   = round(rs_1m, 2)
-            
+            base_data['comp_rs'] = round(float(comp_rs), 2) if np.isfinite(comp_rs) else np.nan
+            base_data['rs_3m']   = round(float(rs_3m_val), 2) if np.isfinite(rs_3m_val) else np.nan
+            base_data['rs_1w']   = round(float(rs_1w), 2) if np.isfinite(rs_1w) else np.nan
+            base_data['rs_1m']   = round(float(rs_1m), 2) if np.isfinite(rs_1m) else np.nan
+
             # Volatility (Annualized)
             if len(df) > 60:
                 daily_rets = df['Close'].pct_change().dropna()[-60:]
-                volatility = daily_rets.std() * np.sqrt(252) * 100
+                vol_raw = daily_rets.std() * np.sqrt(252) * 100
+                volatility = round(float(vol_raw), 1) if np.isfinite(vol_raw) else np.nan
             else:
-                volatility = 0
-            base_data['volatility'] = round(volatility, 1)
-            
-            # DNA Signal (Now OptComp-V22 Rules)
-            # Entry: Composite RS > 0, Price > 50MA, Vol > 1Cr
-            above_ma50 = current_price > base_data.get('fiftyDayAverage', 0)
+                volatility = np.nan
+            base_data['volatility'] = volatility
+
+            # DNA Signal (OptComp-V22 Rules: Composite RS > 0, Price > 50MA, Vol > 1Cr)
+            ma50_v = base_data.get('fiftyDayAverage')
+            above_ma50 = bool(ma50_v is not None and np.isfinite(ma50_v) and ma50_v > 0 and current_price > ma50_v)
             vol_val = base_data.get('averageVolume', 0) * current_price
-            
-            if comp_rs > 0 and above_ma50 and vol_val > 10_000_000:
+
+            if np.isfinite(comp_rs) and comp_rs > 0 and above_ma50 and vol_val > 10_000_000:
                 base_data['dna_signal'] = 'BUY'
-            elif comp_rs > 0 and above_ma50:
+            elif np.isfinite(comp_rs) and comp_rs > 0 and above_ma50:
                 base_data['dna_signal'] = 'WATCH'
             else:
                 base_data['dna_signal'] = 'HOLD'
-            
+
             # 7. Recommendation
-            overall = scores.get('overall', 0)
-            if overall >= 7.5:
-                base_data['recommendation'] = "BUY"
-            elif overall >= 5.0:
-                base_data['recommendation'] = "HOLD"
-            else:
-                base_data['recommendation'] = "AVOID"
+            base_data['recommendation'] = _recommendation_for(scores.get('overall', 0))
 
             processed_rows.append(base_data)
 
@@ -673,13 +733,22 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
             _bd = pd.Series([pd.Timestamp(x).tz_localize(None) if getattr(x, "tzinfo", None) is not None
                              else pd.Timestamp(x) for x in _last_bars]).dt.normalize()
             _bar_date = _bd.mode().iloc[0]
+            if '_bar_date' in final_df.columns and len(final_df) >= 20:
+                _fresh_mask = pd.to_datetime(final_df['_bar_date']) >= (_bar_date - pd.Timedelta(days=15))
+                if not _fresh_mask.all():
+                    _dropped = int((~_fresh_mask).sum())
+                    print(f"[ENGINE] Dropping {_dropped} stale/delisted ticker(s) with last bar >15d before {_bar_date:%Y-%m-%d}", flush=True)
+                    final_df = final_df[_fresh_mask].reset_index(drop=True)
+            final_df = final_df.drop(columns=['_bar_date'], errors='ignore')
             final_df["bar_date"] = _bar_date.strftime("%Y-%m-%d")
             _nc = nifty["Close"][nifty.index.normalize() <= _bar_date] if not nifty.empty else pd.Series(dtype=float)
             if len(_nc) >= 2 and _nc.index[-1].normalize() == _bar_date:
                 final_df["nifty_close"], final_df["nifty_prev_close"] = float(_nc.iloc[-1]), float(_nc.iloc[-2])
         except Exception as e:
             print(f"[ENGINE] bar_date stamp failed: {e}", flush=True)
-    coverage = len(processed_rows) / max(total_tickers, 1)
+    if '_bar_date' in final_df.columns:
+        final_df = final_df.drop(columns=['_bar_date'], errors='ignore')
+    coverage = len(final_df) / max(total_tickers, 1)
     # 🕵️ BOOBY TRAP: log how many tickers made it through
     print(f"[ENGINE] Processing complete: {len(processed_rows)}/{total_tickers} "
           f"tickers returned valid data ({coverage*100:.0f}% coverage).", flush=True)
@@ -705,17 +774,7 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
               f"{MIN_UNIVERSE_COVERAGE*100:.0f}% safety threshold — today's fetch is "
               f"too degraded to trust. Falling back to the last good cached parquet "
               f"instead of writing this as today's data.", flush=True)
-        prior_files = sorted(glob.glob("data/cache/market_master_*.parquet"))
-        if prior_files:
-            try:
-                fallback_df = pd.read_parquet(prior_files[-1])
-                print(f"[ENGINE] Using fallback cache: {prior_files[-1]} ({len(fallback_df)} rows)", flush=True)
-                # Callers must not record this as today's reading (mood, breadth, rotation).
-                fallback_df.attrs["stale_fallback"] = os.path.basename(prior_files[-1])
-                return fallback_df
-            except Exception as e:
-                print(f"[ENGINE] Fallback parquet unreadable ({e}); returning degraded result anyway.", flush=True)
-        return final_df if not final_df.empty else fundamental_df
+        return _fallback_parquet_or(final_df if not final_df.empty else fundamental_df)
 
     # Save to Parquet Cache for next time. Write to a temp file and rename
     # (atomic on POSIX) so a mid-write crash (OOM, CI timeout, disk full)

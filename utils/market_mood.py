@@ -11,9 +11,10 @@ Tracks market-wide health metrics over time:
 import pandas as pd
 import numpy as np
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from utils.atomic_io import atomic_to_csv
 
+_IST = timezone(timedelta(hours=5, minutes=30))
 MOOD_FILE = "data/market_mood_history.csv"
 
 def ensure_data_dir():
@@ -62,14 +63,23 @@ def calculate_mood_metrics(df):
         breakout_alerts_count = len(df[df['dist_52w'] >= -5])
         breakout_alerts = (breakout_alerts_count / total_stocks) * 100
     elif 'fiftyTwoWeekHigh' in df.columns and 'price' in df.columns:
-        df['_dist'] = ((df['price'] - df['fiftyTwoWeekHigh']) / df['fiftyTwoWeekHigh']) * 100
-        breakout_alerts_count = len(df[df['_dist'] >= -5])
+        _hi52 = pd.to_numeric(df['fiftyTwoWeekHigh'], errors='coerce').where(lambda s: s > 0)
+        _px = pd.to_numeric(df['price'], errors='coerce')
+        _dist = ((_px - _hi52) / _hi52) * 100
+        breakout_alerts_count = int((_dist >= -5).sum())
         breakout_alerts = (breakout_alerts_count / total_stocks) * 100
     else:
         breakout_alerts = 0
-    
+
+    try:
+        from utils.snapshots import bar_date as _snap_bar_date
+        _bd = _snap_bar_date(df)
+        _date_str = _bd.strftime('%Y-%m-%d') if _bd is not None else datetime.now(_IST).strftime('%Y-%m-%d')
+    except Exception:
+        _date_str = datetime.now(_IST).strftime('%Y-%m-%d')
+
     return {
-        'date': datetime.now().strftime('%Y-%m-%d'),
+        'date': _date_str,
         'strong_momentum': round(strong_momentum, 1),
         'total_uptrends': round(total_uptrends, 1),
         'avg_trend_score': round(avg_trend_score, 1),
