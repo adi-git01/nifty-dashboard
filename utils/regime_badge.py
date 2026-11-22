@@ -6,7 +6,8 @@ One market-regime read for the whole dashboard (replaces the separate sidebar / 
   Breadth        -- % of the loaded universe above its own 200-day average, same 5 bands. The study
                     measured it on a broader point-in-time top-1000; on 16 Oct 2026 that read 54% vs 42%
                     here, so this label can run a notch more bearish than the study's.
-  Engine mode    -- utils.regime_manager.classify_regime (BULL / CAUTION / BEAR / CRISIS), which is what
+  Model rules    -- action-based status for utils.regime_manager.classify_regime
+                    (Full risk-on / Tightened / Defensive / Entries paused), which is what
                     actually sets the live engine's entry floor, trail stop and rebalance. Unchanged.
 
 "What works" for each Nifty regime comes from the regime study (6-month median vs the typical stock,
@@ -21,6 +22,7 @@ REGIMES = ["BEAR", "MILD BEAR", "CHOPPY", "MILD BULL", "BULL"]
 COLORS = {"BEAR": "#FF3B30", "MILD BEAR": "#FF9500", "CHOPPY": "#FFD60A", "MILD BULL": "#32D74B", "BULL": "#34C759"}
 ICONS = {"BEAR": "🔴", "MILD BEAR": "🟠", "CHOPPY": "🟡", "MILD BULL": "🟢", "BULL": "🟢"}
 ENGINE_ICONS = {"BULL": "🟢", "CAUTION": "🟡", "BEAR": "🟠", "CRISIS": "🔴"}
+ENGINE_ACTION = {"BULL": "Full risk-on", "CAUTION": "Tightened", "BEAR": "Defensive", "CRISIS": "Entries paused"}
 
 # regime_study.py, Nifty view: (favour, avoid, live engine annualised in this regime vs Nifty)
 WHAT_WORKS = {
@@ -71,9 +73,16 @@ def nifty_regime(nc: pd.Series) -> dict:
 
 
 def breadth_regime(df: pd.DataFrame) -> dict:
-    px = pd.to_numeric(df.get("price", df.get("currentPrice")), errors="coerce")
-    m2 = pd.to_numeric(df.get("twoHundredDayAverage"), errors="coerce")
-    ok = px.notna() & m2.notna()
+    if df is None or df.empty:
+        return {"regime": "UNKNOWN"}
+    d = df.drop_duplicates("ticker") if "ticker" in df.columns else df
+    if "extended" in d.columns:
+        d = d[d["extended"].ne(True)]
+    px_cur = pd.to_numeric(d["currentPrice"], errors="coerce") if "currentPrice" in d.columns else pd.Series(np.nan, index=d.index)
+    px_alt = pd.to_numeric(d["price"], errors="coerce") if "price" in d.columns else pd.Series(np.nan, index=d.index)
+    px = px_cur.fillna(px_alt)
+    m2 = pd.to_numeric(d["twoHundredDayAverage"], errors="coerce") if "twoHundredDayAverage" in d.columns else pd.Series(np.nan, index=d.index)
+    ok = px.notna() & (px > 0) & m2.notna() & (m2 > 0)
     if ok.sum() < 50:
         return {"regime": "UNKNOWN"}
     pct = float((px[ok] > m2[ok]).mean() * 100)
@@ -103,17 +112,44 @@ def compute(nifty_df: pd.DataFrame | None, df: pd.DataFrame) -> dict:
             "engine": engine_mode(nd) if nd is not None else {"mode": "UNKNOWN"}}
 
 
+def engine_short(e: dict | None) -> str:
+    """Action-based label for the engine's current posture (without repeating a second BULL/BEAR regime)."""
+    e = e or {}
+    m = str(e.get("mode") or "UNKNOWN")
+    if m in ENGINE_ACTION:
+        return f"{ENGINE_ICONS.get(m, '⚪')} {ENGINE_ACTION[m]}"
+    if m == "UNKNOWN":
+        return "⚪ —"
+    return f"{ENGINE_ICONS.get(m, '⚪')} {m.title()}"
+
+
+def engine_status(e: dict | None) -> str:
+    """Action-based engine status with active trailing-stop percentage."""
+    e = e or {}
+    m = str(e.get("mode") or "UNKNOWN")
+    if m in ENGINE_ACTION:
+        trail = e.get("trail_stop")
+        if trail is None:
+            from utils.regime_manager import get_regime_params
+            trail = get_regime_params(m).get("trail_stop")
+        trail_str = f" ({float(trail) * 100:.0f}% trail)" if trail is not None else ""
+        return f"{ENGINE_ICONS.get(m, '⚪')} {ENGINE_ACTION[m]}{trail_str}"
+    if m == "UNKNOWN":
+        return "⚪ —"
+    return f"{ENGINE_ICONS.get(m, '⚪')} {m.title()}"
+
+
 def sidebar_line(info: dict) -> str:
     n, b, e = info["nifty"], info["breadth"], info["engine"]
     s = f"**Market:** {ICONS.get(n['regime'], '⚪')} **{n['regime']}**"
     if b.get("regime", "UNKNOWN") != "UNKNOWN":
         s += f" · Breadth {b['pct']:.0f}% ({b['regime'].title()})"
-    s += f"  \n**Engine mode:** {ENGINE_ICONS.get(e['mode'], '⚪')} {e['mode']}"
+    s += f"  \n**Model rules:** {engine_status(e)}"
     return s
 
 
 def render(info: dict, st, compact: bool = False) -> None:
-    """Full regime card: both reads, engine mode, and what has worked in this Nifty regime."""
+    """Full regime card: both reads, model rules status, and what has worked in this Nifty regime."""
     n, b, e = info["nifty"], info["breadth"], info["engine"]
     rg = n.get("regime", "UNKNOWN")
     col = COLORS.get(rg, "#8E8E93")
@@ -130,15 +166,20 @@ def render(info: dict, st, compact: bool = False) -> None:
                     else "index firmer than the broad market"))
     eng = ""
     if e.get("mode", "UNKNOWN") != "UNKNOWN":
-        eng = (f"{ENGINE_ICONS.get(e['mode'], '')} <b>{e['mode']}</b> — entry floor CompRS ≥ {e['min_comp_rs'] * 100:.0f}, "
-               f"trail stop {e['trail_stop'] * 100:.0f}%, rebalance every {e['rebalance_freq']} sessions"
+        m = str(e["mode"])
+        act = ENGINE_ACTION.get(m, m.title())
+        reb = ("rebalance paused"
+               if (not e.get("new_entries", True) or int(e.get("rebalance_freq", 0)) >= 999)
+               else f"rebalance every {int(e['rebalance_freq'])} sessions")
+        eng = (f"{ENGINE_ICONS.get(m, '⚪')} <b>{act}</b> — entry floor CompRS ≥ {e['min_comp_rs'] * 100:.0f}, "
+               f"trail stop {e['trail_stop'] * 100:.0f}%, {reb}"
                + ("" if e.get("new_entries", True) else ", <b>new entries suspended</b>"))
     st.markdown(f"""
     <div style="background:{col}22;border-left:5px solid {col};padding:12px 16px;border-radius:6px;">
       <div style="font-size:1.15em;font-weight:700;color:{col};">{ICONS.get(rg, '⚪')} Market regime: {rg}</div>
       <div style="opacity:.85;margin-top:4px;">{detail}</div>
       <div style="margin-top:6px;">Breadth: {br}{split}</div>
-      <div style="margin-top:6px;">Engine mode (drives the live book): {eng or 'n/a'}</div>
+      <div style="margin-top:6px;">Model rules (drives the live book): {eng or 'n/a'}</div>
     </div>""", unsafe_allow_html=True)
     if compact or rg not in WHAT_WORKS:
         return
