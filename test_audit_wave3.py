@@ -567,3 +567,37 @@ def test_fundamentals_build_skips_quote_probe_on_github_actions(monkeypatch):
     assert calls["n"] == 0
     assert len(out) == 5
     assert any("skipping NSE quote-equity probe on GitHub Actions" in m for m in logs)
+
+
+def test_fundamentals_build_handles_none_values(tmp_path, monkeypatch):
+    from utils import fund_paths, fundamentals_build as fb, nse_prices as npx
+
+    assert np.isnan(fb._div(None, 5))
+    assert np.isnan(fb._div(5, None))
+    assert np.isnan(fb._div(5, 0))
+
+    # Missing quarterly rows -> no earningsGrowth / _ttm_np, plus None values in nse_quote
+    d = tmp_path / "data"
+    d.mkdir()
+    pd.DataFrame([
+        {"ticker": "NONECO.NS", "field": "sales", "period": "2026-03-31", "value": 100.0},
+        {"ticker": "NONECO.NS", "field": "dep", "period": "2026-03-31", "value": 10.0},
+        {"ticker": "NONECO.NS", "field": "mcap_cr", "period": "2026-03-31", "value": 500.0},
+        {"ticker": "NONECO.NS", "field": "price_scr", "period": "2026-03-31", "value": 50.0},
+    ]).to_csv(d / "fundamentals_annual.csv", index=False)
+    pd.DataFrame(columns=["ticker", "field", "period", "value"]).to_csv(d / "fundamentals_quarterly.csv", index=False)
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setattr(fb, "ANNUAL", str(d / "fundamentals_annual.csv"))
+    monkeypatch.setattr(fb, "QUARTERLY", str(d / "fundamentals_quarterly.csv"))
+    monkeypatch.setattr(fund_paths, "resolve", lambda p, root=".": p)
+    monkeypatch.setattr(npx, "history", lambda *a, **kw: {})
+    monkeypatch.setattr("utils.extended.eq_symbols", lambda: {"NONECO.NS": "None Co"})
+    import utils.nse_data as nd
+    monkeypatch.setattr(nd, "Session", lambda: types.SimpleNamespace(warm_quote=lambda *a: None))
+    monkeypatch.setattr(fb, "nse_quote", lambda S, sym: {"pe": None, "shares": None})
+
+    out = fb.build(["NONECO.NS"], quotes=True, log=lambda *a: None, sleep=0)
+    assert len(out) == 1
+    assert pd.isna(out.iloc[0]["pegRatio"])

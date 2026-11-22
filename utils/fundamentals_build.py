@@ -149,6 +149,10 @@ def _select_fy_rows(p: pd.DataFrame) -> pd.DataFrame:
 
 def _pivot(path: str, quarterly: bool) -> Dict[str, pd.DataFrame]:
     d = pd.read_csv(path, parse_dates=["period"])
+    if d.empty:
+        return {}
+    d["period"] = pd.to_datetime(d["period"], errors="coerce")
+    d = d.dropna(subset=["period"])
     d = d[~d.field.isin(["mcap_cr", "price_scr"])] if not quarterly else d
     if quarterly:
         d = d[d.period.dt.month.isin([3, 6, 9, 12])]
@@ -181,8 +185,17 @@ def _yoy_prior(s: Optional[pd.Series], ref_dt: pd.Timestamp) -> float:
     return float(s.iloc[best]) if diffs[best] <= 45 else np.nan
 
 
+def _finite(v) -> bool:
+    if v is None:
+        return False
+    try:
+        return bool(np.isfinite(float(v)))
+    except (TypeError, ValueError):
+        return False
+
+
 def _div(a, b):
-    return a / b if a == a and b == b and b not in (0, 0.0) else np.nan
+    return float(a) / float(b) if _finite(a) and _finite(b) and float(b) != 0.0 else np.nan
 
 
 def screener_ratios(t: str, A: Dict[str, pd.DataFrame], Q: Dict[str, pd.DataFrame], mcap_cr: float, lender_hint: bool = False) -> dict:
@@ -225,33 +238,34 @@ def screener_ratios(t: str, A: Dict[str, pd.DataFrame], Q: Dict[str, pd.DataFram
         npa = a.get("np")
         npa_last = _last(npa)
         b1, b0 = _last(book), _last(book, -2)
-        avg_book = np.nanmean([b1, b0]) if b0 == b0 else b1
-        if avg_book == avg_book and avg_book > 0:
+        avg_book = np.nanmean([b1, b0]) if _finite(b0) else b1
+        if _finite(avg_book) and float(avg_book) > 0:
             r["roe"] = _div(npa_last, avg_book)
         else:
             r["roe"] = np.nan
             skip.add("roe")
         tl_last = _last(a.get("total_liab"))
-        r["roa"] = _div(npa_last, tl_last) if tl_last == tl_last and tl_last > 0 else np.nan
-        if b1 == b1 and b1 > 0:
+        r["roa"] = _div(npa_last, tl_last) if _finite(tl_last) and float(tl_last) > 0 else np.nan
+        if _finite(b1) and float(b1) > 0:
             r["debtToEquity"] = _div(_last(a.get("borrowings")), b1) * 100
             r["pb"] = _div(mcap_cr, b1)
         else:
             r["debtToEquity"] = np.nan
             r["pb"] = np.nan
             skip.update({"pb", "debtToEquity"})
-        if npa_last == npa_last and npa_last > 0:
+        if _finite(npa_last) and float(npa_last) > 0:
             r["earningsQuality"] = _div(_last(a.get("cfo")), npa_last)
         else:
             r["earningsQuality"] = np.nan
             skip.add("earningsQuality")
         r["earningsTrend"] = _div(npa_last - _last(npa, -2), abs(_last(npa, -2)))
         dep_ratio = _div(_last(a.get("dep")), _last(a.get("sales")))
+        eb = r.get("ebitdaMargins")
         if lender:
             # banks / NBFCs: Screener's "operating profit" is financing profit after interest; the pre-tax margin is the comparable figure
             r["operatingMargins"] = _div(_last(a.get("pbt")), _last(a.get("sales")))
-        elif r.get("ebitdaMargins") == r.get("ebitdaMargins") and dep_ratio == dep_ratio:
-            r["operatingMargins"] = r["ebitdaMargins"] - dep_ratio          # EBIT margin (Yahoo's operatingMargins)
+        elif _finite(eb) and _finite(dep_ratio):
+            r["operatingMargins"] = float(eb) - float(dep_ratio)          # EBIT margin (Yahoo's operatingMargins)
     if skip:
         r["_skip_yahoo"] = skip
     return r
@@ -355,7 +369,7 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             log(f"[fund] {i}/{len(tickers)} · NSE quotes {nq} · {time.time() - t0:.0f}s")
         close = float(H[t]["Close"].iloc[-1]) if t in H and len(H[t]) else np.nan
         t_sc = _pick_key(sc_index, t)
-        if not (close == close) and t_sc in sc.index and sc.at[t_sc, "price_scr"] == sc.at[t_sc, "price_scr"]:
+        if not _finite(close) and t_sc in sc.index and _finite(sc.at[t_sc, "price_scr"]):
             close = float(sc.at[t_sc, "price_scr"])
         q = {}
         if S is not None:
@@ -369,31 +383,33 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             if sleep:
                 time.sleep(sleep)
         shares = q.get("shares")
-        if not (shares and shares == shares) and t_sc in sc.index and sc.at[t_sc, "price_scr"] > 0:
-            shares = sc.at[t_sc, "mcap_cr"] / sc.at[t_sc, "price_scr"] * 1e7                  # Screener's share count
-        mcap = shares * close if shares and close == close else np.nan
+        if (not _finite(shares) or float(shares) <= 0) and t_sc in sc.index and _finite(sc.at[t_sc, "price_scr"]) and float(sc.at[t_sc, "price_scr"]) > 0 and _finite(sc.at[t_sc, "mcap_cr"]):
+            shares = float(sc.at[t_sc, "mcap_cr"]) / float(sc.at[t_sc, "price_scr"]) * 1e7                  # Screener's share count
+        mcap = float(shares) * float(close) if _finite(shares) and float(shares) > 0 and _finite(close) else np.nan
         granular = SUB_INDUSTRY_MAP.get(t) or q.get("nse_industry") or "Unknown"
         t_aq = _pick_key(A, t) if t not in A and t not in Q else t
         if t_aq == t and t not in A and t not in Q:
             t_aq = _pick_key(Q, t)
-        r = screener_ratios(t_aq, A, Q, mcap / 1e7 if mcap == mcap else np.nan,
+        r = screener_ratios(t_aq, A, Q, float(mcap) / 1e7 if _finite(mcap) else np.nan,
                             lender_hint=bool(re.search(r"bank|financ|nbfc|lending|housing fin", str(granular), re.I)))
         sk = set(r.pop("_skip_yahoo", ()) or ())
         ttm_np = r.get("_ttm_np", np.nan)
         pe = q.get("pe", np.nan)
-        if not (pe == pe and pe > 0):
-            if ttm_np == ttm_np and ttm_np > 0 and mcap == mcap:
-                pe = _div(mcap / 1e7, ttm_np)
+        if not (_finite(pe) and float(pe) > 0):
+            if _finite(ttm_np) and float(ttm_np) > 0 and _finite(mcap):
+                pe = _div(float(mcap) / 1e7, ttm_np)
             else:
                 pe = np.nan
-                if ttm_np == ttm_np and ttm_np <= 0:
+                if _finite(ttm_np) and float(ttm_np) <= 0:
                     sk.update({"pe", "pegRatio"})
+        else:
+            pe = float(pe)
         g = r.get("earningsGrowth")
-        if pe == pe and pe > 0 and g == g and g > 0:
-            peg = _div(pe, g * 100)
+        if _finite(pe) and float(pe) > 0 and _finite(g) and float(g) > 0:
+            peg = _div(pe, float(g) * 100)
         else:
             peg = np.nan
-            if (g == g and g <= 0) or (ttm_np == ttm_np and ttm_np <= 0):
+            if (_finite(g) and float(g) <= 0) or (_finite(ttm_np) and float(ttm_np) <= 0):
                 sk.add("pegRatio")
         if sk:
             skip_map[t] = sk
