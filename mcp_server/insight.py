@@ -43,7 +43,7 @@ def _f(v, nd=1):
 def _ctx(date: str) -> Dict[str, Any]:
     from utils import funnel, industry_board
     df = D.load_snapshot(date)
-    board = industry_board.board(df, industry_board.month_ago_snapshot())
+    board = industry_board.board(df, industry_board.month_ago_snapshot(current_df=df))
     val = funnel.load_valuation()
     return dict(df=df, board=board, val=val, table=funnel.table(df, board, val))
 

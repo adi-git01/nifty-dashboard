@@ -37,7 +37,7 @@ UP, FLAT, DOWN, BUILD = "IMPROVING", "STABLE", "WORSENING", "INVESTING"
 ICON = {UP: "🟢", FLAT: "⚪", DOWN: "🔴", BUILD: "🏗️"}
 WEIGHTS = {"Growth": 0.30, "Margins": 0.25, "Cash & balance sheet": 0.25, "Returns on capital": 0.20}
 LABELS = ((70, "STRONG"), (55, "HEALTHY"), (40, "MIXED"), (0, "WEAK"))
-SCORE_VERSION = "s2"       # bump when the scoring changes (invalidates data/business_scores.csv)
+SCORE_VERSION = "s3"       # bump when the scoring changes (invalidates data/business_scores.csv)
 STALE_DAYS = 640           # ~21 months after the fiscal year end: a year's results should have come in by then
 MIN_PILLARS = 3            # of 4
 PASS_SCORE = 45            # the funnel's business stage passes at or above this, with no hard flag
@@ -180,7 +180,7 @@ def roa_tree(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     T["roe"] = _div(y["np"], avg_e) * 100
     T["cost_income"] = _div(T["costs"], T["nii"] + T["other_income"]) * 100
     T["assets"] = y["total_liab"]
-    T["asset_g"] = (y["total_liab"].pct_change() * 100).where(y["total_liab"].shift(1) > 0)
+    T["asset_g"] = (y["total_liab"].pct_change(fill_method=None) * 100).where(y["total_liab"].shift(1) > 0)
     T.attrs["kind"] = kind
     return T
 
@@ -209,7 +209,8 @@ def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     g = lambda c: fy[c] if c in fy else pd.Series(np.nan, index=fy.index)
     out = pd.DataFrame(index=fy.index)
     out["sales"] = g("sales")
-    out["sales_g"] = (g("sales").pct_change() * 100).where(g("sales").shift(1) > 0)
+    out["sales_g"] = (g("sales").pct_change(fill_method=None) * 100).where(g("sales").shift(1) > 0)
+    out["op"] = g("op")
     out["opm"] = g("opm")
     out["np"] = g("np")
     out["npm"] = _div(g("np"), g("sales")) * 100
@@ -231,7 +232,7 @@ def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
             out[c] = g(c)
         ce = g("eq_cap") + g("reserves") + g("borrowings").fillna(0)
         out["cap_employed"] = ce
-        out["ce_growth"] = (ce.pct_change() * 100).where(ce.shift(1) > 0)
+        out["ce_growth"] = (ce.pct_change(fill_method=None) * 100).where(ce.shift(1) > 0)
         out["cwip_share"] = _div(g("cwip").fillna(0), ce) * 100
         out["gross_block"] = gross
         # ROCE on capital that is already working: operating profit after depreciation over average
@@ -323,7 +324,12 @@ def investment_phase(a: pd.DataFrame) -> Optional[Dict[str, Any]]:
     # Capital employed also jumps on an IPO or QIP parked in cash, or on mark-to-market gains; that is not an
     # investment phase, and loss-making cash burners were being excused (AURUM, MOBIKWIK). It counts only when the
     # business makes an operating profit and fixed assets plus work-in-progress took at least 40% of the increase.
-    if "op" in a and a["op"].dropna().size and float(a["op"].dropna().iloc[-1]) <= 0:
+    op_s = a["op"].dropna() if "op" in a else pd.Series(dtype=float)
+    opm_s = a["opm"].dropna() if "opm" in a else pd.Series(dtype=float)
+    if len(op_s):
+        if float(op_s.iloc[-1]) <= 0:
+            return None
+    elif len(opm_s) and float(opm_s.iloc[-1]) <= 0:
         return None
     g = a["ce_growth"].dropna().tail(3)
     cw = a["cwip_share"].dropna()
@@ -659,11 +665,33 @@ _BRIEF_COLS = ["ticker", "verdict", "score", "direction", "investing", "headline
                "sales_yoy", "np_yoy", "ok", "fingerprint"]
 
 
+@lru_cache(maxsize=32)
+def _canonical_size(path: str, mtime: float, raw_size: int) -> int:
+    """Canonical byte size normalized to LF line endings for CSVs (identical on Windows and Linux)."""
+    if path.endswith(".gz"):
+        return raw_size
+    crlf = 0
+    prev_cr = False
+    with open(path, "rb") as fh:
+        while chunk := fh.read(1 << 20):
+            if prev_cr and chunk[:1] == b"\n":
+                crlf += 1
+            crlf += chunk.count(b"\r\n")
+            prev_cr = chunk.endswith(b"\r")
+    return raw_size - crlf
+
+
 def fingerprint(root: str = ".") -> str:
-    """Identifies the fundamentals files by size, which is the same on every checkout (file times are not)."""
+    """Identifies the fundamentals files by canonical LF size, which is the same across OS checkouts."""
     # SCORE_VERSION: a change to the scoring must not be served from scores the old code saved
-    return SCORE_VERSION + "|" + "|".join(str(os.path.getsize(os.path.join(root, f))) if os.path.exists(os.path.join(root, f)) else "-"
-                                         for f in FILES + QFILES)
+    a_files, q_files = _resolved_paths(root)
+    parts = []
+    for p in a_files + q_files:
+        if os.path.exists(p):
+            parts.append(str(_canonical_size(p, os.path.getmtime(p), os.path.getsize(p))))
+        else:
+            parts.append("-")
+    return SCORE_VERSION + "|" + "|".join(parts)
 
 
 @lru_cache(maxsize=4)
@@ -690,7 +718,8 @@ def build_brief_cache(tickers=None, root: str = ".") -> int:
     if tickers is None:
         from utils.nifty1000_list import EXTENDED, TICKERS_1000
         tickers = list(TICKERS_1000) + list(EXTENDED)
-    stamp, fp, rows = _mtime([os.path.join(root, f) for f in FILES + QFILES]), fingerprint(root), []
+    a_files, q_files = _resolved_paths(root)
+    stamp, fp, rows = _mtime(a_files + q_files), fingerprint(root), []
     for t in tickers:
         try:
             b = _brief(t, root, stamp)
@@ -709,4 +738,5 @@ def brief(ticker: str, root: str = ".") -> Dict[str, Any]:
         hit = _precomputed(root, os.path.getmtime(p), fingerprint(root)).get(ticker)
         if hit is not None:
             return dict(hit)
-    return _brief(ticker, root, _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+    a_files, q_files = _resolved_paths(root)
+    return _brief(ticker, root, _mtime(a_files + q_files))

@@ -8,7 +8,6 @@ portfolio against the market. The scanners those pages listed are in 🧪 Signal
 """
 from __future__ import annotations
 
-import glob
 import json
 import os
 
@@ -37,14 +36,15 @@ def _read_json_cached(path: str, mtime: float) -> dict:
 
 
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
-def _prev_pass(key: str, _board: pd.DataFrame) -> set:
-    """Tickers that passed Trend and Setup in the previous snapshot (to mark today's new entries)."""
-    files = sorted(glob.glob("data/cache/market_master_*.parquet"))
-    if len(files) < 2:
+def _prev_pass(key: str, _df: pd.DataFrame) -> set:
+    """Tickers that passed Trend and Setup in the previous unique trading session."""
+    from utils import snapshots
+    prev_path = snapshots.snapshot_n_sessions_ago(1, current_df=_df)
+    if not prev_path:
         return set()
     try:
-        p = pd.read_parquet(files[-2])
-        T = funnel.table(p, _board, None, business_for=[])
+        p = pd.read_parquet(prev_path)
+        T = funnel.table(p, None, None, business_for=[])
         return set(T.ticker[T.s_trend & T.s_setup])
     except Exception:
         return set()
@@ -132,11 +132,14 @@ def _industries(B: pd.DataFrame):
         return
     c = st.columns(3)
     for col, g in zip(c, ("LEADING", "IMPROVING", "WEAKENING")):
-        x = B[(B.group == g) & ~B.small].head(6)
-        col.markdown(f"**{ib.GROUP_ICON[g]}** ({int((B.group == g).sum())})")
+        ns = B[(B.group == g) & ~B.small]
+        sm = int(((B.group == g) & B.small).sum())
+        hdr = f"**{ib.GROUP_ICON[g]}** ({len(ns)}" + (f" · +{sm} small)" if sm else ")")
+        col.markdown(hdr)
         col.markdown("\n".join(f"- {r.industry} · {r.score:.0f}" + (f" ({r.change:+.0f})" if pd.notna(r.change) else "")
-                               for r in x.itertuples()) or "—")
-    st.caption("Score 0–100 and its one-month change. Full table and the stocks inside each: **Sector Pulse**.")
+                               for r in ns.head(6).itertuples()) or "—")
+    st.caption("Score 0–100 and its one-month change. Leading requires score ≥ 60 & ≥ 50% above 50-day; "
+               "Improving is up ≥ 10 & ≥ 40% above 50-day. Full table and the stocks inside each: **Sector Pulse**.")
 
 
 def _funnel(df: pd.DataFrame, B: pd.DataFrame):
@@ -148,15 +151,17 @@ def _funnel(df: pd.DataFrame, B: pd.DataFrame):
     if P.empty:
         st.info("Nothing passes every stage today. Near misses are on the Investment Funnel page.")
         return
-    old = _prev_pass(fv.snap_key(df), B)
+    old = _prev_pass(fv.snap_key(df), df)
     V = pd.DataFrame({
         "": ["🆕" if t not in old else "" for t in P.ticker], "Stock": P.ticker.str.replace(".NS", "", regex=False),
-        "Name": P.name, "Industry": P.industry, "Price": P.price, "RS": P.comp_rs, "Technicals": P.technicals,
+        "Name": P.name, "Industry": P.industry, "Price": P.price, "RS": P.comp_rs, "Technicals": fv.setup_labels(P),
         "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Business": P.biz_headline})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 420), column_config={
         "": st.column_config.TextColumn("", width="small", help="🆕 = did not have both an uptrend and an entry yesterday"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),
-        "Stop": st.column_config.NumberColumn(format="₹%.1f"), "Risk %": st.column_config.NumberColumn(format="%.1f%%"),
+        "Technicals": st.column_config.TextColumn("Setup", help="Technicals action, plus recent SIMBA signal or trigger price"),
+        "Stop": st.column_config.NumberColumn(format="₹%.1f"),
+        "Risk %": st.column_config.NumberColumn(format="%.1f%%", help="Distance from entry (or trigger) to stop"),
         "2× risk ref": st.column_config.NumberColumn(format="₹%.1f", help="A yardstick, not an exit: booking at 2× risk halved returns in the backtest")})
     st.caption(f"{int((V[''] == '🆕').sum())} new today. Stage switches and near misses: **Investment Funnel**. "
                "Full write-up on any stock: **Analysis Lab → Stock Report**.")

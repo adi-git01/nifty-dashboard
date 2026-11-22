@@ -177,8 +177,8 @@ def render(df: pd.DataFrame, *, cycle_position) -> None:
                     _grp = _grp.sort_values('record_date')
                     if len(_grp) >= 1:
                         _score_today[_si]  = float(_grp['score_0_100'].iloc[-1])
-                    if len(_grp) >= 7:
-                        _score_7d_ago[_si] = float(_grp['score_0_100'].iloc[-7])
+                    if len(_grp) >= 8:
+                        _score_7d_ago[_si] = float(_grp['score_0_100'].iloc[-8])
                     elif len(_grp) >= 2:
                         _score_7d_ago[_si] = float(_grp['score_0_100'].iloc[0])
 

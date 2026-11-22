@@ -39,21 +39,23 @@ def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] =
     """Add today's new passes and near misses, refresh last_seen / active. Returns (log, new rows)."""
     snap = pd.Timestamp(snap).normalize()
     if board is None:
-        board = industry_board.board(df, industry_board.month_ago_snapshot())
+        board = industry_board.board(df, industry_board.month_ago_snapshot(current_df=df))
     R = funnel.run(funnel.table(df, board, funnel.load_valuation() if val is None else val))
     today = pd.concat([R["picks"].assign(kind="PASS", missed=""), R["near"].assign(kind="NEAR")], ignore_index=True)
     log = load()
     new = []
     for r in today.itertuples():
         prior = log[(log.ticker == r.ticker) & (log.kind == r.kind)]
-        if len(prior) and (snap - pd.to_datetime(prior.last_seen).max()).days <= REENTRY_DAYS:
-            # the most recent run of this signal; the log is sorted newest first, so index[-1] was the OLDEST row and
-            # a re-entry would have revived a long-closed one
-            j = pd.to_datetime(prior.first_seen).idxmax()
-            log.loc[j, "last_seen"] = snap
-            if r.kind == "NEAR":
-                log.loc[j, "missed"] = r.missed
-            continue
+        last_dt = pd.to_datetime(prior.last_seen, errors="coerce") if len(prior) else pd.Series(dtype="datetime64[ns]")
+        if last_dt.notna().any():
+            j = last_dt.idxmax()
+            last_seen = pd.Timestamp(last_dt.loc[j])
+            if (snap - last_seen).days <= REENTRY_DAYS:
+                if snap >= last_seen:
+                    log.loc[j, "last_seen"] = snap
+                    if r.kind == "NEAR":
+                        log.loc[j, "missed"] = r.missed
+                continue
         new.append(dict(first_seen=snap, ticker=r.ticker, name=r.name, kind=r.kind, missed=r.missed, industry=r.industry,
                         ind_group=r.ind_group, signal_price=float(r.price), biz_score=r.biz_score, technicals=r.technicals,
                         risk_pct=r.risk_pct, last_seen=snap, active=True))
@@ -61,7 +63,8 @@ def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] =
     if len(new):
         log = new if log.empty else pd.concat([log, new], ignore_index=True)
     if len(log):
-        log["active"] = pd.to_datetime(log.last_seen) >= snap
+        latest_seen = max(snap, pd.to_datetime(log.last_seen, errors="coerce").max())
+        log["active"] = pd.to_datetime(log.last_seen, errors="coerce") >= latest_seen
         log = log.sort_values(["first_seen", "kind", "ticker"], ascending=[False, False, True]).reset_index(drop=True)
     if save:
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)

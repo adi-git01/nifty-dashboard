@@ -1350,3 +1350,172 @@ def test_yahoo_fill_core_gaps_first_and_budget(monkeypatch):
     monkeypatch.setitem(sys.modules, "yfinance", slow)
     fb.yahoo_fill(df, sleep=0, log=lambda m: None, budget_s=100)
     assert asked[0] == "T4.NS" and len(asked) == 2      # 60 s per call, 100 s budget: the real gap, then one more
+
+
+def test_industry_board_excludes_extended_guards_invalid_prices_and_improving_floor(monkeypatch):
+    from utils import nifty1000_list as nl
+    smap = {f"LEAD{i}.NS": "LeadGrp" for i in range(201)}
+    smap.update({f"IMP{i}.NS": "DowntrendJump" for i in range(10)})
+    smap.update({f"NANS{i}.NS": "MissingRS3" for i in range(6)})
+    smap.update({f"FLAT{i}.NS": "MidFlat" for i in range(6)})
+    smap["EXT0.NS"] = "LeadGrp"
+    monkeypatch.setattr(nl, "SUB_INDUSTRY_MAP", smap)
+
+    # LeadGrp: 100 of 201 above 50-day => raw 49.751% (rounds to 50, but strictly < MIN_BREADTH=50)
+    # Plus an extended=True row that would alter members/score if included.
+    rows = []
+    for i in range(201):
+        up = i < 100
+        rows.append(dict(ticker=f"LEAD{i}.NS", currentPrice=110.0 if up else 90.0, price=110.0 if up else 90.0,
+                         fiftyDayAverage=100.0, twoHundredDayAverage=95.0, dist_52w=-2.0, comp_rs=10.0, rs_3m=12.0,
+                         dna_signal="BUY" if up else "HOLD", extended=False))
+    rows.append(dict(ticker="EXT0.NS", currentPrice=200.0, price=200.0, fiftyDayAverage=100.0, twoHundredDayAverage=100.0,
+                     dist_52w=-1.0, comp_rs=25.0, rs_3m=30.0, dna_signal="BUY", extended=True))
+    # DowntrendJump: only 3/10 (30%) above 50-day & 200-day (DOWNTREND), but jumps past MidFlat in score (+50)
+    for i in range(10):
+        up = i < 3
+        rows.append(dict(ticker=f"IMP{i}.NS", currentPrice=105.0 if up else 80.0, price=np.nan,
+                         fiftyDayAverage=100.0, twoHundredDayAverage=100.0, dist_52w=-5.0, comp_rs=5.0, rs_3m=20.0,
+                         dna_signal="HOLD", extended=False))
+    # MissingRS3: rs_3m is NaN, 1 member uses fallback `price` while currentPrice is NaN + 1 invalid px=0 row
+    for i in range(6):
+        cur = np.nan if i == 0 else (0.0 if i == 1 else 105.0)
+        alt = 105.0 if i == 0 else np.nan
+        rows.append(dict(ticker=f"NANS{i}.NS", currentPrice=cur, price=alt, fiftyDayAverage=100.0, twoHundredDayAverage=100.0,
+                         dist_52w=-5.0, comp_rs=2.0, rs_3m=np.nan, dna_signal="HOLD", extended=False))
+    # MidFlat: stays flat so DowntrendJump overtakes it in percentile score
+    for i in range(6):
+        rows.append(dict(ticker=f"FLAT{i}.NS", currentPrice=102.0 if i < 2 else 90.0, fiftyDayAverage=100.0,
+                         twoHundredDayAverage=100.0, dist_52w=-20.0, comp_rs=-5.0, rs_3m=-5.0, dna_signal="HOLD", extended=False))
+
+    prev_rows = []
+    for i in range(201):
+        prev_rows.append(dict(ticker=f"LEAD{i}.NS", currentPrice=110.0 if i < 100 else 90.0, fiftyDayAverage=100.0,
+                              twoHundredDayAverage=95.0, dist_52w=-2.0, comp_rs=10.0, rs_3m=12.0, dna_signal="HOLD"))
+    for i in range(10):
+        prev_rows.append(dict(ticker=f"IMP{i}.NS", currentPrice=70.0, fiftyDayAverage=100.0, twoHundredDayAverage=110.0,
+                              dist_52w=-35.0, comp_rs=-20.0, rs_3m=-25.0, dna_signal="HOLD"))
+    for i in range(6):
+        prev_rows.append(dict(ticker=f"NANS{i}.NS", currentPrice=80.0, fiftyDayAverage=100.0, twoHundredDayAverage=100.0,
+                              dist_52w=-25.0, comp_rs=-10.0, rs_3m=-15.0, dna_signal="HOLD"))
+    for i in range(6):
+        prev_rows.append(dict(ticker=f"FLAT{i}.NS", currentPrice=102.0 if i < 2 else 90.0, fiftyDayAverage=100.0,
+                              twoHundredDayAverage=100.0, dist_52w=-20.0, comp_rs=-5.0, rs_3m=-5.0, dna_signal="HOLD"))
+
+    B = industry_board.board(pd.DataFrame(rows), pd.DataFrame(prev_rows)).set_index("industry")
+    assert B.at["LeadGrp", "members"] == 201                            # extended=True excluded
+    assert B.at["LeadGrp", "above_50"] == 50 and B.at["LeadGrp", "group"] == "LAGGING"  # 49.75% < 50 -> not LEADING
+    assert B.at["DowntrendJump", "change"] >= 10 and B.at["DowntrendJump", "group"] == "LAGGING"  # 30% < 40% floor
+    assert B.at["MissingRS3", "above_50"] == 100 and pd.notna(B.at["MissingRS3", "score"])  # px=0 ignored, NaN rs_3m renormalized
+
+
+def test_snapshots_unique_session_skips_holiday_duplicates(tmp_path):
+    from utils import snapshots
+    base = pd.DataFrame({"ticker": ["A.NS", "B.NS"], "currentPrice": [100.0, 200.0]})
+    f1 = tmp_path / "market_master_2026_10_09.parquet"
+    f2 = tmp_path / "market_master_2026_10_12.parquet"     # holiday dup (no bar_date, identical prices)
+    f3 = tmp_path / "market_master_2026_10_13.parquet"     # moved prices (no bar_date)
+    f4 = tmp_path / "market_master_2026_10_14.parquet"     # bar_date stamped
+    f5 = tmp_path / "market_master_2026_10_15.parquet"     # holiday dup (same bar_date 2026-10-14)
+    f6 = tmp_path / "market_master_2026_10_16.parquet"     # next session
+    base.to_parquet(f1)
+    base.to_parquet(f2)
+    base.assign(currentPrice=[105.0, 210.0]).to_parquet(f3)
+    base.assign(currentPrice=[108.0, 215.0], bar_date="2026-10-14").to_parquet(f4)
+    base.assign(currentPrice=[108.0, 215.0], bar_date="2026-10-14").to_parquet(f5)
+    base.assign(currentPrice=[112.0, 220.0], bar_date="2026-10-16").to_parquet(f6)
+    files = [str(f) for f in (f1, f2, f3, f4, f5, f6)]
+    uniq = [p for p, _ in snapshots.unique_session_files(files)]
+    assert uniq == [str(f1), str(f3), str(f4), str(f6)]
+    cur = pd.read_parquet(f6)
+    assert snapshots.snapshot_n_sessions_ago(1, current_df=cur, files=files) == str(f4)
+    assert snapshots.snapshot_n_sessions_ago(2, current_df=cur, files=files) == str(f3)
+    assert snapshots.snapshot_n_sessions_ago(1, files=files) == str(f4)
+
+
+def test_funnel_excludes_extended_blocks_weakening_and_reprices_valuation(monkeypatch):
+    import json
+    df, groups = _snap()
+    ext_row = df.iloc[0:1].assign(ticker="EXTSTOCK.NS", extended=True)
+    df_ext = pd.concat([df.assign(extended=False), ext_row], ignore_index=True)
+    monkeypatch.setattr(fund_trends, "brief", lambda t, root=".": dict(ok=True, verdict="STRONG", score=75, headline="Strong 75/100",
+                                                                         flags=[], roce=20.0, quarter="Sep 2026", sales_yoy=12.0, np_yoy=15.0))
+    B = industry_board.board(df_ext)
+    # Mark groups[0] WEAKENING (even with status UPTREND, WEAKENING must fail s_industry)
+    Bw = B.copy()
+    Bw.loc[Bw.industry == groups[0], "group"] = "WEAKENING"
+    Tw = funnel.table(df_ext, Bw, None)
+    assert not Tw[Tw.industry == groups[0]].s_industry.any()
+
+    # Re-percentile valuation from grid at moved price + test setup/t1/extended guards
+    grid = json.dumps([round(x, 2) for x in np.linspace(50.0, 150.0, 99)])
+    t0 = df.ticker.iloc[0]
+    val = pd.DataFrame({
+        "status": ["OK"], "price": [80.0], "cmp_pct": [30.0], "p50": [100.0],
+        "rating": ["BUY"], "gates_ok": [True], "confidence": ["HIGH"], "identity": ["COMPOUNDER"], "grid": [grid],
+    }, index=[t0])
+    df_moved = df_ext.copy()
+    df_moved.loc[df_moved.ticker == t0, "currentPrice"] = 145.0        # now near top of grid (> 90th pctile)
+    df_moved.loc[df_moved.ticker == t0, "fx_t1"] = np.nan              # triggers 2R fallback from entry & stop
+    T = funnel.table(df_moved, B, val)
+    r0 = T[T.ticker == t0].iloc[0]
+    assert r0.val_pct > 90 and not r0.s_value                          # repriced above VALUE_MAX_PCT=70
+    assert round(r0.t1, 1) == round(145.0 + 2 * (145.0 - 92.0), 1)
+    assert stock_report.gather(t0, df_moved, B, val)["val"]["cmp_pct"] == r0.val_pct
+
+    # Extended stock appears in table() (for single-stock reports) but not in funnel.run() Universe/picks
+    R = funnel.run(T)
+    assert R["counts"].iloc[0]["left"] == len(df)
+    assert "EXTSTOCK.NS" not in set(R["picks"].ticker)
+
+    # Zero stop or negative simba_days cannot pass s_setup
+    bad_setup = df.copy()
+    bad_setup.loc[0, "fx_stop"] = 0.0
+    bad_setup.loc[1, "fx_action"] = "WATCH"
+    bad_setup.loc[1, "simba_m_since"] = -1.0
+    Tb = funnel.table(bad_setup, B, None)
+    assert not Tb.loc[0, "s_setup"] and not Tb.loc[1, "s_setup"]
+
+
+def test_fund_trends_investment_phase_blocks_loss_makers_and_crlf_fingerprint(tmp_path):
+    # Loss-making operating profit must not be excused as investment_phase
+    root = _files(tmp_path, opm=(10, 10, 10, 10, 10, -5))
+    f = tmp_path / "data" / "fundamentals_annual.csv.gz"
+    A = pd.read_csv(f)
+    late = A.period >= "2025-03-31"
+    A.loc[late & (A.field == "borrowings"), "value"] = 550.0
+    A.loc[late & (A.field == "fixed_assets"), "value"] = 1400.0
+    A.to_csv(f, index=False)
+    fund_trends._load.cache_clear()
+    a = fund_trends.annual("X.NS", root)
+    assert "op" in a.columns and a["op"].iloc[-1] < 0
+    assert fund_trends.investment_phase(a) is None
+    assert fund_trends.read("X.NS", root)["investing"] is None
+    # Fingerprint resolves .csv.gz fixtures cleanly
+    assert fund_trends.fingerprint(root) != fund_trends.SCORE_VERSION + "|-|-|-|-|-"
+
+    # CRLF vs LF CSVs produce identical fingerprints
+    lf_dir = tmp_path / "lf"
+    crlf_dir = tmp_path / "crlf"
+    (lf_dir / "data").mkdir(parents=True)
+    (crlf_dir / "data").mkdir(parents=True)
+    sample = "ticker,field,period,value\nX.NS,sales,2026-03-31,1000\n"
+    for rel in fund_trends.FILES + fund_trends.QFILES:
+        (lf_dir / rel).write_bytes(sample.encode("utf-8"))
+        (crlf_dir / rel).write_bytes(sample.replace("\n", "\r\n").encode("utf-8"))
+    assert fund_trends.fingerprint(str(lf_dir)) == fund_trends.fingerprint(str(crlf_dir))
+
+
+def test_funnel_log_out_of_order_rerun_preserves_last_seen(tmp_path, monkeypatch):
+    from utils import funnel_log
+    df, _ = _snap()
+    monkeypatch.setattr(fund_trends, "brief", lambda t, root=".": dict(ok=True, verdict="STRONG", score=75, headline="Strong 75/100",
+                                                                         flags=[], roce=20.0, quarter="Sep 2026", sales_yoy=12.0, np_yoy=15.0))
+    monkeypatch.setattr(funnel_log, "LOG_FILE", str(tmp_path / "fl.csv"))
+    B = industry_board.board(df)
+    d1, d2 = pd.Timestamp("2026-11-19"), pd.Timestamp("2026-11-20")
+    log, _ = funnel_log.update(df, d2, B, pd.DataFrame())
+    assert (pd.to_datetime(log.last_seen) == d2).all() and log.active.all()
+    log2, new2 = funnel_log.update(df, d1, B, pd.DataFrame())
+    assert len(new2) == 0 and len(log2) == len(log)
+    assert (pd.to_datetime(log2.last_seen) == d2).all() and log2.active.all()

@@ -112,13 +112,15 @@ def basket_reading(df, members: List[str]) -> Optional[Dict[str, Any]]:
     """Status, score and breadth for `members` in snapshot `df`, or None if too few valid."""
     if df is None or df.empty:
         return None
-    x = df[df["ticker"].isin(members)]
-    px = pd.to_numeric(x.get("currentPrice", x.get("price")), errors="coerce")
+    x = df[df["ticker"].isin(members)].drop_duplicates("ticker")
+    px_cur = pd.to_numeric(x["currentPrice"], errors="coerce") if "currentPrice" in x.columns else pd.Series(np.nan, index=x.index)
+    px_alt = pd.to_numeric(x["price"], errors="coerce") if "price" in x.columns else pd.Series(np.nan, index=x.index)
+    px = px_cur.fillna(px_alt)
     m50 = pd.to_numeric(x.get("fiftyDayAverage"), errors="coerce")
     m200 = pd.to_numeric(x.get("twoHundredDayAverage"), errors="coerce")
     rs = pd.to_numeric(x.get("comp_rs"), errors="coerce")
     rs = rs.where(rs.abs() <= RS_CEILING)
-    ok = px.notna() & (px > 0) & m50.notna() & m200.notna()
+    ok = px.notna() & (px > 0) & m50.notna() & (m50 > 0) & m200.notna() & (m200 > 0)
     if ok.sum() < MIN_VALID:
         return None
     a50 = float((px[ok] > m50[ok]).mean() * 100)
@@ -132,6 +134,11 @@ def basket_reading(df, members: List[str]) -> Optional[Dict[str, Any]]:
 
 def all_sub_industry_readings(df) -> pd.DataFrame:
     """Every sub-industry's current status and score, for the overview table."""
+    if df is None or df.empty or "ticker" not in df.columns:
+        return pd.DataFrame()
+    core = df.drop_duplicates("ticker")
+    if "extended" in core.columns:
+        core = core[core["extended"].ne(True)]
     from utils.nifty1000_list import SUB_INDUSTRY_MAP
     groups: Dict[str, List[str]] = {}
     for t, g in SUB_INDUSTRY_MAP.items():
@@ -139,7 +146,7 @@ def all_sub_industry_readings(df) -> pd.DataFrame:
             groups.setdefault(g, []).append(t)
     rows = []
     for g, mem in sorted(groups.items()):
-        r = basket_reading(df, mem)
+        r = basket_reading(core, mem)
         if r:
             rows.append({"industry": g, **r})
     return pd.DataFrame(rows)

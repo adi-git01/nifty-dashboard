@@ -13,7 +13,7 @@ STATUS_ICON = {"UPTREND": "🟢 Uptrend", "TURNING UP": "🟡 Turning up", "BASI
 
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
 def _board(key: str, _df: pd.DataFrame) -> pd.DataFrame:
-    return ib.board(_df, ib.month_ago_snapshot())
+    return ib.board(_df, ib.month_ago_snapshot(current_df=_df))
 
 
 def get_board(df: pd.DataFrame) -> pd.DataFrame:
@@ -66,15 +66,20 @@ def render(df: pd.DataFrame):
         "On BUY": pc("On BUY", "Share of members with the Trend Scanner BUY signal"),
         "Strongest": st.column_config.TextColumn("Strongest", width="medium", help="Top members by RS that are above the 50-day")})
     st.caption("⚠︎ = small group. Leading = score 60+ with at least half the stocks above the 50-day, and not down 10+ in a "
-               "month · Weakening = the same but down 10+ · Improving = not a leader but up 10+ · Lagging = the rest. On Feb–Oct 2026 snapshots the top fifth by this score "
+               "month · Weakening = the same but down 10+ · Improving = not a leader, up 10+, and ≥ 40% above the 50-day · Lagging = the rest. On Feb–Oct 2026 snapshots the top fifth by this score "
                "beat the average stock by ~0.6 pp over the next month and the rest were flat: a map of where strength is, "
                "not a tested edge.")
 
     with st.expander("🔎 Stocks inside an industry"):
         g = st.selectbox("Industry", B.industry.tolist(), key="ib_pick")
         from utils.nifty1000_list import SUB_INDUSTRY_MAP
-        m = df[df.ticker.map(SUB_INDUSTRY_MAP) == g].copy()
-        px = pd.to_numeric(m.get("currentPrice"), errors="coerce")
+        core_df = df.drop_duplicates("ticker")
+        if "extended" in core_df.columns:
+            core_df = core_df[core_df["extended"].ne(True)]
+        m = core_df[core_df.ticker.map(SUB_INDUSTRY_MAP) == g].copy()
+        px = pd.to_numeric(m["currentPrice"], errors="coerce") if "currentPrice" in m.columns else pd.Series(float("nan"), index=m.index)
+        if "price" in m.columns:
+            px = px.fillna(pd.to_numeric(m["price"], errors="coerce"))
         M = pd.DataFrame({
             "Stock": m.ticker.str.replace(".NS", "", regex=False), "Name": m.get("name"),
             "RS": pd.to_numeric(m.get("comp_rs"), errors="coerce"), "3M vs Nifty": pd.to_numeric(m.get("rs_3m"), errors="coerce"),

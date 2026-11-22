@@ -61,7 +61,7 @@ def build(df: pd.DataFrame, date: pd.Timestamp, nifty: Optional[pd.DataFrame] = 
     T = pd.DataFrame()
     board = None
     try:
-        board = industry_board.board(df, industry_board.month_ago_snapshot())
+        board = industry_board.board(df, industry_board.month_ago_snapshot(current_df=df))
         tk = [t for t in res.values() if t in known]
         if tk:
             T = funnel.table(df[df.ticker.isin(tk)], board, None, business_for=tk).set_index("ticker")
