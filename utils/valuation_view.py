@@ -48,15 +48,19 @@ def _ctx_us(key: tuple):
     return load_context(market="US")
 
 
+def _ctx_stamp(files) -> tuple:
+    return tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in files)
+
+
 def ctx_us():
     from utils.valuation import US_FILES
-    return _ctx_us(tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in US_FILES.values()))
+    return _ctx_us(_ctx_stamp(US_FILES.values()))
 
 
 def ctx():
     files = ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz",
              "data/monthly_prices.csv.gz", "data/valuation_overrides.csv")
-    return _ctx(tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in files))
+    return _ctx(_ctx_stamp(files))
 
 
 def _base_label(r: str) -> str:
@@ -67,23 +71,11 @@ def _base_label(r: str) -> str:
     return ""
 
 
-def table_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Adds val_bucket (BUY / ACCUMULATE / HOLD / REDUCE / SELL at today's price, or NOT VALUED), val_rating
-    (icon + bucket, ⚠ when a v4.1 gate failed), val_note (why ⚠ / not valued), val_pct, val_cagr_base,
-    val_fv_p50, and the combined signal (signal, signal_basis) using the forensics fields.
-    """
-    out = df.copy()
-    for c in ("val_rating", "val_bucket", "val_note", "val_quality"):
-        out[c] = ""
-    sevs = []
-    out["val_pct"] = out["val_cagr_base"] = out["val_fv_p50"] = np.nan
-    S = _snapshot(os.path.getmtime(SNAPSHOT)).set_index("ticker") if os.path.exists(SNAPSHOT) else pd.DataFrame()
-    tick = out["ticker"].str.replace(".NS", "", regex=False)
-    price = pd.to_numeric(out.get("price", out.get("currentPrice")), errors="coerce")
-    rat, buck, note, pct, cagr, p50 = [], [], [], [], [], []
-    band_txt, band_w = [], []
-    for t, p in zip(tick, price):
+@st.cache_data(ttl=3600, max_entries=8, show_spinner=False)
+def _compute_table_cols(snap_mtime: float, keys: tuple) -> dict:
+    S = _snapshot(snap_mtime).set_index("ticker") if snap_mtime else pd.DataFrame()
+    rat, buck, note, pct, cagr, p50, sevs, band_txt, band_w = [], [], [], [], [], [], [], [], []
+    for t, p in keys:
         band_txt.append(""); band_w.append(np.nan)
         if S.empty or t not in S.index:
             rat.append(""); buck.append("NOT VALUED"); note.append("no valuation data")
@@ -96,7 +88,7 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
             pct.append(np.nan); cagr.append(np.nan); p50.append(np.nan); sevs.append(np.nan)
             continue
         try:
-            px_ = p if np.isfinite(p) else float(r.price)
+            px_ = float(p) if p is not None and np.isfinite(float(p)) else float(r.price)
             q, _ = rating_from_grid(json.loads(r.grid), px_, bool(r.gates_ok), r.confidence, r.identity)
         except Exception:                      # one malformed row must never take the page down
             q = np.nan
@@ -109,7 +101,6 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
         icon = QUALITY[sev][0]
         lean = str(r.q_lean) if "q_lean" in r and pd.notna(r.q_lean) and str(r.q_lean) else ""
         why = str(r.q_note) if "q_note" in r and pd.notna(r.q_note) else ""
-        # percentile band at today's price (utils.valuation: knobs, peer spread, growth disagreement)
         rng = vb
         try:
             lo, _, hi = band_from_grid(json.loads(r.grid), px_, float(r.get("band_k_lo", 1.0) or 1.0),
@@ -127,11 +118,28 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
         note.append(" · ".join(x for x in (why, lean) if x))
         sevs.append(sev)
         pct.append(q); cagr.append(r.cagr_base * 100 if pd.notna(r.cagr_base) else np.nan); p50.append(r.p50)
-    out["val_rating"], out["val_bucket"], out["val_note"], out["val_pct"] = rat, buck, note, pct
-    out["val_band"], out["val_band_width"] = band_txt, band_w
-    out["val_sev"] = sevs
-    out["val_quality"] = [f"{QUALITY[int(x)][0]} {QUALITY[int(x)][1]}" if pd.notna(x) else "" for x in sevs]
-    out["val_cagr_base"], out["val_fv_p50"] = cagr, p50
+    return {
+        "val_rating": rat, "val_bucket": buck, "val_note": note, "val_pct": pct,
+        "val_band": band_txt, "val_band_width": band_w, "val_sev": sevs,
+        "val_quality": [f"{QUALITY[int(x)][0]} {QUALITY[int(x)][1]}" if pd.notna(x) else "" for x in sevs],
+        "val_cagr_base": cagr, "val_fv_p50": p50,
+    }
+
+
+def table_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adds val_bucket (BUY / ACCUMULATE / HOLD / REDUCE / SELL at today's price, or NOT VALUED), val_rating
+    (icon + bucket, ⚠ when a v4.1 gate failed), val_note (why ⚠ / not valued), val_pct, val_cagr_base,
+    val_fv_p50, and the combined signal (signal, signal_basis) using the forensics fields.
+    """
+    out = df.copy()
+    snap_mtime = os.path.getmtime(SNAPSHOT) if os.path.exists(SNAPSHOT) else 0.0
+    tick = out["ticker"].astype(str).str.replace(".NS", "", regex=False)
+    price = pd.to_numeric(out.get("price", out.get("currentPrice")), errors="coerce")
+    keys = tuple((t, None if pd.isna(p) or not np.isfinite(p) else round(float(p), 4)) for t, p in zip(tick, price))
+    cols = _compute_table_cols(snap_mtime, keys)
+    for k_, v_ in cols.items():
+        out[k_] = v_
     # combined signal
     ma50 = pd.to_numeric(out.get("fiftyDayAverage"), errors="coerce")
     d200 = pd.to_numeric(out.get("dist_200dma"), errors="coerce")
@@ -185,20 +193,24 @@ def _hist(res: dict, cur: str = "₹") -> go.Figure:
 
 
 def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: float | None = None,
-                 tech_buy: bool | None = None, below_both: bool | None = None, market: str = "IN"):
+                 tech_buy: bool | None = None, below_both: bool | None = None, market: str = "IN",
+                 precomputed: dict | None = None):
     us = market == "US"
     cur = "$" if us else "₹"
     st.markdown("#### 💰 Valuation — v4.1, mechanical" + (" (SEC EDGAR filings)" if us else ""))
-    c = ctx_us() if us else ctx()
-    if us and c.annual.empty:
-        st.info("US valuation inputs are not in the repo yet: run the 'US Valuation Inputs (SEC EDGAR)' workflow "
-                "(needs the SEC_USER_AGENT repository secret), then reload.")
-        return
-    if c.annual.empty:
-        st.info("Valuation inputs are not in the repo yet -- run the Ranking / Rotation workflow with "
-                "script = fundamentals (about 40 minutes), then reload.")
-        return
-    res = value_stock(ticker, c, price=price, hi52=hi52, lo52=lo52)
+    if precomputed is not None:
+        res = precomputed
+    else:
+        c = ctx_us() if us else ctx()
+        if us and c.annual.empty:
+            st.info("US valuation inputs are not in the repo yet: run the 'US Valuation Inputs (SEC EDGAR)' workflow "
+                    "(needs the SEC_USER_AGENT repository secret), then reload.")
+            return
+        if c.annual.empty:
+            st.info("Valuation inputs are not in the repo yet -- run the Ranking / Rotation workflow with "
+                    "script = fundamentals (about 40 minutes), then reload.")
+            return
+        res = value_stock(ticker, c, price=price, hi52=hi52, lo52=lo52)
     if res.get("status") != "OK":
         st.warning(f"**{res.get('status')}** — {res.get('reason', '')}. Being out of scope is a property of the "
                    "business, not a criticism of it.")
@@ -356,12 +368,42 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
 # ----------------------------------------------------------------------------
 # your v4.1 runs vs the mechanical rating
 # ----------------------------------------------------------------------------
-def _reference() -> pd.DataFrame:
-    if not os.path.exists(REFERENCE):
-        return pd.DataFrame()
+@st.cache_data(ttl=3600, max_entries=4, show_spinner=False)
+def _reference_cached(mtime: float) -> pd.DataFrame:
     R = pd.read_csv(REFERENCE)
     R["ticker"] = R["ticker"].astype(str).str.replace(".NS", "", regex=False).str.strip().str.upper()
     return R
+
+
+def _reference() -> pd.DataFrame:
+    if not os.path.exists(REFERENCE):
+        return pd.DataFrame()
+    return _reference_cached(os.path.getmtime(REFERENCE)).copy()
+
+
+@st.cache_data(ttl=3600, max_entries=4, show_spinner=False)
+def _reference_eval(ref_mtime: float, stamp: tuple) -> pd.DataFrame:
+    R = _reference_cached(ref_mtime)
+    if R.empty:
+        return pd.DataFrame()
+    c = ctx()
+    rows = []
+    for r in R.to_dict("records"):
+        res = value_stock(r["ticker"], c, price=float(r["cmp"]), knobs=False) if pd.notna(r.get("cmp")) else {}
+        if res.get("status") != "OK":
+            rows.append(dict(ticker=r["ticker"], run_date=r["run_date"], v41=r["verdict"],
+                             v41_pct=r.get("cmp_percentile"), mech=res.get("status", "n/a")))
+            continue
+        rows.append(dict(ticker=r["ticker"], run_date=r["run_date"], cmp=r["cmp"], v41=r["verdict"],
+                         v41_pct=r.get("cmp_percentile"), mech=res["rating"], mech_prov=res.get("provisional", ""),
+                         mech_pct=res["dist"]["cmp_pct"], v41_p50=r.get("p50"), mech_p50=res["dist"]["P50"],
+                         same_bucket=_base_label(str(r["verdict"]).upper()) ==
+                         _base_label(res["rating"] if not res["rating"].startswith(("UNRATED", "INDET")) else
+                                     res.get("provisional", "").strip("(").split(")")[0])))
+    T = pd.DataFrame(rows)
+    if "mech_pct" in T:
+        T["pct_gap"] = T.mech_pct - pd.to_numeric(T.v41_pct, errors="coerce")
+    return T
 
 
 def render_reference(df: pd.DataFrame):
@@ -374,26 +416,14 @@ def render_reference(df: pd.DataFrame):
         if R.empty or not os.path.exists(SNAPSHOT):
             st.info("No reference runs logged yet." if R.empty else "Mechanical snapshot not built yet.")
             return
-        c = ctx()
-        rows = []
-        for r in R.to_dict("records"):
-            res = value_stock(r["ticker"], c, price=float(r["cmp"]), knobs=False) if pd.notna(r.get("cmp")) else {}
-            if res.get("status") != "OK":
-                rows.append(dict(ticker=r["ticker"], run_date=r["run_date"], v41=r["verdict"],
-                                 v41_pct=r.get("cmp_percentile"), mech=res.get("status", "n/a")))
-                continue
-            rows.append(dict(ticker=r["ticker"], run_date=r["run_date"], cmp=r["cmp"], v41=r["verdict"],
-                             v41_pct=r.get("cmp_percentile"), mech=res["rating"], mech_prov=res.get("provisional", ""),
-                             mech_pct=res["dist"]["cmp_pct"], v41_p50=r.get("p50"), mech_p50=res["dist"]["P50"],
-                             same_bucket=_base_label(str(r["verdict"]).upper()) ==
-                             _base_label(res["rating"] if not res["rating"].startswith(("UNRATED", "INDET")) else
-                                         res.get("provisional", "").strip("(").split(")")[0])))
-        T = pd.DataFrame(rows)
-        if "mech_pct" in T:
-            T["pct_gap"] = T.mech_pct - pd.to_numeric(T.v41_pct, errors="coerce")
+        files = ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz",
+                 "data/monthly_prices.csv.gz", "data/valuation_overrides.csv")
+        T = _reference_eval(os.path.getmtime(REFERENCE), _ctx_stamp(files))
+        if "pct_gap" in T:
             ok = T.dropna(subset=["pct_gap"])
-            st.markdown(f"**Agreement:** same verdict bucket {ok.same_bucket.mean():.0%} of {len(ok)} runs · median "
-                        f"percentile gap {ok.pct_gap.median():+.0f} · mean absolute gap {ok.pct_gap.abs().mean():.0f} points")
+            if len(ok):
+                st.markdown(f"**Agreement:** same verdict bucket {ok.same_bucket.mean():.0%} of {len(ok)} runs · median "
+                            f"percentile gap {ok.pct_gap.median():+.0f} · mean absolute gap {ok.pct_gap.abs().mean():.0f} points")
         st.dataframe(T, hide_index=True, use_container_width=True)
         st.caption("Note: the mechanical run uses the price you logged, but today's fundamentals files -- a run logged "
                    "before a results season is not compared like-for-like.")

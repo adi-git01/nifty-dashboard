@@ -41,7 +41,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.rs_alerts import check_rs_alerts, load_rs_alerts, storage_status
-from utils.telegram_notifier import is_telegram_configured, send_telegram_message
+from utils.telegram_notifier import is_telegram_configured, queue_commit, send_telegram_message
 
 IST = timezone(timedelta(hours=5, minutes=30))
 CACHE_GLOB = "data/cache/market_master_*.parquet"
@@ -86,7 +86,7 @@ def main() -> int:
         print("[RS] No usable market snapshot found — skipping.")
         return 0
 
-    age = (pd.Timestamp.now().normalize() - date).days
+    age = (pd.Timestamp(datetime.now(tz=IST).date()) - date).days
     print(f"[RS] Snapshot {os.path.basename(path)} ({len(df)} tickers, {age}d old)")
     if age > MAX_SNAPSHOT_AGE_DAYS:
         print(f"[RS] Snapshot older than {MAX_SNAPSHOT_AGE_DAYS}d — skipping rather "
@@ -113,8 +113,11 @@ def main() -> int:
         return 0
 
     lines = [t["alert_message"] for t in triggered]
-    notes = [f"  {t['ticker'].replace('.NS','')}: {t['notes']}"
-             for t in triggered if t.get("notes")]
+    notes = []
+    for t in triggered:
+        if t.get("notes"):
+            sym = re.sub(r"\.(NS|BO)$", "", t["ticker"])
+            notes.append(f"  {sym}: {t['notes']}")
     message = ("📈 RS ALERT\n\n" + "\n".join(lines)
                + (("\n\nNotes:\n" + "\n".join(notes)) if notes else "")
                + f"\n\nSnapshot: {date:%d %b %Y}")
@@ -126,8 +129,11 @@ def main() -> int:
     else:
         print("[RS] Telegram not configured — crossings logged only.")
     if ok:
-        check_rs_alerts(df, persist=True)
-        print(f"[RS] store: {storage_status()}")
+        if bool(os.environ.get("TELEGRAM_BATCH", "").strip()) and path and queue_commit({"kind": "rs_persist", "snapshot": path}):
+            print("[RS] crossing persistence queued for daily brief delivery")
+        else:
+            check_rs_alerts(df, persist=True)
+            print(f"[RS] store: {storage_status()}")
     else:
         print("[RS] state not saved, so these crossings are sent again on the next run")
     return 0

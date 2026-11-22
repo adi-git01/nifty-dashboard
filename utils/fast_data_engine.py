@@ -4,7 +4,7 @@ import numpy as np
 import os
 import time
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from utils.volume_analysis import get_combined_volume_signal
 from utils.scoring import calculate_trend_metrics, calculate_scores
 from utils.data_engine import get_stock_info
@@ -90,8 +90,11 @@ def _sanitize_price_bars(df: pd.DataFrame, factor: float = 2.5, window: int = 5)
     return out
 
 
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+
 def get_parquet_cache_path():
-    today_str = datetime.now().strftime("%Y_%m_%d")
+    today_str = datetime.now(_IST).strftime("%Y_%m_%d")
     os.makedirs("data/cache", exist_ok=True)
     return f"data/cache/market_master_{today_str}.parquet"
 
@@ -270,8 +273,10 @@ def fetch_missing_fundamentals(df):
             if 'pe' in df.columns:
                 # errors='coerce' still parses 'Infinity'/'-Infinity' strings into
                 # real inf floats (Python float() semantics) instead of NaN — strip those too.
-                pe_numeric = pd.to_numeric(df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
-                sector_pe = df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
+                core_df = df[df["extended"] != True] if "extended" in df.columns else df
+                pe_numeric = pd.to_numeric(core_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+                pe_numeric = pe_numeric.where((pe_numeric > 0) & (pe_numeric < 500))
+                sector_pe = core_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
             else:
                 sector_pe = {}
             updated_tickers = set(update_df.index)
@@ -396,8 +401,10 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
     # sentinel for near-zero EPS); coerce so groupby().median() can't raise.
     sector_pe = {}
     if 'pe' in fundamental_df.columns and 'sector' in fundamental_df.columns:
-        pe_numeric = pd.to_numeric(fundamental_df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
-        sector_pe = fundamental_df.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
+        core_fdf = fundamental_df[fundamental_df["extended"] != True] if "extended" in fundamental_df.columns else fundamental_df
+        pe_numeric = pd.to_numeric(core_fdf['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+        pe_numeric = pe_numeric.where((pe_numeric > 0) & (pe_numeric < 500))
+        sector_pe = core_fdf.assign(pe=pe_numeric).groupby('sector')['pe'].median().to_dict()
 
     # 2. Process each ticker (CPU bound, but fast)
     total_tickers = len(tickers)

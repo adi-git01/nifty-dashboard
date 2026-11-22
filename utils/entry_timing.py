@@ -91,7 +91,8 @@ def add_entry_freshness(df: pd.DataFrame) -> pd.DataFrame:
     def _label(row):
         d = row['dist_ma50']
         a = row['rs_accel']
-        up = (row.get('trend_score', 0) or 0) >= 55 or (pd.notna(d) and d > 0)
+        ts = row.get('trend_score')
+        up = (pd.notna(ts) and float(ts) >= 55) or (pd.notna(d) and d > 0)
         if pd.isna(d):
             return "—"
         if not up:

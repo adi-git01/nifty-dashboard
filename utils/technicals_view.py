@@ -9,6 +9,7 @@ on fresh 2-year bars and prints the v6 report.
 from __future__ import annotations
 
 import os
+import re
 
 import numpy as np
 import pandas as pd
@@ -338,6 +339,12 @@ def _deep_dive(df: pd.DataFrame):
         _update_holding(h, mine, hp, hd, risk)
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _sp500_names(mtime: float) -> dict:
+    sp = pd.read_csv("data/sp500_tickers.csv")
+    return dict(zip(sp.iloc[:, 0].astype(str), sp.get("name", sp.iloc[:, 0]).astype(str)))
+
+
 def _deep_dive_us():
     """The same v6 technical read for a US stock: chart structure, volume anchor, supply, stop, size and exit rule."""
     st.caption("Fresh 2-year daily bars from Yahoo. While New York is open, today's candle is provisional and left out. "
@@ -346,8 +353,7 @@ def _deep_dive_us():
                "Valuation below uses SEC filings (refreshed weekly) and the same v4.1 model with S&P 500 peers and a 9% "
                "hurdle; it too was calibrated on Indian stocks.")
     try:
-        sp = pd.read_csv("data/sp500_tickers.csv")
-        names = dict(zip(sp.iloc[:, 0].astype(str), sp.get("name", sp.iloc[:, 0]).astype(str)))
+        names = _sp500_names(os.path.getmtime("data/sp500_tickers.csv"))
     except Exception:
         names = {}
     c1, c2, c3, c4 = st.columns([2, 1, 1, 1])
@@ -362,7 +368,7 @@ def _deep_dive_us():
     with c4:
         hd = st.date_input("Since", value=None, key="tx_us_hd", disabled=not held)
     risk = st.number_input("Risk per trade ($)", min_value=10.0, value=500.0, step=50.0, key="tx_us_risk")
-    t = (custom.strip().upper() or pick or "").replace(".NS", "").replace(".", "-")   # Yahoo: BRK-B, not BRK.B
+    t = re.sub(r"\.([A-Z])$", r"-\1", (custom.strip().upper() or pick or "").replace(".NS", ""))   # Yahoo: BRK-B, not BRK.B
     if not t:
         return
     if held and (hp <= 0 or hd is None):
@@ -461,17 +467,23 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
     fresh = [f"prices to {pd.Timestamp(h.index[-1]):%d %b %Y}"]
     try:
         if us:
-            raise RuntimeError("no Indian fundamentals")
-        t = name if name.endswith(".NS") else name + ".NS"
-        q = _series(c.quarterly, t, "np")
-        if len(q):
-            age = (pd.Timestamp.today() - q.index.max()).days
-            fresh.append(f"latest quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
-        import os as _os
-        fresh.append(f"fundamentals file refreshed {pd.Timestamp(_os.path.getmtime('data/fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
+            q = _series(c.quarterly, name, "np") if c is not None else pd.Series(dtype=float)
+            if len(q):
+                age = (pd.Timestamp.today() - q.index.max()).days
+                fresh.append(f"latest US quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
+            if os.path.exists("data/us_fundamentals_quarterly.csv.gz"):
+                fresh.append(f"SEC filings refreshed {pd.Timestamp(os.path.getmtime('data/us_fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
+        else:
+            t = name if name.endswith(".NS") else name + ".NS"
+            q = _series(c.quarterly, t, "np")
+            if len(q):
+                age = (pd.Timestamp.today() - q.index.max()).days
+                fresh.append(f"latest quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
+            fresh.append(f"fundamentals file refreshed {pd.Timestamp(os.path.getmtime('data/fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
     except Exception:
         pass
     st.caption("Data used: " + " · ".join(fresh) + ". Targets and stops are computed levels, not advice.")
+    return val
 
 
 def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: float):
@@ -509,7 +521,7 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     k[5].metric("Size", f"{P['shares']:,} sh", f"{cur}{P['shares'] * r['close']:,.0f}", delta_color="off",
                 help=f"Risk {cur}{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
 
-    _trade_plan_card(P, name, h, us=us)
+    val = _trade_plan_card(P, name, h, us=us)
     st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
 
     if P.get("currency", "INR") == "INR":                        # NSE delivery %, surveillance, next results (utils/nse_data.py)
@@ -519,7 +531,8 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
             _dp = _nd.delivery_panel(20)
             _bits = []
             if len(_dp) and _t in _dp.columns and _dp[_t].notna().any():
-                _bits.append(f"Delivery {_dp[_t].iloc[-1]:.0f}% on {pd.Timestamp(_dp.index[-1]):%d %b} (20-day avg {_dp[_t].mean():.0f}%)")
+                _last_del = _dp[_t].dropna()
+                _bits.append(f"Delivery {_last_del.iloc[-1]:.0f}% on {pd.Timestamp(_last_del.index[-1]):%d %b} (20-day avg {_last_del.mean():.0f}%)")
             _sv, _ev = _nd.surveillance_map().get(_t), _nd.upcoming_events(30).get(_t)
             if _sv:
                 _bits.append(f"⚠️ {_sv}")
@@ -585,4 +598,5 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
     hh = h.tail(252)
     render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
                  tech_buy=P["r"]["action"] == "BUY NOW" and not P["held"],
-                 below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]), market="US" if us else "IN")
+                 below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]),
+                 market="US" if us else "IN", precomputed=val)

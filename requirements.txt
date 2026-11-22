@@ -11,3 +11,5 @@ markdown
 fastparquet
 pyarrow
 openai
+scipy
+tzdata

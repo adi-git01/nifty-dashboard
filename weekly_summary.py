@@ -14,7 +14,9 @@ import os
 import sys
 import json
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -64,33 +66,33 @@ def build_telegram_summary(data):
     trail_pct = config.get('trailing_stop', 0.15)
     max_pos = config.get('max_positions', 15)
 
+    now_ist = datetime.now(_IST)
     total_ret = (equity - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
-    start = datetime(2026, 2, 1)
-    days = (datetime.now() - start).days
+    start = datetime(2026, 2, 1, tzinfo=_IST)
+    days = (now_ist - start).days
     cagr = ((equity / INITIAL_CAPITAL) ** (365.25 / max(days, 1)) - 1) * 100 if equity > 0 else 0
 
-    # Nifty comparison (from equity curve if available)
+    # Nifty comparison (single safe_history call -> covers both 1wk return and 200DMA / 52w high)
     nifty_ret = "N/A"
+    nifty_vs_sma = None
+    dd_52w = None
+    curr_nifty = None
     try:
-        import yfinance as yf
-        nifty = yf.Ticker("^NSEI").history(period="1mo")
-        if len(nifty) >= 5:
-            week_ago_price = nifty['Close'].iloc[-6] if len(nifty) >= 6 else nifty['Close'].iloc[0]
-            curr_nifty = nifty['Close'].iloc[-1]
+        from utils.yf_safe import safe_history
+        nifty_2y = safe_history("^NSEI", period="2y")
+        if nifty_2y is not None and len(nifty_2y) >= 5:
+            curr_nifty = float(nifty_2y['Close'].iloc[-1])
+            week_ago_price = float(nifty_2y['Close'].iloc[-6] if len(nifty_2y) >= 6 else nifty_2y['Close'].iloc[0])
             nifty_week_ret = (curr_nifty - week_ago_price) / week_ago_price * 100
             nifty_ret = f"{nifty_week_ret:+.1f}%"
-
-            # Nifty vs MA200
-            nifty_2y = yf.Ticker("^NSEI").history(period="2y")
             if len(nifty_2y) >= 200:
-                sma200 = nifty_2y['Close'].rolling(200).mean().iloc[-1]
+                sma200 = float(nifty_2y['Close'].rolling(200).mean().iloc[-1])
                 nifty_vs_sma = (curr_nifty - sma200) / sma200 * 100
-                high_52w = nifty_2y['High'].rolling(252).max().iloc[-1]
+                hi_col = 'High' if 'High' in nifty_2y.columns else 'Close'
+                high_52w = float(nifty_2y[hi_col].iloc[-252:].max())
                 dd_52w = (curr_nifty - high_52w) / high_52w * 100
-    except:
-        nifty_vs_sma = None
-        dd_52w = None
-        curr_nifty = None
+    except Exception:
+        pass
 
     # Weekly P&L from equity curve
     week_pnl = "N/A"
@@ -104,7 +106,7 @@ def build_telegram_summary(data):
     if not trades_df.empty:
         try:
             trades_df['Date'] = pd.to_datetime(trades_df['Date'])
-            week_start = datetime.now() - timedelta(days=7)
+            week_start = pd.Timestamp(now_ist.date()) - timedelta(days=7)
             weekly_trades = trades_df[trades_df['Date'] >= week_start]
         except:
             pass
@@ -122,7 +124,7 @@ def build_telegram_summary(data):
     regime_icon = {'BULL': '\U0001f7e2', 'CAUTION': '\U0001f7e1', 'BEAR': '\U0001f7e0', 'CRISIS': '\U0001f534'}.get(regime, '\u26aa')
 
     msg = f"<b>\U0001f4ca OptComp-V22 Weekly Summary</b>\n"
-    msg += f"<i>Week ending {datetime.now().strftime('%d %b %Y')}</i>\n\n"
+    msg += f"<i>Week ending {now_ist.strftime('%d %b %Y')}</i>\n\n"
 
     msg += f"<b>--- Portfolio ---</b>\n"
     msg += f"  Value: Rs {equity:,.0f} ({total_ret:+.1f}%)\n"
@@ -186,9 +188,10 @@ def build_email_summary(data):
     trail_pct = config.get('trailing_stop', 0.15)
     regime_days = _regime_days(equity_df, regime)   # used in the email's header; was never defined here (Saturday crash)
 
+    now_ist = datetime.now(_IST)
     total_ret = (equity - INITIAL_CAPITAL) / INITIAL_CAPITAL * 100
-    start = datetime(2026, 2, 1)
-    days = (datetime.now() - start).days
+    start = datetime(2026, 2, 1, tzinfo=_IST)
+    days = (now_ist - start).days
     cagr = ((equity / INITIAL_CAPITAL) ** (365.25 / max(days, 1)) - 1) * 100 if equity > 0 else 0
 
     peak_eq = equity_df['Equity'].max() if not equity_df.empty else equity
@@ -202,7 +205,7 @@ def build_email_summary(data):
     if not trades_df.empty:
         try:
             trades_df['Date'] = pd.to_datetime(trades_df['Date'])
-            week_start = datetime.now() - timedelta(days=7)
+            week_start = pd.Timestamp(now_ist.date()) - timedelta(days=7)
             weekly = trades_df[trades_df['Date'] >= week_start]
             for _, t in weekly.iterrows():
                 action = t.get('Action', '')

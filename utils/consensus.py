@@ -50,7 +50,9 @@ def votes(df: pd.DataFrame, regime: Optional[Dict[str, Any]] = None, fund: Optio
             except Exception:
                 ind = {}
         S = simba.score_table(df, regime or {"regime": "UNKNOWN"}, fund, ind).set_index("ticker")
-        si = pd.to_numeric(S["simba_si_since"], errors="coerce") <= 5
+        gates_empty = S["gates"].fillna("").astype(str).str.strip().eq("") if "gates" in S.columns else pd.Series(True, index=S.index)
+        ungated = gates_empty & ~S["grade"].astype(str).str.contains("gated", case=False, na=False)
+        si = (pd.to_numeric(S["simba_si_since"], errors="coerce") <= 5) & ungated
         ok = S["grade"].isin(["A+", "A"]) | si
         x["simba"] = x["ticker"].map(ok.to_dict()).eq(True)
         x["simba_score"] = x["ticker"].map(S["score"])

@@ -16,7 +16,7 @@ on:
         default: "2"
 
 concurrency:
-  group: nse-prices
+  group: repo-data-write
   cancel-in-progress: false
 
 jobs:

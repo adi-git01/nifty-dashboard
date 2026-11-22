@@ -75,20 +75,13 @@ def get_live_regime(nifty_df):
 # 2. V4 SEASONAL OVERLAY DICTIONARY
 # ======================================================================
 SEASONAL_RULES = {
-    # TRAPS (Months where the sector bleeds out - VETO ALL BUYS)
-    'Financial': {1: 'TRAP', 2: 'TRAP', 5: 'TRAP'},          
-    'Industrial': {1: 'TRAP'},                               
-    'IT': {2: 'TRAP', 3: 'TRAP'},                            
-    'Auto': {2: 'TRAP'},                                     
-    'Real Estate': {2: 'TRAP'},                              
-    
-    # EDGES (Golden months - ACCELERATE BUYS)
-    'Industrial': {3: 'EDGE', 4: 'EDGE', 5: 'EDGE'},         
-    'Auto': {4: 'EDGE', 5: 'EDGE'},                          
-    'Financial': {10: 'EDGE', 11: 'EDGE', 12: 'EDGE'},       
-    'IT': {6: 'EDGE', 7: 'EDGE'},                            
-    'Consumer': {9: 'EDGE', 10: 'EDGE'},                     
-    'Healthcare': {7: 'EDGE', 8: 'EDGE'},                    
+    'Financial': {1: 'TRAP', 2: 'TRAP', 5: 'TRAP', 10: 'EDGE', 11: 'EDGE', 12: 'EDGE'},
+    'Industrial': {1: 'TRAP', 3: 'EDGE', 4: 'EDGE', 5: 'EDGE'},
+    'IT': {2: 'TRAP', 3: 'TRAP', 6: 'EDGE', 7: 'EDGE'},
+    'Auto': {2: 'TRAP', 4: 'EDGE', 5: 'EDGE'},
+    'Real Estate': {2: 'TRAP'},
+    'Consumer': {9: 'EDGE', 10: 'EDGE'},
+    'Healthcare': {7: 'EDGE', 8: 'EDGE'},
 }
 
 def classify_sector(sector_str):

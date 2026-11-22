@@ -247,11 +247,27 @@ def _quarterly(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     w = Q[k].pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
     w = w[w.index.month.isin([3, 6, 9, 12])]
     g = lambda c: w[c] if c in w else pd.Series(np.nan, index=w.index)
-    yoy = lambda s: ((s / s.shift(4) - 1) * 100).where(s.shift(4) > 0)
+
+    def _yoy(s: pd.Series) -> pd.Series:
+        out_s = pd.Series(np.nan, index=s.index, dtype=float)
+        idx = pd.DatetimeIndex(s.index)
+        for pos, dt in enumerate(idx):
+            cur = s.iloc[pos]
+            if pos == 0 or pd.isna(cur):
+                continue
+            target = dt - pd.DateOffset(years=1)
+            diffs = np.abs((idx[:pos] - target).days)
+            j = int(np.argmin(diffs))
+            if diffs[j] <= 45:
+                prev = s.iloc[j]
+                if pd.notna(prev) and prev > 0:
+                    out_s.iloc[pos] = (cur / prev - 1.0) * 100.0
+        return out_s
+
     out = pd.DataFrame(index=w.index)
-    out["sales"], out["sales_yoy"] = g("sales"), yoy(g("sales"))
+    out["sales"], out["sales_yoy"] = g("sales"), _yoy(g("sales"))
     out["op"], out["opm"] = g("op"), g("opm")
-    out["np"], out["np_yoy"] = g("np"), yoy(g("np"))
+    out["np"], out["np_yoy"] = g("np"), _yoy(g("np"))
     out["npm"] = _div(g("np"), g("sales")) * 100
     for c in ("promoters", "fii", "dii", "public", "holders", "gnpa", "nnpa"):
         out[c] = g(c)

@@ -483,39 +483,44 @@ def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_
     if not P:
         return f"{ticker}: fewer than 60 closed sessions -- aborted (prompt rule)."
     r, close = P["r"], P["r"]["close"]
+    us = P.get("currency") == "USD"
+    cur_txt = "$" if us else "Rs "
+    min_tv = "$0.6M" if us else "Rs 5 cr"
     state, supply, stop, sp = r["state"], r["supply"], r["stop"], r["stop_pct"]
     held, peak, trail, fired, since = P["held"], P["peak"], P["trail"], P["fired"], P["since"]
     lag = (pd.Timestamp.now().normalize() - pd.Timestamp(r["date"]).normalize()).days
     L = []
-    L.append(f"{ticker} | close {close:,.2f} on {_d(r['date'])} | {r['sessions']} sessions | source {source} | lag {lag}d"
+    L.append(f"{ticker} | close {cur_txt}{close:,.2f} on {_d(r['date'])} | {r['sessions']} sessions | source {source} | lag {lag}d"
              + (" | today's candle PROVISIONAL, excluded" if P["provisional"] else ""))
-    L.append(f"MODE: {'HELD @ ' + _p(P['held_price']) + ' since ' + _d(P['since']) if held else 'CANDIDATE'}")
+    L.append(f"MODE: {'HELD @ ' + cur_txt + _p(P['held_price']) + ' since ' + _d(P['since']) if held else 'CANDIDATE'}")
     L.append(f"\nACTION: {P['action']}")
     L.append(f"Trigger A: {P['trig_a'] or 'NOT COMPUTED'}")
     L.append(f"Trigger B: {P['trig_b'] or 'NOT COMPUTED'}")
     if stop < close:
-        L.append(f"Stop: {_p(stop)} ({'max of anchor low, MA50 - 0.5 ATR' if state in UP_STATES else 'MA50 - 0.5 ATR'})"
-                 f" = {_p(sp, 1)}%   Size: {P['shares']} shares for Rs {P['risk_rupees']:,.0f} risk"
+        L.append(f"Stop: {cur_txt}{_p(stop)} ({'max of anchor low, MA50 - 0.5 ATR' if state in UP_STATES else 'MA50 - 0.5 ATR'})"
+                 f" = {_p(sp, 1)}%   Size: {P['shares']} shares for {cur_txt}{P['risk_rupees']:,.0f} risk"
                  + (" (HALVED: stop > 10%)" if r["half_size"] else ""))
     else:
-        L.append(f"Stop: NOT COMPUTED -- price is below the stop level {_p(stop)} (no long setup)   Size: 0")
-    L.append(f"Targets: T1 {_p(r['t1'])} (2R, reference only -- a 2R exit halved per-trade returns in the backtest) | "
-             f"T2 {_p(r['t2'])} ({r.get('t2_kind', '')})")
+        L.append(f"Stop: NOT COMPUTED -- price is below the stop level {cur_txt}{_p(stop)} (no long setup)   Size: 0")
+    L.append(f"Targets: T1 {cur_txt}{_p(r['t1'])} (2R, reference only -- a 2R exit halved per-trade returns in the backtest) | "
+             f"T2 {cur_txt}{_p(r['t2'])} ({r.get('t2_kind', '')})")
     L.append(f"R:R: from current {_p(P['rr_now'], 1)} (to T2) | from trigger {_p(P['rr_trig'], 1)}")
     L.append(f"Review on: {'day 5 of the anchor' if r.get('days', 99) < 5 else '+10 sessions'}")
 
     L.append("\nGATES")
-    L.append(f"1 Trend    {'PASS' if r['gate1'] else 'FAIL'}  close {close:,.2f} vs MA50 {_p(r['ma50'])} "
-             f"({r['dist_ma50']:+.1f}%) / MA200 {_p(r['ma200'])} / 52w-high {_p(r['hi252'])} ({r['dist_hi']:+.1f}%)   [DATA]")
+    L.append(f"1 Trend    {'PASS' if r['gate1'] else 'FAIL'}  close {cur_txt}{close:,.2f} vs MA50 {cur_txt}{_p(r['ma50'])} "
+             f"({r['dist_ma50']:+.1f}%) / MA200 {cur_txt}{_p(r['ma200'])} / 52w-high {cur_txt}{_p(r['hi252'])} ({r['dist_hi']:+.1f}%)   [DATA]")
     if "anchor_date" in r:
         ret = r.get("retention")
         ret_s = "NOT COMPUTED" if ret is None or np.isnan(ret) else f"{round(ret * r['days'])}/{r['days']}"
+        tv_val = r["anchor_turnover_cr"] * 10 if us else r["anchor_turnover_cr"]
+        tv_s = f"${tv_val:.1f}M" if us else f"Rs {tv_val:.1f} cr"
         L.append(f"2 Event    {state}  {_d(r['anchor_date'])} | vol_ratio {r['anchor_volx']:.1f}x | clv {r['anchor_clv']:.2f} | "
-                 f"turnover Rs {r['anchor_turnover_cr']:.1f} cr | retention "
+                 f"turnover {tv_s} | retention "
                  f"{ret_s} | "
                  f"cause NOT COMPUTED   [DATA]")
     else:
-        L.append("2 Event    NEUTRAL  no day in the last 60 sessions with >= 3x median volume and >= Rs 5 cr   [DATA]")
+        L.append(f"2 Event    NEUTRAL  no day in the last 60 sessions with >= 3x median volume and >= {min_tv}   [DATA]")
     if "shelf_low" in r:
         L.append(f"3 Supply   {'OVERHANG' if 'OVERHANG' in supply else 'CLEAR'}  nearest trapped shelf "
                  f"{_p(r['shelf_low'])}-{_p(r['shelf_top'])}, {(r['shelf_low'] - close) / r['atr']:.1f} ATR above   [DATA]")
@@ -559,8 +564,8 @@ def report(df: pd.DataFrame, ticker: str, held_price: float | None = None, held_
              "but worse at portfolio level -- FORENSICS_VERDICT.md.)")
 
     L.append("\nWHAT FLIPS THIS")
-    bull = (f"daily close > {_p(r['shelf_top'])} (clean-air trigger)" if "shelf_top" in r and "OVERHANG" in supply
-            else f"new volume anchor (>= 3x median, >= Rs 5 cr, CLV >= 0.5) above {_p(r['hi252'])}")
+    bull = (f"daily close > {cur_txt}{_p(r['shelf_top'])} (clean-air trigger)" if "shelf_top" in r and "OVERHANG" in supply
+            else f"new volume anchor (>= 3x median, >= {min_tv}, CLV >= 0.5) above {cur_txt}{_p(r['hi252'])}")
     bear = (f"close < anchor low {_p(r['anchor_low'])} (VETO)" if "anchor_low" in r and state in UP_STATES
             else f"2 closes < MA50 {_p(r['ma50'])}")
     L.append(f"Bullish flip: {bull}")

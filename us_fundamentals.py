@@ -37,7 +37,7 @@ OUT_M, OUT_F = "data/us_monthly_prices.csv.gz", "data/us_fundamentals_cache.csv"
 
 # first tag with a value for a period wins (companies switch tags over the years)
 FLOW = {
-    "sales": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet",
+    "sales": ["Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax", "SalesRevenueNet",
               "RevenueFromContractWithCustomerIncludingAssessedTax", "RevenuesNetOfInterestExpense",
               "SalesRevenueGoodsNet", "InterestAndDividendIncomeOperating"],
     "np": ["NetIncomeLoss", "NetIncomeLossAvailableToCommonStockholdersBasic", "ProfitLoss"],
@@ -57,11 +57,12 @@ STOCK = {
     "reserves": ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"],
     "ltd": ["LongTermDebt", "LongTermDebtAndCapitalLeaseObligations"],
     "ltd_nc": ["LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligationsNoncurrent"],
-    "ltd_c": ["LongTermDebtCurrent", "DebtCurrent", "LongTermDebtAndCapitalLeaseObligationsCurrent"],
+    "ltd_c": ["LongTermDebtCurrent", "LongTermDebtAndCapitalLeaseObligationsCurrent"],
+    "debt_c": ["DebtCurrent"],
     "stb": ["ShortTermBorrowings", "CommercialPaper"],
     "fixed_assets": ["PropertyPlantAndEquipmentNet",
                      "PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization"],
-    "total_liab": ["Liabilities"],
+    "total_liab": ["Assets", "LiabilitiesAndStockholdersEquity", "Liabilities"],
     "deposits": ["Deposits"],
 }
 
@@ -94,7 +95,7 @@ def _flows(facts, tags):
     d = d.dropna(subset=["start"])
     days = (d.end - d.start).dt.days
     a = d[days.between(350, 380)].drop_duplicates("end").set_index("end").val.sort_index()
-    q = d[days.between(80, 100)].drop_duplicates("end").set_index("end").val.sort_index()
+    q = d[days.between(75, 120)].drop_duplicates("end").set_index("end").val.sort_index()
     a = a[~a.index.duplicated()].astype(float)
     q = q[~q.index.duplicated()].astype(float)
     # Q4 is not filed on its own: the year less the three quarters inside it
@@ -118,11 +119,15 @@ def _shares(facts_all: dict) -> float:
     dei = (facts_all.get("dei") or {}).get("EntityCommonStockSharesOutstanding", {}).get("units", {}).get("shares", [])
     d = pd.DataFrame(dei)
     if len(d):
+        if "form" in d:
+            d = d[d.form.astype(str).str.match(r"^(10-K|10-Q)(?:/A)?$")]
         d["end"] = pd.to_datetime(d["end"], errors="coerce")
-        last = d[d.end == d.end.max()]
-        last = last.drop_duplicates("val") if "frame" not in last else last.drop_duplicates(["val", "frame"])
-        if last.val.sum() > 0:
-            return float(last.val.sum())
+        d = d.dropna(subset=["end", "val"])
+        if len(d):
+            last = d[d.end == d.end.max()]
+            last = last.drop_duplicates("val")
+            if last.val.sum() > 0:
+                return float(last.val.sum())
     w = _rows(facts_all.get("us-gaap", {}), ["WeightedAverageNumberOfDilutedSharesOutstanding",
                                               "WeightedAverageNumberOfSharesOutstandingBasic"], unit="shares")
     return float(w.sort_values("end").val.iloc[-1]) if len(w) else np.nan
@@ -158,6 +163,8 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
             np.isfinite(b["ltd_nc"]) or np.isfinite(b["ltd_c"])) else np.nan
         if np.isfinite(b["stb"]):
             debt = (debt if np.isfinite(debt) else 0) + b["stb"]
+        elif np.isfinite(b["debt_c"]) and not np.isfinite(b["ltd"]) and not np.isfinite(b["ltd_c"]):
+            debt = (b["ltd_nc"] if np.isfinite(b["ltd_nc"]) else 0) + b["debt_c"]
         ebit = v["pbt"] + (v["interest"] if np.isfinite(v["interest"]) else 0) if np.isfinite(v["pbt"]) else v["op"]
         cap = b["reserves"] + (debt if np.isfinite(debt) else 0)
         rec = dict(sales=v["sales"], op=v["op"], interest=v["interest"], dep=v["dep"], pbt=v["pbt"], np=v["np"],
@@ -180,6 +187,7 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
     qrows = []
     qe = Q["np"].index
     qe = qe[qe >= qe.max() - pd.DateOffset(years=6)] if len(qe) else qe
+    used_qe: set = set()
     for e in qe:
         v = {f: at(Q[f], e) for f in ("sales", "np", "op", "interest", "pbt")}
         if not np.isfinite(v["op"]) and np.isfinite(v["pbt"]):
@@ -187,7 +195,11 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
         rec = {k: v[k] / UNIT for k in ("sales", "np", "op", "interest") if np.isfinite(v[k])}
         if np.isfinite(v["sales"]) and v["sales"] > 0 and np.isfinite(v["op"]):
             rec["opm"] = 100 * v["op"] / v["sales"]
-        qrows += [dict(ticker=t, field=k, period=_qend(e).date(), value=x) for k, x in rec.items()]
+        pe = _qend(e)
+        while pe in used_qe:
+            pe = (pe + pd.DateOffset(months=3)) + pd.offsets.MonthEnd(0)
+        used_qe.add(pe)
+        qrows += [dict(ticker=t, field=k, period=pe.date(), value=x) for k, x in rec.items()]
     return arows, qrows
 
 
@@ -216,13 +228,20 @@ def main():
         sys.exit("SEC_USER_AGENT is not set (or has no contact email). SEC refuses anonymous requests: add the "
                  "repository secret SEC_USER_AGENT = 'Your Name you@example.com'.")
     import requests
+    import requests.api as _req_api
     h = {"User-Agent": ua, "Accept-Encoding": "gzip, deflate"}
+    if requests.get is _req_api.get:
+        sess = requests.Session()
+        sess.headers.update(h)
+        _get = sess.get
+    else:
+        _get = lambda url, **kw: requests.get(url, headers=h, **kw)
     U = pd.read_csv(UNIVERSE)
     U["ticker"] = U["ticker"].astype(str).str.upper().str.replace(".", "-", regex=False)
-    tickers = [x.strip().upper() for x in a.tickers.split(",") if x.strip()] or list(U.ticker)
+    tickers = [x.strip().upper().replace(".", "-") for x in a.tickers.split(",") if x.strip()] or list(U.ticker)
     if a.limit:
         tickers = tickers[:a.limit]
-    m = requests.get("https://www.sec.gov/files/company_tickers.json", headers=h, timeout=60)
+    m = _get("https://www.sec.gov/files/company_tickers.json", timeout=60)
     m.raise_for_status()
     cik = {v["ticker"].upper().replace(".", "-"): int(v["cik_str"]) for v in m.json().values()}
 
@@ -241,7 +260,7 @@ def main():
             continue
         for attempt in range(3):
             try:
-                r = requests.get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{c:010d}.json", headers=h, timeout=60)
+                r = _get(f"https://data.sec.gov/api/xbrl/companyfacts/CIK{c:010d}.json", timeout=60)
                 if r.status_code == 429:
                     if attempt == 2:
                         miss.append(t)
@@ -265,12 +284,14 @@ def main():
         if (i + 1) % 50 == 0:
             print(f"[sec] {i + 1}/{len(tickers)}", flush=True)
 
-    A, Q = pd.DataFrame(AR), pd.DataFrame(QR)
+    A = pd.DataFrame(AR, columns=["ticker", "field", "period", "value"])
+    Q = pd.DataFrame(QR, columns=["ticker", "field", "period", "value"])
     A["basis"] = "us"
     # cache: name, sector, sub-industry and peer multiples (market cap / TTM profit, market cap / book)
     F = U.set_index("ticker").reindex(tickers)[["name", "sector", "sub_industry"]].rename(columns={"sub_industry": "sector_granular"})
-    lastv = A.sort_values("period").groupby(["ticker", "field"]).value.last().unstack()
-    qnp = Q[Q.field == "np"].sort_values("period").groupby("ticker").value.apply(lambda s: s.iloc[-4:].sum() if len(s) >= 4 else np.nan)
+    lastv = A.sort_values("period").groupby(["ticker", "field"]).value.last().unstack() if len(A) else pd.DataFrame()
+    qnp = (Q[Q.field == "np"].sort_values("period").groupby("ticker").value.apply(lambda s: s.iloc[-4:].sum() if len(s) >= 4 else np.nan)
+           if len(Q) else pd.Series(dtype=float))
     mc = lastv.get("mcap_cr")
     F["marketCap"] = (mc * UNIT).reindex(F.index) if mc is not None else np.nan
     F["pe"] = (mc / qnp.reindex(lastv.index)).where(lambda x: x > 0).reindex(F.index) if mc is not None else np.nan

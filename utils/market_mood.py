@@ -26,7 +26,8 @@ def calculate_mood_metrics(df):
     """
     if df.empty:
         return None
-
+    if 'extended' in df.columns:
+        df = df[df['extended'] != True]
     total_stocks = len(df)
     if total_stocks == 0:
         return None

@@ -75,11 +75,11 @@ SEEDED = pd.Timestamp("2026-09-30")      # data/ath_levels.csv was seeded from a
 
 
 def _legacy_factor(ticker: str, after: pd.Timestamp) -> float:
-    """For rows written before basis_close existed: splits/bonuses recorded since then (utils/corp_actions.py)."""
+    """For rows written before basis_close existed: splits/bonuses recorded since `after` (utils/corp_actions.py)."""
     try:
         from utils import corp_actions
         ca = corp_actions.load()
-        x = ca[(ca.ticker == ticker) & (pd.to_datetime(ca.date) > max(after, SEEDED))]
+        x = ca[(ca.ticker == ticker) & (pd.to_datetime(ca.date) > after)]
         return float(np.prod(x.factor.astype(float))) if len(x) else 1.0
     except Exception:
         return 1.0

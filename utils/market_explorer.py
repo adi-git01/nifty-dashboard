@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 from utils.data_engine import get_stock_info
 from utils.scoring import calculate_scores, calculate_trend_metrics
 from utils.analytics_engine import calculate_cycle_position, analyze_stock_health
+from utils.yf_safe import safe_download
 from utils.visuals import chart_score_radar, chart_gauge
 from utils.ui_components import card_metric, card_verdict
 import time
@@ -181,7 +182,7 @@ def render_market_explorer():
             f1.metric("P/E Ratio", _fmt('pe', 'x', dp=1))
             f2.metric("ROE", _fmt('roe', '%', scale=100, dp=1))
             f3.metric("Earnings Growth", _fmt('earningsGrowth', '%', scale=100, dp=1))
-            f4.metric("Debt/Equity", _fmt('debtToEquity'))
+            f4.metric("Debt/Equity", _fmt('debtToEquity', scale=0.01))
             f5.metric("PEG Ratio", _fmt('pegRatio'))
             
             # ── 6-Month CompRS History ────────────────────────────────────────
@@ -192,11 +193,14 @@ def render_market_explorer():
             @st.cache_data(ttl=3600, show_spinner=False)
             def _fetch_comprs_history(tkr):
                 try:
-                    raw = yf.download(
+                    raw = safe_download(
                         [tkr, "^NSEI"], period="400d", interval="1d",
-                        group_by="ticker", threads=False, progress=False, auto_adjust=True
+                        group_by="ticker", threads=False, auto_adjust=True
                     )
-                    if isinstance(raw.columns, pd.MultiIndex):
+                    if raw is not None and isinstance(raw.columns, pd.MultiIndex):
+                        lv0 = raw.columns.get_level_values(0)
+                        if tkr not in lv0 or "^NSEI" not in lv0:
+                            return pd.DataFrame()
                         s_close = raw[tkr]["Close"].dropna()
                         n_close = raw["^NSEI"]["Close"].dropna()
                     else:

@@ -44,13 +44,25 @@ LOGS = [("tc_log.csv", "signal_date", "Turnaround Catalyst"), ("breakout_log.csv
         ("ias_signal_log.csv", "signal_date", "Turnaround Radar"), ("watchlist_history.csv", "added_date", "V2.2 watchlist BUY")]
 
 
-def signals(start):
+def signals(start, raw_signals: bool = False):
     L = []
     for f, dc, src in LOGS:
         p = os.path.join("data", f)
         if not os.path.exists(p):
             continue
         d = pd.read_csv(p)
+        if not raw_signals:
+            if f == "breakout_log.csv":
+                if "gate1" in d:
+                    d = d[d["gate1"].astype(str).str.lower() == "true"]
+                if "loss_maker" in d:
+                    d = d[d["loss_maker"].astype(str).str.lower() != "true"]
+            elif f == "earnings_shock_log.csv" and "pead_action" in d:
+                d = d[d["pead_action"].astype(str).str.contains("Buy", case=False, na=False)]
+            elif f == "ias_signal_log.csv" and "signal_tier" in d:
+                d = d[d["signal_tier"].astype(str).isin(["ALERT", "READY"])]
+        if d.empty:
+            continue
         tc = "ticker" if "ticker" in d else "Ticker"
         L.append(pd.DataFrame(dict(stock=d[tc].astype(str).str.replace(".NS", "", regex=False),
                                    date=pd.to_datetime(d[dc].astype(str).str[:10], errors="coerce"), src=src)))
@@ -135,6 +147,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2026-07-01")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--raw-signals", action="store_true", help="Include un-filtered WATCH/Neutral/non-Gate1 rows")
     a = ap.parse_args()
     START = pd.Timestamp(a.start)
     U = pd.read_csv("data/nifty500_list.csv").Ticker.astype(str).str.replace(".NS", "", regex=False).tolist()
@@ -144,7 +157,7 @@ def main():
     import yfinance as yf
     nf = yf.download("^NSEI", start=START - pd.Timedelta(days=7), auto_adjust=False, progress=False)["Close"].squeeze().dropna()
     nifty = float(nf.iloc[-1] / nf[nf.index >= START].iloc[0] - 1) * 100
-    D = signals(START)
+    D = signals(START, raw_signals=a.raw_signals)
     base = load_context()
     A_all, Q_all = base.annual, base.quarterly
 
@@ -170,7 +183,8 @@ def main():
             ctx.monthly = base.monthly[base.monthly.index <= D_]
             hh = h.iloc[max(0, i - 251):i + 1]
             try:
-                v = value_stock(n, ctx, price=float(c[i]), n=1500, hi52=float(hh.High.max()), lo52=float(hh.Low.min()))
+                v = value_stock(n, ctx, price=float(c[i]), n=1500, hi52=float(hh.High.max()), lo52=float(hh.Low.min()),
+                                as_of=D_)
             except Exception:
                 return "", 3, "ERROR"
             if v.get("status") != "OK":
@@ -198,8 +212,6 @@ def main():
                 ncomb += comb == "BUY"
             for m in ("T", "TV"):
                 p = pos[m]
-                if p is not None:
-                    inv[m] += 1
                 if p is None:
                     if tech_buy if m == "T" else comb == "BUY":
                         pos[m] = i
@@ -209,6 +221,8 @@ def main():
                     trades.append(dict(stock=n, mode=m, buy=h.index[p].date(), buy_px=c[p], sell=h.index[i].date(),
                                        sell_px=c[i], ret=(c[i] / c[p] - 1) * 100, days=i - p))
                     pos[m] = None
+                if pos[m] is not None:
+                    inv[m] += 1
         for m in ("T", "TV"):
             p = pos[m]
             if p is not None:
@@ -305,12 +319,14 @@ def summarise(S, T, nifty, START, P=None):
                 L.append(f"| {lab} | {len(t)} | {t.ret.mean():+.1f}% | {t.ret.median():+.1f}% | {(t.ret > 0).mean():.0%} | {t.days.mean():.0f} |")
     # what the valuation veto did: technical trades it blocked vs the ones it allowed
     if len(T):
-        tv = T[T["mode"] == "TV"]
+        tv = T[T["mode"] == "TV"].copy()
         tt = T[T["mode"] == "T"].copy()
         end = lambda x: pd.Timestamp.today() if x == "open" else pd.Timestamp(x)
-        # allowed = valuation let a position open at some point during this technical trade
-        tt["allowed"] = [bool(((tv.stock == s) & (pd.to_datetime(tv.buy) >= pd.Timestamp(b)) &
-                               (pd.to_datetime(tv.buy) <= end(e))).any()) for s, b, e in zip(tt.stock, tt.buy, tt.sell)]
+        tv_buy = pd.to_datetime(tv["buy"])
+        tv_sell = tv["sell"].map(end)
+        # allowed = valuation held or opened a position overlapping this technical trade
+        tt["allowed"] = [bool(((tv.stock == s) & (tv_buy <= end(e)) & (tv_sell >= pd.Timestamp(b))).any())
+                         for s, b, e in zip(tt.stock, tt.buy, tt.sell)]
         L += ["", "**Technical BUY NOW trades, split by whether valuation let a position open during the trade**", "",
               "| | Trades | Avg | Median | Win rate |", "|---|---|---|---|---|"]
         for lab, t in (("Allowed by valuation", tt[tt.allowed]), ("Blocked by valuation", tt[~tt.allowed])):

@@ -32,7 +32,7 @@ def _bars(t: pd.DataFrame, bar: str, line: str, bar_name: str, line_name: str, t
     if line in t and t[line].notna().any():
         fig.add_scatter(x=x, y=t[line], name=line_name, mode="lines+markers", line=dict(color="#F58518", width=2), secondary_y=True)
     fig.update_layout(title=title, height=270, margin=dict(l=10, r=10, t=40, b=10), legend=dict(orientation="h", y=-0.2),
-                      template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+                      template="plotly_white", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     return fig
 
 
@@ -43,7 +43,7 @@ def _lines(t: pd.DataFrame, cols: dict, title: str) -> go.Figure:
         if c in t and t[c].notna().any():
             fig.add_scatter(x=x, y=t[c], name=lab, mode="lines+markers")
     fig.update_layout(title=title, height=270, margin=dict(l=10, r=10, t=40, b=10), legend=dict(orientation="h", y=-0.2),
-                      template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+                      template="plotly_white", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     return fig
 
 
@@ -89,9 +89,13 @@ def render(df: pd.DataFrame):
     tickers = core + ext
     names = dict(zip(df["ticker"], df.get("name", df["ticker"]).astype(str)))
     names.update({t: f"{EXTENDED[t]['name']}  · extended" for t in ext})
-    want = st.session_state.pop("report_ticker", None) or st.session_state.get("quick_dive_ticker")
-    if want in tickers and st.session_state.get("sr_pick") != want and "sr_seeded" not in st.session_state:
-        st.session_state["sr_pick"] = want
+    explicit = st.session_state.pop("report_ticker", None)
+    if explicit in tickers:
+        st.session_state["sr_pick"] = explicit
+    elif "sr_seeded" not in st.session_state:
+        want = st.session_state.get("quick_dive_ticker")
+        if want in tickers:
+            st.session_state["sr_pick"] = want
     st.session_state["sr_seeded"] = True
     a, b = st.columns([3, 1.4])
     t = a.selectbox("Stock", tickers, key="sr_pick", format_func=lambda x: f"{x.replace('.NS', '')} — {names.get(x, '')}",

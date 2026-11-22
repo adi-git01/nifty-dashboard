@@ -32,11 +32,12 @@ def _loaded(prefixes: Tuple[str, ...]) -> List[str]:
 
 def stale(prefixes: Tuple[str, ...] = ("utils.",)) -> List[str]:
     """Loaded modules whose file changed after the module was first seen. Registers unseen modules."""
-    now, out = time.time(), []
+    out = []
     for name in _loaded(prefixes):
+        mt = os.path.getmtime(sys.modules[name].__file__)
         if name not in _SEEN:
-            _SEEN[name] = now
-        elif os.path.getmtime(sys.modules[name].__file__) > _SEEN[name]:
+            _SEEN[name] = mt
+        elif mt > _SEEN[name]:
             out.append(name)
     return out
 
@@ -53,8 +54,9 @@ def refresh(prefixes: Tuple[str, ...] = ("utils.",)) -> List[str]:
                 importlib.reload(sys.modules[name])
             except Exception as e:                       # one bad module must not take the app down
                 print(f"[hot_reload] {name}: {type(e).__name__}: {e}", flush=True)
-    now = time.time()
     for name in order:
-        _SEEN[name] = now
+        f = getattr(sys.modules.get(name), "__file__", None)
+        if f and os.path.exists(f):
+            _SEEN[name] = os.path.getmtime(f)
     print(f"[hot_reload] reloaded {len(order)} modules after changes in: {', '.join(changed[:8])}", flush=True)
     return changed

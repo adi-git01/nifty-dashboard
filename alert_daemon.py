@@ -10,6 +10,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 import pandas as pd
 import yfinance as yf
@@ -27,7 +28,7 @@ def now_ist():
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.positions import get_all_positions
-from utils.telegram_notifier import send_telegram_message, is_telegram_configured
+from utils.telegram_notifier import send_telegram_message, is_telegram_configured, queue_commit
 
 from utils.volume_monitor import scan_volume_changes
 from utils.nifty500_list import TICKERS
@@ -36,15 +37,19 @@ from utils.yf_safe import safe_download
 # Track last volume scan date to avoid repetition
 LAST_VOLUME_SCAN = None
 
+def _clean_sym(ticker: str) -> str:
+    return re.sub(r"\.(NS|BO)$", "", str(ticker or ""))
+
+
 def check_alerts():
-    print(f"⏰ Starting Alert Check: {datetime.now()}")
+    print(f"⏰ Starting Alert Check: {now_ist():%Y-%m-%d %H:%M:%S} IST")
     
     # --- 1. POSITION & PRICE ALERTS (Runs Every Time) ---
     # Positions and price alerts come from the GitHub-backed store (alert-state branch), the same
     # copy the dashboard edits. Symbols are resolved against the universe first: FEDERALBANK.NS
     # (NSE symbol FEDERALBNK) used to get "Price not found" on every run.
     from utils.positions import STORE as POS_STORE, resolve_ticker
-    from utils.alerts import load_alerts
+    from utils.alerts import STORE as ALERTS_STORE, load_alerts
     from utils.nifty1000_list import TICKERS_1000
     positions = get_all_positions(status='active')
     try:
@@ -75,20 +80,30 @@ def check_alerts():
         data = safe_download(tickers, period='1d', group_by='ticker', auto_adjust=True, threads=False, min_coverage=0.5)
         if data is None or data.empty:
             print("❌ No price data fetched for positions after retries.")
-        elif len(tickers) == 1:
-            # Single ticker: yf.download returns flat (non-MultiIndex) columns
-            close = data['Close'].dropna() if 'Close' in data.columns else pd.Series(dtype=float)
-            if not close.empty:
-                current_prices = {tickers[0]: close.iloc[-1]}
-        else:
+        elif isinstance(data.columns, pd.MultiIndex):
+            lvl0 = data.columns.get_level_values(0)
+            lvl1 = data.columns.get_level_values(1)
             for t in tickers:
                 try:
-                    if t in data.columns.get_level_values(0):
-                        close = data[t]['Close'].dropna()
-                        if not close.empty:
-                            current_prices[t] = close.iloc[-1]
+                    if t in lvl0:
+                        s = data[t]["Close"]
+                    elif "Close" in lvl0 and t in lvl1:
+                        s = data["Close"][t]
+                    else:
+                        continue
+                    if isinstance(s, pd.DataFrame):
+                        s = s.iloc[:, 0]
+                    close = s.dropna()
+                    if not close.empty:
+                        current_prices[t] = float(close.iloc[-1])
                 except Exception:
                     pass
+        else:
+            close = data['Close'].dropna() if 'Close' in data.columns else pd.Series(dtype=float)
+            if isinstance(close, pd.DataFrame):
+                close = close.iloc[:, 0]
+            if not close.empty and len(tickers) == 1:
+                current_prices = {tickers[0]: float(close.iloc[-1])}
 
         # 3. Check conditions. An alert that already went out is not repeated for 5 days: the
         # daemon used to resend the same stop-loss message on every run while price stayed below.
@@ -99,7 +114,7 @@ def check_alerts():
             except Exception:
                 return False
 
-        missing, patches = [], {}
+        missing, patches, pa_patches = [], {}, {}
         try:
             from utils import corp_actions
             ca = corp_actions.load()
@@ -116,7 +131,7 @@ def check_alerts():
                 fac = 1.0
                 if ca is not None and pos.get('entry_date'):
                     fac = corp_actions.cumulative_factor(ca, sym[ticker], pos['entry_date'])
-                name = ticker.replace('.NS', '')
+                name = _clean_sym(ticker)
                 sl = pos.get('stop_loss')
                 target = pos.get('target')
                 hit = None
@@ -126,12 +141,16 @@ def check_alerts():
                     hit = ('TARGET', f"🎯 TARGET HIT: {name} ({kind_label})\nPrice: ₹{price:.2f}\nTarget: ₹{target * fac:.2f}")
                 if hit and not recently_sent(pos, hit[0]):
                     alerts_triggered.append(hit[1])
-                    if kind_label == "position" and pos.get('id'):
-                        patches[pos['id']] = {'last_alert': {'type': hit[0], 'date': today, 'price': round(float(price), 2)}}
+                    if pos.get('id'):
+                        patch = {'last_alert': {'type': hit[0], 'date': today, 'price': round(float(price), 2)}}
+                        if kind_label == "position":
+                            patches[pos['id']] = patch
+                        else:
+                            pa_patches[pos['id']] = patch
                 elif hit:
                     print(f"   {name}: {hit[0]} still in force (already sent {pos['last_alert']['date']})")
         if missing:
-            alerts_triggered.append("⚠️ NO PRICE for: " + ", ".join(t.replace('.NS', '') for t in missing)
+            alerts_triggered.append("⚠️ NO PRICE for: " + ", ".join(_clean_sym(t) for t in missing)
                                     + "\nStop-loss and target could not be checked. Fix the symbol in the Position Manager.")
 
         # 4. Send Notifications for positions
@@ -139,12 +158,17 @@ def check_alerts():
             print(f"Triggering {len(alerts_triggered)} position alerts...")
             
             if is_telegram_configured():
-                full_msg = "🚨 **MARKET ALERT** 🚨\n\n" + "\n\n".join(alerts_triggered)
+                full_msg = "🚨 <b>MARKET ALERT</b> 🚨\n\n" + "\n\n".join(alerts_triggered)
                 success, err = send_telegram_message(full_msg)
                 if success:
                     print("Telegram sent successfully for position alerts.")
+                    queued = bool(os.environ.get("TELEGRAM_BATCH", "").strip())
                     if patches:
-                        POS_STORE.commit({"patches": patches}, f"{len(patches)} alert(s) sent")
+                        if not (queued and queue_commit({"kind": "positions_patch", "patches": patches, "reason": f"{len(patches)} alert(s) sent"})):
+                            POS_STORE.commit({"patches": patches}, f"{len(patches)} alert(s) sent")
+                    if pa_patches:
+                        if not (queued and queue_commit({"kind": "price_alerts_patch", "patches": pa_patches, "reason": f"{len(pa_patches)} price alert(s) sent"})):
+                            ALERTS_STORE.commit({"patches": pa_patches}, f"{len(pa_patches)} price alert(s) sent")
                 else:
                     print(f"❌ Telegram failed for position alerts: {err}")
             else:
@@ -188,23 +212,23 @@ def check_alerts():
 
             messages = []
             if held_alerts:
-                messages.append("🏠 **YOUR PORTFOLIO**")
+                messages.append("🏠 <b>YOUR PORTFOLIO</b>")
                 for a in held_alerts:
                     icon = "🟢" if a['change'] > 0 else "🔴"
-                    msg = f"{icon} **{a['ticker'].replace('.NS','')}**: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
+                    msg = f"{icon} <b>{_clean_sym(a['ticker'])}</b>: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
                     messages.append(msg)
                 messages.append("")
 
-            messages.append("🔊 **UNIVERSE (Top 10)**")
+            messages.append("🔊 <b>UNIVERSE (Top 10)</b>")
             for a in universe_alerts[:10]:
                 icon = "🟢" if a['change'] > 0 else "🔴"
-                msg = f"{icon} **{a['ticker'].replace('.NS','')}**: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
+                msg = f"{icon} <b>{_clean_sym(a['ticker'])}</b>: Vol Score {a['previous']:.1f} → {a['current']:.1f} ({a['signal']})"
                 messages.append(msg)
             
             if len(universe_alerts) > 10:
                 messages.append(f"...and {len(universe_alerts)-10} more.")
             
-            full_msg = "🔊 **SMART VOLUME ALERTS** 🔊\n\n" + "\n".join(messages)
+            full_msg = "🔊 <b>SMART VOLUME ALERTS</b> 🔊\n\n" + "\n".join(messages)
             
             # Send via Telegram
             if is_telegram_configured():
@@ -226,7 +250,7 @@ def check_alerts():
                      bg_color = "rgba(0,200,83,0.1)" if a['change'] > 0 else "rgba(255,82,82,0.1)"
                      html_rows += f"""
                      <tr style="background-color: {bg_color};">
-                        <td style="padding: 10px; border-bottom: 1px solid #444;"><strong>{a['ticker'].replace('.NS','')}</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #444;"><strong>{_clean_sym(a['ticker'])}</strong></td>
                         <td style="padding: 10px; border-bottom: 1px solid #444; color: {color};"><strong>{a['previous']:.1f} → {a['current']:.1f}</strong></td>
                          <td style="padding: 10px; border-bottom: 1px solid #444;">{a['signal']}</td>
                          <td style="padding: 10px; border-bottom: 1px solid #444;">₹{a['price']:.2f}</td>

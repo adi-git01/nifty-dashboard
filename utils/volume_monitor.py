@@ -27,11 +27,18 @@ def scan_volume_changes(tickers, lookback_days=5):
     
     for ticker in tickers:
         try:
-            if len(tickers) > 1:
-                if ticker not in data.columns.get_level_values(0): continue
-                df = data[ticker].dropna()
-            else:
+            if isinstance(data.columns, pd.MultiIndex):
+                lv0 = data.columns.get_level_values(0)
+                if ticker in lv0:
+                    df = data[ticker].dropna()
+                elif len(tickers) == 1 and "Close" in lv0:
+                    df = data.droplevel(1, axis=1).dropna()
+                else:
+                    continue
+            elif len(tickers) == 1:
                 df = data.dropna()
+            else:
+                continue
                 
             if len(df) < 50: continue
             

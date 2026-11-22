@@ -4,27 +4,17 @@ on:
   schedule:
     # Regular: 3:45 PM IST = 10:15 AM UTC (Mon-Fri) - After market close for proper EOD data
     - cron: '15 10 * * 1-5'
-    # GitHub starts scheduled runs up to ~9 hours late, and a run that begins after midnight IST gets
-    # Yahoo data only to the session before. So it fires often and scripts/engine_gate.py lets one run
-    # through between 15:45 and 23:50 IST: morning slots land in that window when delayed, evening slots
-    # when on time. Every other firing exits in seconds.
-    - cron: '7 3 * * 1-5'
-    - cron: '19 4 * * 1-5'
-    - cron: '29 5 * * 1-5'
-    - cron: '37 6 * * 1-5'
-    - cron: '47 7 * * 1-5'
-    - cron: '53 8 * * 1-5'
+    # GitHub starts scheduled runs late at peak UTC hours, so a handful of evening IST slots
+    # give scripts/engine_gate.py another chance if the 15:45 IST run is skipped or delayed.
     - cron: '47 11 * * 1-5'
     - cron: '37 13 * * 1-5'
-    - cron: '41 14 * * 1-5'
     - cron: '53 15 * * 1-5'
-    - cron: '59 16 * * 1-5'
     - cron: '41 17 * * 1-5'
   workflow_dispatch:  # Allow manual trigger
 
-# one run at a time: a late-starting schedule waits, then finds today's data and skips
+# serialize repo data commits across workflows (engine, fundamentals, nse_prices, etc.)
 concurrency:
-  group: alpha-trend-engine
+  group: repo-data-write
   cancel-in-progress: false
 
 jobs:
@@ -111,7 +101,7 @@ jobs:
       run: |
         for attempt in 1 2; do
           echo "Trading Engine attempt $attempt/2..."
-          python trading_engine.py --mode full && exit 0
+          python trading_engine.py --mode full --no-heartbeat && exit 0
           echo "Attempt $attempt failed."
           if [ "$attempt" -lt 2 ]; then
             echo "Waiting 3 minutes before retry (outlasts in-process yfinance backoff)..."
@@ -130,6 +120,11 @@ jobs:
       continue-on-error: true  # Portfolio engine failure must not block alerts or commit
       run: |
         python dna3_current_portfolio.py
+
+    - name: "Step 3b: Trading Engine Heartbeat (after portfolio snapshot)"
+      continue-on-error: true
+      run: |
+        python trading_engine.py --heartbeat-only
 
     - name: "Step 4/5: DNA3 Morning Alert (Telegram + Email)"
       continue-on-error: true  # Alert failure must not block commit
@@ -191,6 +186,7 @@ jobs:
       continue-on-error: true
 
     - name: Send the evening brief (one Telegram message for the whole run)
+      if: always()
       continue-on-error: true
       env:
         TELEGRAM_BATCH: ""
@@ -203,7 +199,6 @@ jobs:
         python scripts/engine_gate.py mark
 
     - name: Commit State Changes (All Data Files)
-      continue-on-error: true  # a failed push must not trigger the crash alert; the step log shows it
       # Rebase-and-retry instead of a force push, which overwrote commits that
       # landed during the run (see scripts/commit_and_push.sh).
       run: >

@@ -14,7 +14,8 @@ from __future__ import annotations
 
 import re
 import time
-from typing import Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pandas as pd
@@ -30,7 +31,7 @@ YAHOO_FIELDS = {"grossMargins": "grossMargins", "forwardPE": "forwardPE", "pe": 
 
 
 def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max_calls: int = 2000,
-               budget_s: float = 1500) -> pd.DataFrame:
+               budget_s: float = 1500, workers: int = 1) -> pd.DataFrame:
     """
     The last resort: Yahoo's .info, only for cells NSE and Screener could not fill (always grossMargins and forwardPE,
     for which no free NSE / broker source exists). A stock whose gaps Yahoo also cannot fill keeps NaN; the caller
@@ -42,11 +43,25 @@ def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max
     except Exception:
         return df
     out = df.copy()
-    need = out[out[fields].isna().any(axis=1)]
+    skip_map: Dict[str, Set[str]] = out.attrs.get("skip_yahoo") or {}
+
+    def _needs_mask(cols: List[str]) -> pd.Series:
+        m = pd.Series(False, index=out.index)
+        for c in cols:
+            if c in out.columns:
+                bad = out[c].isna()
+                if skip_map:
+                    bad = bad & ~out["ticker"].map(lambda tk, col=c: col in (skip_map.get(tk) or ()))
+                m = m | bad
+        return m
+
+    need = out[_needs_mask(fields)]
+    if need.empty:
+        return out
     # stocks missing a core field first; then the ones missing only grossMargins / forwardPE, starting at a different
     # point each run, so a budget cut-off does not leave the same tail of the list stale every time
     core = [c for c in fields if c not in CARRY]
-    gap = need[core].isna().any(axis=1) if core else pd.Series(False, index=need.index)
+    gap = _needs_mask(core).loc[need.index] if core else pd.Series(False, index=need.index)
     rest = need[~gap]
     if len(rest):
         k = pd.Timestamp.today().dayofyear * 97 % len(rest)
@@ -54,34 +69,81 @@ def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max
     need = pd.concat([need[gap], rest])
     calls = filled = 0
     t0 = time.time()
-    for i, r in need.iterrows():
-        if calls >= max_calls or time.time() - t0 > budget_s:     # the rest carry the previous cache's values
-            log(f"[fund] Yahoo fallback stopped after {calls} calls / {time.time() - t0:.0f}s")
-            break
+
+    def _fetch_one(tk: str) -> dict:
         try:
-            info = yf.Ticker(r["ticker"]).info or {}
+            return yf.Ticker(tk).info or {}
         except Exception:
-            info = {}
-        calls += 1
+            return {}
+
+    def _apply_info(i, tk: str, info: dict) -> bool:
         got = False
+        sk = skip_map.get(tk) or ()
         for c in fields:
-            if pd.isna(out.at[i, c]):
+            if pd.isna(out.at[i, c]) and c not in sk:
                 v = pd.to_numeric(info.get(YAHOO_FIELDS[c]), errors="coerce")
                 if v == v and v not in (float("inf"), float("-inf")):
                     out.at[i, c] = float(v)
                     got = True
         if got:
-            filled += 1
             out.at[i, "fund_source"] = f"{out.at[i, 'fund_source'] or 'screener'}+yahoo"
-        if sleep:
-            time.sleep(sleep)
-        if calls % 100 == 0:
-            log(f"[fund] Yahoo fallback: {calls}/{len(need)} asked, {filled} filled")
+        return got
+
+    if workers and workers > 1:
+        rows_list = [(i, str(r["ticker"])) for i, r in need.iterrows()][:max_calls]
+        batch_sz = max(workers * 4, 16)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for start_idx in range(0, len(rows_list), batch_sz):
+                if calls >= max_calls or time.time() - t0 > budget_s:
+                    log(f"[fund] Yahoo fallback stopped after {calls} calls / {time.time() - t0:.0f}s")
+                    break
+                chunk = rows_list[start_idx:start_idx + batch_sz]
+                futs = {pool.submit(_fetch_one, tk): (i, tk) for i, tk in chunk}
+                for fut in as_completed(futs):
+                    i, tk = futs[fut]
+                    info = fut.result()
+                    calls += 1
+                    if _apply_info(i, tk, info):
+                        filled += 1
+                if sleep:
+                    time.sleep(sleep)
+                if calls % 100 < len(chunk):
+                    log(f"[fund] Yahoo fallback: {calls}/{len(need)} asked, {filled} filled")
+    else:
+        for i, r in need.iterrows():
+            if calls >= max_calls or time.time() - t0 > budget_s:     # the rest carry the previous cache's values
+                log(f"[fund] Yahoo fallback stopped after {calls} calls / {time.time() - t0:.0f}s")
+                break
+            tk = str(r["ticker"])
+            info = _fetch_one(tk)
+            calls += 1
+            if _apply_info(i, tk, info):
+                filled += 1
+            if sleep:
+                time.sleep(sleep)
+            if calls % 100 == 0:
+                log(f"[fund] Yahoo fallback: {calls}/{len(need)} asked, {filled} filled")
     log(f"[fund] Yahoo fallback: {calls} stocks asked for {', '.join(fields[:4])}…; {filled} got at least one value")
+    out.attrs["skip_yahoo"] = skip_map
     return out
 COLS = ["ticker", "name", "sector", "sector_granular", "pe", "forwardPE", "pegRatio", "pb", "roe", "roa", "profitMargins",
         "grossMargins", "operatingMargins", "ebitdaMargins", "revenueGrowth", "earningsGrowth", "earningsQuarterlyGrowth",
         "debtToEquity", "marketCap", "beta", "earningsQuality", "earningsTrend", "fund_last_updated", "fund_source"]
+
+
+def _select_fy_rows(p: pd.DataFrame) -> pd.DataFrame:
+    """Keep one fiscal-year row per period while preserving pre-switch history for FY-end switchers."""
+    if len(p) <= 1:
+        return p
+    p = p.sort_index()
+    kept_pos: List[int] = []
+    last_kept: Optional[pd.Timestamp] = None
+    for pos in range(len(p) - 1, -1, -1):
+        dt = pd.Timestamp(p.index[pos])
+        if last_kept is None or (last_kept - dt).days >= 220:
+            kept_pos.append(pos)
+            last_kept = dt
+    return p.iloc[sorted(kept_pos)]
 
 
 def _pivot(path: str, quarterly: bool) -> Dict[str, pd.DataFrame]:
@@ -93,7 +155,7 @@ def _pivot(path: str, quarterly: bool) -> Dict[str, pd.DataFrame]:
     for t, g in d.groupby("ticker"):
         p = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
         if not quarterly and len(p):
-            p = p[p.index.month == p.index.month.value_counts().idxmax()]      # fiscal year ends only
+            p = _select_fy_rows(p)                                         # keep FY-end switchers' history
         out[t] = p
     return out
 
@@ -105,6 +167,19 @@ def _last(s: Optional[pd.Series], k: int = -1):
     return float(s.iloc[k]) if len(s) >= abs(k) else np.nan
 
 
+def _yoy_prior(s: Optional[pd.Series], ref_dt: pd.Timestamp) -> float:
+    """Value from ~1 year before ref_dt (+-45d), preventing skipped quarters from pairing wrong years."""
+    if s is None or len(s) == 0 or pd.isna(ref_dt):
+        return np.nan
+    s = s.dropna()
+    if s.empty:
+        return np.nan
+    target = pd.Timestamp(ref_dt) - pd.DateOffset(years=1)
+    diffs = np.abs((pd.DatetimeIndex(s.index) - target).days)
+    best = int(np.argmin(diffs))
+    return float(s.iloc[best]) if diffs[best] <= 45 else np.nan
+
+
 def _div(a, b):
     return a / b if a == a and b == b and b not in (0, 0.0) else np.nan
 
@@ -112,36 +187,72 @@ def _div(a, b):
 def screener_ratios(t: str, A: Dict[str, pd.DataFrame], Q: Dict[str, pd.DataFrame], mcap_cr: float, lender_hint: bool = False) -> dict:
     a, q = A.get(t), Q.get(t)
     r: dict = {}
-    if q is not None and len(q) >= 4:
+    skip: Set[str] = set()
+    lender = bool((a is not None and len(a) and "deposits" in a and a["deposits"].notna().any()) or lender_hint)
+    if lender:
+        skip.add("ebitdaMargins")
+    if q is not None and len(q):
+        q = q.sort_index()
+        q = q[~q.index.duplicated(keep="last")]
         sales, np_ = q.get("sales"), q.get("np")
-        ttm_s = float(sales.iloc[-4:].sum()) if sales is not None and sales.iloc[-4:].notna().all() else np.nan
-        ttm_n = float(np_.iloc[-4:].sum()) if np_ is not None and np_.iloc[-4:].notna().all() else np.nan
-        ttm_op = float(q["op"].iloc[-4:].sum()) if "op" in q and q["op"].iloc[-4:].notna().all() else np.nan
-        r["profitMargins"] = _div(ttm_n, ttm_s)
-        r["ebitdaMargins"] = _div(ttm_op, ttm_s)
-        r["_ttm_np"] = ttm_n
-        if len(q) >= 5:                                   # latest quarter vs the same quarter a year earlier (Yahoo's definition)
-            r["revenueGrowth"] = _div(_last(sales) - _last(sales, -5), abs(_last(sales, -5)))
-            g = _div(_last(np_) - _last(np_, -5), abs(_last(np_, -5)))
+        if len(q) >= 4:
+            q4_idx = pd.DatetimeIndex(q.index[-4:])
+            gaps_ok = (
+                (q4_idx[-1] - q4_idx[0]).days <= 395
+                and all((q4_idx[i] - q4_idx[i - 1]).days <= 140 for i in range(1, 4))
+            )
+            if gaps_ok:
+                ttm_s = float(sales.iloc[-4:].sum()) if sales is not None and sales.iloc[-4:].notna().all() else np.nan
+                ttm_n = float(np_.iloc[-4:].sum()) if np_ is not None and np_.iloc[-4:].notna().all() else np.nan
+                ttm_op = float(q["op"].iloc[-4:].sum()) if "op" in q and q["op"].iloc[-4:].notna().all() else np.nan
+                r["profitMargins"] = _div(ttm_n, ttm_s)
+                if not lender:
+                    r["ebitdaMargins"] = _div(ttm_op, ttm_s)
+                r["_ttm_np"] = ttm_n
+        if sales is not None and len(sales.dropna()):
+            s_c = sales.dropna()
+            prev_s = _yoy_prior(s_c, pd.Timestamp(s_c.index[-1]))
+            r["revenueGrowth"] = _div(float(s_c.iloc[-1]) - prev_s, abs(prev_s))
+        if np_ is not None and len(np_.dropna()):
+            n_c = np_.dropna()
+            prev_n = _yoy_prior(n_c, pd.Timestamp(n_c.index[-1]))
+            g = _div(float(n_c.iloc[-1]) - prev_n, abs(prev_n))
             r["earningsGrowth"] = r["earningsQuarterlyGrowth"] = g
     if a is not None and len(a):
+        a = a.sort_index()
         book = (a.get("eq_cap", pd.Series(0, index=a.index)).fillna(0) + a.get("reserves", pd.Series(np.nan, index=a.index)))
         npa = a.get("np")
+        npa_last = _last(npa)
         b1, b0 = _last(book), _last(book, -2)
         avg_book = np.nanmean([b1, b0]) if b0 == b0 else b1
-        r["roe"] = _div(_last(npa), avg_book)
-        r["roa"] = _div(_last(npa), _last(a.get("total_liab")))           # Screener's "total liabilities" = the balance sheet total
-        r["debtToEquity"] = _div(_last(a.get("borrowings")), b1) * 100 if b1 == b1 and b1 > 0 else np.nan
-        r["pb"] = _div(mcap_cr, b1) if b1 == b1 and b1 > 0 else np.nan
-        r["earningsQuality"] = _div(_last(a.get("cfo")), _last(npa))
-        r["earningsTrend"] = _div(_last(npa) - _last(npa, -2), abs(_last(npa, -2)))
+        if avg_book == avg_book and avg_book > 0:
+            r["roe"] = _div(npa_last, avg_book)
+        else:
+            r["roe"] = np.nan
+            skip.add("roe")
+        tl_last = _last(a.get("total_liab"))
+        r["roa"] = _div(npa_last, tl_last) if tl_last == tl_last and tl_last > 0 else np.nan
+        if b1 == b1 and b1 > 0:
+            r["debtToEquity"] = _div(_last(a.get("borrowings")), b1) * 100
+            r["pb"] = _div(mcap_cr, b1)
+        else:
+            r["debtToEquity"] = np.nan
+            r["pb"] = np.nan
+            skip.update({"pb", "debtToEquity"})
+        if npa_last == npa_last and npa_last > 0:
+            r["earningsQuality"] = _div(_last(a.get("cfo")), npa_last)
+        else:
+            r["earningsQuality"] = np.nan
+            skip.add("earningsQuality")
+        r["earningsTrend"] = _div(npa_last - _last(npa, -2), abs(_last(npa, -2)))
         dep_ratio = _div(_last(a.get("dep")), _last(a.get("sales")))
-        lender = "deposits" in a and a["deposits"].notna().any() or lender_hint
         if lender:
             # banks / NBFCs: Screener's "operating profit" is financing profit after interest; the pre-tax margin is the comparable figure
             r["operatingMargins"] = _div(_last(a.get("pbt")), _last(a.get("sales")))
         elif r.get("ebitdaMargins") == r.get("ebitdaMargins") and dep_ratio == dep_ratio:
             r["operatingMargins"] = r["ebitdaMargins"] - dep_ratio          # EBIT margin (Yahoo's operatingMargins)
+    if skip:
+        r["_skip_yahoo"] = skip
     return r
 
 
@@ -178,6 +289,38 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
     A, Q = _pivot(ANNUAL, False), _pivot(QUARTERLY, True)
     sc = pd.read_csv(ANNUAL)
     sc = sc[sc.field.isin(["mcap_cr", "price_scr"])].pivot_table(index="ticker", columns="field", values="value", aggfunc="last")
+    # Resolve renamed symbols so legacy Screener rows follow symbol_changes.csv (e.g. HEG -> HEGAM).
+    try:
+        chg = npx._symbol_map()
+        fwd = {}
+        for new_s, olds in chg.items():
+            for old_s, dt in olds:
+                if old_s not in fwd or dt > fwd[old_s][1]:
+                    fwd[old_s] = (new_s, dt)
+
+        def _alias_keys(t_ns: str) -> List[str]:
+            base = t_ns[:-3]
+            cands = []
+            cur, seen = base, {base}
+            while cur in fwd and fwd[cur][0] not in seen:
+                cur = fwd[cur][0]
+                seen.add(cur)
+                cands.append(f"{cur}.NS")
+            for anc, _ in npx._ancestors(base, chg):
+                if f"{anc}.NS" not in cands:
+                    cands.append(f"{anc}.NS")
+            return cands
+    except Exception:
+        _alias_keys = lambda t_ns: []
+
+    def _pick_key(mapping, t_ns: str) -> str:
+        if t_ns in mapping:
+            return t_ns
+        for alt in _alias_keys(t_ns):
+            if alt in mapping:
+                return alt
+        return t_ns
+
     H = npx.history(list(tickers) + ["^NSEI"], start=pd.Timestamp.today() - pd.Timedelta(days=420))
     bench = H.get("^NSEI", pd.DataFrame()).get("Close", pd.Series(dtype=float))
     S = None
@@ -191,6 +334,8 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             log(f"[fund] NSE quote unavailable ({e}); P/E and shares from Screener")
             S = None
     rows, nq, fails, t0 = [], 0, 0, time.time()
+    skip_map: Dict[str, Set[str]] = {}
+    sc_index = set(sc.index)
     for i, t in enumerate(tickers):
         # NSE stopped answering (15 failures in a row) or is too slow overall (a flaky NSE that fails every other call
         # never trips the first test and would run the job into its 90-minute limit, losing everything): Screener's
@@ -201,8 +346,10 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             S = None
         if i and i % 100 == 0:
             log(f"[fund] {i}/{len(tickers)} · NSE quotes {nq} · {time.time() - t0:.0f}s")
-        close = float(H[t]["Close"].iloc[-1]) if t in H and len(H[t]) else (
-            float(sc.at[t, "price_scr"]) if t in sc.index and sc.at[t, "price_scr"] == sc.at[t, "price_scr"] else np.nan)
+        close = float(H[t]["Close"].iloc[-1]) if t in H and len(H[t]) else np.nan
+        t_sc = _pick_key(sc_index, t)
+        if not (close == close) and t_sc in sc.index and sc.at[t_sc, "price_scr"] == sc.at[t_sc, "price_scr"]:
+            close = float(sc.at[t_sc, "price_scr"])
         q = {}
         if S is not None:
             try:
@@ -215,18 +362,36 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             if sleep:
                 time.sleep(sleep)
         shares = q.get("shares")
-        if not (shares and shares == shares) and t in sc.index and sc.at[t, "price_scr"] > 0:
-            shares = sc.at[t, "mcap_cr"] / sc.at[t, "price_scr"] * 1e7                  # Screener's share count
+        if not (shares and shares == shares) and t_sc in sc.index and sc.at[t_sc, "price_scr"] > 0:
+            shares = sc.at[t_sc, "mcap_cr"] / sc.at[t_sc, "price_scr"] * 1e7                  # Screener's share count
         mcap = shares * close if shares and close == close else np.nan
         granular = SUB_INDUSTRY_MAP.get(t) or q.get("nse_industry") or "Unknown"
-        r = screener_ratios(t, A, Q, mcap / 1e7 if mcap == mcap else np.nan,
+        t_aq = _pick_key(A, t) if t not in A and t not in Q else t
+        if t_aq == t and t not in A and t not in Q:
+            t_aq = _pick_key(Q, t)
+        r = screener_ratios(t_aq, A, Q, mcap / 1e7 if mcap == mcap else np.nan,
                             lender_hint=bool(re.search(r"bank|financ|nbfc|lending|housing fin", str(granular), re.I)))
+        sk = set(r.pop("_skip_yahoo", ()) or ())
+        ttm_np = r.get("_ttm_np", np.nan)
         pe = q.get("pe", np.nan)
-        if not (pe == pe and pe != 0):
-            pe = _div(mcap / 1e7, r.get("_ttm_np", np.nan)) if mcap == mcap else np.nan
+        if not (pe == pe and pe > 0):
+            if ttm_np == ttm_np and ttm_np > 0 and mcap == mcap:
+                pe = _div(mcap / 1e7, ttm_np)
+            else:
+                pe = np.nan
+                if ttm_np == ttm_np and ttm_np <= 0:
+                    sk.update({"pe", "pegRatio"})
         g = r.get("earningsGrowth")
+        if pe == pe and pe > 0 and g == g and g > 0:
+            peg = _div(pe, g * 100)
+        else:
+            peg = np.nan
+            if (g == g and g <= 0) or (ttm_np == ttm_np and ttm_np <= 0):
+                sk.add("pegRatio")
+        if sk:
+            skip_map[t] = sk
         rows.append(dict(ticker=t, name=q.get("name") or names.get(t) or t[:-3], sector=consolidate_sector(granular),
-                         sector_granular=granular, pe=pe, pegRatio=_div(pe, g * 100) if g == g and g and g > 0 and pe == pe else np.nan,
+                         sector_granular=granular, pe=pe, pegRatio=peg,
                          marketCap=mcap, beta=beta_1y(H[t]["Close"], bench) if t in H and len(bench) else np.nan,
                          fund_source="nse+screener" if q else "screener",
                          **{k: v for k, v in r.items() if not k.startswith("_")}))
@@ -234,7 +399,9 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
             log(f"[fund] {i + 1}/{len(tickers)} built ({nq} NSE quotes)")
     out = pd.DataFrame(rows)
     out["fund_last_updated"] = pd.Timestamp.today().strftime("%Y-%m-%d")
-    return out.reindex(columns=COLS)
+    out = out.reindex(columns=COLS)
+    out.attrs["skip_yahoo"] = skip_map
+    return out
 
 
 def compare(new: pd.DataFrame, old: pd.DataFrame) -> List[str]:

@@ -1,10 +1,12 @@
 import argparse
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 import sys
 import logging
+
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 # ✅ Silence streamlit "missing ScriptRunContext" spam in headless CI mode
 # These are harmless when running as a plain Python script but flood the logs
@@ -22,7 +24,7 @@ from utils.yf_safe import safe_history
 
 def _log(msg):
     """Timestamped print — makes CI log timelines readable."""
-    print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
+    print(f"[{datetime.now(_IST).strftime('%H:%M:%S')}] {msg}", flush=True)
 
 def get_nifty1000_universe():
     fundamentals = load_base_fundamentals(live_mode=True)
@@ -60,7 +62,7 @@ def generate_daily_master_cache():
     # session as the previous snapshot) records nothing.
     from utils import snapshots as _snaps
     _bar = _snaps.bar_date(df)
-    _files = [f for f in _snaps.latest(3) if _snaps.file_date(f) != pd.Timestamp(datetime.now().date())]
+    _files = [f for f in _snaps.latest(3) if _snaps.file_date(f) != pd.Timestamp(datetime.now(_IST).date())]
     _prev = pd.read_parquet(_files[-1]) if _files else None
     if not _snaps.is_new_session(df, _prev):
         _log(f"HOLIDAY: prices are still from {_bar.date() if _bar is not None else 'the previous session'}. "
@@ -110,7 +112,7 @@ def generate_sub_industry_rotation(df, db):
     # stocks as "Unknown" (dropped), so groups were tiny and rankings were
     # driven by whichever 1-3 stocks happened to be mapped.
     from utils.nifty1000_list import SUB_INDUSTRY_MAP
-    work = df.copy()
+    work = df[df["extended"] != True].copy() if "extended" in df.columns else df.copy()
     mapped = work['ticker'].map(SUB_INDUSTRY_MAP)
     fallback_col = 'sector_granular' if 'sector_granular' in work.columns else 'sector'
     work['_grp'] = mapped.where(mapped.notna() & (mapped != 'Unknown'),
@@ -132,7 +134,7 @@ def generate_sub_industry_rotation(df, db):
     MIN_MEMBERS = 3  # below this it's a stock bet, not industry rotation
     from utils import snapshots as _snaps
     _bar = _snaps.bar_date(df)
-    today_str = (_bar or pd.Timestamp(datetime.now().date())).strftime("%Y-%m-%d")
+    today_str = (_bar or pd.Timestamp(datetime.now(_IST).date())).strftime("%Y-%m-%d")
     rotation_rows = []
 
     for sector, group in work.groupby('_grp'):
@@ -384,7 +386,7 @@ def send_daily_heartbeat(df, mode):
     Acts as a fail-safe check against silent GitHub Actions failures.
     """
     print("Sending Daily Heartbeat Confirmation...")
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    now_str = datetime.now(_IST).strftime("%Y-%m-%d %H:%M")
     universe_size = len(df) if not df.empty else 0
     
     # V2.2: Include regime state in heartbeat
@@ -464,8 +466,16 @@ def send_daily_heartbeat(df, mode):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=['daily_cache', 'stop_check', 'rebalance', 'full'], default='full')
+    parser.add_argument("--no-heartbeat", action="store_true", help="Skip end-of-run Telegram/Email heartbeat")
+    parser.add_argument("--heartbeat-only", action="store_true", help="Send heartbeat from today's snapshot and exit")
     args = parser.parse_args()
-    
+
+    if args.heartbeat_only:
+        parquet_path = get_parquet_cache_path()
+        df = pd.read_parquet(parquet_path) if os.path.exists(parquet_path) else pd.DataFrame()
+        send_daily_heartbeat(df, args.mode)
+        raise SystemExit(0)
+
     db = TradingDatabase()
     
     try:
@@ -502,7 +512,8 @@ if __name__ == "__main__":
         
     db.close()
     
-    # Send confirming heartbeat before shutting down
-    send_daily_heartbeat(df, args.mode)
+    # Send confirming heartbeat before shutting down (unless deferred until after DNA3 runs)
+    if not args.no_heartbeat:
+        send_daily_heartbeat(df, args.mode)
     
     print("Trading Engine Execution Completed.")

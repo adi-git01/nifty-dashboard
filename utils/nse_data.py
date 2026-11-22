@@ -22,6 +22,7 @@ import re
 import time
 import zipfile
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -167,15 +168,23 @@ def fetch_corp_actions(S: Session, today: pd.Timestamp, start: Optional[pd.Times
         if start is not None:
             time.sleep(0.5)
     rows = []
+    skip_series = {"GS", "GB", "TB", "N1", "N2", "N3", "N4", "N5", "N6", "N7", "N8", "N9"}
     for x in got:
+        ser = str(x.get("series") or "").strip().upper()
+        if ser in skip_series:
+            continue
         kind, fac = action_factor(x.get("subject"))
+        fv = pd.to_numeric(x.get("faceVal"), errors="coerce")
         rows.append(dict(symbol=str(x.get("symbol", "")).strip(), ex_date=pd.to_datetime(x.get("exDate"), errors="coerce"),
                          record_date=pd.to_datetime(x.get("recDate"), errors="coerce"), subject=str(x.get("subject", "")).strip(),
-                         kind=kind, factor=fac))
-    new = pd.DataFrame(rows, columns=["symbol", "ex_date", "record_date", "subject", "kind", "factor"])
+                         kind=kind, factor=fac, face_val=float(fv) if pd.notna(fv) and fv > 0 else np.nan))
+    cols = ["symbol", "ex_date", "record_date", "subject", "kind", "factor", "face_val"]
+    new = pd.DataFrame(rows, columns=cols)
     old = _read(F["ca"], ["ex_date", "record_date"])
-    out = pd.concat([old, new], ignore_index=True).dropna(subset=["ex_date"])
-    out = out.drop_duplicates(["symbol", "ex_date", "subject"], keep="last").sort_values("ex_date")
+    out = pd.concat([old, new], ignore_index=True).dropna(subset=["ex_date"]).reindex(columns=cols)
+    out = out.drop_duplicates(["symbol", "ex_date", "subject"], keep="last").sort_values(
+        ["ex_date", "symbol", "kind", "subject"], kind="mergesort"
+    )
     os.makedirs(DIR, exist_ok=True)
     out.to_csv(F["ca"], index=False, date_format="%Y-%m-%d")
     return new
@@ -188,14 +197,23 @@ def fetch_surveillance(S: Session) -> pd.DataFrame:
         v = asm.get(term) if isinstance(asm, dict) else None
         for x in (v.get("data") or []) if isinstance(v, dict) else (v or []) if isinstance(v, list) else []:
             rows.append(dict(symbol=str(x.get("symbol", "")).strip(), list=lab, stage=str(x.get("asmSurvIndicator") or x.get("stage") or "")))
+    gsm_ok = False
     try:
         gsm = S.json("/api/reportGSM")
-        for x in gsm if isinstance(gsm, list) else []:
-            rows.append(dict(symbol=str(x.get("symbol", "")).strip(), list="GSM", stage=str(x.get("gsmStage") or "")))
+        if isinstance(gsm, list):
+            gsm_ok = True
+            for x in gsm:
+                rows.append(dict(symbol=str(x.get("symbol", "")).strip(), list="GSM", stage=str(x.get("gsmStage") or "")))
     except Exception as e:
         print(f"[nse] GSM: {e}")
     out = pd.DataFrame(rows, columns=["symbol", "list", "stage"]).drop_duplicates()
+    if not gsm_ok:
+        old = _read(F["surv"])
+        if len(old) and "list" in old:
+            old_gsm = old[old["list"] == "GSM"][["symbol", "list", "stage"]]
+            out = pd.concat([out, old_gsm], ignore_index=True).drop_duplicates()
     out["as_of"] = datetime.now(IST).strftime("%Y-%m-%d")
+    out = out.sort_values(["symbol", "list", "stage"], kind="mergesort")
     os.makedirs(DIR, exist_ok=True)
     out.to_csv(F["surv"], index=False)
     return out
@@ -204,10 +222,14 @@ def fetch_surveillance(S: Session) -> pd.DataFrame:
 def fetch_events(S: Session, today: pd.Timestamp) -> pd.DataFrame:
     frm, to = today.strftime("%d-%m-%Y"), (today + pd.Timedelta(days=45)).strftime("%d-%m-%Y")
     rows = []
-    for path, sym, date, purpose in ((f"/api/corporate-board-meetings?index=equities&from_date={frm}&to_date={to}", "bm_symbol", "bm_date", "bm_purpose"),
-                                     (f"/api/event-calendar?index=equities&from_date={frm}&to_date={to}", "symbol", "date", "purpose")):
+    any_ok = False
+    # Event-calendar carries clean "Financial Results" labels; read it before generic board-meetings.
+    for path, sym, date, purpose in ((f"/api/event-calendar?index=equities&from_date={frm}&to_date={to}", "symbol", "date", "purpose"),
+                                     (f"/api/corporate-board-meetings?index=equities&from_date={frm}&to_date={to}", "bm_symbol", "bm_date", "bm_purpose")):
         try:
             j = S.json(path)
+            if isinstance(j, list):
+                any_ok = True
             for x in j if isinstance(j, list) else []:
                 p_, desc = str(x.get(purpose) or "").strip(), str(x.get("bm_desc") or "").strip()
                 # "Board Meeting Intimation" says nothing; the description says what for ("...to consider financial results")
@@ -217,8 +239,12 @@ def fetch_events(S: Session, today: pd.Timestamp) -> pd.DataFrame:
                                  purpose=p_ or desc[:60]))
         except Exception as e:
             print(f"[nse] events {path.split('?')[0]}: {e}")
+    if not any_ok and os.path.exists(F["events"]):
+        return _read(F["events"], ["date"])
     out = pd.DataFrame(rows, columns=["symbol", "date", "purpose"]).dropna(subset=["date"])
-    out = out[out.date >= today - pd.Timedelta(days=1)].drop_duplicates(["symbol", "date"]).sort_values("date")
+    out = out[out.date >= today - pd.Timedelta(days=1)].drop_duplicates(["symbol", "date"]).sort_values(
+        ["date", "symbol", "purpose"], kind="mergesort"
+    )
     os.makedirs(DIR, exist_ok=True)
     out.to_csv(F["events"], index=False, date_format="%Y-%m-%d")
     return out
@@ -242,7 +268,9 @@ def fetch_deals(S: Session) -> pd.DataFrame:
     old = _read(F["deals"], ["date"])
     out = pd.concat([old, new], ignore_index=True).drop_duplicates(["date", "symbol", "client", "side", "qty", "kind"])
     if len(out):
-        out = out[out.date >= out.date.max() - pd.Timedelta(days=KEEP_DEAL_DAYS)].sort_values("date")
+        out = out[out.date >= out.date.max() - pd.Timedelta(days=KEEP_DEAL_DAYS)].sort_values(
+            ["date", "symbol", "kind", "side", "client", "qty"], kind="mergesort"
+        )
     os.makedirs(DIR, exist_ok=True)
     out.to_csv(F["deals"], index=False, date_format="%Y-%m-%d")
     return new
@@ -270,8 +298,12 @@ def fetch_market_context(S: Session, day: pd.Timestamp) -> Dict:
             cat = str(x.get("category", "")).upper()
             key = "fii_net" if "FII" in cat or "FPI" in cat else "dii_net" if "DII" in cat else None
             if key:
+                d_str = str(x.get("date", "")).strip()
+                fii_dt = pd.to_datetime(d_str, errors="coerce")
+                if pd.notna(fii_dt) and fii_dt.date() != day.date():
+                    continue
                 row[key] = pd.to_numeric(str(x.get("netValue", "")).replace(",", ""), errors="coerce")
-                row[key.replace("net", "date")] = str(x.get("date", ""))
+                row[key.replace("net", "date")] = d_str
     except Exception as e:
         print(f"[nse] FII/DII: {e}")
     try:
@@ -294,27 +326,66 @@ def fetch_market_context(S: Session, day: pd.Timestamp) -> Dict:
 
 
 # ================================================================== reading (dashboard, engine)
+@lru_cache(maxsize=16)
+def _read_cached(path: str, mtime: float, dates: Tuple[str, ...]) -> pd.DataFrame:
+    d = pd.read_csv(path)
+    for c in dates:
+        if c in d:
+            d[c] = pd.to_datetime(d[c], errors="coerce")
+    return d
+
+
 def _read(path: str, dates: Optional[List[str]] = None) -> pd.DataFrame:
     try:
-        d = pd.read_csv(path)
-        for c in dates or []:
-            if c in d:
-                d[c] = pd.to_datetime(d[c], errors="coerce")
-        return d
+        return _read_cached(path, os.path.getmtime(path), tuple(dates or ())).copy()
     except Exception:
         return pd.DataFrame()
 
 
+def _rename_aliases() -> Dict[str, str]:
+    """old_symbol -> newest_symbol from data/nse/symbol_changes.csv (walking multi-hop chains)."""
+    sc = _read(os.path.join(DIR, "symbol_changes.csv"))
+    if sc.empty or "old" not in sc or "new" not in sc:
+        return {}
+    fwd = {str(r.old).strip(): str(r.new).strip() for r in sc.itertuples()
+           if str(r.old).strip() and str(r.new).strip() and str(r.old).strip() != str(r.new).strip()}
+    out: Dict[str, str] = {}
+    for old_s in fwd:
+        cur, seen = old_s, {old_s}
+        while cur in fwd and fwd[cur] not in seen:
+            cur = fwd[cur]
+            seen.add(cur)
+        if cur != old_s:
+            out[old_s] = cur
+    return out
+
+
 def delivery_panel(n: int = 20) -> pd.DataFrame:
-    """Last n sessions of delivery %: index date, columns SYMBOL.NS. From the price store (utils/nse_prices.py)."""
+    """Last n sessions of delivery %: index date, columns SYMBOL.NS. Reads only recent parquets."""
     try:
         from utils import nse_prices
-        R = nse_prices.raw("stocks")
-        if len(R):
-            days = sorted(R["date"].unique())[-n:]
-            d = R[R["date"].isin(days) & R["series"].isin(["EQ", "BE", "BZ"])]
-            return d.assign(ticker=d["symbol"] + ".NS").pivot_table(index="date", columns="ticker", values="deliv_pct",
-                                                                    aggfunc="last").sort_index()
+        px_dir = nse_prices.PX
+        fs = sorted(glob.glob(os.path.join(px_dir, "*.parquet")))[-2:] + sorted(glob.glob(os.path.join(px_dir, "d", "*.parquet")))
+        if fs:
+            parts = []
+            for f in fs:
+                try:
+                    parts.append(pd.read_parquet(f, columns=["date", "symbol", "series", "deliv_pct"]))
+                except Exception:
+                    continue
+            if parts:
+                R = pd.concat(parts, ignore_index=True)
+                R["date"] = pd.to_datetime(R["date"], errors="coerce")
+                days = sorted(R["date"].dropna().unique())[-n:]
+                d = R[R["date"].isin(days) & R["series"].astype(str).isin(["EQ", "BE", "BZ"])].copy()
+                if len(d):
+                    d["ticker"] = d["symbol"].astype(str) + ".NS"
+                    piv = d.pivot_table(index="date", columns="ticker", values="deliv_pct", aggfunc="last").sort_index()
+                    for old_s, new_s in _rename_aliases().items():
+                        ot, nt = f"{old_s}.NS", f"{new_s}.NS"
+                        if ot not in piv.columns and nt in piv.columns:
+                            piv[ot] = piv[nt]
+                    return piv
     except Exception:
         pass
     files = sorted(glob.glob(os.path.join(DIR, "eod_*.csv.gz")))[-n:]
@@ -339,27 +410,39 @@ def surveillance_map() -> Dict[str, str]:
         lab = x["list"] + (f" {x['stage']}" if str(x.get("stage") or "").strip() not in ("", "nan") else "")
         t = f"{x['symbol']}.NS"
         out[t] = out[t] + " · " + lab if t in out else lab
+    for old_s, new_s in _rename_aliases().items():
+        ot, nt = f"{old_s}.NS", f"{new_s}.NS"
+        if ot not in out and nt in out:
+            out[ot] = out[nt]
     return out
 
 
 def upcoming_events(days: int = 30, today: Optional[pd.Timestamp] = None) -> Dict[str, str]:
-    """ticker -> the next event within `days`: results / board meeting, or a split / bonus / dividend ex-date."""
+    """ticker -> the next event within `days`: results / board meeting, or a split / bonus / dividend / rights / demerger ex-date."""
     today = pd.Timestamp(today or datetime.now(IST).date())
-    out: Dict[str, Tuple[pd.Timestamp, str]] = {}
+    out: Dict[str, Tuple[pd.Timestamp, int, str]] = {}
 
-    def put(t, d, txt):
-        if pd.notna(d) and today <= d <= today + pd.Timedelta(days=days) and (t not in out or d < out[t][0]):
-            out[t] = (d, txt)
+    def put(t, d, txt, prio=0):
+        if pd.notna(d) and today <= d <= today + pd.Timedelta(days=days):
+            cur = out.get(t)
+            if cur is None or d < cur[0] or (d == cur[0] and prio > cur[1]):
+                out[t] = (d, prio, txt)
     ev = _read(F["events"], ["date"])
     for x in ev.to_dict("records") if len(ev) else []:
         p = str(x.get("purpose") or "")
-        put(f"{x['symbol']}.NS", x["date"], "results" if re.search(r"result", p, re.I) else
-            "board meeting" if re.search(r"board meeting", p, re.I) or not p else p[:28])
+        is_res = bool(re.search(r"result", p, re.I))
+        txt = "results" if is_res else ("board meeting" if re.search(r"board meeting", p, re.I) or not p else p[:28])
+        put(f"{x['symbol']}.NS", x["date"], txt, prio=2 if is_res else 0 if txt == "board meeting" else 1)
     ca = _read(F["ca"], ["ex_date"])
     for x in ca.to_dict("records") if len(ca) else []:
-        if x.get("kind") in ("split", "bonus", "consolidation", "dividend", "demerger"):
-            put(f"{x['symbol']}.NS", x["ex_date"], f"ex-{x['kind']}")
-    return {t: f"{txt} {d:%d %b}" + ("" if d > today else " (today)") for t, (d, txt) in out.items()}
+        if x.get("kind") in ("split", "bonus", "consolidation", "dividend", "rights", "demerger"):
+            put(f"{x['symbol']}.NS", x["ex_date"], f"ex-{x['kind']}", prio=3)
+    res = {t: f"{txt} {d:%d %b}" + ("" if d > today else " (today)") for t, (d, _, txt) in out.items()}
+    for old_s, new_s in _rename_aliases().items():
+        ot, nt = f"{old_s}.NS", f"{new_s}.NS"
+        if ot not in res and nt in res:
+            res[ot] = res[nt]
+    return res
 
 
 def official_factors() -> pd.DataFrame:
@@ -378,7 +461,13 @@ def deals_for(tickers=None, days: int = 5) -> pd.DataFrame:
     d = d[d.date >= d.date.max() - pd.Timedelta(days=days)]
     d["ticker"] = d.symbol.astype(str) + ".NS"
     if tickers is not None:
-        d = d[d.ticker.isin(set(tickers))]
+        want = set(tickers)
+        aliases = _rename_aliases()
+        for t in list(want):
+            base = str(t).replace(".NS", "")
+            if base in aliases:
+                want.add(f"{aliases[base]}.NS")
+        d = d[d.ticker.isin(want)]
     d["value_cr"] = d.qty * d.price / 1e7
     return d.sort_values(["date", "value_cr"], ascending=[False, False])
 

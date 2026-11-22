@@ -17,12 +17,12 @@ NIFTY50_TICKER = "^NSEI"
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def fetch_nifty50_data(days: int = 250) -> pd.DataFrame:
+def fetch_nifty50_data(days: int = 365) -> pd.DataFrame:
     """
     Fetch Nifty 50 historical data.
     
     Args:
-        days: Number of days to fetch (need ~250 for 200DMA)
+        days: Calendar days to fetch (need ~320+ calendar days for 200 trading days)
         
     Returns:
         DataFrame with OHLCV data
@@ -52,13 +52,27 @@ def calculate_nifty_200dma(nifty_data: pd.DataFrame) -> Tuple[float, float]:
     Returns:
         Tuple of (current_price, 200dma)
     """
-    if nifty_data.empty or len(nifty_data) < 200:
+    if nifty_data is None or nifty_data.empty:
         return 0, 0
-    
-    current_price = nifty_data['Close'].iloc[-1]
-    dma_200 = nifty_data['Close'].rolling(window=200).mean().iloc[-1]
-    
-    return float(current_price), float(dma_200)
+    if isinstance(nifty_data.columns, pd.MultiIndex):
+        close_cols = [c for c in nifty_data.columns if "Close" in str(c)]
+        if not close_cols:
+            return 0, 0
+        close_s = nifty_data[close_cols[0]]
+    else:
+        close_s = nifty_data["Close"]
+    if isinstance(close_s, pd.DataFrame):
+        close_s = close_s.iloc[:, 0]
+    close_s = pd.to_numeric(close_s, errors="coerce").dropna()
+    if len(close_s) < 200:
+        return 0, 0
+
+    current_price = float(close_s.iloc[-1])
+    dma_200 = float(close_s.rolling(window=200).mean().iloc[-1])
+    if pd.isna(current_price) or pd.isna(dma_200):
+        return 0, 0
+
+    return current_price, dma_200
 
 
 def detect_market_regime(nifty_data: pd.DataFrame = None) -> Dict[str, any]:

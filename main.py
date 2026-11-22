@@ -157,8 +157,22 @@ if st.sidebar.button("🔄 Hard Reset Cache", type="primary"):
         os.remove("nifty500_cache.csv")
     if os.path.exists("market_data.parquet"):
         os.remove("market_data.parquet")
-    # Clear ALL caches including @st.cache_data decorated functions
+    # Clear ALL caches including @st.cache_data / @st.cache_resource / @lru_cache
     st.cache_data.clear()
+    st.cache_resource.clear()
+    for _mod_name, _fn_name in (
+        ("utils.nse_prices", "_load"),
+        ("utils.nse_data", "_read_cached"),
+        ("utils.corp_actions", "_load_cached"),
+        ("utils.breakout_tags", "_load_industry_scores_cached"),
+        ("utils.breakout_tags", "_load_tag_edges_cached"),
+        ("utils.breakout_tags", "_latest_eps_cached"),
+    ):
+        try:
+            _mod = __import__(_mod_name, fromlist=[_fn_name])
+            getattr(_mod, _fn_name).cache_clear()
+        except Exception:
+            pass
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.rerun()
@@ -185,25 +199,26 @@ st.session_state['preset'] = preset
 # === WATCHLIST (Persistent via positions.json) ===
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ⭐ Watchlist")
-watchlist_positions = get_all_positions('watching')
+_all_sidebar_positions = get_all_positions()
+watchlist_positions = [p for p in _all_sidebar_positions if p.get('status', 'active') == 'watching']
 watchlist_count = len(watchlist_positions)
 st.sidebar.write(f"Watching: {watchlist_count} stocks")
 
 if watchlist_count > 0:
     with st.sidebar.expander("View Watchlist"):
-        for wp in watchlist_positions:
+        for _wl_i, wp in enumerate(watchlist_positions):
             ticker = wp.get('ticker', '')
             display_name = ticker.replace('.NS', '').replace('.BO', '')
             wl_c1, wl_c2 = st.columns([3, 1])
             wl_c1.write(f"📌 {display_name}")
-            if wl_c2.button("❌", key=f"wl_rm_{ticker}"):
+            if wl_c2.button("❌", key=f"wl_rm_{wp.get('id', _wl_i)}_{ticker}"):
                 remove_position(ticker)
                 st.rerun()
 
 # === POSITIONS & ALERTS (Unified) ===
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Positions")
-active_sidebar = get_all_positions('active')
+active_sidebar = [p for p in _all_sidebar_positions if p.get('status', 'active') == 'active']
 active_count = len(active_sidebar)
 
 if active_count > 0:
@@ -267,10 +282,10 @@ def _load_market_data(live: bool, key: str) -> pd.DataFrame:
 
 
 @st.cache_data(ttl=AUTO_REFRESH_MINUTES * 60, show_spinner=False, max_entries=2)
-def _load_nifty(start: str) -> pd.DataFrame:
+def _load_nifty(start: str, live: bool = False) -> pd.DataFrame:
     """Nifty history, shared across sessions. Raises on an empty fetch so a failure is not cached."""
     from utils.yf_safe import safe_history
-    d = safe_history("^NSEI", start=start)
+    d = safe_history("^NSEI", start=start, source="yahoo" if live else None)
     if d is None or d.empty:
         raise RuntimeError("empty Nifty fetch")
     return d
@@ -370,7 +385,7 @@ if _needs_refresh:
         # nifty_df.Close[-1] vs [-2], so a stale index series makes it compare
         # today's stock move to a days-old Nifty move.
         try:
-            _nifty_data = _load_nifty(_nifty_start)
+            _nifty_data = _load_nifty(_nifty_start, live=bool(live_mode_toggle))
         except Exception:
             _nifty_data = pd.DataFrame()
         if _nifty_data is not None and not _nifty_data.empty:
@@ -409,8 +424,10 @@ if _needs_refresh:
     # 'pe' can arrive object-dtype / carry junk (Yahoo 'Infinity' sentinels in
     # cached data) — coerce before median or pandas raises TypeError.
     if 'pe' in df.columns and 'sector' in df.columns:
-         _pe_num = pd.to_numeric(df['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
-         st.session_state['sector_pe_cache'] = df.assign(pe=_pe_num).groupby('sector')['pe'].median().to_dict()
+         _base_pe = df[df['extended'].ne(True)] if 'extended' in df.columns else df
+         _pe_num = pd.to_numeric(_base_pe['pe'], errors='coerce').replace([np.inf, -np.inf], np.nan)
+         _pe_num = _pe_num.where((_pe_num > 0) & (_pe_num < 500))
+         st.session_state['sector_pe_cache'] = _base_pe.assign(pe=_pe_num).groupby('sector')['pe'].median().to_dict()
     
     progress_bar.progress(100, text="✅ Ready!")
     progress_bar.empty()
@@ -447,7 +464,7 @@ try:
         _px_alert_rows = [dict(ticker=_a.get('ticker'), status='watching') for _a in _load_px_alerts()]
     except Exception:
         _px_alert_rows = []
-    _need = tuple(t for t in _ext_main.tracked(set(df['ticker']), list(get_all_positions()) + _px_alert_rows)
+    _need = tuple(t for t in _ext_main.tracked(set(df['ticker']), list(_all_sidebar_positions) + _px_alert_rows)
                   if t not in set(df['ticker']))
     if _need:
         _rows = _tracked_rows(f"{len(df)}|{df['bar_date'].iloc[0] if 'bar_date' in df.columns else ''}", _need)
@@ -464,7 +481,8 @@ def _nse_cols(key: str, tickers: tuple) -> pd.DataFrame:
 
 try:
     import glob as _glob_nse
-    _nse_key = "|".join(str(os.path.getmtime(_f)) for _f in sorted(_glob_nse.glob("data/nse/*"))[-6:])
+    _nse_files = sorted(_glob_nse.glob("data/nse/*.csv") + _glob_nse.glob("data/nse/prices/d/*.parquet"))[-12:]
+    _nse_key = "|".join(f"{os.path.basename(_f)}:{os.path.getmtime(_f)}" for _f in _nse_files)
     if _nse_key:
         _nc = _nse_cols(_nse_key, tuple(df['ticker']))
         for _c in _nc.columns:
@@ -1611,13 +1629,13 @@ elif page == "🌊 Trend Scanner":
                         
                                 fig.update_layout(
                                     title=None,
-                                    template='plotly_dark',
+                                    template='plotly_white',
                                     height=280,
                                     margin=dict(l=10, r=10, t=10, b=10),
                                     legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
                                     xaxis=dict(showgrid=False),
                                     yaxis=dict(title='Normalized (100 = Start)', showgrid=True,
-                                               gridcolor='rgba(255,255,255,0.05)'),
+                                               gridcolor='rgba(0,0,0,0.06)'),
                                     plot_bgcolor='rgba(0,0,0,0)',
                                     paper_bgcolor='rgba(0,0,0,0)',
                                 )
@@ -2659,197 +2677,198 @@ elif page == "📊 Return Tracker":
     # TAB 1: ACTIVE POSITIONS (Using unified positions.json)
     # ========================================
     with tab_active:
-        
-        if active_positions:
-            # Enhanced positions table with SL/Target
-            st.markdown("### 📈 Your Positions")
-            
-            # Build portfolio data from positions.json
-            from utils import stock_picker as _sp_pos
-            _pos_names = _sp_pos.names(df)
-            _q_pos = _sp_pos.name_filter("🔎 Filter positions", "pos_filter") if len(active_positions) > 5 else ""
-            portfolio_data = []
-            for pos in [p for p in active_positions
-                        if _sp_pos.matches(_q_pos, p.get('ticker', ''), p.get('name') or _pos_names.get(p.get('ticker', ''), ''))]:
-                ticker = pos.get('ticker', '')
-                entry_price = pos.get('entry_price') or 0
-                current_price = pos.get('current_price') or 0
-                pnl_pct = pos.get('pnl_pct') or 0
-                stop_loss = pos.get('stop_loss')
-                target = pos.get('target')
-                
-                # Calculate distances
-                dist_to_sl = ((current_price - stop_loss) / current_price * 100) if stop_loss and current_price else None
-                dist_to_target = ((target - current_price) / current_price * 100) if target and current_price else None
-                
-                # Determine status
-                status = "✅"
-                if stop_loss and current_price and current_price <= stop_loss:
-                    status = "🔴 SL HIT"
-                elif target and current_price and current_price >= target:
-                    status = "🎯 TARGET"
-                elif dist_to_sl and dist_to_sl < 5:
-                    status = "⚠️ Near SL"
-                
-                # Calculate days
-                entry_date = pos.get('entry_date')
-                days = 0
-                if entry_date:
-                    try:
-                        entry_dt = datetime.fromisoformat(entry_date) if isinstance(entry_date, str) else entry_date
-                        days = (datetime.now() - entry_dt).days
-                    except:
-                        pass
-                
-                portfolio_data.append({
-                    'Ticker': ticker.replace('.NS', '').replace('.BO', ''),
-                    'Entry': entry_price,
-                    'Current': current_price,
-                    'P&L %': pnl_pct,
-                    'Days': days,
-                    'Stop Loss': stop_loss,
-                    'Target': target,
-                    'SL Dist': f"{dist_to_sl:.1f}%" if dist_to_sl else "—",
-                    'Status': status,
-                    'ticker_full': ticker
-                })
-            
-            portfolio_df = pd.DataFrame(portfolio_data)
-            
-            st.dataframe(
-                portfolio_df[['Ticker', 'Entry', 'Current', 'P&L %', 'Days', 'Stop Loss', 'Target', 'SL Dist', 'Status']],
-                column_config={
-                    "Ticker": st.column_config.TextColumn("Stock"),
-                    "Entry": st.column_config.NumberColumn("Entry ₹", format="%.2f"),
-                    "Current": st.column_config.NumberColumn("Current ₹", format="%.2f"),
-                    "P&L %": st.column_config.NumberColumn("Return", format="%+.1f%%"),
-                    "Days": st.column_config.NumberColumn("Days", format="%d"),
-                    "Stop Loss": st.column_config.NumberColumn("SL ₹", format="%.0f"),
-                    "Target": st.column_config.NumberColumn("Target ₹", format="%.0f"),
-                    "SL Dist": st.column_config.TextColumn("To SL"),
-                    "Status": st.column_config.TextColumn("Status"),
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # === MANAGE POSITIONS ===
-            st.markdown("---")
-            with st.expander("🔧 Manage Positions"):
-                mgmt_col1, mgmt_col2, mgmt_col3 = st.columns([2, 1, 1])
-                
-                with mgmt_col1:
-                    ticker_options = [p.get('ticker', '') for p in active_positions]
-                    selected_ticker = st.selectbox(
-                        "Select position", 
-                        ticker_options,
-                        format_func=lambda x: x.replace('.NS', '').replace('.BO', ''),
-                        key="pos_select"
-                    )
-                
-                with mgmt_col2:
-                    if st.button("❌ Remove Position", use_container_width=True, key="btn_remove_pos"):
-                        if selected_ticker:
-                            remove_position(selected_ticker)
-                            st.session_state['position_removed'] = selected_ticker
-                            st.rerun()
-                
-                with mgmt_col3:
-                    if st.button("🔔 Add Alert", use_container_width=True):
-                        st.session_state['prefill_alert_ticker'] = selected_ticker
-            
-            # === TREND & ALERT CHANGES (Unified) ===
-            # Detect positions where trend signal changed from entry
-            trend_changed_positions = [
-                p for p in active_positions 
-                if p.get('entry_signal') and p.get('current_signal') 
-                and p.get('entry_signal') != p.get('current_signal', '')
-                and p.get('entry_signal') != 'N/A'
-            ]
-            
-            if trend_changed_positions:
+        if getattr(tab_active, "open", True):
+
+            if active_positions:
+                # Enhanced positions table with SL/Target
+                st.markdown("### 📈 Your Positions")
+
+                # Build portfolio data from positions.json
+                from utils import stock_picker as _sp_pos
+                _pos_names = _sp_pos.names(df)
+                _q_pos = _sp_pos.name_filter("🔎 Filter positions", "pos_filter") if len(active_positions) > 5 else ""
+                portfolio_data = []
+                for pos in [p for p in active_positions
+                            if _sp_pos.matches(_q_pos, p.get('ticker', ''), p.get('name') or _pos_names.get(p.get('ticker', ''), ''))]:
+                    ticker = pos.get('ticker', '')
+                    entry_price = pos.get('entry_price') or 0
+                    current_price = pos.get('current_price') or 0
+                    pnl_pct = pos.get('pnl_pct') or 0
+                    stop_loss = pos.get('stop_loss')
+                    target = pos.get('target')
+
+                    # Calculate distances
+                    dist_to_sl = ((current_price - stop_loss) / current_price * 100) if stop_loss and current_price else None
+                    dist_to_target = ((target - current_price) / current_price * 100) if target and current_price else None
+
+                    # Determine status
+                    status = "✅"
+                    if stop_loss and current_price and current_price <= stop_loss:
+                        status = "🔴 SL HIT"
+                    elif target and current_price and current_price >= target:
+                        status = "🎯 TARGET"
+                    elif dist_to_sl and dist_to_sl < 5:
+                        status = "⚠️ Near SL"
+
+                    # Calculate days
+                    entry_date = pos.get('entry_date')
+                    days = 0
+                    if entry_date:
+                        try:
+                            entry_dt = datetime.fromisoformat(entry_date) if isinstance(entry_date, str) else entry_date
+                            days = (datetime.now() - entry_dt).days
+                        except:
+                            pass
+
+                    portfolio_data.append({
+                        'Ticker': ticker.replace('.NS', '').replace('.BO', ''),
+                        'Entry': entry_price,
+                        'Current': current_price,
+                        'P&L %': pnl_pct,
+                        'Days': days,
+                        'Stop Loss': stop_loss,
+                        'Target': target,
+                        'SL Dist': f"{dist_to_sl:.1f}%" if dist_to_sl else "—",
+                        'Status': status,
+                        'ticker_full': ticker
+                    })
+
+                portfolio_df = pd.DataFrame(portfolio_data)
+
+                st.dataframe(
+                    portfolio_df[['Ticker', 'Entry', 'Current', 'P&L %', 'Days', 'Stop Loss', 'Target', 'SL Dist', 'Status']],
+                    column_config={
+                        "Ticker": st.column_config.TextColumn("Stock"),
+                        "Entry": st.column_config.NumberColumn("Entry ₹", format="%.2f"),
+                        "Current": st.column_config.NumberColumn("Current ₹", format="%.2f"),
+                        "P&L %": st.column_config.NumberColumn("Return", format="%+.1f%%"),
+                        "Days": st.column_config.NumberColumn("Days", format="%d"),
+                        "Stop Loss": st.column_config.NumberColumn("SL ₹", format="%.0f"),
+                        "Target": st.column_config.NumberColumn("Target ₹", format="%.0f"),
+                        "SL Dist": st.column_config.TextColumn("To SL"),
+                        "Status": st.column_config.TextColumn("Status"),
+                    },
+                    hide_index=True,
+                    use_container_width=True
+                )
+
+                # === MANAGE POSITIONS ===
                 st.markdown("---")
-                st.markdown("### ⚠️ Trend Changes")
-                
-                for pos in trend_changed_positions:
-                    entry_signal = pos.get('entry_signal', 'N/A')
-                    current_signal = pos.get('current_signal', 'N/A')
-                    pnl = pos.get('pnl_pct', 0) or 0
-                    
-                    if 'UPTREND' in str(entry_signal) and 'DOWNTREND' in str(current_signal):
-                        alert_color = COLORS['negative']
-                    elif 'DOWNTREND' in str(entry_signal) and 'UPTREND' in str(current_signal):
-                        alert_color = COLORS['positive']
-                    else:
-                        alert_color = COLORS['warning']
-                    
-                    ticker_display = pos.get('ticker', '').replace('.NS', '').replace('.BO', '')
-                    st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; 
-                                margin-bottom: 8px; border-left: 4px solid {alert_color};">
-                        <strong>{ticker_display}</strong> 
-                        <span style="color: #888;">|</span> 
-                        {entry_signal} → <span style="color: {alert_color};">{current_signal}</span>
-                        <span style="color: #888;">|</span>
-                        <span style="color: {COLORS['positive'] if pnl >= 0 else COLORS['negative']};">{pnl:+.1f}%</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            # === SL/TARGET ALERTS PANEL ===
-            if triggered_alerts:
-                st.markdown("---")
-                st.markdown("### 🚨 Triggered Alerts")
-                for ta in triggered_alerts:
-                    ta_ticker = ta.get('ticker', '').replace('.NS', '').replace('.BO', '')
-                    ta_type = ta.get('alert_type', 'ALERT')
-                    ta_price = ta.get('current_price', 0)
-                    ta_pnl = ta.get('pnl_pct', 0) or 0
-                    
-                    if ta_type == 'STOP_LOSS':
-                        ta_color = COLORS['negative']
-                        ta_icon = "🔴"
-                        ta_label = f"SL HIT at ₹{ta_price:.2f}"
-                    else:
-                        ta_color = COLORS['positive']
-                        ta_icon = "🎯"
-                        ta_label = f"TARGET HIT at ₹{ta_price:.2f}"
-                    
-                    st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;
-                                margin-bottom: 8px; border-left: 4px solid {ta_color};">
-                        <span style="font-size: 16px;">{ta_icon}</span>
-                        <strong style="font-size: 15px;">{ta_ticker}</strong>
-                        <span style="color: {ta_color}; font-weight: bold;"> {ta_label}</span>
-                        <span style="color: #888;"> | P&L: </span>
-                        <span style="color: {COLORS['positive'] if ta_pnl >= 0 else COLORS['negative']};">{ta_pnl:+.1f}%</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-        else:
-            st.info("📭 No positions yet. Add stocks from **Trend Scanner** → **📊 Track** button")
-            
-            # Quick add section
-            st.markdown("---")
-            st.markdown("### 🚀 Quick Add: Top Stocks")
-            
-            top_stocks = df.nlargest(6, 'trend_score')[['ticker', 'name', 'price', 'trend_score', 'trend_signal', 'sector']]
-            
-            cols = st.columns(3)
-            for idx, (_, stock) in enumerate(top_stocks.iterrows()):
-                with cols[idx % 3]:
-                    ticker = stock['ticker']
-                    if st.button(
-                        f"📊 {ticker.replace('.NS', '')} ({stock['trend_score']:.0f})",
-                        key=f"quick_track_{ticker}",
-                        use_container_width=True
-                    ):
-                        add_position(
-                            ticker, name=stock['name'], sector=stock['sector'],
-                            entry_price=stock['price'], entry_signal=stock['trend_signal'],
-                            entry_score=stock['trend_score']
+                with st.expander("🔧 Manage Positions"):
+                    mgmt_col1, mgmt_col2, mgmt_col3 = st.columns([2, 1, 1])
+
+                    with mgmt_col1:
+                        ticker_options = [p.get('ticker', '') for p in active_positions]
+                        selected_ticker = st.selectbox(
+                            "Select position", 
+                            ticker_options,
+                            format_func=lambda x: x.replace('.NS', '').replace('.BO', ''),
+                            key="pos_select"
                         )
-                        st.toast(f"Now tracking {ticker}! Refresh to see changes.", icon="📊")
-    
+
+                    with mgmt_col2:
+                        if st.button("❌ Remove Position", use_container_width=True, key="btn_remove_pos"):
+                            if selected_ticker:
+                                remove_position(selected_ticker)
+                                st.session_state['position_removed'] = selected_ticker
+                                st.rerun()
+
+                    with mgmt_col3:
+                        if st.button("🔔 Add Alert", use_container_width=True):
+                            st.session_state['prefill_alert_ticker'] = selected_ticker
+
+                # === TREND & ALERT CHANGES (Unified) ===
+                # Detect positions where trend signal changed from entry
+                trend_changed_positions = [
+                    p for p in active_positions 
+                    if p.get('entry_signal') and p.get('current_signal') 
+                    and p.get('entry_signal') != p.get('current_signal', '')
+                    and p.get('entry_signal') != 'N/A'
+                ]
+
+                if trend_changed_positions:
+                    st.markdown("---")
+                    st.markdown("### ⚠️ Trend Changes")
+
+                    for pos in trend_changed_positions:
+                        entry_signal = pos.get('entry_signal', 'N/A')
+                        current_signal = pos.get('current_signal', 'N/A')
+                        pnl = pos.get('pnl_pct', 0) or 0
+
+                        if 'UPTREND' in str(entry_signal) and 'DOWNTREND' in str(current_signal):
+                            alert_color = COLORS['negative']
+                        elif 'DOWNTREND' in str(entry_signal) and 'UPTREND' in str(current_signal):
+                            alert_color = COLORS['positive']
+                        else:
+                            alert_color = COLORS['warning']
+
+                        ticker_display = pos.get('ticker', '').replace('.NS', '').replace('.BO', '')
+                        st.markdown(f"""
+                        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; 
+                                    margin-bottom: 8px; border-left: 4px solid {alert_color};">
+                            <strong>{ticker_display}</strong> 
+                            <span style="color: #888;">|</span> 
+                            {entry_signal} → <span style="color: {alert_color};">{current_signal}</span>
+                            <span style="color: #888;">|</span>
+                            <span style="color: {COLORS['positive'] if pnl >= 0 else COLORS['negative']};">{pnl:+.1f}%</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                # === SL/TARGET ALERTS PANEL ===
+                if triggered_alerts:
+                    st.markdown("---")
+                    st.markdown("### 🚨 Triggered Alerts")
+                    for ta in triggered_alerts:
+                        ta_ticker = ta.get('ticker', '').replace('.NS', '').replace('.BO', '')
+                        ta_type = ta.get('alert_type', 'ALERT')
+                        ta_price = ta.get('current_price', 0)
+                        ta_pnl = ta.get('pnl_pct', 0) or 0
+
+                        if ta_type == 'STOP_LOSS':
+                            ta_color = COLORS['negative']
+                            ta_icon = "🔴"
+                            ta_label = f"SL HIT at ₹{ta_price:.2f}"
+                        else:
+                            ta_color = COLORS['positive']
+                            ta_icon = "🎯"
+                            ta_label = f"TARGET HIT at ₹{ta_price:.2f}"
+
+                        st.markdown(f"""
+                        <div style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 10px;
+                                    margin-bottom: 8px; border-left: 4px solid {ta_color};">
+                            <span style="font-size: 16px;">{ta_icon}</span>
+                            <strong style="font-size: 15px;">{ta_ticker}</strong>
+                            <span style="color: {ta_color}; font-weight: bold;"> {ta_label}</span>
+                            <span style="color: #888;"> | P&L: </span>
+                            <span style="color: {COLORS['positive'] if ta_pnl >= 0 else COLORS['negative']};">{ta_pnl:+.1f}%</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            else:
+                st.info("📭 No positions yet. Add stocks from **Trend Scanner** → **📊 Track** button")
+
+                # Quick add section
+                st.markdown("---")
+                st.markdown("### 🚀 Quick Add: Top Stocks")
+
+                top_stocks = df.nlargest(6, 'trend_score')[['ticker', 'name', 'price', 'trend_score', 'trend_signal', 'sector']]
+
+                cols = st.columns(3)
+                for idx, (_, stock) in enumerate(top_stocks.iterrows()):
+                    with cols[idx % 3]:
+                        ticker = stock['ticker']
+                        if st.button(
+                            f"📊 {ticker.replace('.NS', '')} ({stock['trend_score']:.0f})",
+                            key=f"quick_track_{ticker}",
+                            use_container_width=True
+                        ):
+                            add_position(
+                                ticker, name=stock['name'], sector=stock['sector'],
+                                entry_price=stock['price'], entry_signal=stock['trend_signal'],
+                                entry_score=stock['trend_score']
+                            )
+                            st.toast(f"Now tracking {ticker}! Refresh to see changes.", icon="📊")
+
     # ========================================
     # TAB 2: WATCHLIST
     # ========================================
@@ -2937,7 +2956,7 @@ elif page == "📊 Return Tracker":
                                                f"({_sug[1]})?")
                                     if st.button(f"Use {_sug[0].replace('.NS', '')}", key=f"fix_alert_{alert.get('id')}"):
                                         update_alert_ticker(alert.get('id'), _sug[0])
-                                        _rerun_fragment()
+                                        st.rerun()
                                 else:
                                     st.caption(f"⚠️ No NSE stock is listed as **{ticker}**. If it trades only on BSE, delete this "
                                                "alert and add it again with its 6-digit BSE code.")
@@ -2988,6 +3007,7 @@ elif page == "📊 Return Tracker":
                             notes=new_notes
                         )
                         st.toast(f"Alert created for {ticker}!", icon="✅")
+                        _rerun_fragment()
 
             # ============================================================
             # COMPOSITE-RS CROSSING ALERTS
@@ -3231,1694 +3251,229 @@ elif page == "📊 Return Tracker":
                                            "n_valid": "Stocks"})
                         st.caption("Today's single-day reading; alerts use the 5-day average.")
 
-        _watchlist_tab()
+        if getattr(tab_watchlist, "open", True):
+            _watchlist_tab()
 
     # ========================================
     # TAB 3: ADD NEW POSITION
     # ========================================
     with tab_add:
-        
-        st.markdown("### ➕ Add New Position")
-        st.caption("Add a stock to your portfolio or watchlist")
-        
-        # Use unified form
-        with st.form("add_position_form", clear_on_submit=True):
-            add_col1, add_col2 = st.columns(2)
-            
-            # every NSE equity plus the universe, searchable by company name (was the Nifty 500 list only)
-            from utils.stock_picker import pick as _pick_stock_add, names as _stock_names
-            with add_col1:
-                new_ticker = _pick_stock_add("Stock (type a name or symbol)", "add_pos_stock", df)
-                new_entry = st.number_input("Entry Price ₹", value=0.0, step=10.0, format="%.2f")
-                new_quantity = st.number_input("Quantity", value=1, min_value=1, step=1)
-                
-            with add_col2:
-                new_status = st.selectbox("Status", ["active", "watching"], format_func=lambda x: "📈 Active Position" if x == "active" else "👀 Watchlist")
-                new_sl = st.number_input("Stop Loss ₹", value=0.0, step=10.0, format="%.2f")
-                new_target = st.number_input("Target ₹", value=0.0, step=10.0, format="%.2f")
-            
-            new_notes = st.text_area("Notes / Investment Thesis", placeholder="Why are you buying this? Key catalysts, risks...", height=100)
-            
-            submitted = st.form_submit_button("✅ Add Position", use_container_width=True, type="primary")
-            
-            if submitted and not new_ticker:
-                st.error("Pick a stock from the list (or type a valid 6-digit BSE code).")
-            if submitted and new_ticker:
-                ticker = new_ticker.upper()
-                if not ticker.endswith((".NS", ".BO")):
-                    ticker += ".NS"
-                
-                # Get stock info from market data
-                stock_row = df[df['ticker'] == ticker]
-                stock_name = (stock_row.iloc[0].get('name', ticker) if not stock_row.empty
-                              else _stock_names(df).get(ticker) or ticker.replace('.NS', ''))
-                stock_sector = stock_row.iloc[0].get('sector', 'Unknown') if not stock_row.empty else 'Unknown'
-                stock_signal = stock_row.iloc[0].get('trend_signal', 'N/A') if not stock_row.empty else 'N/A'
-                stock_score = stock_row.iloc[0].get('trend_score', 0) if not stock_row.empty else 0
-                
-                add_position(
-                    ticker=ticker,
-                    name=stock_name,
-                    sector=stock_sector,
-                    status=new_status,
-                    entry_price=new_entry if new_entry > 0 else None,
-                    stop_loss=new_sl if new_sl > 0 else None,
-                    target=new_target if new_target > 0 else None,
-                    quantity=new_quantity,
-                    notes=new_notes,
-                    entry_signal=stock_signal,
-                    entry_score=stock_score
-                )
-                st.toast(f"{'Position' if new_status == 'active' else 'Watchlist item'} added for {ticker}! Refresh to see.", icon="✅")
-        
-        # Quick add from top stocks
-        st.markdown("---")
-        st.markdown("### 🔥 Quick Add: Top Trending Stocks")
-        top_stocks = df.nlargest(6, 'trend_score')[['ticker', 'name', 'price', 'trend_score', 'trend_signal', 'sector']]
-        
-        cols = st.columns(3)
-        for idx, (_, stock) in enumerate(top_stocks.iterrows()):
-            with cols[idx % 3]:
-                ticker = stock['ticker']
-                is_tracked = is_position_exists(ticker)
-                
-                st.markdown(f"""
-                <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
-                    <strong>{stock['name'][:20]}</strong><br>
-                    <span style="color: #888;">₹{stock['price']:.0f}</span> • 
-                    <span style="color: #00C853;">Score: {stock['trend_score']:.0f}</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                if is_tracked:
-                    st.success("✅ Tracking")
-                else:
-                    if st.button(f"➕ Watch", key=f"quick_add_{ticker}", use_container_width=True):
-                        add_position(
-                            ticker=ticker,
-                            name=stock['name'],
-                            sector=stock['sector'],
-                            status='watching',
-                            entry_signal=stock['trend_signal'],
-                            entry_score=stock['trend_score']
-                        )
-                        st.toast(f"Added {ticker} to watchlist! Refresh to see.", icon="✅")
-    
+        if getattr(tab_add, "open", True):
+
+            st.markdown("### ➕ Add New Position")
+            st.caption("Add a stock to your portfolio or watchlist")
+
+            # Use unified form
+            with st.form("add_position_form", clear_on_submit=True):
+                add_col1, add_col2 = st.columns(2)
+
+                # every NSE equity plus the universe, searchable by company name (was the Nifty 500 list only)
+                from utils.stock_picker import pick as _pick_stock_add, names as _stock_names
+                with add_col1:
+                    new_ticker = _pick_stock_add("Stock (type a name or symbol)", "add_pos_stock", df)
+                    new_entry = st.number_input("Entry Price ₹", value=0.0, step=10.0, format="%.2f")
+                    new_quantity = st.number_input("Quantity", value=1, min_value=1, step=1)
+
+                with add_col2:
+                    new_status = st.selectbox("Status", ["active", "watching"], format_func=lambda x: "📈 Active Position" if x == "active" else "👀 Watchlist")
+                    new_sl = st.number_input("Stop Loss ₹", value=0.0, step=10.0, format="%.2f")
+                    new_target = st.number_input("Target ₹", value=0.0, step=10.0, format="%.2f")
+
+                new_notes = st.text_area("Notes / Investment Thesis", placeholder="Why are you buying this? Key catalysts, risks...", height=100)
+
+                submitted = st.form_submit_button("✅ Add Position", use_container_width=True, type="primary")
+
+                if submitted and not new_ticker:
+                    st.error("Pick a stock from the list (or type a valid 6-digit BSE code).")
+                if submitted and new_ticker:
+                    ticker = new_ticker.upper()
+                    if not ticker.endswith((".NS", ".BO")):
+                        ticker += ".NS"
+
+                    # Get stock info from market data
+                    stock_row = df[df['ticker'] == ticker]
+                    stock_name = (stock_row.iloc[0].get('name', ticker) if not stock_row.empty
+                                  else _stock_names(df).get(ticker) or ticker.replace('.NS', ''))
+                    stock_sector = stock_row.iloc[0].get('sector', 'Unknown') if not stock_row.empty else 'Unknown'
+                    stock_signal = stock_row.iloc[0].get('trend_signal', 'N/A') if not stock_row.empty else 'N/A'
+                    stock_score = stock_row.iloc[0].get('trend_score', 0) if not stock_row.empty else 0
+
+                    add_position(
+                        ticker=ticker,
+                        name=stock_name,
+                        sector=stock_sector,
+                        status=new_status,
+                        entry_price=new_entry if new_entry > 0 else None,
+                        stop_loss=new_sl if new_sl > 0 else None,
+                        target=new_target if new_target > 0 else None,
+                        quantity=new_quantity,
+                        notes=new_notes,
+                        entry_signal=stock_signal,
+                        entry_score=stock_score
+                    )
+                    st.toast(f"{'Position' if new_status == 'active' else 'Watchlist item'} added for {ticker}! Refresh to see.", icon="✅")
+
+            # Quick add from top stocks
+            st.markdown("---")
+            st.markdown("### 🔥 Quick Add: Top Trending Stocks")
+            top_stocks = df.nlargest(6, 'trend_score')[['ticker', 'name', 'price', 'trend_score', 'trend_signal', 'sector']]
+
+            cols = st.columns(3)
+            for idx, (_, stock) in enumerate(top_stocks.iterrows()):
+                with cols[idx % 3]:
+                    ticker = stock['ticker']
+                    is_tracked = is_position_exists(ticker)
+
+                    st.markdown(f"""
+                    <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                        <strong>{stock['name'][:20]}</strong><br>
+                        <span style="color: #888;">₹{stock['price']:.0f}</span> • 
+                        <span style="color: #00C853;">Score: {stock['trend_score']:.0f}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if is_tracked:
+                        st.success("✅ Tracking")
+                    else:
+                        if st.button(f"➕ Watch", key=f"quick_add_{ticker}", use_container_width=True):
+                            add_position(
+                                ticker=ticker,
+                                name=stock['name'],
+                                sector=stock['sector'],
+                                status='watching',
+                                entry_signal=stock['trend_signal'],
+                                entry_score=stock['trend_score']
+                            )
+                            st.toast(f"Added {ticker} to watchlist! Refresh to see.", icon="✅")
+
     # ========================================
     # TAB 4: SETTINGS
     # ========================================
     with tab_settings:
-        st.markdown("### 📬 Notification Settings")
-        
-        # Import telegram notifier
-        from utils.telegram_notifier import (
-            configure_telegram, is_telegram_configured, test_telegram,
-            send_triggered_alerts, configure_auto_alert, is_auto_alert_enabled,
-            run_auto_alert_check, send_daily_summary as tg_send_summary
-        )
-        
-        notif_tab1, notif_tab2, notif_tab3 = st.tabs(["📧 Email", "📱 Telegram", "⚡ Auto-Alert"])
-        
-        # === EMAIL TAB ===
-        with notif_tab1:
-            email_col1, email_col2 = st.columns([2, 1])
-            
-            with email_col1:
-                if is_email_configured():
-                    st.success(f"✅ Email: {get_email_address()}")
-                else:
-                    st.warning("Email not configured")
-                    gmail_input = st.text_input("Gmail Address", placeholder="your.email@gmail.com", key="notif_gmail")
-                    app_pass = st.text_input("App Password", type="password", key="notif_app_pass")
-                    if st.button("💾 Save Email Config", key="save_email_btn"):
-                        if gmail_input and app_pass:
-                            configure_email(gmail_input, app_pass)
-                            st.toast("Email configured! Refresh to see changes.", icon="✅")
-            
-            with email_col2:
-                if is_email_configured():
-                    if st.button("📤 Send Report", use_container_width=True, key="send_email_report"):
-                        with st.spinner("Generating email report..."):
-                            summary_data = export_weekly_summary(df)
-                            success, msg = send_weekly_summary(summary_data)
-                            if success:
-                                st.toast("✅ Email report sent successfully!", icon="📧")
-                            else:
-                                st.toast(f"❌ Failed to send email: {msg}", icon="⚠️")
-        
-        # === TELEGRAM TAB ===
-        with notif_tab2:
-            st.markdown("**Setup Instructions:**")
-            st.caption("""
-            1. Search @BotFather on Telegram
-            2. Send /newbot and follow instructions
-            3. Copy the bot token
-            4. Start chat with your bot and send /start
-            5. Get your chat_id from @userinfobot
-            """)
-            
-            tg_col1, tg_col2 = st.columns([2, 1])
-            
-            with tg_col1:
-                if is_telegram_configured():
-                    st.success("✅ Telegram configured")
-                else:
-                    with st.form("telegram_config_form"):
-                        st.write("Enter credentials below:")
-                        tg_token = st.text_input("Bot Token", type="password", 
-                                                placeholder="123456:ABC...", key="form_tg_token")
-                        tg_chat_id = st.text_input("Chat ID",
-                                                  placeholder="123456789", key="form_tg_chat_id")
-                        
-                        submitted = st.form_submit_button("💾 Save Telegram Config", use_container_width=True, type="primary")
-                        
-                        if submitted:
-                            if tg_token and tg_chat_id:
-                                try:
-                                    configure_telegram(tg_token, tg_chat_id)
-                                    st.toast("Telegram configured! Refresh to see changes.", icon="✅")
-                                except Exception as e:
-                                    st.error(f"Error saving config: {e}")
-                            else:
-                                st.error("Please enter both Bot Token and Chat ID")
-            
-            with tg_col2:
-                if is_telegram_configured():
-                    if st.button("📱 Test Telegram", use_container_width=True, key="test_tg"):
-                        with st.spinner("Sending..."):
-                            success, msg = test_telegram()
-                            if success:
-                                st.toast("✅ Test message sent to your phone!", icon="📱")
-                            else:
-                                st.toast(f"❌ Failed: {msg}", icon="⚠️")
-                    
-                    # Weekly summary button enabled unconditionally
-                    if st.button("📊 Send Summary", use_container_width=True, key="send_tg_summary"):
-                            with st.spinner("Generating summary..."):
+        if getattr(tab_settings, "open", True):
+            st.markdown("### 📬 Notification Settings")
+
+            # Import telegram notifier
+            from utils.telegram_notifier import (
+                configure_telegram, is_telegram_configured, test_telegram,
+                send_triggered_alerts, configure_auto_alert, is_auto_alert_enabled,
+                run_auto_alert_check, send_daily_summary as tg_send_summary
+            )
+
+            notif_tab1, notif_tab2, notif_tab3 = st.tabs(["📧 Email", "📱 Telegram", "⚡ Auto-Alert"])
+
+            # === EMAIL TAB ===
+            with notif_tab1:
+                email_col1, email_col2 = st.columns([2, 1])
+
+                with email_col1:
+                    if is_email_configured():
+                        st.success(f"✅ Email: {get_email_address()}")
+                    else:
+                        st.warning("Email not configured")
+                        gmail_input = st.text_input("Gmail Address", placeholder="your.email@gmail.com", key="notif_gmail")
+                        app_pass = st.text_input("App Password", type="password", key="notif_app_pass")
+                        if st.button("💾 Save Email Config", key="save_email_btn"):
+                            if gmail_input and app_pass:
+                                configure_email(gmail_input, app_pass)
+                                st.toast("Email configured! Refresh to see changes.", icon="✅")
+
+                with email_col2:
+                    if is_email_configured():
+                        if st.button("📤 Send Report", use_container_width=True, key="send_email_report"):
+                            with st.spinner("Generating email report..."):
                                 summary_data = export_weekly_summary(df)
-                                success, msg = tg_send_summary(summary_data)
+                                success, msg = send_weekly_summary(summary_data)
                                 if success:
-                                    st.toast("✅ Portfolio summary sent to Telegram!", icon="📊")
+                                    st.toast("✅ Email report sent successfully!", icon="📧")
+                                else:
+                                    st.toast(f"❌ Failed to send email: {msg}", icon="⚠️")
+
+            # === TELEGRAM TAB ===
+            with notif_tab2:
+                st.markdown("**Setup Instructions:**")
+                st.caption("""
+                1. Search @BotFather on Telegram
+                2. Send /newbot and follow instructions
+                3. Copy the bot token
+                4. Start chat with your bot and send /start
+                5. Get your chat_id from @userinfobot
+                """)
+
+                tg_col1, tg_col2 = st.columns([2, 1])
+
+                with tg_col1:
+                    if is_telegram_configured():
+                        st.success("✅ Telegram configured")
+                    else:
+                        with st.form("telegram_config_form"):
+                            st.write("Enter credentials below:")
+                            tg_token = st.text_input("Bot Token", type="password", 
+                                                    placeholder="123456:ABC...", key="form_tg_token")
+                            tg_chat_id = st.text_input("Chat ID",
+                                                      placeholder="123456789", key="form_tg_chat_id")
+
+                            submitted = st.form_submit_button("💾 Save Telegram Config", use_container_width=True, type="primary")
+
+                            if submitted:
+                                if tg_token and tg_chat_id:
+                                    try:
+                                        configure_telegram(tg_token, tg_chat_id)
+                                        st.toast("Telegram configured! Refresh to see changes.", icon="✅")
+                                    except Exception as e:
+                                        st.error(f"Error saving config: {e}")
+                                else:
+                                    st.error("Please enter both Bot Token and Chat ID")
+
+                with tg_col2:
+                    if is_telegram_configured():
+                        if st.button("📱 Test Telegram", use_container_width=True, key="test_tg"):
+                            with st.spinner("Sending..."):
+                                success, msg = test_telegram()
+                                if success:
+                                    st.toast("✅ Test message sent to your phone!", icon="📱")
                                 else:
                                     st.toast(f"❌ Failed: {msg}", icon="⚠️")
-        
-        # === AUTO-ALERT TAB ===
-        with notif_tab3:
-            st.markdown("**Automatic Alert Notifications**")
-            st.caption("Automatically send notifications when alerts are triggered")
-            
-            auto_enabled = is_auto_alert_enabled()
-            
-            aa_col1, aa_col2 = st.columns([2, 1])
-            
-            with aa_col1:
-                new_auto_state = st.toggle("Enable Auto-Alerts", value=auto_enabled, key="auto_alert_toggle")
-                
-                if new_auto_state != auto_enabled:
-                    configure_auto_alert(new_auto_state)
-                    st.toast(f"Auto-alerts {'enabled' if new_auto_state else 'disabled'}!", icon="🔔")
-                
-                if auto_enabled:
-                    st.info("🔔 Alerts will be sent automatically when triggered")
-                    st.caption("• Checks run on dashboard load (max once per 30 min)")
-                    st.caption("• Uses Telegram if configured, otherwise Email")
-            
-            with aa_col2:
-                if triggered_alerts:
-                    st.warning(f"⚡ {len(triggered_alerts)} alerts triggered!")
-                    if st.button("📤 Send Now", use_container_width=True, key="send_triggered"):
-                        results = send_triggered_alerts(triggered_alerts)
-                        st.success(f"Sent: TG={results.get('telegram', 0)}, Email={results.get('email', 0)}")
+
+                        # Weekly summary button enabled unconditionally
+                        if st.button("📊 Send Summary", use_container_width=True, key="send_tg_summary"):
+                                with st.spinner("Generating summary..."):
+                                    summary_data = export_weekly_summary(df)
+                                    success, msg = tg_send_summary(summary_data)
+                                    if success:
+                                        st.toast("✅ Portfolio summary sent to Telegram!", icon="📊")
+                                    else:
+                                        st.toast(f"❌ Failed: {msg}", icon="⚠️")
+
+            # === AUTO-ALERT TAB ===
+            with notif_tab3:
+                st.markdown("**Automatic Alert Notifications**")
+                st.caption("Automatically send notifications when alerts are triggered")
+
+                auto_enabled = is_auto_alert_enabled()
+
+                aa_col1, aa_col2 = st.columns([2, 1])
+
+                with aa_col1:
+                    new_auto_state = st.toggle("Enable Auto-Alerts", value=auto_enabled, key="auto_alert_toggle")
+
+                    if new_auto_state != auto_enabled:
+                        configure_auto_alert(new_auto_state)
+                        st.toast(f"Auto-alerts {'enabled' if new_auto_state else 'disabled'}!", icon="🔔")
+
+                    if auto_enabled:
+                        st.info("🔔 Alerts will be sent automatically when triggered")
+                        st.caption("• Checks run on dashboard load (max once per 30 min)")
+                        st.caption("• Uses Telegram if configured, otherwise Email")
+
+                with aa_col2:
+                    if triggered_alerts:
+                        st.warning(f"⚡ {len(triggered_alerts)} alerts triggered!")
+                        if st.button("📤 Send Now", use_container_width=True, key="send_triggered"):
+                            results = send_triggered_alerts(triggered_alerts)
+                            st.success(f"Sent: TG={results.get('telegram', 0)}, Email={results.get('email', 0)}")
 
 
-# --- VIEW: PORTFOLIO BACKTEST ---
-elif page == "📈 Portfolio Backtest":
-    
-    from utils.portfolio_backtest import (
-        run_backtest, get_current_portfolio_from_scores, BACKTEST_CONFIG
-    )
-    
-    st.markdown(page_header("📈 Portfolio Backtest", "Validate trend scores with real historical returns | 6-month backtest • Bi-weekly rebalancing • ₹2L capital"), unsafe_allow_html=True)
-    
-    # === CONFIG DISPLAY ===
-    with st.expander("⚙️ Backtest Configuration", expanded=False):
-        cfg_col1, cfg_col2, cfg_col3, cfg_col4 = st.columns(4)
-        cfg_col1.metric("Initial Capital", f"₹{BACKTEST_CONFIG['initial_capital']:,}")
-        cfg_col2.metric("Portfolio Size", f"{BACKTEST_CONFIG['portfolio_size']} stocks")
-        cfg_col3.metric("Rebalance", f"Every {BACKTEST_CONFIG['rebalance_freq_days']} days")
-        cfg_col4.metric("Lookback", f"{BACKTEST_CONFIG['lookback_months']} months")
-        
-        st.markdown("**Entry Criteria:** Trend Score ∈ [70, 90] (Hot Zone), Price > 200 DMA")
-        st.markdown("**Exit Criteria:** Trend Score < 40, Stop Loss -15%, Trailing Stop -8%")
-    
-    st.markdown("---")
-    
-    # === CURRENT RECOMMENDED PORTFOLIO ===
-    st.markdown("### 💼 Current Recommended Portfolio")
-    st.caption("These are the top 20 stocks by trend score that meet ALL entry criteria TODAY")
-    
-    current_portfolio = get_current_portfolio_from_scores(df)
-    
-    if current_portfolio.empty:
-        st.warning("⚠️ No stocks currently meet all entry criteria (Trend 70-90, Price > 200 DMA)")
-    else:
-        # Summary row
-        port_col1, port_col2, port_col3 = st.columns(3)
-        port_col1.metric("Eligible Stocks", len(current_portfolio))
-        port_col2.metric("Avg Trend Score", f"{current_portfolio['trend_score'].mean():.0f}")
-        port_col3.metric("Avg Overall Score", f"{current_portfolio['overall'].mean():.1f}")
-        
-        # Portfolio table
-        st.dataframe(
-            current_portfolio,
-            column_config={
-                "ticker": st.column_config.TextColumn("Ticker"),
-                "name": st.column_config.TextColumn("Company"),
-                "sector": st.column_config.TextColumn("Sector"),
-                "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
-                "trend_score": st.column_config.ProgressColumn("Trend Score", min_value=0, max_value=100),
-                "trend_signal": st.column_config.TextColumn("Signal"),
-                "overall": st.column_config.NumberColumn("Overall", format="%.1f"),
-                "comp_rs": st.column_config.NumberColumn("OptComp RS", format="%.2f", help="Composite RS vs Nifty (1W/1M/3M)"),
-                "target_allocation": st.column_config.NumberColumn("Allocation ₹", format="%.0f"),
-                "target_shares": st.column_config.NumberColumn("Target Shares", format="%d"),
-            },
-            hide_index=True,
-            use_container_width=True,
-            height=400
-        )
-        
-        # Sector breakdown
-        st.markdown("#### 🏭 Sector Allocation")
-        sector_counts = current_portfolio['sector'].value_counts()
-        fig_sector = px.pie(
-            values=sector_counts.values, 
-            names=sector_counts.index,
-            hole=0.4,
-            color_discrete_sequence=px.colors.qualitative.Set2
-        )
-        fig_sector.update_layout(
-            template='plotly_white',
-            paper_bgcolor='rgba(0,0,0,0)',
-            height=300
-        )
-        st.plotly_chart(fig_sector, use_container_width=True)
-    
-    st.markdown("---")
-    
-    # === RUN BACKTEST ===
-    st.markdown("### 📊 Historical Backtest Results")
-    
-    # Check if backtest already run
-    if 'backtest_results' not in st.session_state:
-        if st.button("🚀 Run 6-Month Backtest", type="primary", use_container_width=True):
-            progress_bar = st.progress(0)
-            status = st.empty()
-            
-            def update_progress(pct):
-                progress_bar.progress(pct)
-                status.text(f"Backtesting... {pct*100:.0f}%")
-            
-            with st.spinner("Running historical backtest... This may take a minute."):
-                results = run_backtest(df, progress_callback=update_progress)
-                st.session_state['backtest_results'] = results
-            
-            progress_bar.empty()
-            status.empty()
-            st.rerun()
-        else:
-            st.info("👆 Click the button above to run the historical backtest and see how the trend-score strategy would have performed.")
-    else:
-        results = st.session_state['backtest_results']
-        
-        if 'error' in results:
-            st.error(f"Backtest Error: {results['error']}")
-        else:
-            metrics = results['metrics']
-            equity_df = results['equity_curve']
-            trades = results['trades']
-            metrics = results['metrics']
-            equity_df = results['equity_curve']
-            trades = results['trades']
-            analytics = results.get('analytics', {})
-            factor_analysis = analytics.get('factor_perf', {})
-            heatmaps = analytics.get('heatmaps', {})
-            exit_analysis = analytics.get('exit_analysis', pd.DataFrame())
-            
-            # === PERFORMANCE METRICS ===
-            st.markdown("#### 📈 Performance Summary")
-            
-            m1, m2, m3, m4, m5 = st.columns(5)
-            
-            total_return = metrics['total_return_pct']
-            return_color = "#00C853" if total_return > 0 else "#FF5252"
-            
-            m1.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="color: #888; font-size: 12px;">Total Return</div>
-                <div style="color: {return_color}; font-size: 24px; font-weight: 700;">{total_return:+.1f}%</div>
-                <div style="color: #888; font-size: 10px;">₹{metrics['final_value']:,.0f}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            alpha = metrics['alpha']
-            alpha_color = "#00C853" if alpha > 0 else "#FF5252"
-            
-            m2.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="color: #888; font-size: 12px;">Alpha vs Benchmark</div>
-                <div style="color: {alpha_color}; font-size: 24px; font-weight: 700;">{alpha:+.1f}%</div>
-                <div style="color: #888; font-size: 10px;">Benchmark: {metrics['benchmark_return_pct']:+.1f}%</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            m3.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="color: #888; font-size: 12px;">Sharpe Ratio</div>
-                <div style="color: #667eea; font-size: 24px; font-weight: 700;">{metrics['sharpe_ratio']:.2f}</div>
-                <div style="color: #888; font-size: 10px;">Risk-Adjusted</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            dd_color = "#FF5252" if metrics['max_drawdown_pct'] < -10 else "#FF9800"
-            
-            m4.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="color: #888; font-size: 12px;">Max Drawdown</div>
-                <div style="color: {dd_color}; font-size: 24px; font-weight: 700;">{metrics['max_drawdown_pct']:.1f}%</div>
-                <div style="color: #888; font-size: 10px;">Worst Peak-to-Trough</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            win_color = "#00C853" if metrics['win_rate_pct'] > 50 else "#FF9800"
-            
-            m5.markdown(f"""
-            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; text-align: center;">
-                <div style="color: #888; font-size: 12px;">Win Rate</div>
-                <div style="color: {win_color}; font-size: 24px; font-weight: 700;">{metrics['win_rate_pct']:.0f}%</div>
-                <div style="color: #888; font-size: 10px;">{metrics['total_trades']} trades</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            # === EQUITY CURVE ===
-            st.markdown("#### 📈 Equity Curve vs Benchmark")
-            
-            if not equity_df.empty:
-                # Normalize to base 100 for comparison
-                equity_df['portfolio_normalized'] = equity_df['equity'] / equity_df['equity'].iloc[0] * 100
-                
-                fig_equity = go.Figure()
-                
-                fig_equity.add_trace(go.Scatter(
-                    x=equity_df['date'],
-                    y=equity_df['portfolio_normalized'],
-                    name='Trend Strategy',
-                    line=dict(color='#667eea', width=3),
-                    fill='tozeroy',
-                    fillcolor='rgba(102, 126, 234, 0.1)'
-                ))
-                
-                # Add benchmark line (base 100)
-                benchmark_return = metrics['benchmark_return_pct']
-                start_date = equity_df['date'].iloc[0]
-                end_date = equity_df['date'].iloc[-1]
-                days = len(equity_df)
-                
-                benchmark_line = pd.Series(
-                    [100 + (i / days) * benchmark_return for i in range(days)],
-                    index=equity_df['date']
-                )
-                
-                fig_equity.add_trace(go.Scatter(
-                    x=equity_df['date'],
-                    y=benchmark_line,
-                    name='Nifty 500 (approx)',
-                    line=dict(color='#888888', width=2, dash='dash')
-                ))
-                
-                fig_equity.update_layout(
-                    template='plotly_white',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    height=400,
-                    legend=dict(orientation='h', yanchor='bottom', y=1.02),
-                    yaxis_title='Portfolio Value (Base 100)',
-                    xaxis_title='Date'
-                )
-                
-                st.plotly_chart(fig_equity, use_container_width=True)
-            
-            # === FACTOR ANALYSIS ===
-            st.markdown("---")
-            st.markdown("### 🔬 Factor Analysis: Which Scores Predict Returns?")
-            st.caption("Analyzing if higher entry trend scores correlate with better returns")
-            
-            if factor_analysis:
-                # Isolate Trend Score performance for this specific section
-                trend_data = factor_analysis.get('Trend Score', {})
-                
-                if trend_data:
-                    # Sort buckets for display (descending ideal)
-                    sorted_buckets = sorted(trend_data.items(), key=lambda x: x[0], reverse=True)
-                    factor_cols = st.columns(len(sorted_buckets))
-                    
-                    for i, (bucket, data) in enumerate(sorted_buckets):
-                        with factor_cols[i]:
-                            avg_ret = data.get('avg_return', 0)
-                            color = "#00C853" if avg_ret > 0 else "#FF5252"
-                            
-                            st.markdown(f"""
-                            <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 18px; font-weight: 600;">Trend {bucket}</div>
-                                <div style="color: {color}; font-size: 28px; font-weight: 700; margin: 10px 0;">{avg_ret:+.1f}%</div>
-                                <div style="color: #888;">Win Rate: {data.get('win_rate', 0):.0f}%</div>
-                                <div style="color: #666; font-size: 12px;">{data.get('count', 0)} trades</div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                
-                # Insight
-                if trend_data:
-                    buckets_sorted = sorted(trend_data.items(), key=lambda x: x[1].get('avg_return', 0), reverse=True)
-                    best_bucket = buckets_sorted[0][0] if buckets_sorted else None
-                    
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    
-                    if best_bucket == '90-100':
-                        st.success("✅ **Insight**: Highest trend scores (90-100) generate the best returns. The scoring engine has strong predictive power!")
-                    elif best_bucket == '80-89':
-                        st.info("📊 **Insight**: The 80-89 range performs best. Consider raising the entry threshold from 70 to 80 for better results.")
-                    elif best_bucket == '70-79':
-                        st.warning("⚠️ **Insight**: Lower scores (70-79) outperform higher ones. The trend score may be missing some predictive factors - consider analyzing individual score components (quality, value, etc.)")
-            else:
-                st.info("Not enough completed trades to analyze factor performance yet.")
-
-            # === HEATMAPS ===
-            if heatmaps:
-                st.markdown("#### 🔥 Performance Heatmaps")
-                st.caption("How Strategy Returns vary by Trend Score vs Fundamental Factors")
-                
-                # Show tabs for different factors
-                hm_tabs = st.tabs(list(heatmaps.keys()))
-                
-                for i, (factor_name, hm_data) in enumerate(heatmaps.items()):
-                    with hm_tabs[i]:
-                        if not hm_data.empty:
-                            fig_hm = go.Figure(data=go.Heatmap(
-                                z=hm_data.values,
-                                x=hm_data.columns,
-                                y=hm_data.index,
-                                colorscale='RdYlGn',
-                                texttemplate="%{z:.1f}%",
-                                textfont={"size": 12},
-                                hoverongaps=False
-                            ))
-                            fig_hm.update_layout(
-                                title=f"Trend vs {factor_name} (Avg Return %)",
-                                height=350,
-                                template='plotly_white',
-                                xaxis_title='Trend Bucket',
-                                yaxis_title=f'{factor_name} Bucket',
-                                yaxis={'categoryorder':'category descending'}
-                            )
-                            st.plotly_chart(fig_hm, use_container_width=True)
-                        else:
-                            st.info(f"Not enough data to generate {factor_name} heatmap.")
-            
-            # === EXIT ANALYSIS ===
-            if not exit_analysis.empty:
-                st.markdown("#### 🚪 Exit Analysis")
-                st.caption("Why are trades being closed?")
-                
-                ea_col1, ea_col2 = st.columns([1, 1])
-                
-                with ea_col1:
-                    fig_pie = px.pie(
-                        exit_analysis, 
-                        values='Count', 
-                        names=exit_analysis.index,
-                        title='Exit Reasons Breakdown',
-                        hole=0.4,
-                        color_discrete_sequence=px.colors.qualitative.Set3
-                    )
-                    fig_pie.update_layout(height=300, showlegend=True, template='plotly_white')
-                    st.plotly_chart(fig_pie, use_container_width=True)
-                
-                with ea_col2:
-                    st.dataframe(
-                        exit_analysis,
-                        use_container_width=True
-                    )
-            
-            # === TRADE LOG ===
-            st.markdown("---")
-            with st.expander("📋 Trade Log", expanded=False):
-                if trades:
-                    trades_df = pd.DataFrame(trades)
-                    st.dataframe(
-                        trades_df,
-                        column_config={
-                            "date": st.column_config.DateColumn("Date"),
-                            "ticker": st.column_config.TextColumn("Ticker"),
-                            "action": st.column_config.TextColumn("Action"),
-                            "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
-                            "shares": st.column_config.NumberColumn("Shares"),
-                            "value": st.column_config.NumberColumn("Value", format="₹%.0f"),
-                            "reason": st.column_config.TextColumn("Reason"),
-                            "return_pct": st.column_config.NumberColumn("Return %", format="%+.1f%%"),
-                        },
-                        hide_index=True,
-                        height=400
-                    )
-            
-            # === SCORE IMPROVEMENT RECOMMENDATIONS ===
-            st.markdown("---")
-            st.markdown("### 💡 Score Engine Improvement Recommendations")
-            
-            rec_col1, rec_col2 = st.columns(2)
-            
-            with rec_col1:
-                if metrics['win_rate_pct'] < 50:
-                    st.markdown("""
-                    <div style="background: rgba(255,82,82,0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #FF5252;">
-                        <h4 style="color: #FF5252; margin: 0;">⚠️ Win Rate Below 50%</h4>
-                        <p style="color: #888; margin-top: 10px;">
-                            <strong>Problem:</strong> More losing trades than winning trades.<br>
-                            <strong>Suggestion:</strong> The trend score entry threshold (70) may be too low. Consider:
-                            <ul>
-                                <li>Raising entry threshold to 75 or 80</li>
-                                <li>Adding a Quality score filter (≥ 6.0)</li>
-                                <li>Requiring 3-month positive return before entry</li>
-                            </ul>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown("""
-                    <div style="background: rgba(0,200,83,0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #00C853;">
-                        <h4 style="color: #00C853; margin: 0;">✅ Good Win Rate</h4>
-                        <p style="color: #888; margin-top: 10px;">
-                            The trend score is identifying winners more often than losers. 
-                            Focus on improving the <strong>magnitude</strong> of wins.
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            with rec_col2:
-                if metrics['alpha'] < 0:
-                    st.markdown(f"""
-                    <div style="background: rgba(255,152,0,0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #FF9800;">
-                        <h4 style="color: #FF9800; margin: 0;">📉 Negative Alpha</h4>
-                        <p style="color: #888; margin-top: 10px;">
-                            <strong>Problem:</strong> Strategy underperformed the benchmark by {abs(metrics['alpha']):.1f}%.<br>
-                            <strong>Suggestion:</strong> The momentum-focused approach may need balancing:
-                            <ul>
-                                <li>Add a Value score filter to avoid overpriced momentum</li>
-                                <li>Consider sector diversification limits</li>
-                                <li>Tighten stop losses from -15% to -10%</li>
-                            </ul>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"""
-                    <div style="background: rgba(0,200,83,0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #00C853;">
-                        <h4 style="color: #00C853; margin: 0;">✅ Positive Alpha: +{metrics['alpha']:.1f}%</h4>
-                        <p style="color: #888; margin-top: 10px;">
-                            The trend score strategy is beating the market! Consider:
-                            <ul>
-                                <li>Increasing position sizes for high-conviction picks</li>
-                                <li>Extending the holding period for winners</li>
-                            </ul>
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            # Reset button
-            st.markdown("---")
-            if st.button("🔄 Re-run Backtest", use_container_width=True):
-                del st.session_state['backtest_results']
-                st.rerun()
-    
-    # === MULTI-STRATEGY COMPARISON SECTION ===
-    st.markdown("---")
-    st.markdown("## 🔬 Multi-Strategy Comparison")
-    st.caption("Compare 5 different strategy proposals with bi-weekly and monthly rebalancing")
-    
-    from utils.multi_strategy_backtest import (
-        run_all_proposals_comparison, get_best_proposal,
-        run_proposal_backtest
-    )
-    from utils.strategy_definitions import get_all_proposal_keys, get_proposal_description, ALL_PROPOSALS
-    
-    # Show available proposals
-    with st.expander("📋 Available Strategies", expanded=False):
-        for key in get_all_proposal_keys():
-            proposal = ALL_PROPOSALS.get(key, {})
-            st.markdown(f"**{key}**: {proposal.get('name', 'Unknown')} - {proposal.get('description', '')}")
-    
-    # Run comparison
-    if 'multi_strategy_results' not in st.session_state:
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            selected_proposals = st.multiselect(
-                "Select proposals to test",
-                get_all_proposal_keys(),
-                default=get_all_proposal_keys()[:3]  # Default: first 3
-            )
-        
-        with col2:
-            selected_freq = st.selectbox(
-                "Rebalancing Frequency", 
-                ["bi-weekly", "monthly", "both"],
-                index=2  # Default: both
-            )
-        
-        if st.button("🚀 Run Strategy Comparison", type="primary", use_container_width=True):
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            results = {}
-            frequencies = ["bi-weekly", "monthly"] if selected_freq == "both" else [selected_freq]
-            
-            total_runs = len(selected_proposals) * len(frequencies)
-            current_run = 0
-            
-            for proposal_key in selected_proposals:
-                for freq in frequencies:
-                    status_text.text(f"Testing {proposal_key} ({freq})...")
-                    
-                    result = run_proposal_backtest(
-                        proposal_key=proposal_key,
-                        market_df=df,
-                        rebalance_freq=freq
-                    )
-                    
-                    results[f"{proposal_key}_{freq}"] = result
-                    current_run += 1
-                    progress_bar.progress(current_run / total_runs)
-            
-            st.session_state['multi_strategy_results'] = results
-            progress_bar.empty()
-            status_text.empty()
-            st.rerun()
-    else:
-        results = st.session_state['multi_strategy_results']
-        
-        # Find best performer
-        best_key, best_result = get_best_proposal(results)
-        
-        if best_key and 'error' not in best_result:
-            st.success(f"🏆 **Best Performer**: {best_key} with {best_result['metrics']['alpha']:+.1f}% alpha")
-        
-        # Comparison table
-        st.markdown("### 📊 Results Comparison")
-        
-        comparison_data = []
-        for key, result in results.items():
-            if 'error' in result:
-                continue
-            
-            m = result.get('metrics', {})
-            comparison_data.append({
-                "Strategy": key,
-                "Total Return %": m.get('total_return_pct', 0),
-                "Alpha %": m.get('alpha', 0),
-                "Sharpe": m.get('sharpe_ratio', 0),
-                "Max DD %": m.get('max_drawdown_pct', 0),
-                "Win Rate %": m.get('win_rate_pct', 0),
-                "Trades": m.get('total_trades', 0),
-                "Final Value": m.get('final_value', 0),
-            })
-        
-        if comparison_data:
-            comparison_df = pd.DataFrame(comparison_data)
-            comparison_df = comparison_df.sort_values("Alpha %", ascending=False)
-            
-            st.dataframe(
-                comparison_df,
-                column_config={
-                    "Strategy": st.column_config.TextColumn("Strategy"),
-                    "Total Return %": st.column_config.NumberColumn("Return", format="%+.1f%%"),
-                    "Alpha %": st.column_config.NumberColumn("Alpha", format="%+.1f%%"),
-                    "Sharpe": st.column_config.NumberColumn("Sharpe", format="%.2f"),
-                    "Max DD %": st.column_config.NumberColumn("Max DD", format="%.1f%%"),
-                    "Win Rate %": st.column_config.NumberColumn("Win Rate", format="%.0f%%"),
-                    "Trades": st.column_config.NumberColumn("Trades"),
-                    "Final Value": st.column_config.NumberColumn("Final ₹", format="₹%.0f"),
-                },
-                hide_index=True,
-                use_container_width=True
-            )
-            
-            # Visual comparison
-            st.markdown("### 📈 Alpha Comparison")
-            
-            alpha_df = comparison_df[['Strategy', 'Alpha %']].copy()
-            alpha_df['Color'] = alpha_df['Alpha %'].apply(lambda x: '#00C853' if x > 0 else '#FF5252')
-            
-            fig_alpha = px.bar(
-                alpha_df, 
-                x='Strategy', 
-                y='Alpha %',
-                color='Alpha %',
-                color_continuous_scale=['#FF5252', '#FF9800', '#00C853'],
-                title='Alpha vs Benchmark by Strategy'
-            )
-            fig_alpha.update_layout(
-                template='plotly_white',
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                height=350
-            )
-            st.plotly_chart(fig_alpha, use_container_width=True)
-            
-            # Risk-adjusted view
-            st.markdown("### ⚖️ Risk-Adjusted Performance")
-            
-            risk_df = comparison_df[['Strategy', 'Sharpe', 'Max DD %', 'Win Rate %']].copy()
-            
-            fig_risk = go.Figure()
-            fig_risk.add_trace(go.Bar(
-                name='Sharpe Ratio',
-                x=risk_df['Strategy'],
-                y=risk_df['Sharpe'],
-                marker_color='#667eea'
-            ))
-            fig_risk.add_trace(go.Bar(
-                name='Max Drawdown',
-                x=risk_df['Strategy'],
-                y=risk_df['Max DD %'].abs(),
-                marker_color='#FF5252'
-            ))
-            fig_risk.update_layout(
-                barmode='group',
-                template='plotly_white',
-                paper_bgcolor='rgba(0,0,0,0)',
-                height=300,
-                legend=dict(orientation='h')
-            )
-            st.plotly_chart(fig_risk, use_container_width=True)
-            
-            # === DEEP DIVE ANALYTICS FOR BEST STRATEGY ===
-            if best_key and best_result:
-                st.markdown("---")
-                st.markdown(f"### 🔬 Deep Dive Analytics: {best_key}")
-                
-                best_analytics = best_result.get('analytics', {})
-                best_heatmaps = best_analytics.get('heatmaps', {})
-                best_exit = best_analytics.get('exit_analysis', pd.DataFrame())
-                
-                # Show Heatmap
-                if best_heatmaps and "Quality" in best_heatmaps:
-                    st.markdown("#### 🔥 Trend vs Quality Heatmap")
-                    hm_data = best_heatmaps["Quality"]
-                    if not hm_data.empty:
-                        fig_hm = go.Figure(data=go.Heatmap(
-                            z=hm_data.values,
-                            x=hm_data.columns,
-                            y=hm_data.index,
-                            colorscale='RdYlGn',
-                            texttemplate="%{z:.1f}%",
-                            textfont={"size": 10}
-                        ))
-                        fig_hm.update_layout(
-                            height=350,
-                            template='plotly_white',
-                            xaxis_title='Trend Score', 
-                            yaxis_title='Quality Score',
-                            title=f"Return Heatmap ({best_key})"
-                        )
-                        st.plotly_chart(fig_hm, use_container_width=True)
-                
-                # Show Exit Analysis
-                if not best_exit.empty:
-                    st.markdown("#### 🚪 Exit Analysis")
-                    ea_col1, ea_col2 = st.columns([1, 1])
-                    with ea_col1:
-                        if isinstance(best_exit, pd.DataFrame) and 'Count' in best_exit.columns:
-                            fig_pie = px.pie(
-                                best_exit, 
-                                values='Count', 
-                                names=best_exit.index,
-                                hole=0.4,
-                                color_discrete_sequence=px.colors.qualitative.Set3,
-                                title="Exit Reasons"
-                            )
-                            fig_pie.update_layout(height=300, template='plotly_white')
-                            st.plotly_chart(fig_pie, use_container_width=True)
-                    with ea_col2:
-                        st.dataframe(best_exit, use_container_width=True)
-        
-        # Reset button
-        if st.button("🔄 Re-run Comparison", use_container_width=True):
-            del st.session_state['multi_strategy_results']
-            st.rerun()
-
-# --- VIEW: STRATEGY LAB ---
-elif page == "🔬 Strategy Lab":
-    from utils.strategy_optimizer import (
-        run_optimization, get_top_strategies, generate_heatmap_data,
-        DEFAULT_GRID, FIXED_PARAMS, run_quick_backtest
-    )
-    
-    st.markdown(page_header("🔬 Strategy Lab", "Test parameter combinations to find high-alpha strategies"), unsafe_allow_html=True)
-    
-    # Load market data
-    if 'market_df' not in st.session_state or st.session_state.get('market_df') is None:
-        with st.spinner("Loading market data..."):
-            from utils.nifty500_list import TICKERS
-            from utils.data_engine import batch_fetch_tickers
-            from utils.scoring import calculate_scores, calculate_trend_metrics
-            
-            st.session_state['market_df'] = batch_fetch_tickers(TICKERS)
-    
-    df = st.session_state.get('market_df')
-    
-    if df is None or df.empty:
-        st.error("Failed to load market data. Please refresh.")
-    else:
-        # === TAB LAYOUT ===
-        tab1, tab2, tab3, tab4 = st.tabs(["🎛️ Custom Strategy", "🎯 Strategy Presets", "⚡ Optimizer Grid", "📊 My Portfolio"])
-        
-        # === TAB 1: CUSTOM STRATEGY ===
-        with tab1:
-            st.markdown("### 🎛️ Customize Entry & Exit Parameters")
-            st.caption("Adjust parameters and run a single backtest")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown("#### Entry Rules")
-                trend_min = st.slider("Trend Score Min", 30, 80, 40, key="custom_trend_min")
-                trend_max = st.slider("Trend Score Max", 50, 100, 80, key="custom_trend_max")
-                quality_min = st.slider("Quality Min", 0.0, 10.0, 5.0, 0.5, key="custom_quality")
-                value_min = st.slider("Value Min", 0.0, 10.0, 0.0, 0.5, key="custom_value")
-                growth_min = st.slider("Growth Min", 0.0, 10.0, 0.0, 0.5, key="custom_growth")
-                volume_min = st.slider("Volume Signal Min", 0, 10, 5, key="custom_volume")
-            
-            with col2:
-                st.markdown("#### Exit Rules")
-                stop_loss = st.slider("Stop Loss %", -25, -5, -15, key="custom_stop")
-                trailing_stop = st.slider("Trailing Stop %", -20, -3, -10, key="custom_trail")
-                time_exit_days = st.slider("Time Exit (days)", 14, 60, 45, key="custom_days")
-                time_exit_return = st.slider("Time Exit Min Return %", -5.0, 10.0, 0.0, 0.5, key="custom_ret")
-                partial_pct = st.slider("Partial Profit Trigger %", 10, 50, 20, key="custom_partial")
-                lookback = st.slider("Backtest Months", 6, 24, 12, key="custom_lookback")
-            
-            if st.button("▶️ Run Custom Backtest", type="primary", use_container_width=True):
-                config = {
-                    **FIXED_PARAMS,
-                    "entry_trend_score": trend_min,
-                    "entry_trend_score_max": trend_max,
-                    "quality_min": quality_min,
-                    "value_min": value_min,
-                    "growth_min": growth_min,
-                    "volume_combined_min": volume_min,
-                    "stop_loss_pct": stop_loss,
-                    "trailing_stop_pct": trailing_stop,
-                    "time_exit_days": time_exit_days,
-                    "time_exit_min_return": time_exit_return,
-                    "partial_profit_pct": partial_pct,
-                    "lookback_months": lookback
-                }
-                
-                with st.spinner("Running backtest..."):
-                    result = run_quick_backtest(df, config)
-                
-                if "error" not in result:
-                    metrics = result['metrics']
-                    
-                    st.markdown("### 📊 Results")
-                    m_cols = st.columns(5)
-                    m_cols[0].metric("Return", f"{metrics.get('total_return_pct', 0):+.1f}%")
-                    m_cols[1].metric("Alpha", f"{metrics.get('alpha', 0):+.1f}%")
-                    m_cols[2].metric("Sharpe", f"{metrics.get('sharpe_ratio', 0):.2f}")
-                    m_cols[3].metric("Win Rate", f"{metrics.get('win_rate_pct', 0):.0f}%")
-                    m_cols[4].metric("Trades", f"{metrics.get('total_trades', 0)}")
-                    
-                    # Equity curve
-                    eq_df = result.get('equity_curve')
-                    if eq_df is not None and not eq_df.empty:
-                        fig = px.line(eq_df, x='date', y='equity', title='Equity Curve')
-                        fig.update_layout(height=300, template='plotly_white')
-                        st.plotly_chart(fig, use_container_width=True)
-                    
-                    # Trade log
-                    trades_list = result.get('trades', [])
-                    if trades_list:
-                        trade_df = pd.DataFrame(trades_list)
-                        with st.expander(f"📋 Trade Log ({len(trade_df)} trades)", expanded=False):
-                            st.dataframe(trade_df, use_container_width=True, height=300)
-                            
-                            # CSV download
-                            csv_data = trade_df.to_csv(index=False)
-                            st.download_button(
-                                label="📥 Download Trade Log (CSV)",
-                                data=csv_data,
-                                file_name="custom_strategy_trades.csv",
-                                mime="text/csv",
-                                key="custom_trades_download"
-                            )
-                else:
-                    st.error(f"Error: {result.get('error', 'Unknown')}")
-        
-        # === TAB 2: PRESETS ===
-        with tab2:
-            st.markdown("### 🎯 Strategy Presets")
-            st.caption("One-click strategies for different market conditions")
-            
-            preset_cols = st.columns(5)
-            
-            presets = {
-                "🔥 Hot Zone (Best)": {
-                    "trend_min": 35, "trend_max": 60, "quality_min": 0, "value_min": 0, "growth_min": 0,
-                    "volume_combined_min": 6, "time_exit_days": 45, "trailing_stop_pct": -8
-                },
-                "🚀 Momentum": {
-                    "trend_min": 70, "trend_max": 90, "quality_min": 5, "value_min": 0,
-                    "time_exit_days": 20, "trailing_stop_pct": -10
-                },
-                "💎 Deep Value": {
-                    "trend_min": 30, "trend_max": 55, "quality_min": 5, "value_min": 5,
-                    "time_exit_days": 60, "trailing_stop_pct": -15, "stop_loss_pct": -20
-                },
-                "⚖️ GARP": {
-                    "trend_min": 50, "trend_max": 75, "quality_min": 5, "value_min": 5, "growth_min": 5,
-                    "time_exit_days": 30, "trailing_stop_pct": -12
-                },
-                "📊 Breakout": {
-                    "trend_min": 60, "trend_max": 80, "quality_min": 0, "value_min": 0,
-                    "volume_combined_min": 7, "time_exit_days": 25
-                }
-            }
-            
-            for i, (name, params) in enumerate(presets.items()):
-                with preset_cols[i]:
-                    st.markdown(f"**{name}**")
-                    st.caption(f"Trend: {params['trend_min']}-{params['trend_max']}")
-                    st.caption(f"Q:{params.get('quality_min', 0)} V:{params.get('value_min', 0)}")
-                    
-                    if st.button(f"Test {name.split()[1]}", key=f"preset_{i}"):
-                        config = {**FIXED_PARAMS, **params}
-                        config["entry_trend_score"] = params["trend_min"]
-                        config["entry_trend_score_max"] = params["trend_max"]
-                        
-                        with st.spinner(f"Testing {name}..."):
-                            result = run_quick_backtest(df, config)
-                        
-                        if "error" not in result:
-                            st.session_state['preset_result'] = result
-                            st.session_state['preset_name'] = name
-            
-            # Show preset result
-            if 'preset_result' in st.session_state:
-                result = st.session_state['preset_result']
-                name = st.session_state.get('preset_name', 'Preset')
-                metrics = result.get('metrics', {})
-                trades = result.get('trades', [])
-                
-                st.markdown(f"### {name} Results")
-                m_cols = st.columns(5)
-                m_cols[0].metric("Return", f"{metrics.get('total_return_pct', 0):+.1f}%")
-                m_cols[1].metric("Alpha", f"{metrics.get('alpha', 0):+.1f}%")
-                m_cols[2].metric("Sharpe", f"{metrics.get('sharpe_ratio', 0):.2f}")
-                m_cols[3].metric("Win Rate", f"{metrics.get('win_rate_pct', 0):.0f}%")
-                m_cols[4].metric("Trades", f"{metrics.get('total_trades', 0)}")
-                
-                # Equity curve with benchmark overlay
-                eq_df = result.get('equity_curve')
-                if eq_df is not None and not eq_df.empty:
-
-                    
-                    fig = go.Figure()
-                    
-                    # Normalize to base 100
-                    initial_val = eq_df['equity'].iloc[0]
-                    eq_df['normalized'] = (eq_df['equity'] / initial_val) * 100
-                    
-                    # Add strategy line
-                    fig.add_trace(go.Scatter(
-                        x=eq_df['date'], y=eq_df['normalized'],
-                        mode='lines', name='Strategy',
-                        line=dict(color='#00C853', width=2)
-                    ))
-                    
-                    # Fetch benchmark (Nifty 500)
-                    try:
-                        start = eq_df['date'].min()
-                        end = eq_df['date'].max()
-                        nifty = yf.download("^CRSLDX", start=start, end=end, progress=False)
-                        if not nifty.empty:
-                            nifty_start = nifty['Close'].iloc[0]
-                            nifty['normalized'] = (nifty['Close'] / nifty_start) * 100
-                            fig.add_trace(go.Scatter(
-                                x=nifty.index, y=nifty['normalized'],
-                                mode='lines', name='Nifty 500',
-                                line=dict(color='#888', width=1, dash='dash')
-                            ))
-                    except:
-                        pass
-                    
-                    fig.update_layout(
-                        height=280, template='plotly_white',
-                        title='Equity Curve vs Benchmark (Base 100)',
-                        legend=dict(orientation="h", yanchor="bottom", y=1.02),
-                        xaxis_title='', yaxis_title='Value'
-                    )
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                # Trade Log
-                if trades:
-                    with st.expander(f"📋 Trade Log ({len(trades)} trades)", expanded=False):
-                        trades_df = pd.DataFrame(trades)
-                        
-                        # Display table
-                        st.dataframe(
-                            trades_df,
-                            column_config={
-                                "date": st.column_config.DateColumn("Date"),
-                                "ticker": st.column_config.TextColumn("Ticker"),
-                                "action": st.column_config.TextColumn("Action"),
-                                "price": st.column_config.NumberColumn("Price", format="₹%.2f"),
-                                "shares": st.column_config.NumberColumn("Shares"),
-                                "reason": st.column_config.TextColumn("Reason"),
-                                "return_pct": st.column_config.NumberColumn("Return %", format="%+.1f%%"),
-                                "days_held": st.column_config.NumberColumn("Days"),
-                                "entry_trend_score": st.column_config.NumberColumn("Entry Trend"),
-                                "quality": st.column_config.NumberColumn("Quality"),
-                                "value": st.column_config.NumberColumn("Value"),
-                            },
-                            hide_index=True,
-                            height=400
-                        )
-                        
-                        # Export button
-                        csv = trades_df.to_csv(index=False)
-                        st.download_button(
-                            label="📥 Download Trade Log CSV",
-                            data=csv,
-                            file_name=f"{name.replace(' ', '_').replace('🚀', '').replace('💎', '').replace('⚖️', '').replace('🔥', '').strip()}_trades.csv",
-                            mime="text/csv"
-                        )
-        
-        # === TAB 3: OPTIMIZER GRID ===
-        with tab3:
-            st.markdown("### ⚡ Two-Stage Optimization")
-            st.caption("Stage 1: Find winning entry params → Stage 2: Refine exit params")
-            
-            # Two-stage sub-tabs
-            stage1_tab, stage2_tab = st.tabs(["📊 Stage 1: Entry Params", "🔧 Stage 2: Exit Params"])
-            
-            # === STAGE 1: ENTRY OPTIMIZATION ===
-            with stage1_tab:
-                st.markdown("#### Find the best Trend × Quality × Value × Growth combination")
-                st.info("Tests ~162 entry combos with fixed exit params (30 days, -10% trail, -15% stop)")
-                
-                # Live results container
-                live_results_container = st.empty()
-                
-                col_run, col_stop = st.columns([3, 1])
-                with col_run:
-                    run_btn = st.button("🚀 Run Entry Optimizer", type="primary", use_container_width=True, key="stage1_run")
-                with col_stop:
-                    stop_btn = st.button("⏹️ Stop", use_container_width=True, key="stage1_stop")
-                
-                if stop_btn:
-                    st.session_state['optimizer_stop'] = True
-                
-                if run_btn:
-                    st.session_state['optimizer_stop'] = False
-                    st.session_state['live_results'] = []
-                    
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    
-                    # Import components
-                    from utils.strategy_optimizer import (
-                        generate_param_grid, run_quick_backtest, calculate_composite_score,
-                        ENTRY_GRID, STAGE1_FIXED_EXITS, FIXED_PARAMS
-                    )
-
-                    from utils.portfolio_backtest import fetch_historical_prices
-                
-                    # Generate configs using ENTRY_GRID with fixed exit params
-                    configs = generate_param_grid(ENTRY_GRID, STAGE1_FIXED_EXITS)
-                    total = len(configs)
-                    
-                    # Fetch data once
-                    status_text.text("Fetching historical data...")
-                    tickers = df['ticker'].tolist()
-                    end_date = datetime.now()
-                    start_date = end_date - timedelta(days=365)
-                    fetch_start = start_date - timedelta(days=400)
-                    historical_data = fetch_historical_prices(tickers, fetch_start, end_date)
-                    
-                    # Run each config and stream results
-                    for i, config in enumerate(configs):
-                        # Check stop flag
-                        if st.session_state.get('optimizer_stop', False):
-                            status_text.text(f"⏹️ Stopped at {i}/{total}")
-                            break
-                        
-                        progress_bar.progress((i + 1) / total)
-                        status_text.text(f"Testing config {i+1}/{total}...")
-                        
-                        try:
-                            result = run_quick_backtest(df, config, historical_data, start_date, end_date)
-                            
-                            if "error" not in result:
-                                metrics = result.get('metrics', {})
-                                trades = result.get('trades', [])
-                                score = calculate_composite_score(metrics, trades)
-                                
-                                row = {
-                                    'archetype': config.get('archetype', 'Unknown'),
-                                    'trend_min': config['entry_trend_score'],
-                                    'trend_max': config['entry_trend_score_max'],
-                                    'quality_min': config.get('quality_min', 0),
-                                    'value_min': config.get('value_min', 0),
-                                    'growth_min': config.get('growth_min', 0),
-                                    'coverage': config.get('coverage_pct', 0),
-                                    'return_pct': metrics.get('total_return_pct', 0),
-                                    'alpha': metrics.get('alpha', 0),
-                                    'sharpe': metrics.get('sharpe_ratio', 0),
-                                    'win_rate': metrics.get('win_rate_pct', 0),
-                                    'max_dd': metrics.get('max_drawdown_pct', 0),
-                                    'trades': metrics.get('total_trades', 0),
-                                    'score': score
-                                }
-                                st.session_state['live_results'].append(row)
-                                
-                                # Update live results table (sorted by score)
-                                if st.session_state['live_results']:
-                                    live_df = pd.DataFrame(st.session_state['live_results'])
-                                    live_df = live_df.sort_values('score', ascending=False).reset_index(drop=True)
-                                    live_df['rank'] = range(1, len(live_df) + 1)
-                                    
-                                    with live_results_container.container():
-                                        st.markdown(f"### 📊 Results So Far ({len(live_df)} tested)")
-                                        display_cols = ['rank', 'archetype', 'trend_min', 'trend_max', 'quality_min', 'value_min', 'growth_min', 'return_pct', 'alpha', 'score']
-                                        display_cols = [c for c in display_cols if c in live_df.columns]
-                                        st.dataframe(
-                                            live_df.head(25)[display_cols],
-                                            hide_index=True,
-                                            use_container_width=True,
-                                            height=400
-                                        )
-                        except Exception as e:
-                            # Track errors silently
-                            if 'error_count' not in st.session_state:
-                                st.session_state['error_count'] = 0
-                            st.session_state['error_count'] += 1
-                            continue
-                    
-                    # Final results
-                    if st.session_state.get('live_results'):
-                        final_df = pd.DataFrame(st.session_state['live_results'])
-                        
-                        # Remove duplicates (entry configs with same results)
-                        dedup_cols = ['trend_min', 'trend_max', 'quality_min', 'value_min', 
-                                      'growth_min', 'return_pct', 'alpha', 'sharpe']
-                        dedup_cols = [c for c in dedup_cols if c in final_df.columns]
-                        final_df = final_df.drop_duplicates(subset=dedup_cols, keep='first')
-                        
-                        final_df = final_df.sort_values('score', ascending=False).reset_index(drop=True)
-                        final_df['rank'] = range(1, len(final_df) + 1)
-                        st.session_state['stage1_results'] = final_df
-                        
-                        progress_bar.progress(100)
-                        error_count = st.session_state.get('error_count', 0)
-                        success_count = len(st.session_state.get('live_results', []))
-                        status_text.text(f"✅ Stage 1 complete! {success_count} success, {error_count} errors")
-                    else:
-                        progress_bar.progress(100)
-                        error_count = st.session_state.get('error_count', 0)
-                        st.error(f"⚠️ No successful configs! {error_count} errors. Check that stocks have quality/value/growth data.")
-                
-                # Show Stage 1 results
-                if 'stage1_results' in st.session_state:
-                    results_df = st.session_state['stage1_results']
-                    
-                    # Stats
-                    tested_count = len(st.session_state.get('live_results', []))
-                    unique_count = len(results_df)
-                    st.success(f"📊 Tested **{tested_count}** → **{unique_count}** unique entry strategies")
-                    
-                    st.markdown("### 🏆 Top 10 Entry Strategies")
-                    
-                    display_cols = ['rank', 'trend_min', 'trend_max', 'quality_min', 'value_min', 'growth_min',
-                                   'return_pct', 'alpha', 'sharpe', 'win_rate', 'trades', 'score']
-                    display_cols = [c for c in display_cols if c in results_df.columns]
-                    
-                    st.dataframe(
-                        results_df.head(10)[display_cols],
-                        column_config={
-                            "rank": st.column_config.NumberColumn("Rank"),
-                            "trend_min": st.column_config.NumberColumn("Trend Min"),
-                            "trend_max": st.column_config.NumberColumn("Trend Max"),
-                            "quality_min": st.column_config.NumberColumn("Quality"),
-                            "value_min": st.column_config.NumberColumn("Value"),
-                            "growth_min": st.column_config.NumberColumn("Growth"),
-                            "return_pct": st.column_config.NumberColumn("Return %", format="%+.1f%%"),
-                            "alpha": st.column_config.NumberColumn("Alpha", format="%+.1f%%"),
-                            "sharpe": st.column_config.NumberColumn("Sharpe", format="%.2f"),
-                            "win_rate": st.column_config.NumberColumn("Win %", format="%.0f%%"),
-                            "trades": st.column_config.NumberColumn("Trades"),
-                            "score": st.column_config.NumberColumn("Score", format="%.3f"),
-                        },
-                        hide_index=True,
-                        use_container_width=True
-                    )
-                    
-                    # Download button
-                    csv_data = results_df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Download Entry Results (CSV)",
-                        data=csv_data,
-                        file_name="stage1_entry_results.csv",
-                        mime="text/csv",
-                        key="stage1_download"
-                    )
-                    
-                    # Select winner for Stage 2
-                    st.markdown("---")
-                    st.markdown("### ➡️ Select Winner for Stage 2")
-                    winner_idx = st.selectbox(
-                        "Choose entry strategy to optimize exits",
-                        options=range(min(10, len(results_df))),
-                        format_func=lambda x: f"#{x+1}: Trend {results_df.iloc[x]['trend_min']}-{results_df.iloc[x]['trend_max']}, Q:{results_df.iloc[x]['quality_min']}, V:{results_df.iloc[x]['value_min']}, G:{results_df.iloc[x].get('growth_min', 0)} → Alpha {results_df.iloc[x]['alpha']:+.1f}%",
-                        key="stage2_winner_select"
-                    )
-                    
-                    if st.button("✅ Use for Stage 2", key="use_for_stage2"):
-                        winner = results_df.iloc[winner_idx]
-                        st.session_state['stage2_entry_params'] = {
-                            'entry_trend_score': int(winner['trend_min']),
-                            'entry_trend_score_max': int(winner['trend_max']),
-                            'quality_min': float(winner['quality_min']),
-                            'value_min': float(winner['value_min']),
-                            'growth_min': float(winner.get('growth_min', 0))
-                        }
-                        st.success(f"✅ Selected: Trend {winner['trend_min']}-{winner['trend_max']}, Q:{winner['quality_min']}, V:{winner['value_min']} → Go to Stage 2 tab!")
-            
-            # === STAGE 2: EXIT OPTIMIZATION ===
-            with stage2_tab:
-                st.markdown("#### Refine exit params for your winning entry strategy")
-                
-                # Show selected entry params from Stage 1
-                if 'stage2_entry_params' in st.session_state:
-                    entry = st.session_state['stage2_entry_params']
-                    st.success(f"✅ Entry: Trend {entry['entry_trend_score']}-{entry['entry_trend_score_max']}, "
-                              f"Q:{entry['quality_min']}, V:{entry['value_min']}, G:{entry['growth_min']}")
-                    
-                    st.info("Tests ~36 exit combos (Time × Trailing × Stop × Volume)")
-                    
-                    # Stage 2 run button
-                    if st.button("🚀 Run Exit Optimizer", type="primary", use_container_width=True, key="stage2_run"):
-                        st.session_state['stage2_live_results'] = []
-                        
-                        progress_bar2 = st.progress(0)
-                        status_text2 = st.empty()
-                        live_results_container2 = st.empty()
-                        
-                        # Import components
-                        from utils.strategy_optimizer import (
-                            generate_param_grid, run_quick_backtest, calculate_composite_score,
-                            EXIT_GRID, FIXED_PARAMS
-                        )
-
-                        from utils.portfolio_backtest import fetch_historical_prices
-                        
-                        # Generate exit configs with fixed entry from Stage 1
-                        configs = generate_param_grid(EXIT_GRID, entry)
-                        total = len(configs)
-                        
-                        # Fetch data
-                        status_text2.text("Fetching historical data...")
-                        tickers = df['ticker'].tolist()
-                        end_date = datetime.now()
-                        start_date = end_date - timedelta(days=365)
-                        fetch_start = start_date - timedelta(days=400)
-                        historical_data = fetch_historical_prices(tickers, fetch_start, end_date)
-                        
-                        # Run each config
-                        for i, config in enumerate(configs):
-                            progress_bar2.progress((i + 1) / total)
-                            status_text2.text(f"Testing exit config {i+1}/{total}...")
-                            
-                            try:
-                                result = run_quick_backtest(df, config, historical_data, start_date, end_date)
-                                
-                                if "error" not in result:
-                                    metrics = result.get('metrics', {})
-                                    trades = result.get('trades', [])
-                                    score = calculate_composite_score(metrics, trades)
-                                    
-                                    row = {
-                                        'time_exit': config.get('time_exit_days', 20),
-                                        'trail_stop': config.get('trailing_stop_pct', -10),
-                                        'stop_loss': config.get('stop_loss_pct', -15),
-                                        'volume_min': config.get('volume_combined_min', 5),
-                                        'return_pct': metrics.get('total_return_pct', 0),
-                                        'alpha': metrics.get('alpha', 0),
-                                        'sharpe': metrics.get('sharpe_ratio', 0),
-                                        'win_rate': metrics.get('win_rate_pct', 0),
-                                        'max_dd': metrics.get('max_drawdown_pct', 0),
-                                        'trades': metrics.get('total_trades', 0),
-                                        'score': score
-                                    }
-                                    st.session_state['stage2_live_results'].append(row)
-                                    
-                                    # Update live display
-                                    if st.session_state['stage2_live_results']:
-                                        live_df = pd.DataFrame(st.session_state['stage2_live_results'])
-                                        live_df = live_df.sort_values('score', ascending=False).reset_index(drop=True)
-                                        live_df['rank'] = range(1, len(live_df) + 1)
-                                        
-                                        with live_results_container2.container():
-                                            st.markdown(f"### 📊 Exit Results ({len(live_df)} tested)")
-                                            st.dataframe(
-                                                live_df.head(10)[['rank', 'time_exit', 'trail_stop', 'stop_loss', 'volume_min', 'return_pct', 'alpha', 'sharpe', 'score']],
-                                                hide_index=True,
-                                                use_container_width=True
-                                            )
-                            except:
-                                continue
-                        
-                        # Final results
-                        if st.session_state.get('stage2_live_results'):
-                            final_df = pd.DataFrame(st.session_state['stage2_live_results'])
-                            final_df = final_df.sort_values('score', ascending=False).reset_index(drop=True)
-                            final_df['rank'] = range(1, len(final_df) + 1)
-                            st.session_state['stage2_results'] = final_df
-                        
-                        progress_bar2.progress(100)
-                        status_text2.text("✅ Stage 2 complete!")
-                    
-                    # Show Stage 2 results
-                    if 'stage2_results' in st.session_state:
-                        results_df = st.session_state['stage2_results']
-                        
-                        st.markdown("### 🏆 Top Exit Strategies")
-                        st.dataframe(
-                            results_df.head(10),
-                            column_config={
-                                "rank": st.column_config.NumberColumn("Rank"),
-                                "time_exit": st.column_config.NumberColumn("Time Exit"),
-                                "trail_stop": st.column_config.NumberColumn("Trail %"),
-                                "stop_loss": st.column_config.NumberColumn("Stop %"),
-                                "volume_min": st.column_config.NumberColumn("Vol Min"),
-                                "return_pct": st.column_config.NumberColumn("Return %", format="%+.1f%%"),
-                                "alpha": st.column_config.NumberColumn("Alpha", format="%+.1f%%"),
-                                "sharpe": st.column_config.NumberColumn("Sharpe", format="%.2f"),
-                                "win_rate": st.column_config.NumberColumn("Win %", format="%.0f%%"),
-                                "max_dd": st.column_config.NumberColumn("Max DD", format="%.1f%%"),
-                                "trades": st.column_config.NumberColumn("Trades"),
-                                "score": st.column_config.NumberColumn("Score", format="%.3f"),
-                            },
-                            hide_index=True,
-                            use_container_width=True
-                        )
-                        
-                        # Best combined config
-                        if len(results_df) > 0:
-                            best = results_df.iloc[0]
-                            entry = st.session_state['stage2_entry_params']
-                            st.markdown("### 🥇 Best Complete Configuration")
-                            st.json({
-                                "Entry": {
-                                    "Trend Range": f"{entry['entry_trend_score']}-{entry['entry_trend_score_max']}",
-                                    "Quality Min": entry['quality_min'],
-                                    "Value Min": entry['value_min'],
-                                    "Growth Min": entry['growth_min']
-                                },
-                                "Exit": {
-                                    "Time Exit Days": best['time_exit'],
-                                    "Trailing Stop": f"{best['trail_stop']}%",
-                                    "Stop Loss": f"{best['stop_loss']}%",
-                                    "Volume Min": best['volume_min']
-                                },
-                                "Performance": {
-                                    "Return": f"{best['return_pct']:+.1f}%",
-                                    "Alpha": f"{best['alpha']:+.1f}%",
-                                    "Sharpe": f"{best['sharpe']:.2f}",
-                                    "Score": f"{best['score']:.3f}"
-                                }
-                            })
-                        
-                        # Download
-                        csv_data = results_df.to_csv(index=False)
-                        st.download_button(
-                            label="📥 Download Exit Results (CSV)",
-                            data=csv_data,
-                            file_name="stage2_exit_results.csv",
-                            mime="text/csv",
-                            key="stage2_download"
-                        )
-                else:
-                    st.warning("⚠️ First run Stage 1 and select a winning entry strategy")
-        
-        # === TAB 4: MY PORTFOLIO ===
-        with tab4:
-            st.markdown("### 📊 Custom Portfolio Backtest")
-            st.caption("Build your own portfolio and test how it would have performed")
-            
-            # Get available tickers
-            available_tickers = sorted(df['ticker'].tolist()) if 'ticker' in df.columns else []
-            
-            # Portfolio selection
-            st.markdown("#### 1️⃣ Select Your Stocks")
-            
-            col_select, col_upload = st.columns([2, 1])
-            
-            with col_select:
-                selected_stocks = st.multiselect(
-                    "Pick stocks for your portfolio",
-                    options=available_tickers,
-                    default=st.session_state.get('my_portfolio', []),
-                    help="Start typing to search",
-                    key="portfolio_select"
-                )
-                st.session_state['my_portfolio'] = selected_stocks
-            
-            with col_upload:
-                uploaded_file = st.file_uploader("Or upload CSV", type=['csv'], key="portfolio_csv")
-                if uploaded_file:
-                    try:
-                        upload_df = pd.read_csv(uploaded_file)
-                        # Try common column name patterns
-                        ticker_col = None
-                        for col_name in ['ticker', 'Ticker', 'Symbol', 'symbol', 'Stock Name', 'stock_name', 'Name', 'name', 'Company', 'company']:
-                            if col_name in upload_df.columns:
-                                ticker_col = col_name
-                                break
-                        
-                        if ticker_col:
-                            tickers = upload_df[ticker_col].tolist()
-                        else:
-                            # Default to first column, but skip if it looks numeric
-                            first_col = upload_df.columns[0]
-                            if upload_df[first_col].dtype in ['int64', 'float64']:
-                                # Likely a rank/index column, try second column
-                                if len(upload_df.columns) > 1:
-                                    tickers = upload_df.iloc[:, 1].tolist()
-                                else:
-                                    tickers = upload_df.iloc[:, 0].tolist()
-                            else:
-                                tickers = upload_df.iloc[:, 0].tolist()
-                        
-                        # Convert to strings and add .NS suffix if missing
-                        tickers = [str(t).strip() for t in tickers if pd.notna(t)]
-                        
-                        # Build name-to-ticker mapping for fuzzy matching
-                        name_to_ticker = {}
-                        for _, row in df.iterrows():
-                            ticker = row.get('ticker', '')
-                            name = str(row.get('name', '')).lower().strip()
-                            company = str(row.get('company', '')).lower().strip()
-                            # Add both name and company as keys
-                            if name:
-                                name_to_ticker[name] = ticker
-                            if company:
-                                name_to_ticker[company] = ticker
-                        
-                        resolved_tickers = []
-                        unmatched = []
-                        
-                        for t in tickers:
-                            t_lower = t.lower().strip()
-                            t_with_suffix = t if t.endswith('.NS') or t.endswith('.BO') else f"{t}.NS"
-                            
-                            # Try 1: Direct ticker match
-                            if t_with_suffix in available_tickers:
-                                resolved_tickers.append(t_with_suffix)
-                            # Try 2: Exact name match
-                            elif t_lower in name_to_ticker:
-                                resolved_tickers.append(name_to_ticker[t_lower])
-                            # Try 3: Partial name match (company name contains the input)
-                            else:
-                                matched = False
-                                for name, ticker in name_to_ticker.items():
-                                    # Check if input is substantially contained in name or vice versa
-                                    if t_lower in name or name in t_lower:
-                                        resolved_tickers.append(ticker)
-                                        matched = True
-                                        break
-                                    # Check for word overlap (at least 2 words match)
-                                    t_words = set(t_lower.replace('(', ' ').replace(')', ' ').split())
-                                    name_words = set(name.replace('(', ' ').replace(')', ' ').split())
-                                    if len(t_words & name_words) >= 1 and len(t_words) > 0:
-                                        # Prefer matches where first word matches
-                                        t_first = list(t_words)[0] if t_words else ''
-                                        if t_first in name_words and len(t_first) > 3:
-                                            resolved_tickers.append(ticker)
-                                            matched = True
-                                            break
-                                if not matched:
-                                    unmatched.append(t)
-                        
-                        valid_tickers = list(dict.fromkeys(resolved_tickers))  # Remove duplicates, preserve order
-                        
-                        if valid_tickers:
-                            st.session_state['my_portfolio'] = valid_tickers
-                            msg = f"✅ Loaded {len(valid_tickers)} stocks from CSV"
-                            if unmatched:
-                                msg += f" ({len(unmatched)} not found: {', '.join(unmatched[:5])}{'...' if len(unmatched) > 5 else ''})"
-                            st.success(msg)
-                            st.rerun()
-                        else:
-                            st.warning(f"Could not match any stocks. Tried: {tickers[:5]}...")
-                    except Exception as e:
-                        st.error(f"Error reading CSV: {e}")
-            
-            if selected_stocks:
-                st.info(f"📋 Portfolio: {len(selected_stocks)} stocks selected")
-                
-                # Display selected portfolio
-                with st.expander("View Selected Stocks", expanded=False):
-                    portfolio_df = df[df['ticker'].isin(selected_stocks)][['ticker', 'company', 'sector', 'trend_score', 'quality', 'value', 'growth']].copy()
-                    st.dataframe(portfolio_df, hide_index=True, use_container_width=True)
-                
-                st.markdown("---")
-                st.markdown("#### 2️⃣ Configure Strategy Parameters")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("**Entry Rules**")
-                    p_trend_min = st.slider("Trend Score Min", 30, 80, 40, key="p_trend_min")
-                    p_trend_max = st.slider("Trend Score Max", 50, 100, 80, key="p_trend_max")
-                    p_quality_min = st.slider("Quality Min", 0.0, 10.0, 0.0, 0.5, key="p_quality")
-                    p_value_min = st.slider("Value Min", 0.0, 10.0, 0.0, 0.5, key="p_value")
-                    p_growth_min = st.slider("Growth Min", 0.0, 10.0, 0.0, 0.5, key="p_growth")
-                    p_volume_min = st.slider("Volume Signal Min", 0, 10, 5, key="p_volume")
-                
-                with col2:
-                    st.markdown("**Exit Rules**")
-                    p_stop_loss = st.slider("Stop Loss %", -25, -5, -15, key="p_stop")
-                    p_trailing = st.slider("Trailing Stop %", -20, -3, -10, key="p_trail")
-                    p_time_exit = st.slider("Time Exit (days)", 14, 60, 30, key="p_days")
-                    p_time_return = st.slider("Time Exit Min Return %", -5.0, 10.0, 0.0, 0.5, key="p_ret")
-                    p_partial = st.slider("Partial Profit Trigger %", 10, 50, 20, key="p_partial")
-                    p_lookback = st.slider("Backtest Months", 6, 24, 12, key="p_lookback")
-                
-                st.markdown("---")
-                
-                if st.button("▶️ Run Portfolio Backtest", type="primary", use_container_width=True, key="run_portfolio_bt"):
-                    # Build config
-                    from utils.strategy_optimizer import FIXED_PARAMS, run_quick_backtest
-
-                    from utils.portfolio_backtest import fetch_historical_prices
-                    
-                    config = {
-                        **FIXED_PARAMS,
-                        "entry_trend_score": p_trend_min,
-                        "entry_trend_score_max": p_trend_max,
-                        "quality_min": p_quality_min,
-                        "value_min": p_value_min,
-                        "growth_min": p_growth_min,
-                        "volume_combined_min": p_volume_min,
-                        "stop_loss_pct": p_stop_loss,
-                        "trailing_stop_pct": p_trailing,
-                        "time_exit_days": p_time_exit,
-                        "time_exit_min_return": p_time_return,
-                        "partial_profit_pct": p_partial,
-                        "lookback_months": p_lookback
-                    }
-                    
-                    # Filter market data to only selected stocks
-                    portfolio_df = df[df['ticker'].isin(selected_stocks)].copy()
-                    
-                    with st.spinner(f"Running backtest on {len(portfolio_df)} stocks..."):
-                        # Fetch historical data
-                        end_date = datetime.now()
-                        start_date = end_date - timedelta(days=p_lookback * 30)
-                        fetch_start = start_date - timedelta(days=400)
-                        historical_data = fetch_historical_prices(selected_stocks, fetch_start, end_date)
-                        
-                        # Run backtest
-                        result = run_quick_backtest(portfolio_df, config, historical_data, start_date, end_date)
-                    
-                    if "error" not in result:
-                        metrics = result.get('metrics', {})
-                        
-                        st.markdown("### 📊 Portfolio Performance")
-                        
-                        # Metrics row
-                        m_cols = st.columns(6)
-                        m_cols[0].metric("Return", f"{metrics.get('total_return_pct', 0):+.1f}%")
-                        m_cols[1].metric("Alpha", f"{metrics.get('alpha', 0):+.1f}%")
-                        m_cols[2].metric("Sharpe", f"{metrics.get('sharpe_ratio', 0):.2f}")
-                        m_cols[3].metric("Win Rate", f"{metrics.get('win_rate_pct', 0):.0f}%")
-                        m_cols[4].metric("Max DD", f"{metrics.get('max_drawdown_pct', 0):.1f}%")
-                        m_cols[5].metric("Trades", f"{metrics.get('total_trades', 0)}")
-                        
-                        # Equity curve
-                        eq_df = result.get('equity_curve')
-                        if eq_df is not None and not eq_df.empty:
-
-                            
-                            # Fetch benchmark
-                            bench = yf.download("^CRSLDX", start=eq_df['date'].min(), end=eq_df['date'].max(), progress=False)
-                            if not bench.empty:
-                                bench_prices = bench['Close'].reset_index()
-                                bench_prices.columns = ['date', 'benchmark']
-                                bench_prices['benchmark'] = bench_prices['benchmark'] / bench_prices['benchmark'].iloc[0] * 100
-                                
-                                eq_df['portfolio'] = eq_df['equity'] / eq_df['equity'].iloc[0] * 100
-                                
-                                fig = go.Figure()
-                                fig.add_trace(go.Scatter(x=eq_df['date'], y=eq_df['portfolio'], name='Portfolio', line=dict(color='#00d4ff', width=2)))
-                                fig.add_trace(go.Scatter(x=bench_prices['date'], y=bench_prices['benchmark'], name='Nifty 500', line=dict(color='#ff6b6b', width=2, dash='dot')))
-                                fig.update_layout(height=350, template='plotly_white', title='Portfolio vs Nifty 500 (Base 100)')
-                                st.plotly_chart(fig, use_container_width=True)
-                            else:
-                                fig = px.line(eq_df, x='date', y='equity', title='Equity Curve')
-                                fig.update_layout(height=300, template='plotly_white')
-                                st.plotly_chart(fig, use_container_width=True)
-                        
-                        # Trade log
-                        trades_list = result.get('trades', [])
-                        if trades_list:
-                            trade_df = pd.DataFrame(trades_list)
-                            with st.expander(f"📋 Trade Log ({len(trade_df)} trades)", expanded=False):
-                                st.dataframe(trade_df, use_container_width=True, height=300)
-                                
-                                csv_data = trade_df.to_csv(index=False)
-                                st.download_button(
-                                    label="📥 Download Trade Log (CSV)",
-                                    data=csv_data,
-                                    file_name="my_portfolio_trades.csv",
-                                    mime="text/csv",
-                                    key="portfolio_trades_download"
-                                )
-                    else:
-                        st.error(f"Backtest failed: {result.get('error', 'Unknown error')}")
-            else:
-                st.info("👆 Select at least one stock to build your portfolio")
 elif page == "☀️ Morning Pulse":
 
     st.markdown(page_header("☀️ Morning Pulse", "Daily market intelligence from parquet cache — breadth, rotation, catalysts, accumulation"), unsafe_allow_html=True)
@@ -5590,7 +4145,7 @@ elif page == "📊 Sector Pulse":
                         xaxis=dict(title="Month", side="top", tickangle=0),
                         yaxis=dict(title="", autorange="reversed", tickfont=dict(size=11)),
                         margin=dict(l=200, r=40, t=60, b=20),
-                        template='plotly_dark',
+                        template='plotly_white',
                         plot_bgcolor='rgba(0,0,0,0)',
                         paper_bgcolor='rgba(0,0,0,0)',
                     )
@@ -6548,19 +5103,6 @@ elif page == "📉 Deep Dive":
         except Exception as e:
             st.error(f"Analysis failed: {str(e)}")
             st.code(f"Error details: {e}")
-
-# --- VIEW: ALERTS CONFIGURATION ---
-if page == "⚠️ Alerts Configuration":
-    st.title("⚠️ Alerts Configuration")
-    st.info("🚧 Granular Alert Management is under development.")
-    st.markdown("""
-    Currently, alerts are managed via the **Return Tracker**.
-    
-    **Planned Features:**
-    - [ ] Global Stop Loss Policies
-    - [ ] Telegram/Email Integration Settings
-    - [ ] Volatility Alerts
-    """)
 
 # --- VIEW: NOTES ---
 if page == "📝 Notes":
@@ -7931,7 +6473,7 @@ elif page == "🇺🇸 US Scanner":
                 colorbar=dict(title="RS %", thickness=12),
             ))
             fig_heat.update_layout(
-                template="plotly_dark",
+                template="plotly_white",
                 height=420,
                 margin=dict(l=200, r=20, t=30, b=30),
                 xaxis=dict(side="top"),
@@ -8216,7 +6758,7 @@ elif page == "🇺🇸 US Scanner":
                     colorbar=dict(title="RS %", thickness=12),
                 ))
                 fig_sub.update_layout(
-                    template="plotly_dark",
+                    template="plotly_white",
                     height=max(500, len(_sub_y) * 22),
                     margin=dict(l=280, r=20, t=30, b=30),
                     xaxis=dict(side="top"),

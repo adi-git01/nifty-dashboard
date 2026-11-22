@@ -47,7 +47,8 @@ def calculate_breadth_from_df(df):
     """
     if df is None or df.empty:
         return None
-
+    if 'extended' in df.columns:
+        df = df[df['extended'] != True]
     total = len(df)
     if total == 0:
         return None
@@ -316,8 +317,8 @@ def render_breadth_widget(df):
             <div style="background: linear-gradient(135deg, {status['gradient_start']} 0%, {status['gradient_end']} 100%);
                         border: 2px solid {status['color']}; border-radius: 12px; padding: 15px; text-align: center;">
                 <div style="font-size: 1.1em; font-weight: bold; color: {status['color']};">{status['icon']} {status['status']}</div>
-                <div style="font-size: 2.2em; font-weight: bold; color: white; margin: 5px 0;">{pct_50:.0f}%</div>
-                <div style="font-size: 0.8em; color: rgba(255,255,255,0.6);">Stocks Above 50-Day MA</div>
+                <div style="font-size: 2.2em; font-weight: bold; color: #1E293B; margin: 5px 0;">{pct_50:.0f}%</div>
+                <div style="font-size: 0.8em; color: #475569;">Stocks Above 50-Day MA</div>
                 <div style="font-size: 0.85em; color: {status['color']}; margin-top: 8px; font-weight: 600;">{status['action']}</div>
             </div>
             """, unsafe_allow_html=True)

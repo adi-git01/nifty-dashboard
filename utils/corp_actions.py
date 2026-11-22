@@ -18,6 +18,7 @@ from __future__ import annotations
 import glob
 import os
 import re
+from functools import lru_cache
 from typing import Dict, Optional
 
 import numpy as np
@@ -112,7 +113,13 @@ def reconcile(tab: pd.DataFrame, lo: pd.Timestamp, hi: pd.Timestamp, official: O
     if official is None or official.empty:
         return tab
     tab["date"] = pd.to_datetime(tab["date"])
-    for r in official.dropna(subset=["date", "factor"]).itertuples():
+    off = official.dropna(subset=["date", "factor"]).copy()
+    off["date"] = pd.to_datetime(off["date"]).dt.normalize()
+    off["factor"] = pd.to_numeric(off["factor"], errors="coerce")
+    off = off.dropna(subset=["date", "factor"])
+    # Multiple same-day actions (split + bonus) must multiply rather than overwrite each other.
+    agg = off.groupby(["ticker", "date"], as_index=False)["factor"].prod()
+    for r in agg.itertuples():
         m = (tab.ticker == r.ticker) & ((tab.date - pd.Timestamp(r.date)).abs() <= pd.Timedelta(days=MATCH_DAYS))
         if m.any():
             idx = list(tab.index[m])
@@ -125,10 +132,15 @@ def reconcile(tab: pd.DataFrame, lo: pd.Timestamp, hi: pd.Timestamp, official: O
     return tab
 
 
+@lru_cache(maxsize=4)
+def _load_cached(path: str, mtime: float) -> pd.DataFrame:
+    return pd.read_csv(path)
+
+
 def load() -> pd.DataFrame:
     if os.path.exists(TABLE):
         try:
-            return pd.read_csv(TABLE)
+            return _load_cached(TABLE, os.path.getmtime(TABLE)).copy()
         except Exception:
             pass
     return pd.DataFrame(columns=COLS)

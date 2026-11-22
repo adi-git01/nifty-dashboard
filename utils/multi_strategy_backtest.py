@@ -212,13 +212,9 @@ def calculate_historical_metrics(
                 low = data_to_date['Low'] if 'Low' in data_to_date.columns else close
                 
                 vol_data = get_combined_volume_signal(high, low, close, volume)
-                
-                volume_ratio = calculate_volume_ratio(volume)  # Helper needed or extract from vol_data?
-                # Actually get_combined doesn't return ratio, let's call legacy too or just assume ratio from raw calc
                 avg_vol = volume.iloc[-20:].mean()
                 if avg_vol > 0:
-                    volume_ratio = volume.iloc[-1] / avg_vol
-                
+                    volume_ratio = float(volume.iloc[-1] / avg_vol)
                 obv_trend = vol_data.get('vpt_trend', 'NEUTRAL') # Use VPT as proxy for OBV trend
                 volume_combined_score = vol_data.get('combined_score', 5)
                 

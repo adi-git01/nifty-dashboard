@@ -15,9 +15,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def main(argv) -> int:
     path = argv[1] if len(argv) > 1 else os.environ.get("TELEGRAM_BATCH_FILE", "/tmp/telegram_batch.jsonl")
     os.environ.pop("TELEGRAM_BATCH", None)                  # send for real from here
-    from utils.telegram_notifier import send_batch
-    ok, info = send_batch(path)
+    from utils.telegram_notifier import replay_queued_commits, send_batch
+    ok, info = send_batch(path, clear=True)
     print(f"[brief] {'sent' if ok else 'FAILED'}: {info}")
+    if ok:
+        done = replay_queued_commits(path)
+        if done:
+            print(f"[brief] committed {done} deferred alert-state update(s)")
     return 0 if ok else 1
 
 

@@ -16,7 +16,9 @@ import glob
 import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 import pandas as pd
 
@@ -25,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def check(today: str | None = None) -> tuple[list, list]:
     fails, warns = [], []
-    today = today or datetime.now().strftime("%Y_%m_%d")
+    today = today or datetime.now(_IST).strftime("%Y_%m_%d")
     files = sorted(glob.glob("data/cache/market_master_*.parquet"))
     path = f"data/cache/market_master_{today}.parquet"
     if not os.path.exists(path):
@@ -58,7 +60,7 @@ def check(today: str | None = None) -> tuple[list, list]:
             fails.append(f"column {col} is missing or more than 20% blank in today's snapshot")
     if "simba_stage" not in df.columns or df["simba_stage"].notna().mean() < 0.5:
         warns.append("SIMBA chart fields are missing for most stocks")
-    if len(files) >= 2 and files[-1] == path:
+    if len(files) >= 2 and os.path.basename(files[-1]) == os.path.basename(path):
         prev = pd.read_parquet(files[-2]).set_index("ticker")["currentPrice"]
         cur = df.set_index("ticker")["currentPrice"]
         both = cur.index.intersection(prev.index)
@@ -86,7 +88,7 @@ def check(today: str | None = None) -> tuple[list, list]:
         warns.append(f"quarterly fundamentals unreadable ({e})")
     try:
         v = pd.read_csv("data/valuation_snapshot.csv", usecols=["as_of"])
-        age = (pd.Timestamp.today().normalize() - pd.to_datetime(v.as_of.dropna().iloc[0])).days
+        age = (pd.Timestamp(datetime.now(_IST).date()) - pd.to_datetime(v.as_of.dropna().iloc[0])).days
         if age > 5:
             warns.append(f"valuation snapshot is {age} days old")
     except Exception as e:
