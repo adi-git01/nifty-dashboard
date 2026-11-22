@@ -552,3 +552,18 @@ def test_views_modularization_and_orphan_cleanup():
         "utils/support_resistance.py",
     ):
         assert not os.path.exists(orphan)
+
+
+def test_fundamentals_build_skips_quote_probe_on_github_actions(monkeypatch):
+    from utils import fundamentals_build as fb
+    from utils.nifty1000_list import TICKERS_1000
+
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.delenv("FORCE_NSE_QUOTES", raising=False)
+    calls = {"n": 0}
+    monkeypatch.setattr(fb, "nse_quote", lambda *a, **kw: calls.__setitem__("n", calls["n"] + 1) or {})
+    logs = []
+    out = fb.build(list(TICKERS_1000)[:5], quotes=True, log=logs.append, sleep=0)
+    assert calls["n"] == 0
+    assert len(out) == 5
+    assert any("skipping NSE quote-equity probe on GitHub Actions" in m for m in logs)

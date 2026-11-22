@@ -1284,6 +1284,7 @@ def test_fundamentals_quote_breakers(monkeypatch):
     import utils.nse_data as nd
     import utils.fundamentals_build as fb
     from utils.nifty1000_list import TICKERS_1000
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     tickers = list(TICKERS_1000)[:40]
     import types
     monkeypatch.setattr(nd, "Session", lambda: types.SimpleNamespace(warm_quote=lambda *a: None))
