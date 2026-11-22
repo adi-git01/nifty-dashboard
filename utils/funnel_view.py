@@ -45,7 +45,7 @@ def regime(df: pd.DataFrame) -> dict:
     known = [x for x in (n, b) if x in LADDER]
     weak = min(known, key=LADDER.index) if known else "UNKNOWN"
     return dict(regime=n, breadth_regime=b, breadth=info["breadth"].get("pct"), engine=info["engine"].get("mode", "UNKNOWN"),
-                risk=weak, guidance=GUIDE[weak], info=info)
+                engine_status=rb.engine_status(info["engine"]), risk=weak, guidance=GUIDE[weak], info=info)
 
 
 def simba_regime(df: pd.DataFrame) -> dict:
@@ -113,12 +113,15 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
 
 
 def render(df: pd.DataFrame):
+    from utils import regime_badge as rb
     reg = regime(df)
-    c = st.columns([1.2, 1.2, 1, 2.2])
+    c = st.columns([1.2, 1.2, 1.4, 2.0])
     c[0].metric("0 · Nifty regime", f"{ICON.get(reg['regime'], '⚪')} {reg['regime'].title()}")
     c[1].metric("Breadth regime", f"{ICON.get(reg['breadth_regime'], '⚪')} {reg['breadth_regime'].title()}",
                 f"{reg['breadth']:.0f}% above 200-day" if reg.get("breadth") is not None else None, delta_color="off")
-    c[2].metric("Engine mode", reg["engine"].title())
+    eng = reg["info"]["engine"]
+    trail_lbl = f"{eng['trail_stop'] * 100:.0f}% trail" if eng.get("trail_stop") else None
+    c[2].metric("Model rules", rb.engine_short(eng), trail_lbl, delta_color="off")
     c[3].metric("Risk guidance", reg["guidance"])
     st.caption("One market read for the whole dashboard, the same as the sidebar. Guidance follows the weaker of the Nifty and "
                "breadth regimes; in the 10-year regime study momentum entries lagged the typical stock only in BEAR.")

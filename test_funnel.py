@@ -1519,3 +1519,77 @@ def test_funnel_log_out_of_order_rerun_preserves_last_seen(tmp_path, monkeypatch
     log2, new2 = funnel_log.update(df, d1, B, pd.DataFrame())
     assert len(new2) == 0 and len(log2) == len(log)
     assert (pd.to_datetime(log2.last_seen) == d2).all() and log2.active.all()
+
+
+def test_regime_badge_uses_single_regime_label_and_action_based_model_rules():
+    from utils import regime_badge as rb, regime_manager as rm
+
+    # Backtested engine thresholds must remain completely untouched
+    assert rm.REGIME_PARAMS["BULL"]["trail_stop"] == 0.15
+    assert rm.REGIME_PARAMS["CAUTION"]["trail_stop"] == 0.12
+    assert rm.REGIME_PARAMS["BEAR"]["trail_stop"] == 0.08
+    assert rm.REGIME_PARAMS["CRISIS"]["trail_stop"] == 0.06
+
+    # Action-based labels across all 4 engine states + UNKNOWN
+    assert rb.engine_short({"mode": "BULL"}) == "🟢 Full risk-on"
+    assert rb.engine_short({"mode": "CAUTION"}) == "🟡 Tightened"
+    assert rb.engine_short({"mode": "BEAR"}) == "🟠 Defensive"
+    assert rb.engine_short({"mode": "CRISIS"}) == "🔴 Entries paused"
+    assert rb.engine_short({"mode": "UNKNOWN"}) == "⚪ —"
+
+    assert rb.engine_status({"mode": "BULL"}) == "🟢 Full risk-on (15% trail)"
+    assert rb.engine_status({"mode": "CAUTION"}) == "🟡 Tightened (12% trail)"
+    assert rb.engine_status({"mode": "BEAR"}) == "🟠 Defensive (8% trail)"
+    assert rb.engine_status({"mode": "CRISIS"}) == "🔴 Entries paused (6% trail)"
+    assert rb.engine_status({"mode": "UNKNOWN"}) == "⚪ —"
+
+    info = {
+        "nifty": {"regime": "MILD BULL", "vs_ma200": 4.2, "dd": -2.1, "ma200_rising": True},
+        "breadth": {"regime": "CHOPPY", "pct": 42.1, "n": 1168},
+        "engine": {"mode": "BULL", **rm.get_regime_params("BULL")},
+    }
+    line = rb.sidebar_line(info)
+    assert "**Market:** 🟢 **MILD BULL** · Breadth 42% (Choppy)" in line
+    assert "**Model rules:** 🟢 Full risk-on (15% trail)" in line
+    assert "Engine mode" not in line
+    assert "BULL" not in line.split("**Model rules:**", 1)[1]
+
+    class _FakeSt:
+        def __init__(self):
+            self.html = []
+
+        def markdown(self, s, **kwargs):
+            self.html.append(s)
+
+    st_bull = _FakeSt()
+    rb.render(info, st_bull, compact=True)
+    html_bull = "\n".join(st_bull.html)
+    assert "Model rules (drives the live book):" in html_bull
+    assert "Full risk-on" in html_bull and "Engine mode" not in html_bull
+
+    crisis_info = {
+        "nifty": {"regime": "BEAR", "vs_ma200": -18.0, "dd": -32.0, "ma200_rising": False},
+        "breadth": {"regime": "BEAR", "pct": 12.0, "n": 1168},
+        "engine": {"mode": "CRISIS", **rm.get_regime_params("CRISIS")},
+    }
+    st_crisis = _FakeSt()
+    rb.render(crisis_info, st_crisis, compact=True)
+    html_crisis = "\n".join(st_crisis.html)
+    assert "Entries paused" in html_crisis and "rebalance paused" in html_crisis
+    assert "999 sessions" not in html_crisis and "Engine mode" not in html_crisis
+
+    # breadth_regime() deduplicates tickers and excludes extended=True stocks
+    core = pd.DataFrame({
+        "ticker": [f"C{i}.NS" for i in range(60)],
+        "currentPrice": [110.0 if i < 30 else 90.0 for i in range(60)],
+        "twoHundredDayAverage": [100.0] * 60,
+        "extended": [False] * 60,
+    })
+    ext = pd.DataFrame({
+        "ticker": [f"E{i}.NS" for i in range(40)],
+        "currentPrice": [200.0] * 40,
+        "twoHundredDayAverage": [100.0] * 40,
+        "extended": [True] * 40,
+    })
+    b = rb.breadth_regime(pd.concat([core, ext, core.iloc[:5]], ignore_index=True))
+    assert b["n"] == 60 and round(b["pct"], 1) == 50.0 and b["regime"] == "MILD BULL"

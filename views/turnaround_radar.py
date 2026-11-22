@@ -67,7 +67,8 @@ def render(df: pd.DataFrame) -> None:
 
     regime = st.session_state.get('market_regime', 'UNKNOWN')
     if regime in ['BEAR', 'CRISIS']:
-        st.error(f"🚨 **Engine mode {regime}** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
+        from utils import regime_badge as _rb
+        st.error(f"🚨 **Model rules: {_rb.engine_status({'mode': regime})}** 🚨\n\nTurnaround Module Suspended. The system is structurally blocking knife-catches during severe market drawdowns to preserve capital.")
         st.stop()
 
     if wdf.empty:
