@@ -325,8 +325,8 @@ def test_daily_message_leads_with_the_book(monkeypatch):
 
 def test_lender_ceiling_is_not_below_the_banks_own_trough():
     import os
-    from utils import valuation as V
-    if not os.path.exists("data/fundamentals_annual.csv.gz"):
+    from utils import fund_paths, valuation as V
+    if not os.path.exists(fund_paths.resolve(fund_paths.ANNUAL)):
         pytest.skip("no fundamentals on disk")
     ctx = V.load_context()
     o = V.value_stock("ICICIBANK", ctx, price=1500.0)
@@ -1284,6 +1284,7 @@ def test_fundamentals_quote_breakers(monkeypatch):
     import utils.nse_data as nd
     import utils.fundamentals_build as fb
     from utils.nifty1000_list import TICKERS_1000
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     tickers = list(TICKERS_1000)[:40]
     import types
     monkeypatch.setattr(nd, "Session", lambda: types.SimpleNamespace(warm_quote=lambda *a: None))

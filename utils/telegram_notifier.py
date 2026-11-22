@@ -26,52 +26,86 @@ from typing import Dict, List, Optional, Tuple
 CONFIG_FILE = "config.json"
 
 
-def _load_config() -> Dict:
-    """Load notification configuration."""
-    # Try Streamlit secrets first (for cloud deployment)
-    try:
-        import streamlit as st
-        if hasattr(st, 'secrets') and 'telegram' in st.secrets:
-            return {
-                'telegram_bot_token': st.secrets.telegram.get('bot_token', ''),
-                'telegram_chat_id': st.secrets.telegram.get('chat_id', ''),
-                'telegram_enabled': st.secrets.telegram.get('enabled', False),
-                'auto_alert_enabled': st.secrets.get('auto_alert', {}).get('enabled', False),
-                'gmail_address': st.secrets.get('gmail', {}).get('address', ''),
-                'gmail_app_password': st.secrets.get('gmail', {}).get('app_password', ''),
-            }
-    except:
-        pass
-    
-    # Check Environment Variables (Best for GitHub Actions / Docker)
-    if os.environ.get('TELEGRAM_TOKEN') and os.environ.get('TELEGRAM_CHAT_ID'):
-        return {
-            'telegram_bot_token': os.environ.get('TELEGRAM_TOKEN'),
-            'telegram_chat_id': os.environ.get('TELEGRAM_CHAT_ID'),
-            'telegram_enabled': True
-        }
-
-    # Fall back to local config file
+def _read_local_config_file() -> Dict:
+    """Read only local config.json (never st.secrets or env vars)."""
     if os.path.exists(CONFIG_FILE):
         try:
-            with open(CONFIG_FILE, 'r') as f:
-                return json.load(f)
-        except:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data if isinstance(data, dict) else {}
+        except Exception:
             pass
-    
     return {}
 
 
-def _save_config(config: Dict) -> None:
-    """Save configuration to file."""
+def _redact_secrets(msg: str, *secrets: str) -> str:
+    """Scrub Telegram bot tokens and explicit secrets from error strings before UI display or logging."""
+    out = str(msg or "")
+    out = re.sub(r"bot[0-9A-Za-z:_-]+", "bot***", out)
+    for sec in secrets:
+        s = str(sec or "").strip()
+        if s and len(s) >= 4:
+            out = out.replace(s, "***")
+    return out
+
+
+def _load_config() -> Dict:
+    """Load notification configuration."""
+    local = _read_local_config_file()
+    cfg: Dict = {}
+
+    # Try Streamlit secrets first (for cloud deployment)
     try:
-        existing = _load_config()
+        import streamlit as st
+        if hasattr(st, "secrets"):
+            has_tg = "telegram" in st.secrets
+            email_sec = st.secrets["email"] if "email" in st.secrets else (st.secrets["gmail"] if "gmail" in st.secrets else {})
+            if has_tg:
+                tg = st.secrets["telegram"]
+                auto_sec = st.secrets.get("auto_alert", {}) if hasattr(st.secrets, "get") else {}
+                cfg.update({
+                    "telegram_bot_token": tg.get("bot_token", ""),
+                    "telegram_chat_id": tg.get("chat_id", ""),
+                    "telegram_enabled": tg.get("enabled", False),
+                    "auto_alert_enabled": (
+                        auto_sec.get("enabled", local.get("auto_alert_enabled", False))
+                        if isinstance(auto_sec, dict) else local.get("auto_alert_enabled", False)
+                    ),
+                    "auto_alert_interval": local.get("auto_alert_interval", 30),
+                    "auto_alert_last_check": local.get("auto_alert_last_check"),
+                    "gmail_address": email_sec.get("gmail_address", email_sec.get("address", email_sec.get("email", ""))),
+                    "gmail_app_password": email_sec.get("app_password", email_sec.get("password", "")),
+                })
+                return cfg
+    except Exception:
+        pass
+
+    # Check Environment Variables (Best for GitHub Actions / Docker)
+    if os.environ.get("TELEGRAM_TOKEN") and os.environ.get("TELEGRAM_CHAT_ID"):
+        return {
+            "telegram_bot_token": os.environ.get("TELEGRAM_TOKEN"),
+            "telegram_chat_id": os.environ.get("TELEGRAM_CHAT_ID"),
+            "telegram_enabled": True,
+        }
+
+    return local
+
+
+def _save_config(config: Dict) -> None:
+    """Save non-secret / explicitly passed local configuration to config.json (never writes st.secrets)."""
+    try:
+        existing = _read_local_config_file()
         existing.update(config)
-        # config.json is gitignored and is where a local (non-cloud) setup keeps its keys; they are never printed
-        with open(CONFIG_FILE, 'w') as f:
+        tmp = f"{CONFIG_FILE}.tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(existing, f, indent=2)
+        os.replace(tmp, CONFIG_FILE)
+        try:
+            os.chmod(CONFIG_FILE, 0o600)
+        except Exception:
+            pass
     except Exception as e:
-        print(f"ERROR: Failed to save config: {e}")
+        print(f"ERROR: Failed to save config: {_redact_secrets(str(e))}")
 
 
 # ==========================================
@@ -345,13 +379,17 @@ def _send_now(message: str) -> Tuple[bool, str]:
         if response.status_code == 200:
             return True, "Message sent successfully"
         else:
-            error_data = response.json()
-            return False, f"API Error: {error_data.get('description', 'Unknown error')}"
+            try:
+                error_data = response.json()
+                desc = _redact_secrets(error_data.get('description', 'Unknown error'), bot_token)
+            except Exception:
+                desc = f"HTTP {response.status_code}"
+            return False, f"API Error: {desc}"
             
     except requests.exceptions.Timeout:
         return False, "Request timed out"
     except Exception as e:
-        return False, f"Error: {str(e)}"
+        return False, f"Error: {_redact_secrets(str(e), bot_token)}"
 
 
 def test_telegram() -> Tuple[bool, str]:

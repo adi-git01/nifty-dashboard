@@ -60,7 +60,9 @@ def pick(text: str, key: str, df: Optional[pd.DataFrame] = None, default: Option
                              help="For companies not listed on NSE. Find the code on bseindia.com. Prices come from Yahoo (CODE.BO).")
         code = (code or "").strip().upper().replace(".BO", "")
         if code:
-            return f"{code}.BO" if _BSE.match(code) else None
+            if _BSE.match(code):
+                return f"{code}.BO"
+            st.warning("BSE scrip code must be 6 digits (e.g. 500325); keeping NSE selection.")
     return t
 
 

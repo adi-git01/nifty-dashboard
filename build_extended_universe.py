@@ -24,11 +24,11 @@ import time
 
 import pandas as pd
 
-from utils import extended
+from utils import extended, fund_paths
 from utils.nifty1000_list import TICKERS_1000
 
 OUT = "data/extended_universe.csv"
-A_OUT, Q_OUT = "data/fundamentals_ext_annual.csv.gz", "data/fundamentals_ext_quarterly.csv.gz"
+A_OUT, Q_OUT = fund_paths.EXT_ANNUAL, fund_paths.EXT_QUARTERLY
 EQ_URL = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
 COLS = ["Ticker", "Company_Name", "Sub_Industry", "mcap_cr", "price", "as_of"]
 
@@ -69,9 +69,10 @@ def assemble(A: pd.DataFrame, industries: dict, names: dict, keep_always: set, p
 
 def _merge(new: pd.DataFrame, path: str, keep: set) -> pd.DataFrame:
     """New rows for scraped tickers, last run's rows for the rest; only `keep` tickers are stored."""
-    if os.path.exists(path):
+    resolved = fund_paths.resolve(path)
+    if os.path.exists(resolved):
         try:
-            old = pd.read_csv(path)
+            old = pd.read_csv(resolved)
             new = pd.concat([new, old[~old.ticker.isin(set(new.ticker))].reindex(columns=new.columns)], ignore_index=True)
         except Exception:
             pass
@@ -79,7 +80,7 @@ def _merge(new: pd.DataFrame, path: str, keep: set) -> pd.DataFrame:
 
 
 def seed() -> pd.DataFrame:
-    A = pd.read_csv("data/fundamentals_annual_extra.csv.gz")
+    A = pd.read_csv(fund_paths.resolve(fund_paths.EXTRA_ANNUAL))
     ind = dict(pd.read_csv("data/industry_extra.csv").values)
     names = extended.eq_symbols()
     core = set(TICKERS_1000)
@@ -117,8 +118,9 @@ def main() -> int:
         return 0
     A = pd.DataFrame(A, columns=["ticker", "field", "period", "value", "basis"]) if not isinstance(A, pd.DataFrame) else A
     Q = pd.DataFrame(Q, columns=["ticker", "field", "period", "value"]) if not isinstance(Q, pd.DataFrame) else Q
-    if os.path.exists(A_OUT):                                         # stocks not reached this run keep last week's figures
-        oldA = pd.read_csv(A_OUT)
+    old_a_path = fund_paths.resolve(A_OUT)
+    if os.path.exists(old_a_path):                                         # stocks not reached this run keep last week's figures
+        oldA = pd.read_csv(old_a_path)
         A_all = pd.concat([A, oldA[~oldA.ticker.isin(set(A.ticker))].reindex(columns=A.columns)], ignore_index=True)
     else:
         A_all = A
@@ -128,8 +130,8 @@ def main() -> int:
         print(f"[extended] only {len(U)} stocks (was {len(prev)}) -- keeping the previous list")
         return 0
     keep = set(U.Ticker)
-    _merge(A, A_OUT, keep).to_csv(A_OUT, index=False)
-    _merge(Q, Q_OUT, keep).to_csv(Q_OUT, index=False)
+    fund_paths.write_sorted_csv(_merge(A, A_OUT, keep), A_OUT, ["ticker", "field", "period"])
+    fund_paths.write_sorted_csv(_merge(Q, Q_OUT, keep), Q_OUT, ["ticker", "field", "period"])
     U.to_csv(OUT, index=False)
     print(f"[extended] {len(U)} stocks -> {OUT}; industries: {U.Sub_Industry.nunique()}; unknown industry: {int((U.Sub_Industry == 'Unknown').sum())}")
     return 0

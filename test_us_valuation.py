@@ -148,7 +148,7 @@ def test_main_offline(tmp_path, monkeypatch):
     monkeypatch.setenv("SEC_USER_AGENT", "Tester t@example.com")
     uf.main()
     assert seen and all(u == "Tester t@example.com" for u in seen)
-    A = pd.read_csv("data/us_fundamentals_annual.csv.gz")
+    A = pd.read_csv("data/us_fundamentals_annual.csv")
     F = pd.read_csv("data/us_fundamentals_cache.csv")
     assert set(A.ticker) == {"AAA", "BRK-B"} and set(F.ticker) == {"AAA", "BRK-B"}
     assert abs(A[(A.ticker == "AAA") & (A.field == "mcap_cr")].value.iloc[0] - 1e9 * 30 / 1e7) < 1e-6

@@ -16,6 +16,7 @@ dashboard, whose filesystem is ephemeral and never committed — so the file in
 git was seeded once on 2026-05-19 and never changed.
 """
 
+import argparse
 import os
 import re
 import sys
@@ -143,7 +144,11 @@ def send_telegram(msg):
         print(f"  Telegram error: {e}")
 
 
-def main():
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--with-tc", action="store_true", help="also log new Turnaround Catalyst signals (retired by default)")
+    args = ap.parse_args(argv)
+
     print(f"\n[{datetime.now():%H:%M:%S}] Daily Signal Logger")
     print("=" * 50)
 
@@ -178,12 +183,18 @@ def main():
               "no signals logged.")
         return
 
-    # ── 1. Turnaround Catalyst ─────────────────────────────────────────────
-    print("\n[TC] Running Turnaround Catalyst scanner...")
-    tc_list = find_turnaround_catalysts(today_df, prev_scores_map, prev_rs21_map)
-    save_turnaround_catalyst_signals(tc_list, signal_date=bar_date)
-    refresh_signal_log_prices(TC_LOG_FILE, TC_LOG_COLS, price_map)
-    print(f"  Found {len(tc_list)} TC signals today.")
+    # ── 1. Turnaround Catalyst (retired nightly by default; --with-tc to scan) ──
+    tc_list = []
+    if args.with_tc:
+        print("\n[TC] Running Turnaround Catalyst scanner...")
+        tc_list = find_turnaround_catalysts(today_df, prev_scores_map, prev_rs21_map)
+        save_turnaround_catalyst_signals(tc_list, signal_date=bar_date)
+        refresh_signal_log_prices(TC_LOG_FILE, TC_LOG_COLS, price_map)
+        print(f"  Found {len(tc_list)} TC signals today.")
+    else:
+        print("\n[TC] Nightly Turnaround Catalyst retired (pass --with-tc to enable); refreshing open log rows only.")
+        if os.path.exists(TC_LOG_FILE):
+            refresh_signal_log_prices(TC_LOG_FILE, TC_LOG_COLS, price_map)
 
     # ── 2. Earnings Shock (cache-based) ───────────────────────────────────
     print("\n[ES] Running Earnings Shock scanner (cache-based)...")

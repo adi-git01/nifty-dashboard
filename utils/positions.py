@@ -74,11 +74,11 @@ def resolve_ticker(ticker: str, known) -> Optional[str]:
     if not ticker:
         return None
     base = str(ticker).upper().replace(".NS", "").replace(".BO", "")
-    # A real NSE symbol is never "corrected" into another company: comparing with the ".NS" suffix included made
-    # ITDC -> ITC, MANINDS -> MANKIND, MBEL -> BEL, and their stops fired on the wrong stock's price.
+    # A real NSE symbol is never "corrected" into another company: comparing against eq_symbols() keys (.NS suffix)
+    # stops AVANCE / ITDC / MANINDS / MBEL from fuzzy-matching into wrong stocks.
     try:
         from utils.extended import eq_symbols
-        if base in set(eq_symbols()):
+        if f"{base}.NS" in eq_symbols():
             return None
     except Exception:
         pass
@@ -214,18 +214,29 @@ def get_positions_with_pnl(market_df) -> List[Dict]:
             pos['resolved_ticker'] = use
             pos['ticker_note'] = f"priced as {use.replace('.NS', '')}"
 
-        # Splits and bonuses since the entry date: put entry, stop and target on today's basis
+        # Splits and bonuses since the entry (or broker price-basis) date: put entry, stop and target on today's basis.
+        # Broker syncs overwrite entry_price/qty with already post-split broker figures; using max(entry_date, price_basis_date)
+        # prevents double-adjusting splits that predated the sync while still adjusting subsequent splits.
+        adj_from = str(pos.get('entry_date') or '')[:10]
+        basis_dt = str(pos.get('price_basis_date') or '')[:10]
+        if not basis_dt and pos.get('synced_at'):
+            src = str(pos.get('source') or '').lower()
+            if any(k in src for k in ('dhan', 'zerodha', 'kite', 'broker', 'sync', 'model orders')):
+                basis_dt = str(pos['synced_at'])[:10]
+        if basis_dt and (not adj_from or basis_dt > adj_from):
+            adj_from = basis_dt
+
         fac = 1.0
-        if ca is not None and use and pos.get('entry_date'):
+        if ca is not None and use and adj_from:
             try:
-                fac = corp_actions.cumulative_factor(ca, use, pos['entry_date'])
+                fac = corp_actions.cumulative_factor(ca, use, adj_from)
             except Exception:
                 fac = 1.0
         entry = pos.get('entry_price') or 0
         sl, tgt = pos.get('stop_loss'), pos.get('target')
         if fac != 1.0:
             pos['adj_factor'] = fac
-            pos['adj_note'] = f"entry, stop and target adjusted ×{fac:.3g} for a split or bonus since {pos['entry_date']}"
+            pos['adj_note'] = f"entry, stop and target adjusted ×{fac:.3g} for a split or bonus since {adj_from}"
             entry = entry * fac
             sl = sl * fac if sl else sl
             tgt = tgt * fac if tgt else tgt

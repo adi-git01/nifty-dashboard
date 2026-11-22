@@ -70,8 +70,8 @@ COMMODITY_GRAN |= {"Oil & Gas Exploration & Production", "Integrated Oil & Gas",
 OUT_GRAN.update({g: "insurance" for g in ("Property & Casualty Insurance", "Life & Health Insurance", "Multi-line Insurance",
                                           "Reinsurance", "Title Insurance")})
 OUT_GRAN.update({"Multi-Sector Holdings": "conglomerate holding company (sum of parts)"})
-US_FILES = dict(annual="data/us_fundamentals_annual.csv.gz", quarterly="data/us_fundamentals_quarterly.csv.gz",
-                monthly="data/us_monthly_prices.csv.gz", funda="data/us_fundamentals_cache.csv")
+US_FILES = dict(annual="data/us_fundamentals_annual.csv", quarterly="data/us_fundamentals_quarterly.csv",
+                monthly="data/us_monthly_prices.csv", funda="data/us_fundamentals_cache.csv")
 MIXED_GRAN = {"Diversified"}
 KNOWN_LIMITS = ("Scenario inputs are judgments; the engine only guarantees the distribution faithfully represents "
                 "them. Outcomes can land outside P5-P95. Multiple-dependent verdicts are timing-uncertain even when "
@@ -106,17 +106,18 @@ def load_context(root: str = ".", extended: bool = False, market: str = "IN") ->
     """extended=True also loads the extended list's fundamentals (utils/extended.py). It is a separate
     context on purpose: adding those stocks to the default one would change the peer sets, and so the
     valuations, of the core universe. market="US" loads the S&P 500 files from SEC EDGAR instead."""
-    p = lambda f: os.path.join(root, f)
+    from utils import fund_paths
+    p = lambda f: fund_paths.resolve(f, root=root)
     if market == "US":
         return _load_us(p)
-    A = _read(p("data/fundamentals_annual.csv.gz"))
-    Q = _read(p("data/fundamentals_quarterly.csv.gz"))
+    A = _read(p("data/fundamentals_annual.csv"))
+    Q = _read(p("data/fundamentals_quarterly.csv"))
     if extended:
-        for f in ("data/fundamentals_ext_annual.csv.gz", "data/fundamentals_annual_extra.csv.gz"):
+        for f in ("data/fundamentals_ext_annual.csv", "data/fundamentals_annual_extra.csv"):
             x = _read(p(f))
             if not x.empty:
                 A = pd.concat([A, x[~x.ticker.isin(set(A.ticker))].reindex(columns=A.columns)], ignore_index=True)
-        x = _read(p("data/fundamentals_ext_quarterly.csv.gz"))
+        x = _read(p("data/fundamentals_ext_quarterly.csv"))
         if not x.empty:
             Q = pd.concat([Q, x[~x.ticker.isin(set(Q.ticker))].reindex(columns=Q.columns)], ignore_index=True)
     if Q.empty:
@@ -124,14 +125,14 @@ def load_context(root: str = ".", extended: bool = False, market: str = "IN") ->
     for df in (A, Q):
         if not df.empty:
             df["period"] = pd.to_datetime(df["period"])
-    M = _read(p("data/monthly_prices.csv.gz"))
+    M = _read(p("data/monthly_prices.csv"))
     if not M.empty:
         M["date"] = pd.to_datetime(M["date"])
         M = M.pivot_table(index="date", columns="ticker", values="close").sort_index()
     F = _read(p("data/fundamentals_cache.csv"))
     F = F.set_index("ticker") if not F.empty else F
     ov = {}
-    O = _read(p(OVERRIDES))
+    O = _read(os.path.join(root, OVERRIDES))
     for r in O.to_dict("records"):
         ov.setdefault(str(r["ticker"]).strip(), {})[str(r["key"]).strip()] = r["value"]
     ctx = Context(A, Q, M, F, ov)
@@ -141,7 +142,7 @@ def load_context(root: str = ".", extended: bool = False, market: str = "IN") ->
     fp = features_fingerprint(root) if not extended else None
     if fp:                                  # the nightly run's copy, when it was built from these same files
         try:
-            X = pd.read_parquet(p(FEATURES_FILE))
+            X = pd.read_parquet(os.path.join(root, FEATURES_FILE))
             if X.attrs.get("fingerprint") == fp or (len(X) and str(X.pop("_fp").iloc[0]) == fp):
                 ctx.features = X.drop(columns="_fp", errors="ignore")
         except Exception:
@@ -178,10 +179,11 @@ FEATURES_VERSION = "f2"
 def features_fingerprint(root: str = ".") -> str:
     """Content hashes of the files the peer features are built from (mtimes change on checkout, sizes can collide)."""
     import hashlib
+    from utils import fund_paths
     parts = [FEATURES_VERSION]               # a change to _features must not reuse features built by the old code
-    for f in ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz", "data/monthly_prices.csv.gz",
+    for f in ("data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv", "data/monthly_prices.csv",
               "data/fundamentals_cache.csv"):
-        q = os.path.join(root, f)
+        q = fund_paths.resolve(f, root=root)
         if os.path.exists(q):
             h = hashlib.sha256()
             with open(q, "rb") as fh:
@@ -717,6 +719,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
 
     # ---- own multiple history (positive-earnings months) --------------------------
     own = pd.Series(dtype=float)
+    a_sh = A("shares_cr")
     if t in getattr(ctx.monthly, "columns", []) and years:
         px = ctx.monthly[t].dropna()
         px = px[px.index >= px.index.max() - pd.DateOffset(years=5)]
@@ -727,7 +730,13 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         else:
             src = a_np
         avail = pd.Series(src.values, index=src.index + pd.Timedelta(days=60)).sort_index()
-        lever_m = avail.reindex(px.index, method="ffill") * (1.0 if ident == "BFSI" else attr) / shares
+        if len(a_sh) >= 2:
+            sh_avail = pd.Series(a_sh.values, index=a_sh.index + pd.Timedelta(days=60)).sort_index()
+            sh_m = sh_avail.reindex(px.index, method="ffill").fillna(shares)
+            sh_m = sh_m.where(sh_m > 0, shares)
+        else:
+            sh_m = shares
+        lever_m = avail.reindex(px.index, method="ffill") * (1.0 if ident == "BFSI" else attr) / sh_m
         own = (px / lever_m)[lever_m > 0].dropna()
     # ---- peers: same BUSINESS MODEL (nearest neighbours on margin, ROCE, capital intensity, growth) --------
     col = "pb" if ident == "BFSI" else "pe"
@@ -794,11 +803,37 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
                                     + (" -- negative FCF with strong CFO read as growth capex (0, not -1)" if s == 0 and fcf_pat < 0 else ""))
     if ident != "BFSI" and np.isfinite(de):
         sc["Balance sheet D/E"] = (1 if de <= 0.5 else -1 if de > 1.5 else 0, f"D/E {de:.2f}")
-    for row in ("Guidance record", "CEO/MD change", "CFO change", "Governance (ledger)", "Pledge") + \
-               (("Asset quality", "Capital adequacy", "Funding & liquidity") if ident == "BFSI" else ()):
+    if ident == "BFSI":
+        q_nnpa = _series(ctx.quarterly, t, "nnpa")
+        q_gnpa = _series(ctx.quarterly, t, "gnpa")
+        q_cet1 = _series(ctx.quarterly, t, "cet1")
+        if len(q_nnpa):
+            nn = float(q_nnpa.iloc[-1])
+            d_nn = float(q_nnpa.iloc[-1] - q_nnpa.iloc[-5]) if len(q_nnpa) >= 5 else 0.0
+            s_aq = 1 if (nn <= 1.0 and d_nn <= 0.15) else -1 if (nn >= 2.5 or d_nn >= 0.5) else 0
+            sc["Asset quality"] = (s_aq, f"Net NPA {nn:.2f}%" + (f" ({d_nn:+.2f} pp YoY)" if len(q_nnpa) >= 5 else ""))
+        elif len(q_gnpa):
+            gn = float(q_gnpa.iloc[-1])
+            d_gn = float(q_gnpa.iloc[-1] - q_gnpa.iloc[-5]) if len(q_gnpa) >= 5 else 0.0
+            s_aq = 1 if (gn <= 2.5 and d_gn <= 0.25) else -1 if (gn >= 5.0 or d_gn >= 0.5) else 0
+            sc["Asset quality"] = (s_aq, f"Gross NPA {gn:.2f}%" + (f" ({d_gn:+.2f} pp YoY)" if len(q_gnpa) >= 5 else ""))
+        else:
+            sc["Asset quality"] = (0, "NOT SCORED (no numeric feed) -- 0")
+        if len(q_cet1):
+            c1 = float(q_cet1.iloc[-1])
+            sc["Capital adequacy"] = (1 if c1 >= 12.0 else -1 if c1 < 9.5 else 0, f"CET1/CRAR {c1:.2f}%")
+        else:
+            sc["Capital adequacy"] = (0, "NOT SCORED (no numeric feed) -- 0")
+        sc["Funding & liquidity"] = (0, "NOT SCORED (no numeric feed) -- 0")
+    for row in ("Guidance record", "CEO/MD change", "CFO change", "Governance (ledger)", "Pledge"):
         sc[row] = (0, "NOT SCORED (no numeric feed) -- 0")
     total = sum(v[0] for v in sc.values())
-    total_r = int(np.trunc(total))                    # rounds toward zero
+    scored_n = sum(1 for v in sc.values() if not str(v[1]).startswith("NOT SCORED"))
+    if "Promoter trend (4Q)" not in sc and "FII+DII trend (4Q)" not in sc and 0 < scored_n < 5:
+        total_r = int(np.clip(np.rint(total * 5.0 / scored_n), -5, 5))
+        note(f"1C scorecard scaled {total:+d} across {scored_n}/5 numeric rows -> {total_r:+d} for probability lookup")
+    else:
+        total_r = int(np.trunc(total))                    # rounds toward zero
     p = next(pr for cut, pr in PROB_MAP if total_r >= cut)
     pb, pbase, pbu = [x / 100 for x in p]
     adj_b, adj_u = _ov(ov, "p_bear_pp", 0.0), _ov(ov, "p_bull_pp", 0.0)
@@ -811,7 +846,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         note(f"event adjustment p_bear {adj_b * 100:+.0f}pp / p_bull {adj_u * 100:+.0f}pp ({ov.get('event_note', 'override')})")
     probs = (pb, pbase, pbu)
     out["scorecard"] = {k: {"score": v[0], "evidence": v[1]} for k, v in sc.items()}
-    out["score_total"], out["probs"] = total, probs
+    out["score_total"], out["score_prob_key"], out["probs"] = total, total_r, probs
 
     # ---- Phase 1 scenarios -------------------------------------------------------------
     g_hist = a_sales.pct_change().dropna().iloc[-5:]

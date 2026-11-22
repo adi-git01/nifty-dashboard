@@ -11,7 +11,7 @@ from utils.industry_board_view import get_board
 from utils.ui_search import search_box
 
 VAL_FILE = "data/valuation_snapshot.csv"
-FUND_FILES = ("data/fundamentals_quarterly.csv.gz", "data/fundamentals_annual.csv.gz")
+FUND_FILES = ("data/fundamentals_quarterly.csv", "data/fundamentals_annual.csv")
 
 
 def snap_key(df: pd.DataFrame) -> str:
@@ -67,7 +67,8 @@ def _table(key: str, fund_key: tuple, val_key: float, _df: pd.DataFrame) -> pd.D
 
 
 def get_table(df: pd.DataFrame) -> pd.DataFrame:
-    fk = tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in FUND_FILES)
+    from utils import fund_paths
+    fk = tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in FUND_FILES))
     return _table(snap_key(df), fk, os.path.getmtime(VAL_FILE) if os.path.exists(VAL_FILE) else 0.0, df)
 
 

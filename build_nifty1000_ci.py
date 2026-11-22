@@ -204,7 +204,7 @@ def resolve_sub_industry(ticker: str, yf_industry, curated: dict) -> str:
 # gates
 # ---------------------------------------------------------------------------
 def enforce_gates(top: pd.DataFrame, resolved_n: int, eq_n: int,
-                  previous: pd.DataFrame) -> None:
+                  previous: pd.DataFrame, target: int = TARGET) -> None:
     coverage = resolved_n / max(eq_n, 1)
     print(f"[GATE] Coverage: {resolved_n}/{eq_n} = {coverage:.1%} "
           f"(floor {MIN_COVERAGE:.0%})")
@@ -218,15 +218,16 @@ def enforce_gates(top: pd.DataFrame, resolved_n: int, eq_n: int,
     print(f"[GATE] Mega-cap sentinels present: {len(MEGA_CAPS) - len(missing)}/{len(MEGA_CAPS)}")
     if missing:
         raise BuildAborted(
-            f"mega caps missing from the top {TARGET}: {missing} — no correct "
+            f"mega caps missing from the top {target}: {missing} — no correct "
             f"ranking excludes these, so the fetch was degraded")
 
     if len(previous):
-        floor = int(len(previous) * MIN_RETENTION)
-        print(f"[GATE] Size: {len(top)} vs previous {len(previous)} (floor {floor})")
+        expected_base = min(len(previous), int(target))
+        floor = int(expected_base * MIN_RETENTION)
+        print(f"[GATE] Size: {len(top)} vs min(previous {len(previous)}, target {target})={expected_base} (floor {floor})")
         if len(top) < floor:
             raise BuildAborted(
-                f"new list has {len(top)} names vs {len(previous)} previously — "
+                f"new list has {len(top)} names vs floor {floor} (previous {len(previous)}, target {target}) — "
                 f"a shrink this large means a failed fetch, not an index change")
 
         dropped = ({t.replace('.NS', '') for t in previous["Ticker"]} - symbols)
@@ -234,7 +235,7 @@ def enforce_gates(top: pd.DataFrame, resolved_n: int, eq_n: int,
         if mega_dropped:
             raise BuildAborted(f"would drop mega caps still listed: {mega_dropped}")
         if dropped:
-            print(f"[GATE] {len(dropped)} name(s) drop out of the top {TARGET} "
+            print(f"[GATE] {len(dropped)} name(s) drop out of the top {target} "
                   f"(normal churn), e.g. {sorted(dropped)[:8]}")
 
 
@@ -243,7 +244,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true",
                     help="run every check but do not write the file")
+    ap.add_argument("--target", type=int, default=TARGET,
+                    help="number of top companies to retain")
     args = ap.parse_args()
+    target = max(1, int(args.target))
 
     os.makedirs("data", exist_ok=True)
 
@@ -261,14 +265,14 @@ def main():
         raise BuildAborted("no market-cap data at all — nothing to rank")
 
     ranked = df_all[df_all["market_cap"] > 0].sort_values("market_cap", ascending=False)
-    top = ranked.head(TARGET).copy()
+    top = ranked.head(target).copy()
 
     print(f"\n[BUILD] {len(ranked)} stocks with a market cap; top {len(top)} selected")
     if len(top):
         print(f"[BUILD] Market cap threshold (rank {len(top)}): "
               f"₹{top['market_cap'].iloc[-1] / 1e7:,.0f} Cr")
 
-    enforce_gates(top, len(df_all), len(eq_df), previous)
+    enforce_gates(top, len(df_all), len(eq_df), previous, target=target)
 
     out = pd.DataFrame({
         "Ticker": top["ticker"].values,

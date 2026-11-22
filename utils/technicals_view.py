@@ -471,15 +471,20 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
             if len(q):
                 age = (pd.Timestamp.today() - q.index.max()).days
                 fresh.append(f"latest US quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
-            if os.path.exists("data/us_fundamentals_quarterly.csv.gz"):
-                fresh.append(f"SEC filings refreshed {pd.Timestamp(os.path.getmtime('data/us_fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
+            from utils import fund_paths
+            us_qf = fund_paths.resolve("data/us_fundamentals_quarterly.csv")
+            if os.path.exists(us_qf):
+                fresh.append(f"SEC filings refreshed {pd.Timestamp(os.path.getmtime(us_qf), unit='s'):%d %b %Y}")
         else:
             t = name if name.endswith(".NS") else name + ".NS"
             q = _series(c.quarterly, t, "np")
             if len(q):
                 age = (pd.Timestamp.today() - q.index.max()).days
                 fresh.append(f"latest quarterly result {q.index.max():%b %Y}" + (" ⚠️ over 6 months old" if age > 200 else ""))
-            fresh.append(f"fundamentals file refreshed {pd.Timestamp(os.path.getmtime('data/fundamentals_quarterly.csv.gz'), unit='s'):%d %b %Y}")
+            from utils import fund_paths
+            in_qf = fund_paths.resolve("data/fundamentals_quarterly.csv")
+            if os.path.exists(in_qf):
+                fresh.append(f"fundamentals file refreshed {pd.Timestamp(os.path.getmtime(in_qf), unit='s'):%d %b %Y}")
     except Exception:
         pass
     st.caption("Data used: " + " · ".join(fresh) + ". Targets and stops are computed levels, not advice.")

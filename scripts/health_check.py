@@ -77,7 +77,8 @@ def check(today: str | None = None) -> tuple[list, list]:
     except Exception:
         pass
     try:
-        q = pd.read_csv("data/fundamentals_quarterly.csv.gz")
+        from utils import fund_paths
+        q = pd.read_csv(fund_paths.resolve("data/fundamentals_quarterly.csv"))
         q = q[q.field == "np"]
         last_q = pd.to_datetime(q.groupby("ticker").period.max())
         old = float((last_q < pd.Timestamp.today() - pd.Timedelta(days=200)).mean())

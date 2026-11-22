@@ -6,6 +6,7 @@ funnel label. Used by the My Book tab (utils/book_view.py), the daily Telegram b
 from __future__ import annotations
 
 import glob
+import os
 from functools import lru_cache
 from typing import Any, Dict, Optional
 
@@ -45,26 +46,48 @@ def _snap_date(f: str) -> pd.Timestamp:
 
 
 def _closes(files) -> Dict[pd.Timestamp, pd.Series]:
+    import pyarrow.parquet as pq
     P = {}
-    for f in files:
+    for f in sorted(files):
         try:
-            d = pd.read_parquet(f, columns=["ticker", "currentPrice"]).drop_duplicates("ticker")
+            cols = ["ticker", "currentPrice"]
+            if "bar_date" in pq.read_schema(f).names:
+                cols.append("bar_date")
+            d = pd.read_parquet(f, columns=cols).drop_duplicates("ticker")
         except Exception:
             continue
-        P[_snap_date(f)] = pd.to_numeric(d.set_index("ticker")["currentPrice"], errors="coerce")
+        dt = _snap_date(f)
+        if "bar_date" in d.columns and d["bar_date"].notna().any():
+            parsed = pd.to_datetime(d["bar_date"].dropna().iloc[0], errors="coerce")
+            if pd.notna(parsed):
+                dt = parsed.normalize()
+        P[dt] = pd.to_numeric(d.set_index("ticker")["currentPrice"], errors="coerce")
     return P
 
 
 def build_close_panel(path: str = PANEL_FILE) -> int:
     """
-    Every snapshot's closing prices in one small file, written by the nightly run. Reading ~185
-    snapshots took about 5 s the first time My Book opened after each restart; one file takes a
-    fraction of that. Prices are stored as recorded; splits are applied when it is read.
+    Every snapshot's closing prices in one small file, updated incrementally by the nightly run
+    so older snapshots can be pruned without losing close history. Prices are stored as recorded;
+    splits are applied when read.
     """
     files = sorted(glob.glob("data/cache/market_master_*.parquet"))
-    P = pd.DataFrame(_closes(files)).T.sort_index()
+    base = None
+    if os.path.exists(path):
+        try:
+            base = pd.read_parquet(path)
+            base.index = pd.to_datetime(base.index)
+        except Exception:
+            base = None
+    new_df = pd.DataFrame(_closes(files)).T
+    if base is not None and not base.empty:
+        P = pd.concat([base, new_df]) if not new_df.empty else base
+    else:
+        P = new_df
+    P = P[~P.index.duplicated(keep="last")].sort_index()
     P.index.name = "date"
-    P.astype("float32").to_parquet(path)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    P.astype("float32").to_parquet(path, compression="zstd")
     return len(P)
 
 

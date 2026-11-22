@@ -22,11 +22,13 @@ Outside market hours an order goes in as an after-market order for the next open
 """
 from __future__ import annotations
 
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
+import requests
 
 from utils.broker_sync import DHAN_API, TIMEOUT, BrokerError, _http, _json
 
@@ -37,6 +39,44 @@ class UncertainOrder(BrokerError):
 SCRIP_MASTER = "https://images.dhan.co/api-data/api-scrip-master.csv"
 MAX_ORDERS_DAY = 40
 IST = timezone(timedelta(hours=5, minutes=30))
+
+
+HOLIDAYS_FILE = "data/nse/holidays.csv"
+
+
+def _load_holidays(path: str = HOLIDAYS_FILE, _cache: Dict[str, Any] = {}) -> set:
+    try:
+        mt = os.path.getmtime(path) if os.path.exists(path) else None
+    except Exception:
+        mt = None
+    if _cache.get("path") == path and _cache.get("mtime") == mt:
+        return _cache.get("dates", set())
+    dates = set()
+    if mt is not None:
+        try:
+            df = pd.read_csv(path)
+            col = "date" if "date" in df.columns else df.columns[0]
+            parsed = pd.to_datetime(df[col], errors="coerce").dropna()
+            dates = {d.date() for d in parsed}
+        except Exception:
+            dates = set()
+    _cache.clear()
+    _cache.update(path=path, mtime=mt, dates=dates)
+    return dates
+
+
+def is_nse_holiday(now: Optional[datetime] = None) -> bool:
+    """True when the IST calendar date is listed in data/nse/holidays.csv."""
+    dt = (now or datetime.now(IST)).astimezone(IST).date()
+    return dt in _load_holidays()
+
+
+def is_pre_open(now: Optional[datetime] = None) -> bool:
+    """True during NSE equity pre-open / buffer window (09:00–09:15 IST on trading days)."""
+    dt = (now or datetime.now(IST)).astimezone(IST)
+    if dt.weekday() >= 5 or is_nse_holiday(dt):
+        return False
+    return (9, 0) <= (dt.hour, dt.minute) < (9, 15)
 
 
 def settings(secrets: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -53,7 +93,9 @@ def settings(secrets: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
 
 def market_open(now: Optional[datetime] = None) -> bool:
     now = (now or datetime.now(IST)).astimezone(IST)
-    return now.weekday() < 5 and (9, 15) <= (now.hour, now.minute) < (15, 30)
+    if now.weekday() >= 5 or is_nse_holiday(now):
+        return False
+    return (9, 15) <= (now.hour, now.minute) < (15, 30)
 
 
 def parse_master(df: pd.DataFrame) -> Dict[str, str]:
@@ -170,6 +212,8 @@ def place(token: str, order: Dict[str, Any], cfg: Optional[Dict[str, Any]] = Non
     sid = (ids if ids is not None else security_ids()).get(sym)
     if not sid:
         raise BrokerError(f"{sym} was not found in Dhan's instrument list.")
+    if is_pre_open(now):
+        raise BrokerError("NSE pre-open session (09:00–09:15 IST): AMO window is closed; retry after 09:15 IST.")
     try:
         r = _http().post(f"{DHAN_API}/orders", json=body(order, cfg["client_id"], sid, not market_open(now)), timeout=TIMEOUT,
                          headers={"access-token": token, "Content-Type": "application/json", "Accept": "application/json"},
@@ -191,8 +235,11 @@ def place(token: str, order: Dict[str, Any], cfg: Optional[Dict[str, Any]] = Non
 def status(token: str, order_id: str, cfg: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """{'status', 'filled', 'price', 'message'} for one order (status: TRADED, PENDING, TRANSIT, PART_TRADED, REJECTED, CANCELLED, EXPIRED)."""
     cfg = cfg or settings()
-    r = _http().get(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
-                    proxies=_proxies(cfg))
+    try:
+        r = _http().get(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
+                        proxies=_proxies(cfg))
+    except requests.RequestException as e:
+        raise BrokerError(f"Could not check order status with Dhan ({type(e).__name__}).") from e
     d = _json(r)
     if isinstance(d, list):
         d = d[0] if d else {}
@@ -205,6 +252,9 @@ def status(token: str, order_id: str, cfg: Optional[Dict[str, Any]] = None) -> D
 
 def cancel(token: str, order_id: str, cfg: Optional[Dict[str, Any]] = None) -> bool:
     cfg = cfg or settings()
-    r = _http().delete(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
-                       proxies=_proxies(cfg))
+    try:
+        r = _http().delete(f"{DHAN_API}/orders/{order_id}", headers={"access-token": token, "Accept": "application/json"}, timeout=TIMEOUT,
+                           proxies=_proxies(cfg))
+    except requests.RequestException as e:
+        raise BrokerError(f"Could not cancel order with Dhan ({type(e).__name__}).") from e
     return r.status_code in (200, 202)

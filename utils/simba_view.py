@@ -11,7 +11,7 @@ import streamlit as st
 from utils import simba
 from utils.ui_search import search_box
 
-FUND_FILES = ("data/fundamentals_quarterly.csv.gz", "data/fundamentals_annual.csv.gz")
+FUND_FILES = ("data/fundamentals_quarterly.csv", "data/fundamentals_annual.csv")
 STAGE_ICON = {1: "1 · base", 2: "2 · advancing", 3: "3 · top", 4: "4 · declining"}
 CAUTION = {0: "—", 1: "🟡 L1 watch", 2: "🟠 L2 trim", 3: "🔴 L3 exit"}
 IND_ICON = {"LEADING": "🟢 Leading", "IMPROVING": "🟡 Improving", "NEUTRAL": "⚪ Neutral", "STAGE 4": "🔴 Stage 4"}
@@ -30,7 +30,8 @@ def _fund(key: tuple) -> pd.DataFrame:
 
 
 def _fundamentals() -> pd.DataFrame:
-    return _fund(tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in FUND_FILES))
+    from utils import fund_paths
+    return _fund(tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in FUND_FILES)))
 
 
 def _held() -> set:

@@ -188,7 +188,7 @@ def render_market_explorer():
             # ── 6-Month CompRS History ────────────────────────────────────────
             st.markdown("---")
             st.markdown("#### 📈 6-Month Composite RS vs Nifty")
-            st.caption("Daily CompRS = RS5×30% + RS21×50% + RS63×20% vs ^NSEI | Green = outperforming, Red = underperforming")
+            st.caption("Daily CompRS = RS5×10% + RS21×50% + RS63×40% vs ^NSEI | Green = outperforming, Red = underperforming")
 
             @st.cache_data(ttl=3600, show_spinner=False)
             def _fetch_comprs_history(tkr):
@@ -215,7 +215,7 @@ def render_market_explorer():
                     rs5  = (s.pct_change(5)  - n.pct_change(5))  * 100
                     rs21 = (s.pct_change(21) - n.pct_change(21)) * 100
                     rs63 = (s.pct_change(63) - n.pct_change(63)) * 100
-                    comp = rs5 * 0.30 + rs21 * 0.50 + rs63 * 0.20
+                    comp = rs5 * 0.10 + rs21 * 0.50 + rs63 * 0.40
                     out = pd.DataFrame({
                         "date":    common,
                         "CompRS":  comp.values,

@@ -80,6 +80,12 @@ def main() -> int:
         day_s = f"{day:%d %b %Y}" if day is not None else "none"
         print(f"[nse] prices: {got} · store holds sessions to {day_s} · current: {npx.is_current()}")
         ok["prices"] = True
+        try:
+            piv = nd.build_delivery_20d()
+            print(f"[nse] delivery_20d: {len(piv)} sessions x {piv.shape[1]} stocks -> {nd.DELIV_20D}")
+            ok["delivery_20d"] = True
+        except Exception as dx:
+            print(f"[nse] delivery_20d: {dx}")
     except Exception as x:
         print(f"[nse] prices: {x}")
         day = None

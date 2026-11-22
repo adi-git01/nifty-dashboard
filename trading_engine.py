@@ -463,18 +463,18 @@ def send_daily_heartbeat(df, mode):
     except: pass
 
 
-if __name__ == "__main__":
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=['daily_cache', 'stop_check', 'rebalance', 'full'], default='full')
     parser.add_argument("--no-heartbeat", action="store_true", help="Skip end-of-run Telegram/Email heartbeat")
     parser.add_argument("--heartbeat-only", action="store_true", help="Send heartbeat from today's snapshot and exit")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.heartbeat_only:
         parquet_path = get_parquet_cache_path()
         df = pd.read_parquet(parquet_path) if os.path.exists(parquet_path) else pd.DataFrame()
         send_daily_heartbeat(df, args.mode)
-        raise SystemExit(0)
+        return 0
 
     db = TradingDatabase()
     
@@ -482,10 +482,10 @@ if __name__ == "__main__":
         if args.mode in ['daily_cache', 'full']:
             df = generate_daily_master_cache()
             if df.attrs.get("stale_fallback"):
-                # Non-zero exit: the workflow retries once after 3 minutes, and the health check
+                # Non-zero exit: the caller retries once after 3 minutes, and the health check
                 # at the end turns the run red if today's snapshot is still missing.
                 print("[ENGINE] No fresh data today -- exiting with an error so the run is retried.", flush=True)
-                sys.exit(1)
+                return 1
             if not df.attrs.get("no_new_session"):
                 generate_sub_industry_rotation(df, db)
         else:
@@ -517,3 +517,8 @@ if __name__ == "__main__":
         send_daily_heartbeat(df, args.mode)
     
     print("Trading Engine Execution Completed.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
