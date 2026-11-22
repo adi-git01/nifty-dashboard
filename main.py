@@ -233,6 +233,7 @@ def _load_market_data(live: bool, key: str) -> pd.DataFrame:
         return hit[1].copy()
     fundamentals = load_base_fundamentals(live_mode=live)
     out = fetch_and_process_market_data(fundamentals['ticker'].tolist(), fundamentals, live_mode=live,
+                                        save=not live,                     # Live Mode must never overwrite EOD parquet
                                         price_source="yahoo" if live else None)   # Live Mode: intraday prices are Yahoo's
     if out is not None and not out.empty:
         store.clear()                                   # keep one entry: frames are ~1,170 x 125
@@ -335,7 +336,8 @@ if _needs_refresh:
     progress_bar.progress(80, text="Step 3/4: Fetching Nifty index data...")
     try:
         from utils.yf_safe import safe_history
-        _nifty_start = (datetime.now() - timedelta(days=400)).strftime('%Y-%m-%d')
+        from utils.simba import HISTORY_DAYS as _SIMBA_DAYS
+        _nifty_start = (datetime.now() - timedelta(days=_SIMBA_DAYS)).strftime('%Y-%m-%d')
         # Retry-with-backoff, like every other fetch in the pipeline. A bare
         # .history() here had no retry, and on failure the `if not empty` guard
         # below silently LEFT THE PREVIOUS SERIES IN session_state — so one

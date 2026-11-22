@@ -185,12 +185,40 @@ def remove_position(ticker: str) -> bool:
     return True
 
 def add_to_watchlist(ticker: str, name: str = None, sector: str = "Unknown") -> Dict:
-    """Quick add to watchlist (no price info needed)."""
+    """Quick add to watchlist without downgrading an active position."""
+    existing = get_position(ticker)
+    if existing and existing.get('status') == 'active':
+        return existing
     return add_position(ticker, name, sector, status='watching')
 
 def is_position_exists(ticker: str) -> bool:
     """Check if position exists."""
     return get_position(ticker) is not None
+
+def split_factor_for_position(pos: Dict, resolved_ticker: Optional[str] = None, ca=None) -> tuple[float, str]:
+    """Corporate-action split/bonus factor since entry_date (or broker sync price_basis_date), plus basis date."""
+    adj_from = str(pos.get('entry_date') or '')[:10]
+    basis_dt = str(pos.get('price_basis_date') or '')[:10]
+    if not basis_dt and pos.get('synced_at'):
+        src = str(pos.get('source') or '').lower()
+        if any(k in src for k in ('dhan', 'zerodha', 'kite', 'broker', 'sync', 'model orders')):
+            basis_dt = str(pos['synced_at'])[:10]
+    if basis_dt and (not adj_from or basis_dt > adj_from):
+        adj_from = basis_dt
+
+    use = resolved_ticker or pos.get('ticker')
+    fac = 1.0
+    if use and adj_from:
+        try:
+            from utils import corp_actions
+            if ca is None:
+                ca = corp_actions.load()
+            if ca is not None:
+                fac = corp_actions.cumulative_factor(ca, use, adj_from)
+        except Exception:
+            fac = 1.0
+    return (fac if fac and fac > 0 else 1.0), adj_from
+
 
 def get_positions_with_pnl(market_df) -> List[Dict]:
     """Calculate P&L for all active positions using current market data."""
@@ -214,24 +242,7 @@ def get_positions_with_pnl(market_df) -> List[Dict]:
             pos['resolved_ticker'] = use
             pos['ticker_note'] = f"priced as {use.replace('.NS', '')}"
 
-        # Splits and bonuses since the entry (or broker price-basis) date: put entry, stop and target on today's basis.
-        # Broker syncs overwrite entry_price/qty with already post-split broker figures; using max(entry_date, price_basis_date)
-        # prevents double-adjusting splits that predated the sync while still adjusting subsequent splits.
-        adj_from = str(pos.get('entry_date') or '')[:10]
-        basis_dt = str(pos.get('price_basis_date') or '')[:10]
-        if not basis_dt and pos.get('synced_at'):
-            src = str(pos.get('source') or '').lower()
-            if any(k in src for k in ('dhan', 'zerodha', 'kite', 'broker', 'sync', 'model orders')):
-                basis_dt = str(pos['synced_at'])[:10]
-        if basis_dt and (not adj_from or basis_dt > adj_from):
-            adj_from = basis_dt
-
-        fac = 1.0
-        if ca is not None and use and adj_from:
-            try:
-                fac = corp_actions.cumulative_factor(ca, use, adj_from)
-            except Exception:
-                fac = 1.0
+        fac, adj_from = split_factor_for_position(pos, use, ca=ca)
         entry = pos.get('entry_price') or 0
         sl, tgt = pos.get('stop_loss'), pos.get('target')
         if fac != 1.0:

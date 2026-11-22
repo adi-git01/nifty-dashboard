@@ -11,7 +11,13 @@ import streamlit as st
 from utils import simba
 from utils.ui_search import search_box
 
-FUND_FILES = ("data/fundamentals_quarterly.csv", "data/fundamentals_annual.csv")
+FUND_FILES = (
+    "data/fundamentals_quarterly.csv",
+    "data/fundamentals_annual.csv",
+    "data/fundamentals_ext_quarterly.csv",
+    "data/fundamentals_ext_annual.csv",
+    "data/fundamentals_annual_extra.csv",
+)
 STAGE_ICON = {1: "1 · base", 2: "2 · advancing", 3: "3 · top", 4: "4 · declining"}
 CAUTION = {0: "—", 1: "🟡 L1 watch", 2: "🟠 L2 trim", 3: "🔴 L3 exit"}
 IND_ICON = {"LEADING": "🟢 Leading", "IMPROVING": "🟡 Improving", "NEUTRAL": "⚪ Neutral", "STAGE 4": "🔴 Stage 4"}
@@ -34,18 +40,43 @@ def _fundamentals() -> pd.DataFrame:
     return _fund(tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in FUND_FILES)))
 
 
-def _held() -> set:
+def _held(known=None) -> set:
     try:
-        with open("positions.json") as f:
-            pos = json.load(f)
-        items = pos if isinstance(pos, list) else pos.get("positions", [])
-        return {p.get("ticker") for p in items if p.get("status") == "active"}
+        from utils import positions as pos
+        items = pos.get_all_positions("active")
+        known_set = set(known) if known is not None else None
+        out = set()
+        for p in items:
+            t = p.get("ticker")
+            if not t:
+                continue
+            out.add(t)
+            if known_set:
+                resolved = pos.resolve_ticker(t, known_set)
+                if resolved:
+                    out.add(resolved)
+        return out
     except Exception:
         return set()
 
 
 def _ok(b) -> str:
-    return "✅" if b else "❌"
+    if b is None:
+        return "❌"
+    try:
+        if pd.isna(b):
+            return "❌"
+    except Exception:
+        pass
+    return "✅" if bool(b) else "❌"
+
+
+def _fmt_num(v, fmt: str = "{:.0f}", default: str = "—") -> str:
+    try:
+        fv = float(v)
+    except (TypeError, ValueError):
+        return default
+    return fmt.format(fv) if np.isfinite(fv) else default
 
 
 def _how_graded() -> None:
@@ -83,6 +114,13 @@ def _how_graded() -> None:
 
 
 def render(df: pd.DataFrame) -> None:
+    if df is None or df.empty:
+        st.info("No market data loaded.")
+        return
+    if "extended" in df.columns:
+        df = df[df["extended"] != True].copy()
+    else:
+        df = df.copy()
     st.markdown("### 🦁 SIMBA — Ghoomega · Machayega · Bachayega")
     st.caption(
         "A rule-based reconstruction of Kumar Saurabh's (Scientific Investing) Techno-Funda process. "
@@ -119,8 +157,10 @@ def render(df: pd.DataFrame) -> None:
                "The document gauges this on the Smallcap 250; Nifty 50 is used here."
                if reg.get("dist_sma") is not None and reg.get("ret12") is not None else ""))
 
-    n_lead = sum(v == "LEADING" for v in ind.values())
-    n_imp = sum(v == "IMPROVING" for v in ind.values())
+    core_tickers = set(df["ticker"].dropna())
+    core_ind = {t: v for t, v in ind.items() if t in core_tickers}
+    n_lead = sum(v == "LEADING" for v in core_ind.values())
+    n_imp = sum(v == "IMPROVING" for v in core_ind.values())
     with st.expander(f"🏭 Industries — {n_lead} stocks in Leading, {n_imp} in Improving sub-industries"):
         from utils.industry_alerts import all_sub_industry_readings
         try:
@@ -142,21 +182,39 @@ def render(df: pd.DataFrame) -> None:
         st.warning("⏳ SIMBA chart signals are computed by the EOD engine from daily bars and appear after the "
                    "next run (3:45 pm IST), or now with **Bypass Master Cache (Live Mode)** in the sidebar. "
                    "Until then, the fundamental leg alone:")
-        x = df[["ticker", "name", "currentPrice"]].merge(fund, on="ticker", how="left")
+        if fund is None or fund.empty or "er" not in fund.columns:
+            st.info("Fundamentals files are empty — run fundamentals refresh to populate SIMBA earnings reversals.")
+            _how_graded()
+            return
+        px_col = "currentPrice" if "currentPrice" in df.columns else "price"
+        x = df[["ticker", "name", px_col]].rename(columns={px_col: "currentPrice"}).merge(fund, on="ticker", how="left")
         x = x[x["er"] == True].copy()
+        if x.empty:
+            st.info("No stocks currently meet the Earnings Reversal criteria.")
+            _how_graded()
+            return
         x["industry"] = x.ticker.map(lambda t: IND_ICON[ind.get(t, "NEUTRAL")])
         x["legs"] = x.apply(lambda r: ", ".join(k for k, f in [("profit outran sales", "er_oplev"),
                                                                ("accelerating", "er_accel"),
                                                                ("margin jump", "er_margin"),
-                                                               ("turnaround", "er_turn")] if r.get(f) is True), axis=1)
-        num = lambda c: pd.to_numeric(x.get(c), errors="coerce")
-        # The scorecard's 25-point "Earnings + quality" block, plus the 12 industry points, as far as
-        # fundamentals alone can take it (pe-vs-sector needs the full table, so it is left out here)
-        x["quality_pts"] = (np.where(x["er_oplev"] == True, 12, 10) + np.where(num("roce") >= 20, 4, 0)
+                                                               ("turnaround", "er_turn")] if r.get(f) == True), axis=1)
+        num = lambda c: pd.to_numeric(x[c], errors="coerce") if c in x.columns else pd.Series(np.nan, index=x.index)
+        roce_s = num("roce")
+        roe_s = num("roe")
+        is_lender_s = x["lender_kind"].notna() if "lender_kind" in x.columns else pd.Series(False, index=x.index)
+        roce_pts = np.where(roce_s.notna(), np.where(roce_s >= 20, 4, 0), np.where(is_lender_s & (roe_s >= 15), 4, 0))
+        x["quality_pts"] = (np.where(x.get("er_oplev") == True, 12, 10) + roce_pts
                             + np.where(num("opm_cv") <= 0.25, 4, 0)).clip(max=25)
         x["industry_pts"] = x.ticker.map(lambda t: simba.INDUSTRY_PTS[ind.get(t, "NEUTRAL")])
-        x["forensics"] = np.where((num("de") > 1) | (num("cfo_ebitda") < 0.6), "⛔ fails", "✅ ok")
-        x["cfo_ebitda"] = num("cfo_ebitda") * 100
+        de_s, cfo_s = num("de"), num("cfo_ebitda")
+        bad_non_lender = (~is_lender_s) & (de_s.isna() | cfo_s.isna() | (de_s > 1) | (cfo_s < 0.6))
+        bad_lender = is_lender_s & roe_s.notna() & (roe_s < 8.0)
+        x["forensics"] = np.where(is_lender_s & ~bad_lender, "🏦 lender",
+                                  np.where(bad_non_lender | bad_lender, "⛔ fails", "✅ ok"))
+        x["cfo_ebitda"] = cfo_s * 100
+        for req_c in ("quarter", "sales_g", "np_g", "roce", "opm_cv", "de", "promoters"):
+            if req_c not in x.columns:
+                x[req_c] = np.nan
         x = x.sort_values(["quality_pts", "industry_pts", "np_g"], ascending=False)
         st.caption(f"{len(x)} stocks show an earnings reversal. Sorted by the earnings + quality points they "
                    "would bring to the score (max 25), then industry. 'Forensics' is a hard gate: debt/equity "
@@ -193,11 +251,11 @@ def render(df: pd.DataFrame) -> None:
     S["caution"] = S["simba_caution"].map(CAUTION)
     S["mtf"] = S.apply(lambda r: f"{r.simba_rsi_d:.0f} / {r.simba_rsi_w:.0f} / {r.simba_rsi_m:.0f}"
                        if pd.notna(r.simba_rsi_m) else "—", axis=1)
-    pxs = pd.to_numeric(S.get("currentPrice"), errors="coerce")
+    pxs = pd.to_numeric(S.get("currentPrice", S.get("price")), errors="coerce")
     S["chase_pct"] = (pxs / pd.to_numeric(S["simba_m_pivot"], errors="coerce") - 1) * 100
     S["er_legs"] = S.apply(lambda r: ", ".join(k for k, f in [("op-lev", "er_oplev"), ("accel", "er_accel"),
                                                               ("margin", "er_margin"), ("turn", "er_turn")]
-                                               if r.get(f) is True) or "—", axis=1)
+                                               if simba._b(r.get(f))) or "—", axis=1)
     if not S["simba_full"].fillna(False).any():
         st.caption("⚠️ Fewer than ~290 sessions of history in this snapshot: G1 (dormancy) and Mansfield RS "
                    "fill in from the next EOD run.")
@@ -237,7 +295,7 @@ def render(df: pd.DataFrame) -> None:
             "simba_mrs", "rs_rating", "er_legs", "roce", "promoters", "caution", "simba_trail"]
     cfg = {
         "score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%d",
-                                                 help="Out of 100; 90 is the most measurable here (insider, "
+                                                 help="Out of 100; 92 is the most measurable here (insider, "
                                                       "delivery and volume-vs-price growth are not in our data)"),
         "simba_g_bits": st.column_config.TextColumn("G1-G7", help="\n".join(G_LABELS)),
         "simba_m_bits": st.column_config.TextColumn("M1-M5 today", help="\n".join(M_LABELS)),
@@ -305,7 +363,7 @@ def render(df: pd.DataFrame) -> None:
                    "≥ 60%, not bear contraction (unless RS ≥ 90 + earnings reversal), not extended, stop ≤ 15%.")
 
     with t_bach:
-        held = _held()
+        held = _held(S["ticker"])
         st.caption("Hard exits: 15% below entry, the volatility trail (20/25/30% from the peak close), or a close "
                    "below a flat/falling 150-DMA. Caution: L1 ≥ 4 distribution days or weekly RSI < 50 (tighten, "
                    "no adds); L2 close < falling 50-DMA, Mansfield < 0, 10-day ROC ≤ −12% or a climactic gap-down "
@@ -347,32 +405,44 @@ def render(df: pd.DataFrame) -> None:
             st.markdown("**Machayega (today)**")
             for lab, bit in zip(M_LABELS, str(r["simba_m_bits"])):
                 st.write(f"{_ok(bit == '1')} {lab}")
-            st.write(f"{'✅' if r['simba_good_wc'] is True else '❌' if r['simba_good_wc'] is False else '⏳'} "
+            st.write(f"{'✅' if simba._b(r.get('simba_good_wc')) else '❌' if pd.notna(r.get('simba_good_wc')) and not simba._b(r.get('simba_good_wc')) else '⏳'} "
                      "Good weekly close above the pivot")
         with b:
+            _roce, _roe = simba._f(r.get("roce")), simba._f(r.get("roe"))
+            _de, _cfo = simba._f(r.get("de")), simba._f(r.get("cfo_ebitda"))
+            _opm_cv, _cwip = simba._f(r.get("opm_cv")), simba._f(r.get("cwip_fa"))
+            _prom, _stop_p = simba._f(r.get("promoters")), simba._f(r.get("stop_pct"))
+            _ext_ma = simba._f(r.get("simba_ext_ma150"))
+            _lender = bool(r.get("lender_kind")) and pd.notna(r.get("lender_kind"))
             st.markdown("**Confirmation**")
-            st.write(f"{_ok(r['simba_mtf'] == 3)} MTF RSI aligned (D/W/M {r['mtf']})")
-            st.write(f"{_ok(not r['simba_ext'])} Not extended (daily RSI ≤ 80 or ≤ 25% above 50-DMA)")
-            st.write(f"{_ok(r.get('promoters', 0) >= 60)} Low float bonus (promoters ≥ 60%: "
-                     f"{r.get('promoters', float('nan')):.0f}%)")
+            st.write(f"{_ok(r.get('simba_mtf') == 3)} MTF RSI aligned (D/W/M {r['mtf']})")
+            st.write(f"{_ok(not simba._b(r.get('simba_ext')) and (not np.isfinite(_ext_ma) or _ext_ma <= simba.MAX_EXT))} "
+                     "Not extended (≤ 25% above 150-DMA & not RSI > 80 + > 25% above 50-DMA)")
+            st.write(f"{_ok(np.isfinite(_prom) and _prom >= 60)} Low float bonus (promoters ≥ 60%: "
+                     f"{_fmt_num(_prom, '{:.0f}%')})")
             st.write("➖ Insider cluster buying — not in our data")
             st.markdown("**Fundamentals**")
-            st.write(f"{_ok(r.get('er') is True)} Earnings reversal ({r['er_legs']}; {r.get('quarter', '—')}: sales "
-                     f"{r.get('sales_g', float('nan')):+.0f}%, profit {r.get('np_g', float('nan')):+.0f}% YoY)")
-            st.write(f"{_ok(r.get('roce', 0) >= 15 or bool(r.get('roce_rising')))} ROCE ≥ 15% or rising "
-                     f"({r.get('roce', float('nan')):.0f}%)")
-            st.write(f"{_ok(r.get('de', 9) <= 1)} Debt/equity ≤ 1 ({r.get('de', float('nan')):.2f})")
-            st.write(f"{_ok(r.get('cfo_ebitda', 0) >= 0.6)} 5-year CFO/EBITDA ≥ 60% "
-                     f"({r.get('cfo_ebitda', float('nan')):.0%})")
-            st.write(f"{_ok(r.get('opm_cv', 9) <= 0.25)} Stable margins (annual OPM CV ≤ 0.25: "
-                     f"{r.get('opm_cv', float('nan')):.2f})")
-            st.write(f"{_ok(not (r.get('cwip_fa', 0) > 0.3))} Capex strain (CWIP ≤ 30% of fixed assets)")
+            st.write(f"{_ok(simba._b(r.get('er')))} Earnings reversal ({r['er_legs']}; {r.get('quarter', '—')}: sales "
+                     f"{_fmt_num(r.get('sales_g'), '{:+.0f}%')}, profit {_fmt_num(r.get('np_g'), '{:+.0f}%')} YoY)")
+            if _lender:
+                st.write(f"{_ok(np.isfinite(_roe) and _roe >= 15)} Lender ROE ≥ 15% ({_fmt_num(_roe, '{:.1f}%')})")
+                st.write("🏦 Debt/equity & 5-year CFO/EBITDA — not applicable to banks/NBFCs")
+            else:
+                st.write(f"{_ok(np.isfinite(_roce) and _roce >= 20)} ROCE ≥ 20% ({_fmt_num(_roce, '{:.0f}%')})")
+                st.write(f"{_ok(np.isfinite(_de) and _de <= 1)} Debt/equity ≤ 1 ({_fmt_num(_de, '{:.2f}')})")
+                st.write(f"{_ok(np.isfinite(_cfo) and _cfo >= 0.6)} 5-year CFO/EBITDA ≥ 60% "
+                         f"({_fmt_num(_cfo * 100 if np.isfinite(_cfo) else np.nan, '{:.0f}%')})")
+            st.write(f"{_ok(np.isfinite(_opm_cv) and _opm_cv <= 0.25)} Stable margins (annual OPM CV ≤ 0.25: "
+                     f"{_fmt_num(_opm_cv, '{:.2f}')})")
+            st.write(f"{_ok(np.isfinite(_cwip) and _cwip <= 0.3) if np.isfinite(_cwip) else '➖'} "
+                     f"Capex strain (CWIP ≤ 30% of fixed assets: {_fmt_num(_cwip * 100 if np.isfinite(_cwip) else np.nan, '{:.0f}%')})")
             st.markdown("**Execution**")
-            st.write(f"{_ok(r['stop_pct'] <= 15)} Stop ≤ 15% below (base low {r['simba_base_low']:.2f}, "
-                     f"{r['stop_pct']:.1f}% away)")
-            if pd.notna(r["chase_pct"]):
-                st.write(f"{_ok(r['chase_pct'] <= 7)} Within 7% of the breakout pivot ({r['chase_pct']:+.1f}%)")
+            st.write(f"{_ok(np.isfinite(_stop_p) and 0 < _stop_p <= 15)} Stop ≤ 15% below "
+                     f"(base low {_fmt_num(r.get('simba_base_low'), '{:.2f}')}, {_fmt_num(_stop_p, '{:.1f}%')} away)")
+            if pd.notna(r.get("chase_pct")):
+                _cp = float(r["chase_pct"])
+                st.write(f"{_ok(0 <= _cp <= 7)} Within 0–7% above the breakout pivot ({_cp:+.1f}%)")
             if reg.get("holdings"):
                 lo, hi = reg["holdings"]
                 st.write(f"Size: starter 2.5% → full ≈ {100 / hi:.0f}–{100 / lo:.0f}% (Risk Scale "
-                         f"{reg['risk_scale']}); trail {r['simba_trail']:.0f}% from the peak close")
+                         f"{reg['risk_scale']}); trail {_fmt_num(r.get('simba_trail'), '{:.0f}%')} from the peak close")

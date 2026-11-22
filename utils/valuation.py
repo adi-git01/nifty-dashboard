@@ -177,7 +177,7 @@ FEATURES_VERSION = "f2"
 
 
 def features_fingerprint(root: str = ".") -> str:
-    """Content hashes of the files the peer features are built from (mtimes change on checkout, sizes can collide)."""
+    """Content hashes of the files the peer features are built from (CRLF-normalized so Windows & Linux match)."""
     import hashlib
     from utils import fund_paths
     parts = [FEATURES_VERSION]               # a change to _features must not reuse features built by the old code
@@ -186,9 +186,21 @@ def features_fingerprint(root: str = ".") -> str:
         q = fund_paths.resolve(f, root=root)
         if os.path.exists(q):
             h = hashlib.sha256()
+            is_gz = q.endswith(".gz")
+            carry = b""
             with open(q, "rb") as fh:
                 for chunk in iter(lambda: fh.read(65536), b""):
-                    h.update(chunk)
+                    if is_gz:
+                        h.update(chunk)
+                    else:
+                        data = (carry + chunk).replace(b"\r\n", b"\n")
+                        if data.endswith(b"\r"):
+                            carry, data = b"\r", data[:-1]
+                        else:
+                            carry = b""
+                        h.update(data)
+            if carry:
+                h.update(carry)
             parts.append(h.hexdigest()[:16])
         else:
             parts.append("0")
@@ -232,25 +244,27 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
         pq_all = Q[Q.field == "promoters"]
         for t_, pq in pq_all.groupby("ticker", sort=False):
             prom_last[t_] = float(pq.sort_values("period").value.iloc[-1])
+    _med = lambda s: float(s.dropna().median()) if len(s.dropna()) else np.nan
     for t, g in A.groupby("ticker"):
-        # Screener's headline market cap and price are stored dated the scrape day. When that day falls in the fiscal
-        # year-end month (every March for most stocks; November for PFIZER) the row was taken as the latest year,
-        # with no profit or sales, and blanked attr / fa_int. Fiscal-year rows come from the statements only.
-        piv = g[~g.field.isin(("mcap_cr", "price_scr"))].pivot_table(index="period", columns="field", values="value",
-                                                                     aggfunc="last").sort_index()
+        # Screener's headline market cap and price are stored dated the scrape day. Fiscal-year rows come from statements only.
+        g_sorted = g.sort_values("period")
+        piv = g_sorted[~g_sorted.field.isin(("mcap_cr", "price_scr"))].pivot_table(
+            index="period", columns="field", values="value", aggfunc="last").sort_index()
         if "np" not in piv:
             continue
         piv = _fy(piv).iloc[-6:]
-        book = piv.get("eq_cap", np.nan) + piv.get("reserves", np.nan)
-        sales = piv.get("sales", pd.Series(np.nan, index=piv.index))
+        eq_col = piv["eq_cap"].fillna(0.0) if "eq_cap" in piv else pd.Series(0.0, index=piv.index)
+        res_col = piv["reserves"] if "reserves" in piv else pd.Series(np.nan, index=piv.index)
+        book = eq_col + res_col
+        sales = piv["sales"] if "sales" in piv else pd.Series(np.nan, index=piv.index)
         attr = np.nan
-        if "eps" in piv and t in getattr(F, "index", []) and pd.notna(piv["np"].iloc[-1]) and piv["np"].iloc[-1] > 0:
-            mc_, px_ = g[g.field == "mcap_cr"].value, g[g.field == "price_scr"].value
-            if len(mc_) and len(px_) and px_.iloc[-1] > 0:
-                attr = float(piv["eps"].iloc[-1] * mc_.iloc[-1] / px_.iloc[-1] / piv["np"].iloc[-1])
+        mc_ = g_sorted[g_sorted.field == "mcap_cr"].value
+        px_ = g_sorted[g_sorted.field == "price_scr"].value
+        has_mc_px = len(mc_) and len(px_) and np.isfinite(px_.iloc[-1]) and px_.iloc[-1] > 0 and np.isfinite(mc_.iloc[-1])
+        if "eps" in piv and t in getattr(F, "index", []) and pd.notna(piv["np"].iloc[-1]) and piv["np"].iloc[-1] > 0 and has_mc_px:
+            attr = float(piv["eps"].iloc[-1] * mc_.iloc[-1] / px_.iloc[-1] / piv["np"].iloc[-1])
         own_m = np.nan
-        mc_, px_ = g[g.field == "mcap_cr"].value, g[g.field == "price_scr"].value
-        if M is not None and len(M) and t in M.columns and len(mc_) and len(px_) and px_.iloc[-1] > 0:
+        if M is not None and len(M) and t in M.columns and has_mc_px and mc_.iloc[-1] > 0:
             sh = mc_.iloc[-1] / px_.iloc[-1]
             pxm = M[t].dropna()
             pxm = pxm[pxm.index >= pxm.index.max() - pd.DateOffset(years=5)]
@@ -264,13 +278,16 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
         prom = prom_last.get(t, np.nan)
         opm_s = piv["opm"].dropna() if "opm" in piv else pd.Series(dtype=float)
         npy = piv["np"].dropna()
+        np_g_hist = npy.pct_change(fill_method=None).where(npy.shift(1) > 0).dropna()
+        roe_s = (piv["np"] / book.where(book > 0)).replace([np.inf, -np.inf], np.nan)
+        fa_val = float(piv["fixed_assets"].iloc[-1] / sales.iloc[-1]) if ("fixed_assets" in piv and pd.notna(piv["fixed_assets"].iloc[-1]) and pd.notna(sales.iloc[-1]) and sales.iloc[-1] > 0) else np.nan
         rows[t] = dict(attr=attr, own_mult=own_m, promoters=prom,
                        opm_range=float(opm_s.max() - opm_s.min()) if len(opm_s) >= 3 else np.nan,
-                       np_drop=float((npy.pct_change().min())) if len(npy) >= 3 else np.nan,
-                       opm=np.nanmedian(piv["opm"]) if "opm" in piv else np.nan,
-                       roce=np.nanmedian(piv["roce"]) if "roce" in piv else np.nan,
-                       fa_int=float(piv["fixed_assets"].iloc[-1] / sales.iloc[-1]) if "fixed_assets" in piv and sales.iloc[-1] > 0 else np.nan,
-                       g3=_cagr(sales, 3), roe=float(np.nanmedian(piv["np"] / book)) if isinstance(book, pd.Series) else np.nan)
+                       np_drop=float(np_g_hist.min()) if len(npy) >= 3 and len(np_g_hist) else np.nan,
+                       opm=_med(piv["opm"]) if "opm" in piv else np.nan,
+                       roce=_med(piv["roce"]) if "roce" in piv else np.nan,
+                       fa_int=fa_val,
+                       g3=_cagr(sales, 3), roe=_med(roe_s))
     X = pd.DataFrame(rows).T
     X = X.join(F[["sector", "sector_granular", "pe", "pb", "marketCap"]], how="left")
     X["family"] = X["sector"].map(FAMILY).fillna("other")
@@ -376,8 +393,17 @@ def _screener_multiples(A, Q) -> pd.DataFrame:
     if Q is not None and not Q.empty:
         q = Q[(Q.field == "np") & Q.period.dt.month.isin([3, 6, 9, 12])].sort_values("period")
         fresh = q.period.max() - pd.Timedelta(days=270)
-        ttm = q.groupby("ticker").apply(
-            lambda g: g["value"].iloc[-4:].sum() if len(g) >= 4 and g["period"].iloc[-1] >= fresh else np.nan)
+        ttm_map = {}
+        for t_, g_ in q.groupby("ticker", sort=False):
+            g_ = g_.drop_duplicates(subset=["period"], keep="last")
+            if len(g_) < 4 or g_["period"].iloc[-1] < fresh:
+                continue
+            q4 = g_["period"].iloc[-4:].to_numpy()
+            if (pd.Timestamp(q4[-1]) - pd.Timestamp(q4[0])).days <= 395 and all(
+                (pd.Timestamp(q4[j]) - pd.Timestamp(q4[j - 1])).days <= 140 for j in range(1, 4)
+            ):
+                ttm_map[t_] = float(g_["value"].iloc[-4:].sum())
+        ttm = pd.Series(ttm_map, dtype=float)
         out["pe"] = (last.get("mcap_cr") / ttm.reindex(last.index)).where(lambda x: x > 0)
     if {"eq_cap", "reserves", "mcap_cr"} <= set(last.columns):
         book = last["eq_cap"].fillna(0) + last["reserves"]
@@ -659,7 +685,11 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     # interests; reported EPS does not. attr = latest FY EPS x shares / FY net profit (a split or bonus
     # since the FY pushes it above 1 -> ignored). < 60% = holding company -> out of scope (SOTP problem).
     attr = 1.0
-    basis = ctx.annual[ctx.annual.ticker == t].basis.iloc[0] if "basis" in ctx.annual else ""
+    if "basis" in ctx.annual.columns:
+        _b_sub = ctx.annual.loc[ctx.annual.ticker == t, "basis"].dropna()
+        basis = str(_b_sub.iloc[0]) if len(_b_sub) else ""
+    else:
+        basis = ""
     _np, _eps = A("np"), A("eps")
     if basis == "consolidated" and len(_np) and len(_eps) and _np.iloc[-1] > 0:
         ratio = float(_eps.iloc[-1] * shares / _np.iloc[-1])
@@ -700,14 +730,19 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         lo52 = float(min(mp.min(), price)) if len(mp) else np.nan
     hl_mid = (hi52 - lo52) / ((hi52 + lo52) / 2) if np.isfinite(hi52) and np.isfinite(lo52) else np.nan
     book = float(a_book.iloc[-1]) if len(a_book) else np.nan
-    bvps = book / shares if np.isfinite(book) else (price / float(f["pb"]) if f is not None and f.get("pb") else np.nan)
+    _f_pb = float(f["pb"]) if f is not None and pd.notna(f.get("pb")) else np.nan
+    bvps = book / shares if np.isfinite(book) else (price / _f_pb if np.isfinite(_f_pb) and _f_pb > 0 else np.nan)
     margins = (a_np / a_sales).replace([np.inf, -np.inf], np.nan).dropna()
     roe_hist = (a_np * attr / ((a_book + a_book.shift(1)) / 2)).dropna()
     roce_now = float(a_roce.dropna().iloc[-1]) / 100 if len(a_roce.dropna()) else np.nan
-    cfo_pat = float(a_cfo.iloc[-3:].sum() / a_np.iloc[-3:].sum()) if len(a_cfo) >= 3 and a_np.iloc[-3:].sum() > 0 else np.nan
-    fcf_pat = (float((a_cfo + a_cfi).dropna().iloc[-3:].sum() / a_np.iloc[-3:].sum())
-               if len((a_cfo + a_cfi).dropna()) >= 3 and a_np.iloc[-3:].sum() > 0 else np.nan)
-    de = float(a_borr.iloc[-1] / a_book.iloc[-1]) if len(a_borr) and len(a_book) and a_book.iloc[-1] > 0 else np.nan
+    _cfo_idx = a_cfo.index.intersection(a_np.index)[-3:]
+    cfo_pat = float(a_cfo.loc[_cfo_idx].sum() / a_np.loc[_cfo_idx].sum()) if len(_cfo_idx) >= 3 and a_np.loc[_cfo_idx].sum() > 0 else np.nan
+    _fcf_s = (a_cfo + a_cfi).dropna()
+    _fcf_idx = _fcf_s.index.intersection(a_np.index)[-3:]
+    fcf_pat = (float(_fcf_s.loc[_fcf_idx].sum() / a_np.loc[_fcf_idx].sum())
+               if len(_fcf_idx) >= 3 and a_np.loc[_fcf_idx].sum() > 0 else np.nan)
+    _de_idx = a_borr.index.intersection(a_book.index)
+    de = float(a_borr.loc[_de_idx[-1]] / a_book.loc[_de_idx[-1]]) if len(_de_idx) and a_book.loc[_de_idx[-1]] > 0 else np.nan
     spot_pe = price / ttm_eps
     spot_pb = price / bvps if np.isfinite(bvps) and bvps > 0 else np.nan
     out["snapshot"] = dict(price=price, shares_cr=shares, mcap_cr=mcap / 1e7, ttm_eps=ttm_eps, ttm_np_cr=ttm_np,
@@ -849,7 +884,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     out["score_total"], out["score_prob_key"], out["probs"] = total, total_r, probs
 
     # ---- Phase 1 scenarios -------------------------------------------------------------
-    g_hist = a_sales.pct_change().dropna().iloc[-5:]
+    g_hist = a_sales.pct_change(fill_method=None).where(a_sales.shift(1) > 0).dropna().iloc[-5:]
     ttm_yoy = np.nan
     if np.isfinite(ttm_sales) and len(q_sales) >= 8:
         prev4_vals = []
@@ -1060,7 +1095,7 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
             "bull": _ov(ov, "mult_bull", bull_m)}
     # Book floor for a bear branch that reaches (near-)losses: EPS x PE says ~0 there, which is
     # meaningless for a going concern; v4.1 floors that branch with book logic -> bear value >= 0.8 x BVPS
-    if ident != "BFSI" and np.isfinite(bvps) and bvps > 0:
+    if ident != "BFSI" and np.isfinite(bvps) and bvps > 0 and mult["bear"] > 0:
         floor_eps = 0.8 * bvps / mult["bear"]
         if any(x < floor_eps for x in lever["bear"]):
             # the floor lifts the bear branch only -- never to or above base (a book floor above the base case
@@ -1179,11 +1214,13 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     trig = np.isfinite(spot_mult) and spot_mult > mult["bull"]
     near = np.isfinite(spot_mult) and not trig and spot_mult >= 0.9 * mult["bull"]
     cf = sum(w[j] * lever["base"][j] * spot_mult / (1 + r) ** h for j, h in enumerate(H)) if np.isfinite(spot_mult) else np.nan
+    cf_s = f"{cf:.0f}" if np.isfinite(cf) else "n/a"
+    spot_s = f"{spot_mult:.1f}x" if np.isfinite(spot_mult) else "n/a"
     gates["D"] = dict(ok=True, triggered=bool(trig), near=bool(near), counterfactual=float(cf),
-                      detail=(f"spot {spot_mult:.1f}x vs bull {mult['bull']:.1f}x" +
-                              (f" -- MULTIPLE-DE-RATING CALL; base path at today's multiple = {cf:.0f}"
-                               + (" (above CMP)" if cf > price else "") if trig else
-                               f" -- near trigger; counterfactual {cf:.0f}" if near else "")))
+                      detail=(f"spot {spot_s} vs bull {mult['bull']:.1f}x" +
+                              (f" -- MULTIPLE-DE-RATING CALL; base path at today's multiple = {cf_s}"
+                               + (" (above CMP)" if np.isfinite(cf) and cf > price else "") if trig else
+                               f" -- near trigger; counterfactual {cf_s}" if near else "")))
     disp = (Q["P90"] - Q["P10"]) / Q["P50"] if Q["P50"] > 0 else np.nan
     e_ok = (not np.isfinite(hl_mid)) or disp >= 0.8 * hl_mid
     if conf == "LOW" and (pct > 95 or pct < 5):

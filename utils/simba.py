@@ -57,16 +57,43 @@ LOOKBACK = 60                      # "bars since" fields are reported within thi
 
 
 def _rma(s: pd.Series, n: int) -> pd.Series:
-    """Wilder's moving average, as Pine's ta.rma / ta.atr / ta.rsi use."""
-    return s.ewm(alpha=1.0 / n, adjust=False).mean()
+    """Wilder's moving average (SMA-seeded over the first `n` non-null bars, Pine ta.rma)."""
+    vals = pd.to_numeric(s, errors="coerce")
+    valid = vals.dropna()
+    out = pd.Series(np.nan, index=s.index, dtype="float64")
+    if len(valid) == 0:
+        return out
+    if len(valid) <= n:
+        # Short HTF histories (<= 14 diffs): avoid 100%-weight bar-0 lock and NaN on shifted HTF RSI
+        exp = valid.ewm(alpha=1.0 / n, adjust=True).mean()
+        out.loc[exp.index] = exp.values
+        return out
+    arr = valid.to_numpy(dtype="float64")
+    res = np.full(len(arr), np.nan, dtype="float64")
+    res[n - 1] = arr[:n].mean()
+    alpha = 1.0 / n
+    one_m = 1.0 - alpha
+    for i in range(n, len(arr)):
+        res[i] = alpha * arr[i] + one_m * res[i - 1]
+    out.loc[valid.index] = res
+    return out
 
 
 def _rsi(close: pd.Series, n: int = RSI_LEN) -> pd.Series:
-    d = close.diff()
-    up, dn = _rma(d.clip(lower=0), n), _rma(-d.clip(upper=0), n)
-    rs = up / dn.replace(0, np.nan)
-    out = 100 - 100 / (1 + rs)
-    return out.where(dn != 0, 100.0)
+    d = pd.to_numeric(close, errors="coerce").diff()
+    up = _rma(d.clip(lower=0), n)
+    dn = _rma((-d).clip(lower=0), n)
+    out = pd.Series(np.nan, index=close.index, dtype="float64")
+    valid = up.notna() & dn.notna()
+    both_zero = valid & (up == 0) & (dn == 0)
+    dn_zero = valid & (dn == 0) & (up > 0)
+    up_zero = valid & (up == 0) & (dn > 0)
+    normal = valid & (dn > 0) & (up > 0)
+    out.loc[normal] = 100.0 - 100.0 / (1.0 + (up.loc[normal] / dn.loc[normal]))
+    out.loc[both_zero] = 50.0
+    out.loc[dn_zero] = 100.0
+    out.loc[up_zero] = 0.0
+    return out
 
 
 def _htf_rsi(close: pd.Series, rule: str) -> pd.Series:
@@ -124,7 +151,8 @@ def chart_signals(df: pd.DataFrame, bench: Optional[pd.Series] = None) -> Dict[s
     slope_now = (maS - maS.shift(20)) / maS.shift(20) * 100
     slope_prev = (maS.shift(20) - maS.shift(60)) / maS.shift(60) * 100
     flat = slope_now.abs() < 1.0
-    stage = np.where(flat, np.where(slope_prev < 0, 1, 3), np.where(slope_now > 0, 2, 4))
+    # When slope_prev is NaN (170..209 bars), classify flat stocks as Stage 1 base rather than Stage 3 top.
+    stage = np.where(flat, np.where(slope_prev > 0, 3, 1), np.where(slope_now > 0, 2, 4))
 
     g = {
         1: (maS.shift(20) - maS.shift(20 + BASE_LEN)) / maS.shift(20 + BASE_LEN) * 100 <= DORM_MAX,
@@ -142,16 +170,17 @@ def chart_signals(df: pd.DataFrame, bench: Optional[pd.Series] = None) -> Dict[s
     base_range = (t_hi - t_lo) / t_lo * 100
     rng = h - l
     clv = ((c - l) / rng).where(rng > 0, 0.0)
+    vavg_prev = vol_avg.shift(1)
     m = {
         1: c > pivot,
         2: base_range <= MAX_RANGE,
-        3: v >= vol_avg.shift(1) * VOL_MULT,
+        3: (vavg_prev > 0) & (v >= vavg_prev * VOL_MULT),
         4: rng >= atr.shift(1) * SPREAD_MULT,
         5: (clv >= MIN_CLV) & (c > c.shift(1)),
     }
-    mach = m[1] & m[2] & m[3] & m[4] & m[5] & (vol_avg.shift(1) > 0)
-    dry_up = v.rolling(10).mean().shift(1) < vol_avg.shift(1) * 0.8
-    vol_x = v / vol_avg.shift(1)
+    mach = m[1] & m[2] & m[3] & m[4] & m[5]
+    dry_up = v.rolling(10).mean().shift(1) < vavg_prev * 0.8
+    vol_x = (v / vavg_prev).where(vavg_prev > 0)
     down_vol = v.where(c < c.shift(1), 0.0)
     pocket = (c > c.shift(1)) & (v > down_vol.rolling(10).max().shift(1)) & (c > maF) & ~mach
 
@@ -227,19 +256,34 @@ def chart_signals(df: pd.DataFrame, bench: Optional[pd.Series] = None) -> Dict[s
 # fundamentals (repo files, no network)
 # ----------------------------------------------------------------------------
 def _yoy(s: pd.Series) -> pd.Series:
-    """Year-on-year change vs the same quarter a year earlier, matched by date (gaps-safe)."""
+    """Year-on-year % change vs the same quarter a year earlier (requires positive prior base)."""
     prev = pd.Series(s.reindex(s.index - pd.DateOffset(years=1)).values, index=s.index)
-    return ((s - prev) / prev.abs() * 100).where(prev.abs() > 0)
+    return ((s - prev) / prev * 100).where(prev > 0)
+
+
+def _read_fund_parts(paths) -> pd.DataFrame:
+    frames = []
+    for path in paths:
+        if os.path.exists(path):
+            d = pd.read_csv(path)
+            if not d.empty:
+                frames.append(d)
+    if not frames:
+        return pd.DataFrame()
+    out = pd.concat(frames, ignore_index=True)
+    if {"ticker", "field", "period"} <= set(out.columns):
+        out["period"] = pd.to_datetime(out["period"])
+        out = out.drop_duplicates(subset=["ticker", "field", "period"], keep="last")
+    return out
 
 
 def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
     """One row per ticker: Earnings Reversal legs, quality and forensic checks."""
-    from utils import fund_paths
+    from utils import fund_paths, fund_trends
     p = lambda f: fund_paths.resolve(f, root=root)
     rows: Dict[str, Dict[str, Any]] = {}
-    if os.path.exists(p("data/fundamentals_quarterly.csv")):
-        Q = pd.read_csv(p("data/fundamentals_quarterly.csv"))
-        Q["period"] = pd.to_datetime(Q["period"])
+    Q = _read_fund_parts([p(fund_paths.QUARTERLY), p(fund_paths.EXT_QUARTERLY)])
+    if not Q.empty:
         Q = Q[Q.period.dt.month.isin([3, 6, 9, 12])]
         W = Q.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
         cutoff = pd.Timestamp.today() - pd.Timedelta(days=stale_days)
@@ -261,20 +305,28 @@ def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
                      np_g=None if pd.isna(ng.iloc[-1]) else round(float(ng.iloc[-1]), 1))
             last_np = n.iloc[-1]
             prev_np = n.get(g.index[-1] - pd.DateOffset(years=1), np.nan)
-            op_lev = bool(pd.notna(sg.iloc[-1]) and pd.notna(ng.iloc[-1]) and last_np > 0
-                          and sg.iloc[-1] >= 15 and ng.iloc[-1] >= 1.5 * sg.iloc[-1])
+            op_lev = bool(pd.notna(prev_np) and prev_np > 0 and pd.notna(sg.iloc[-1]) and pd.notna(ng.iloc[-1])
+                          and last_np > 0 and sg.iloc[-1] >= 15 and ng.iloc[-1] >= 1.5 * sg.iloc[-1])
             turn = bool(pd.notna(prev_np) and prev_np <= 0 < last_np)
-            accel = bool(len(ng.dropna()) >= 3 and last_np > 0 and ng.iloc[-1] > 0
-                         and ng.iloc[-1] > ng.iloc[-2] > ng.iloc[-3])
+            ng_clean = ng.dropna()
+            accel = False
+            if len(ng_clean) >= 3 and last_np > 0 and ng_clean.index[-1] == g.index[-1]:
+                q_span_ok = (ng_clean.index[-1] - ng_clean.index[-2]).days <= 105 and (
+                    ng_clean.index[-2] - ng_clean.index[-3]).days <= 105
+                accel = bool(q_span_ok and ng_clean.iloc[-1] > 0 and ng_clean.iloc[-1] > ng_clean.iloc[-2] > ng_clean.iloc[-3])
             npm_prev = npm.get(g.index[-1] - pd.DateOffset(years=1), np.nan)
             margin = bool(pd.notna(npm_prev) and pd.notna(npm.iloc[-1])
                           and npm.iloc[-1] - npm_prev >= 2.0 and last_np > 0)
             r.update(er_oplev=op_lev, er_turn=turn, er_accel=accel, er_margin=margin,
                      er=op_lev or turn or accel or margin)
-    if os.path.exists(p("data/fundamentals_annual.csv")):
-        A = pd.read_csv(p("data/fundamentals_annual.csv"))
-        A["period"] = pd.to_datetime(A["period"])
+    A = _read_fund_parts([p(fund_paths.ANNUAL), p(fund_paths.EXT_ANNUAL), p(fund_paths.EXTRA_ANNUAL)])
+    if not A.empty:
+        # Exclude scrape-date headline rows (mcap_cr/price_scr) so backwards 220-day dedup never drops the latest FY.
+        A = A[~A["field"].isin(["mcap_cr", "price_scr"])]
         W = A.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
+        pnl_cols = [c for c in ("sales", "np", "op") if c in W.columns]
+        if pnl_cols:
+            W = W[W[pnl_cols].notna().any(axis=1)]
         for t, g in W.groupby(level=0):
             g = g.droplevel(0).sort_index()
             kept_pos, last_dt = [], None
@@ -285,6 +337,9 @@ def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
                     last_dt = dt
             g = g.iloc[sorted(kept_pos)].tail(10)                               # keep FY-end switchers' history
             r = rows.setdefault(t, {})
+            lk = fund_trends.lender_kind(t, g)
+            if lk:
+                r["lender_kind"] = lk
             col = lambda f: g[f].dropna() if f in g else pd.Series(dtype=float)
             roce, opm = col("roce"), col("opm")
             if len(roce):
@@ -293,16 +348,26 @@ def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
                 r["roce_rising"] = bool(len(roce) >= 3 and roce.iloc[-1] > roce.iloc[-3])
             if len(opm) >= 4 and opm.tail(5).mean() > 0:
                 r["opm_cv"] = round(float(opm.tail(5).std() / opm.tail(5).mean()), 2)
-            cfo, op = col("cfo").tail(5), col("op").tail(5)
-            if len(cfo) >= 3 and op.sum() > 0:
-                r["cfo_ebitda"] = round(float(cfo.sum() / op.sum()), 2)
-            eq = col("eq_cap").add(col("reserves"), fill_value=0)
+            # Date-aligned multi-year ratios
+            cfo_s, op_s = col("cfo"), col("op")
+            common_cfo = cfo_s.index.intersection(op_s.index)[-5:]
+            if len(common_cfo) >= 3 and op_s.loc[common_cfo].sum() > 0:
+                r["cfo_ebitda"] = round(float(cfo_s.loc[common_cfo].sum() / op_s.loc[common_cfo].sum()), 2)
+            eq_cap = g["eq_cap"] if "eq_cap" in g else pd.Series(0.0, index=g.index)
+            res = g["reserves"] if "reserves" in g else pd.Series(np.nan, index=g.index)
+            eq = (eq_cap.fillna(0) + res).dropna()
             bor = col("borrowings")
-            if len(eq) and eq.iloc[-1] > 0:
-                r["de"] = round(float((bor.iloc[-1] if len(bor) else 0) / eq.iloc[-1]), 2)
+            common_de = bor.index.intersection(eq.index)
+            if len(common_de) and eq.loc[common_de[-1]] > 0:
+                r["de"] = round(float(bor.loc[common_de[-1]] / eq.loc[common_de[-1]]), 2)
             cw, fa = col("cwip"), col("fixed_assets")
-            if len(cw) and len(fa) and fa.iloc[-1] > 0:
-                r["cwip_fa"] = round(float(cw.iloc[-1] / fa.iloc[-1]), 2)
+            common_cw = cw.index.intersection(fa.index)
+            if len(common_cw) and fa.loc[common_cw[-1]] > 0:
+                r["cwip_fa"] = round(float(cw.loc[common_cw[-1]] / fa.loc[common_cw[-1]]), 2)
+            np_a = col("np")
+            common_roe = np_a.index.intersection(eq.index)
+            if len(common_roe) and eq.loc[common_roe[-1]] > 0:
+                r["roe"] = round(float(np_a.loc[common_roe[-1]] / eq.loc[common_roe[-1]] * 100), 1)
     out = pd.DataFrame.from_dict(rows, orient="index")
     out.index.name = "ticker"
     return out.reset_index()
@@ -383,7 +448,12 @@ def industry_stages(df: pd.DataFrame) -> Dict[str, str]:
 # scoring
 # ----------------------------------------------------------------------------
 def _b(x) -> bool:
-    return bool(x) if x is not None and not (isinstance(x, float) and np.isnan(x)) else False
+    if x is None:
+        return False
+    try:
+        return False if pd.isna(x) else bool(x)
+    except Exception:
+        return bool(x)
 
 
 def _f(x) -> float:
@@ -397,16 +467,23 @@ def _f(x) -> float:
 def score_table(df: pd.DataFrame, regime: Dict[str, Any], fund: Optional[pd.DataFrame] = None,
                 ind: Optional[Dict[str, str]] = None) -> pd.DataFrame:
     """The document's 100-point score, grade and hard gates, one row per stock with SIMBA fields."""
-    if "simba_stage" not in df.columns:
+    if df is None or df.empty or "simba_stage" not in df.columns:
         return pd.DataFrame()
-    x = df[df["simba_stage"].notna()].copy()
+    x = df[df["simba_stage"].notna()].drop_duplicates(subset=["ticker"], keep="last").copy()
+    if x.empty:
+        return pd.DataFrame()
     if fund is not None and not fund.empty:
-        x = x.merge(fund, on="ticker", how="left")
+        f_dedup = fund.drop_duplicates(subset=["ticker"], keep="last")
+        x = x.merge(f_dedup, on="ticker", how="left", suffixes=("", "_f"))
     ind = ind or {}
+    core_mask = (x["extended"] != True) if "extended" in x.columns else pd.Series(True, index=x.index)
     r6 = pd.to_numeric(x["return_6m"] if "return_6m" in x.columns else pd.Series(np.nan, index=x.index), errors="coerce")
-    x["rs_rating"] = (r6.rank(pct=True) * 98 + 1).round(0)
-    sec_pe = pd.to_numeric(x["pe"] if "pe" in x.columns else pd.Series(np.nan, index=x.index), errors="coerce").where(lambda s: s > 0)
-    x["pe_vs_sector"] = sec_pe / sec_pe.groupby(x.get("sector", pd.Series("", index=x.index))).transform("median")
+    r6_core = r6.where(core_mask)
+    x["rs_rating"] = (r6_core.rank(pct=True) * 98 + 1).round(0)
+    sec_pe = pd.to_numeric(x["pe"] if "pe" in x.columns else pd.Series(np.nan, index=x.index), errors="coerce")
+    sec_pe = sec_pe.replace([np.inf, -np.inf], np.nan).where(lambda s: (s > 0) & (s < 500))
+    sec_med = sec_pe.where(core_mask).groupby(x.get("sector", pd.Series("", index=x.index))).transform("median")
+    x["pe_vs_sector"] = sec_pe / sec_med
     reg = regime.get("regime", "UNKNOWN")
     rows = []
     for _, r in x.iterrows():
@@ -420,11 +497,17 @@ def score_table(df: pd.DataFrame, regime: Dict[str, Any], fund: Optional[pd.Data
         ma = 0
         if m_recent:
             ma = 12 + (3 if _f(r.get("simba_vol_x_m")) >= 3 else 0) + (2 if _b(r.get("simba_dryup")) else 0) + \
-                 (2 if r.get("simba_good_wc") is True else 0)
+                 (2 if _b(r.get("simba_good_wc")) else 0)
         q = 0
         if er:
             q += 12 if _b(r.get("er_oplev")) else 10
-        q += 4 if _f(r.get("roce")) >= 20 else 0
+        is_lender = bool(r.get("lender_kind")) and pd.notna(r.get("lender_kind"))
+        roce_v = _f(r.get("roce"))
+        roe_v = _f(r.get("roe"))
+        if np.isfinite(roce_v):
+            q += 4 if roce_v >= 20 else 0
+        elif is_lender and np.isfinite(roe_v):
+            q += 4 if roe_v >= 15 else 0
         q += 4 if _f(r.get("opm_cv")) <= 0.25 else 0
         pe_rel = _f(r.get("pe_vs_sector"))
         q += 4 if (np.isfinite(pe_rel) and pe_rel <= 2.0) else 0
@@ -433,17 +516,22 @@ def score_table(df: pd.DataFrame, regime: Dict[str, Any], fund: Optional[pd.Data
         mtf = {3: 5, 2: 3}.get(int(_f(r.get("simba_mtf")) if np.isfinite(_f(r.get("simba_mtf"))) else 0), 0)
         total = top + gh + ma + q + flow + mtf
 
-        px = _f(r.get("currentPrice", r.get("price")))
+        px = _f(r.get("currentPrice"))
+        if not np.isfinite(px):
+            px = _f(r.get("price"))
         adv = _f(r.get("averageVolume")) * px
         base_low = _f(r.get("simba_base_low"))
-        stop_pct = (px - base_low) / px * 100 if np.isfinite(base_low) and px > 0 else np.nan
+        stop_pct = (px - base_low) / px * 100 if np.isfinite(base_low) and np.isfinite(px) and px > 0 else np.nan
         gates = []
         if not (adv >= 5e7):
             gates.append("liquidity < ₹5 cr/day")
-        if px < 20:
+        if not (np.isfinite(px) and px >= 20):
             gates.append("price < ₹20")
         de_v, cfo_v = _f(r.get("de")), _f(r.get("cfo_ebitda"))
-        if not np.isfinite(de_v) or not np.isfinite(cfo_v) or de_v > 1 or cfo_v < 0.6:
+        if is_lender:
+            if np.isfinite(roe_v) and roe_v < 8.0:
+                gates.append("lender ROE < 8%")
+        elif not np.isfinite(de_v) or not np.isfinite(cfo_v) or de_v > 1 or cfo_v < 0.6:
             gates.append("forensics (D/E > 1, CFO/EBITDA < 60%, or missing)")
         if reg == "BEAR CONTRACTION" and not (_f(r.get("rs_rating")) >= 90 and er):
             gates.append("bear contraction")

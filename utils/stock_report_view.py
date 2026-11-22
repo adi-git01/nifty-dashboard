@@ -12,7 +12,7 @@ from utils.industry_board_view import get_board
 
 
 @st.cache_data(ttl=6 * 3600, show_spinner="Scoring SIMBA…")
-def _simba(key: str, reg_name: str, _df: pd.DataFrame) -> pd.DataFrame:
+def _simba(key: str, fund_stamp: tuple, reg_name: str, _df: pd.DataFrame) -> pd.DataFrame:
     from utils import simba
     from utils.simba_view import _fundamentals
     try:
@@ -23,6 +23,13 @@ def _simba(key: str, reg_name: str, _df: pd.DataFrame) -> pd.DataFrame:
     keep = [c for c in ("ticker", "score", "grade", "gates", "rs_rating", "industry_stage", "pts_topdown", "pts_ghoomega",
                         "pts_machayega", "pts_quality", "pts_float", "pts_mtf") if c in S.columns]
     return S[keep].set_index("ticker") if len(S) else pd.DataFrame()
+
+
+def _simba_fund_stamp() -> tuple:
+    import os
+    from utils import fund_paths
+    files = (fund_paths.QUARTERLY, fund_paths.ANNUAL, fund_paths.EXT_QUARTERLY, fund_paths.EXT_ANNUAL, fund_paths.EXTRA_ANNUAL)
+    return tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in files))
 
 
 def _bars(t: pd.DataFrame, bar: str, line: str, bar_name: str, line_name: str, title: str) -> go.Figure:
@@ -141,7 +148,8 @@ def render(df: pd.DataFrame):
     srow = None
     if with_simba:
         try:
-            S = _simba(fv.snap_key(df) + (f"|{t}" if is_ext else ""), fv.simba_regime(df).get("regime", "UNKNOWN"), df)
+            S = _simba(fv.snap_key(df) + (f"|{t}" if is_ext else ""), _simba_fund_stamp(),
+                       fv.simba_regime(df).get("regime", "UNKNOWN"), df)
             srow = S.loc[t].to_dict() if t in S.index else None
         except Exception:
             srow = None

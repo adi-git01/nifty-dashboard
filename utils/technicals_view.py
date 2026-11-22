@@ -52,27 +52,55 @@ def _edges() -> dict:
     return {r["case"]: (r.get("3mo vsTypical"), r.get("6mo vsTypical"), r.get("yrs 3mo>0")) for r in t.to_dict("records")}
 
 
+def _as_bool(x) -> bool:
+    if isinstance(x, (bool, np.bool_)):
+        return bool(x)
+    if x is None or (isinstance(x, float) and np.isnan(x)):
+        return False
+    return str(x).strip().lower() in ("true", "1", "yes")
+
+
 def _cell(row) -> str:
     """Most specific backtested cell for this row."""
-    if row.get("fx_gate1") is not True:
+    if not _as_bool(row.get("fx_gate1")):
         return ""
     s, sup, sig = row.get("fx_state"), row.get("fx_supply"), row.get("fx_signature")
     if s == "GO":
         if sig == "ABSORPTION" and sup != "NEAR OVERHANG":
             return "BUY NOW + absorption"
-        if row.get("fx_shakeout") is True:
+        if _as_bool(row.get("fx_shakeout")):
             return "v6 GO + shakeout (v6-only probe)"
         return "BUY ON TRIGGER (GO + near overhang)" if sup == "NEAR OVERHANG" else "BUY NOW (GO, no near overhang)"
     return s if isinstance(s, str) else ""
 
 
+def _history_mode(ticker: str, source: str | None = None) -> pd.DataFrame:
+    from utils.yf_safe import safe_history
+    from utils.fast_data_engine import _sanitize_price_bars
+    h = safe_history(ticker, period="2y", source=source)
+    if h is None or h.empty:
+        return pd.DataFrame()
+    h = h.copy()
+    if getattr(h.index, "tz", None) is not None:
+        h.index = h.index.tz_localize(None)
+    h = _sanitize_price_bars(h)
+    try:
+        from utils import nse_prices
+        is_nse = (source != "yahoo") and (str(ticker).endswith(".NS") or str(ticker).startswith("^")) and nse_prices.is_current()
+        h.attrs["source"] = "NSE Bhavcopy daily" if is_nse else ("Yahoo Finance live" if source == "yahoo" else "Yahoo Finance daily")
+    except Exception:
+        pass
+    return h
+
+
 @st.cache_data(ttl=900, show_spinner=False)
 def _history(ticker: str) -> pd.DataFrame:
-    from utils.yf_safe import safe_history
-    h = safe_history(ticker, period="2y")
-    if h is not None and not h.empty and h.index.tz is not None:
-        h.index = h.index.tz_localize(None)
-    return h
+    return _history_mode(ticker, None)
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _history_live(ticker: str) -> pd.DataFrame:
+    return _history_mode(ticker, "yahoo")
 
 
 def render(df: pd.DataFrame):
@@ -97,15 +125,16 @@ def _table(df: pd.DataFrame):
     from utils.breakout_tags import load_industry_scores
     from utils.nifty1000_list import SUB_INDUSTRY_MAP
 
-    d = df.copy()
+    d = df[df["extended"] != True].copy() if "extended" in df.columns else df.copy()
     d["sub_industry"] = d["ticker"].map(SUB_INDUSTRY_MAP)
     d["ind_score"] = pd.to_numeric(d["sub_industry"].map(load_industry_scores()), errors="coerce")
     if "fx_dist_hi" not in d:
         d["fx_dist_hi"] = np.nan
     for c in ("fx_gate1", "fx_shakeout", "fx_half_size", "fx_gap"):
-        d[c] = d[c].map(lambda x: True if x is True or x == "True" or x == 1 else False) if c in d else False
-    price = pd.to_numeric(d.get("price", d.get("currentPrice")), errors="coerce")
-    d["price"] = price
+        d[c] = d[c].map(_as_bool) if c in d else False
+    px_main = pd.to_numeric(d["price"], errors="coerce") if "price" in d else pd.Series(np.nan, index=d.index)
+    px_cur = pd.to_numeric(d["currentPrice"], errors="coerce") if "currentPrice" in d else pd.Series(np.nan, index=d.index)
+    d["price"] = px_main.fillna(px_cur)
     from utils.valuation_view import QUALITY_LEVELS, VAL_BUCKETS, snapshot_date, table_columns
     d = table_columns(d)
 
@@ -182,26 +211,28 @@ def _table(df: pd.DataFrame):
     v["edge_years"] = [E.get(c, (None, None, ""))[2] for c in cells]
     stop = pd.to_numeric(v.fx_stop, errors="coerce")
     entry = pd.to_numeric(v.fx_entry, errors="coerce").fillna(v.price) if "fx_entry" in v else v.price   # trigger price for BUY ON TRIGGER
-    risk_ps = (entry - stop).where(lambda x: x > 0)
+    stop_valid = stop.notna() & (stop > 0) & v.price.notna() & (v.price > 0) & (stop < v.price) & (stop < entry)
+    risk_ps = (entry - stop).where(stop_valid)
     risk_rs = cap * riskp / 100 * np.where(v.fx_half_size, 0.5, 1.0)
     slot = cap / int(maxpos)
     by_risk = np.floor(risk_rs / risk_ps)
     by_slot = np.floor(slot / entry)
-    # no valid stop (price at or below it) -> no position; np.fmin would otherwise ignore the NaN risk
-    # and hand out a full slot
-    valid = risk_ps.notna()
+    # no valid stop (<= 0 or price at/below it) -> no position
+    valid = stop_valid & risk_ps.notna()
     v["shares"] = np.where(valid, np.fmin(by_risk, by_slot), 0)
     v["shares"] = pd.to_numeric(v["shares"], errors="coerce").fillna(0).astype(int)
     v["sized_by"] = np.where(~valid, "no valid stop",
                              np.where(by_risk <= by_slot, "stop risk" + np.where(v.fx_half_size, " (½)", ""), "slot cap"))
-    v["buy_value"] = (v.shares * v.price).round(0)
+    v["buy_value"] = (v["shares"] * entry).round(0)
     v["fx_retention"] = pd.to_numeric(v.fx_retention, errors="coerce") * 100
     v["trigger"] = np.where(v.fx_supply == "NEAR OVERHANG", pd.to_numeric(v.fx_shelf_top, errors="coerce"), np.nan)
     v["state_l"] = v.fx_state.map(STATE_LABEL).fillna("")
     v["supply_l"] = v.fx_supply.map(SUPPLY_LABEL).fillna("")
     v["flags"] = (np.where(v.fx_signature == "ABSORPTION", "⭐ ", "") + np.where(v.fx_shakeout, "🪤 ", "")
                   + np.where(v.fx_gap, "↗️ gap ", "") + np.where(v.fx_signature == "DISTRIBUTION", "dist. ", ""))
-    v["link"] = "https://www.screener.in/company/" + v.ticker.str.replace(".NS", "", regex=False) + "/"
+    _bare_tk = v.ticker.astype(str).str.replace(".NS", "", regex=False).str.replace(".BO", "", regex=False)
+    v["link"] = "https://www.screener.in/company/" + _bare_tk + "/"
+    v["_bare_tk"] = _bare_tk
     order = {a: k for k, a in enumerate(ACTIONS)}
     v = v.assign(_o=v.fx_action.map(order)).sort_values(["_o", "edge_6m", "ind_score"],
                                                         ascending=[True, False, False], na_position="last")
@@ -271,8 +302,16 @@ def _table(df: pd.DataFrame):
         },
         height=520, use_container_width=True, hide_index=True,
     )
-    st.download_button("⬇️ Download CSV", v[cols].to_csv(index=False).encode(), "technicals.csv", "text/csv",
+    _dl_cols = ["ticker"] + [c for c in cols if c not in ("link", "ticker")]
+    st.download_button("⬇️ Download CSV", v[_dl_cols].to_csv(index=False).encode(), "technicals.csv", "text/csv",
                        key="tx_dl")
+
+
+def _norm_nse_ticker(raw: str) -> str:
+    s = str(raw or "").strip().upper()
+    if not s or s.endswith((".NS", ".BO")) or s.startswith("^"):
+        return s
+    return s + ".NS"
 
 
 def _deep_dive(df: pd.DataFrame):
@@ -283,22 +322,24 @@ def _deep_dive(df: pd.DataFrame):
         return _deep_dive_us()
     st.caption("Fresh 2-year daily bars, same logic as the table. While NSE is open, today's candle is treated as "
                "provisional and left out.")
-    tickers = sorted(df["ticker"].dropna().unique().tolist()) if "ticker" in df else []
+    core_df = df[df["extended"] != True] if (df is not None and "extended" in df.columns) else df
+    tickers = sorted(core_df["ticker"].dropna().unique().tolist()) if core_df is not None and "ticker" in core_df else []
     c1, c2, c3, c4 = st.columns([2, 1, 1, 1])
     with c1:
         pick = st.selectbox("Stock", tickers, index=None, placeholder="Choose a stock", key="tx_pick")
         custom = st.text_input("…or any NSE symbol", value="", key="tx_custom", placeholder="e.g. ASIANHOTNR")
     # a stock you hold: fill buy price and date from My Book, once per stock picked (your edits then stand)
-    t0 = custom.strip().upper() or pick
-    t0 = (t0 if not t0 or t0.endswith(".NS") or t0.startswith("^") else t0 + ".NS")
+    t0 = _norm_nse_ticker(custom.strip().upper() or pick)
     mine = _holding(t0, set(tickers))
     for k, v in (("tx_held", False), ("tx_hp", 0.0), ("tx_hd", None)):
         st.session_state.setdefault(k, v)                   # defaults live here, so filling them in raises no widget warning
     if t0 and st.session_state.get("tx_filled_for") != t0:
         st.session_state["tx_filled_for"] = t0
         if mine:
+            from utils import positions as _pos
+            _fac, _ = _pos.split_factor_for_position(mine, t0)
             st.session_state["tx_held"] = True
-            st.session_state["tx_hp"] = float(mine.get("entry_price") or 0.0)
+            st.session_state["tx_hp"] = round(float(mine.get("entry_price") or 0.0) * _fac, 2)
             try:
                 st.session_state["tx_hd"] = pd.Timestamp(mine["entry_date"]).date() if mine.get("entry_date") else None
             except Exception:
@@ -313,28 +354,33 @@ def _deep_dive(df: pd.DataFrame):
         hd = st.date_input("Since", key="tx_hd", disabled=not held)
     risk = st.number_input("Risk per trade (₹)", min_value=500.0, value=10000.0, step=500.0, key="tx_riskrs")
     if mine:
-        st.caption(f"📒 In My Book: {mine.get('quantity') or '?'} shares @ ₹{float(mine.get('entry_price') or 0):,.2f} since "
-                   f"{str(mine.get('entry_date') or '?')[:10]}" + (f", stop ₹{float(mine['stop_loss']):,.2f}" if mine.get("stop_loss") else
+        from utils import positions as _pos
+        _fac, _basis = _pos.split_factor_for_position(mine, t0)
+        _adj_ep = float(mine.get("entry_price") or 0) * _fac
+        _sl_adj = float(mine["stop_loss"]) * _fac if mine.get("stop_loss") else 0.0
+        _split_txt = f" (split-adjusted ×{_fac:.3g})" if _fac != 1.0 else ""
+        st.caption(f"📒 In My Book: {mine.get('quantity') or '?'} shares @ ₹{_adj_ep:,.2f}{_split_txt} since "
+                   f"{str(mine.get('entry_date') or '?')[:10]}" + (f", stop ₹{_sl_adj:,.2f}" if _sl_adj else
                    ", no stop set") + ". Filled in above.")
-    t = custom.strip().upper() or pick
+    t = _norm_nse_ticker(custom.strip().upper() or pick)
     if not t:
         return
-    if not t.endswith(".NS") and not t.startswith("^"):
-        t += ".NS"
     if held and (hp <= 0 or hd is None):
         st.warning("Held mode needs the buy price and date (the exit rule tracks the peak since then).")
         return
-    key = (t, hp if held else None, str(hd) if held else None, risk)
-    if st.button(f"Run report for {t.replace('.NS', '')}", key="tx_run", type="primary"):
+    live_src = "yahoo" if st.session_state.get("_loaded_live_mode") else None
+    key = (t, hp if held else None, str(hd) if held else None, risk, live_src)
+    if st.button(f"Run report for {t.replace('.NS', '').replace('.BO', '')}", key="tx_run", type="primary"):
         st.session_state["tx_last"] = key
     if st.session_state.get("tx_last") != key:
         return
     with st.spinner("Fetching 2 years of daily bars…"):
-        h = _history(t)
+        h = _history_live(t) if live_src == "yahoo" else _history(t)
     if h is None or h.empty:
         st.error(f"No data for {t}.")
         return
-    _visual_report(h, t.replace(".NS", ""), hp if held else None, hd if held else None, risk)
+    _is_ext = t.endswith(".NS") and t not in set(tickers)
+    _visual_report(h, t.replace(".NS", ""), hp if held else None, hd if held else None, risk, extended=_is_ext)
     if held and mine:
         _update_holding(h, mine, hp, hd, risk)
 
@@ -380,7 +426,7 @@ def _deep_dive_us():
     if st.session_state.get("tx_us_last") != key:
         return
     with st.spinner("Fetching 2 years of daily bars…"):
-        h = _history(t)
+        h = _history_live(t)
     if h is None or h.empty:
         st.error(f"No data for {t}.")
         return
@@ -441,14 +487,14 @@ def _update_holding(h: pd.DataFrame, mine: dict, hp: float, hd, risk: float):
         st.rerun()
 
 
-def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
+def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False, extended: bool = False):
     """Entry, stop, targets and value zones in one place, with the dates the data is from."""
     from utils import trade_plan
     from utils.valuation import _series, value_stock
     from utils.valuation_view import ctx as _val_ctx, ctx_us as _val_ctx_us
     r, val, c = P["r"], None, None
     try:
-        c = _val_ctx_us() if us else _val_ctx()
+        c = _val_ctx_us() if us else _val_ctx(extended=extended)
         if not c.annual.empty:
             hh = h.tail(252)
             val = value_stock(name, c, price=float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))
@@ -476,7 +522,7 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
             if os.path.exists(us_qf):
                 fresh.append(f"SEC filings refreshed {pd.Timestamp(os.path.getmtime(us_qf), unit='s'):%d %b %Y}")
         else:
-            t = name if name.endswith(".NS") else name + ".NS"
+            t = name if name.endswith((".NS", ".BO")) else name + ".NS"
             q = _series(c.quarterly, t, "np")
             if len(q):
                 age = (pd.Timestamp.today() - q.index.max()).days
@@ -491,8 +537,8 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False):
     return val
 
 
-def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: float):
-    from utils.forensics import SUPPLY_LABEL, events, plan, report
+def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: float, extended: bool = False):
+    from utils.forensics import SUPPLY_LABEL, _p, events, plan, report
     from utils.forensics_chart import levels_ladder, price_chart, retention_chart
 
     P = plan(h, held_price, held_date, risk)
@@ -500,6 +546,7 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
         st.error(f"{name}: fewer than 60 closed sessions -- aborted.")
         return
     r = P["r"]
+    dc = P["df"]
     us = P.get("currency") == "USD"
     cur = "$" if us else "₹"
     cfg = {"displayModeBar": False}
@@ -512,27 +559,28 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
                 "BUY ON TRIGGER; held mode applies the exit rule")
     k[1].metric("Event", r["state"], f"day {r['days']}" if "days" in r else None, delta_color="off")
     k[2].metric("Supply", SUPPLY_LABEL.get(r["supply"], r["supply"]))
-    if r["stop"] < r["close"]:
+    if np.isfinite(r["stop"]) and 0 < r["stop"] < r["close"]:
         k[3].metric("Stop", f"{cur}{r['stop']:,.2f}", f"-{r['stop_pct']:.1f}%" + (" · ½ size" if r["half_size"] else ""),
                     delta_color="inverse")
     else:
-        k[3].metric("Stop", "—", "price below stop", delta_color="off")
+        k[3].metric("Stop", "—", "stop invalid (<= 0)" if not (np.isfinite(r["stop"]) and r["stop"] > 0) else "price below stop", delta_color="off")
     if P["trigger"]:
         k[4].metric("Trigger (close >)", f"{cur}{P['trigger']:,.2f}", f"{(P['trigger'] / r['close'] - 1) * 100:+.1f}%",
                     delta_color="off")
     else:
         k[4].metric("Trend (Gate 1)", "PASS" if r["gate1"] else "FAIL",
                     f"{r['dist_ma50']:+.1f}% vs MA50", delta_color="off")
-    k[5].metric("Size", f"{P['shares']:,} sh", f"{cur}{P['shares'] * r['close']:,.0f}", delta_color="off",
-                help=f"Risk {cur}{risk:,.0f} ÷ (close − stop), halved when the stop is wider than 10%")
+    _entry_px = r.get("entry", r["close"])
+    k[5].metric("Size", f"{P['shares']:,} sh", f"{cur}{P['shares'] * _entry_px:,.0f}", delta_color="off",
+                help=f"Risk {cur}{risk:,.0f} ÷ ({'trigger' if P['trigger'] else 'close'} − stop), halved when the stop is wider than 10%")
 
-    val = _trade_plan_card(P, name, h, us=us)
+    val = _trade_plan_card(P, name, dc, us=us, extended=extended)
     st.plotly_chart(price_chart(P, name), use_container_width=True, config=cfg)
 
     if P.get("currency", "INR") == "INR":                        # NSE delivery %, surveillance, next results (utils/nse_data.py)
         try:
             from utils import nse_data as _nd
-            _t = name if name.endswith(".NS") else name + ".NS"
+            _t = name if name.endswith((".NS", ".BO")) else name + ".NS"
             _dp = _nd.delivery_panel(20)
             _bits = []
             if len(_dp) and _t in _dp.columns and _dp[_t].notna().any():
@@ -562,27 +610,30 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
         if P["trig_b"]:
             notes.append(f"**Trigger B** · {P['trig_b']}")
         if sig:
-            notes.append(f"**Pullback** · {sig.lower()} -- down days {r['dn_vs_med']:.2f}× median volume"
+            notes.append(f"**Pullback** · {sig.lower()} -- down days {_p(r.get('dn_vs_med'), 2)}× median volume"
                          + (" ⭐ (best backtested cell with GO)" if sig == "ABSORPTION" else "")
                          + (" (not a warning in the backtest)" if sig == "DISTRIBUTION" else ""))
         if r.get("shakeout"):
-            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke {cur}{r['shakeout_level']:,.2f} "
-                         f"intraday, closed back above on {r['shakeout_volx']:.2f}× volume")
-        notes.append(f"**Lens** · RSI {r['rsi']:.0f} · ADX {r['adx']:.0f} (+DI {r['pdi']:.0f} / −DI {r['ndi']:.0f}) · "
-                     f"Bollinger width {r['bbp']:.0f} pct" + (" (squeeze)" if r["bbp"] < 20 else ""))
-        ex = (f"**Exit rule** · MA50 {cur}{r['ma50']:,.2f} ({r['dist_ma50']:+.1f}%), closes below {r['closes_below_ma50']}/2"
+            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke {cur}{_p(r['shakeout_level'])}"
+                         f" intraday, closed back above on {_p(r['shakeout_volx'], 2)}× volume")
+        _sq = " (squeeze)" if np.isfinite(r.get("bbp", np.nan)) and r["bbp"] < 20 else ""
+        notes.append(f"**Lens** · RSI {_p(r.get('rsi'), 0)} · ADX {_p(r.get('adx'), 0)} (+DI {_p(r.get('pdi'), 0)} / −DI {_p(r.get('ndi'), 0)}) · "
+                     f"Bollinger width {_p(r.get('bbp'), 0)} pct{_sq}")
+        ex = (f"**Exit rule** · MA50 {cur}{_p(r['ma50'])} ({r['dist_ma50']:+.1f}%), closes below {r['closes_below_ma50']}/2"
               + (f" · trail {cur}{P['trail']:,.2f} (0.85 × peak {cur}{P['peak']:,.2f})" if P["held"] else "")
               + (f" · **FIRED {pd.Timestamp(P['fired']):%d %b %Y}**" if P["fired"] is not None else " · not fired"))
         notes.append(ex)
         st.markdown("\n\n".join(f"- {n}" for n in notes))
 
-    ev = events(P["df"])
+    ev = events(dc)
     if len(ev):
         st.markdown(f"**Volume events, last 60 sessions** (≥ 3× median volume, ≥ {'$0.6M' if us else '₹5 cr'}) -- the "
                     "highest-volume one is the anchor")
-        show = ev.assign(date=ev.date.dt.strftime("%d %b %Y"), anchor=np.where(ev.anchor, "⚓", ""),
-                         turnover_cr=ev.turnover_cr * (10 if us else 1),
-                         retention=ev.retention * 100).sort_values("date", ascending=False)
+        show = ev.sort_values("date", ascending=False).assign(
+            date=lambda d_: pd.to_datetime(d_["date"]).dt.strftime("%d %b %Y"),
+            anchor=np.where(ev.sort_values("date", ascending=False).anchor, "⚓", ""),
+            turnover_cr=lambda d_: d_["turnover_cr"] * (10 if us else 1),
+            retention=lambda d_: d_["retention"] * 100)
         st.dataframe(show[["anchor", "date", "vol_ratio", "clv", "direction", "turnover_cr", "close", "low", "days",
                            "retention", "state"]],
                      column_config={"anchor": "", "date": "Date",
@@ -597,11 +648,11 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
                                     "state": "Graded as anchor"},
                      hide_index=True, use_container_width=True)
     with st.expander("🧾 Full v6 report (text)"):
-        st.code(report(h, name, P=P), language=None)
+        st.code(report(dc, name, P=P), language=None)
     st.divider()
     from utils.valuation_view import render_stock
-    hh = h.tail(252)
+    hh = dc.tail(252)
     render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
                  tech_buy=P["r"]["action"] == "BUY NOW" and not P["held"],
                  below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]),
-                 market="US" if us else "IN", precomputed=val)
+                 market="US" if us else "IN", precomputed=val, extended=extended)

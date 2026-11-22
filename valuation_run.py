@@ -39,13 +39,20 @@ def main():
         print(f"[valuation] could not save peer features: {e}")
     files = sorted(glob.glob("data/cache/market_master_*.parquet"))
     snap = pd.read_parquet(files[-1]) if files else pd.DataFrame()
-    px = snap.set_index("ticker") if not snap.empty else pd.DataFrame()
+    if not snap.empty and "extended" in snap.columns:
+        snap = snap[snap["extended"] != True]
+    px = snap.drop_duplicates(subset=["ticker"], keep="last").set_index("ticker") if not snap.empty else pd.DataFrame()
     tickers = sorted(set(ctx.annual.ticker) & set(px.index)) if not px.empty else sorted(set(ctx.annual.ticker))
     rows, t0 = [], time.time()
     for k, t in enumerate(tickers):
-        price = float(px.at[t, "price"]) if t in px.index and pd.notna(px.at[t, "price"]) else None
-        hi = float(px.at[t, "fiftyTwoWeekHigh"]) if t in px.index and "fiftyTwoWeekHigh" in px else None
-        lo = float(px.at[t, "fiftyTwoWeekLow"]) if t in px.index and "fiftyTwoWeekLow" in px else None
+        price = None
+        if t in px.index:
+            for _pcol in ("price", "currentPrice"):
+                if _pcol in px.columns and pd.notna(px.at[t, _pcol]):
+                    price = float(px.at[t, _pcol])
+                    break
+        hi = float(px.at[t, "fiftyTwoWeekHigh"]) if t in px.index and "fiftyTwoWeekHigh" in px and pd.notna(px.at[t, "fiftyTwoWeekHigh"]) else None
+        lo = float(px.at[t, "fiftyTwoWeekLow"]) if t in px.index and "fiftyTwoWeekLow" in px and pd.notna(px.at[t, "fiftyTwoWeekLow"]) else None
         try:
             res = value_stock(t, ctx, price=price, knobs=True, hi52=hi, lo52=lo)
         except Exception as e:                       # one bad stock must not stop the run
@@ -54,7 +61,12 @@ def main():
         if (k + 1) % 200 == 0:
             print(f"[valuation] {k + 1}/{len(tickers)} ({time.time() - t0:.0f}s)", flush=True)
     T = pd.DataFrame(rows)
-    T["as_of"] = files[-1].split("master_")[1][:10].replace("_", "-") if files else ""
+    try:
+        from utils.snapshots import bar_date as _snap_bar_date
+        _bd = _snap_bar_date(snap, files[-1] if files else None)
+        T["as_of"] = _bd.strftime("%Y-%m-%d") if _bd is not None else ""
+    except Exception:
+        T["as_of"] = files[-1].split("master_")[1][:10].replace("_", "-") if files else ""
     T.to_csv(OUT, index=False)
     ok = T[T.status == "OK"]
     print(f"[valuation] {len(T)} stocks in {time.time() - t0:.0f}s -> {OUT}")

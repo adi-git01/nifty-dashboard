@@ -39,8 +39,8 @@ def _snapshot(mtime: float) -> pd.DataFrame:
 
 
 @st.cache_resource(ttl=6 * 3600, show_spinner=False)
-def _ctx(key: tuple):
-    return load_context()
+def _ctx(key: tuple, extended: bool = False):
+    return load_context(extended=extended)
 
 
 @st.cache_resource(ttl=6 * 3600, show_spinner=False)
@@ -58,10 +58,13 @@ def ctx_us():
     return _ctx_us(_ctx_stamp(US_FILES.values()))
 
 
-def ctx():
+def ctx(extended: bool = False):
     files = ("data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv",
-             "data/monthly_prices.csv", "data/valuation_overrides.csv")
-    return _ctx(_ctx_stamp(files))
+             "data/monthly_prices.csv", "data/fundamentals_cache.csv", "data/valuation_overrides.csv")
+    if extended:
+        files = files + ("data/fundamentals_ext_annual.csv", "data/fundamentals_ext_quarterly.csv",
+                         "data/fundamentals_annual_extra.csv")
+    return _ctx(_ctx_stamp(files), extended=extended)
 
 
 def _base_label(r: str) -> str:
@@ -74,7 +77,7 @@ def _base_label(r: str) -> str:
 
 @st.cache_data(ttl=3600, max_entries=8, show_spinner=False)
 def _compute_table_cols(snap_mtime: float, keys: tuple) -> dict:
-    S = _snapshot(snap_mtime).set_index("ticker") if snap_mtime else pd.DataFrame()
+    S = _snapshot(snap_mtime).drop_duplicates(subset=["ticker"], keep="last").set_index("ticker") if snap_mtime else pd.DataFrame()
     rat, buck, note, pct, cagr, p50, sevs, band_txt, band_w = [], [], [], [], [], [], [], [], []
     for t, p in keys:
         band_txt.append(""); band_w.append(np.nan)
@@ -135,8 +138,10 @@ def table_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     out = df.copy()
     snap_mtime = os.path.getmtime(SNAPSHOT) if os.path.exists(SNAPSHOT) else 0.0
-    tick = out["ticker"].astype(str).str.replace(".NS", "", regex=False)
-    price = pd.to_numeric(out.get("price", out.get("currentPrice")), errors="coerce")
+    tick = out["ticker"].astype(str).str.replace(".NS", "", regex=False).str.replace(".BO", "", regex=False)
+    p1 = pd.to_numeric(out["price"], errors="coerce") if "price" in out else pd.Series(np.nan, index=out.index)
+    p2 = pd.to_numeric(out["currentPrice"], errors="coerce") if "currentPrice" in out else pd.Series(np.nan, index=out.index)
+    price = p1.fillna(p2)
     keys = tuple((t, None if pd.isna(p) or not np.isfinite(p) else round(float(p), 4)) for t, p in zip(tick, price))
     cols = _compute_table_cols(snap_mtime, keys)
     for k_, v_ in cols.items():
@@ -193,16 +198,27 @@ def _hist(res: dict, cur: str = "₹") -> go.Figure:
     return fig
 
 
+def _fmt(v, fmt: str, default: str = "—") -> str:
+    try:
+        fv = float(v)
+    except (TypeError, ValueError):
+        return default
+    return fmt.format(fv) if np.isfinite(fv) else default
+
+
 def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: float | None = None,
                  tech_buy: bool | None = None, below_both: bool | None = None, market: str = "IN",
-                 precomputed: dict | None = None):
+                 precomputed: dict | None = None, extended: bool = False):
     us = market == "US"
     cur = "$" if us else "₹"
     st.markdown("#### 💰 Valuation — v4.1, mechanical" + (" (SEC EDGAR filings)" if us else ""))
     if precomputed is not None:
         res = precomputed
     else:
-        c = ctx_us() if us else ctx()
+        if price is None or not (np.isfinite(float(price)) and float(price) > 0):
+            st.info("No valid live price available to run valuation.")
+            return
+        c = ctx_us() if us else ctx(extended=extended)
         if us and c.annual.empty:
             st.info("US valuation inputs are not in the repo yet: run the 'US Valuation Inputs (SEC EDGAR)' workflow "
                     "(needs the SEC_USER_AGENT repository secret), then reload.")
@@ -241,11 +257,11 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
     else:
         k[1].metric("CMP percentile", f"P{d['cmp_pct']:.0f}", res["label"], delta_color="off")
     k[2].metric("Fair value P50", f"{cur}{d['P50']:,.0f}", f"P10 {cur}{d['P10']:,.0f} · P90 {cur}{d['P90']:,.0f}", delta_color="off")
-    k[3].metric("3y CAGR at CMP (base)", f"{res['cagr']['base']:+.1%}",
-                f"hurdle {res['hurdle']:.0%} · bear {res['cagr']['bear']:+.0%} · bull {res['cagr']['bull']:+.0%}",
+    k[3].metric("3y CAGR at CMP (base)", _fmt(res['cagr']['base'], "{:+.1%}"),
+                f"hurdle {res['hurdle']:.0%} · bear {_fmt(res['cagr']['bear'], '{:+.0%}')} · bull {_fmt(res['cagr']['bull'], '{:+.0%}')}",
                 delta_color="off", help="(undiscounted Y3 value ÷ CMP)^(1/3) − 1 + dividend yield, per scenario")
     k[4].metric("Identity", res["identity"], f"confidence {res['confidence']}", delta_color="off")
-    k[5].metric(f"Multiple ({m['kind']})", f"{m['spot']:.1f}× spot", f"bear {m['bear']:.1f} · base {m['base']:.1f} · "
+    k[5].metric(f"Multiple ({m['kind']})", _fmt(m['spot'], "{:.1f}× spot"), f"bear {m['bear']:.1f} · base {m['base']:.1f} · "
                 f"bull {m['bull']:.1f}", delta_color="off")
     shown = [i for i in qa["issues"] if i["sev"] >= 0]
     if shown:
@@ -288,7 +304,7 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
         lv = res["lever"]
         kind = "BVPS" if res["identity"] == "BFSI" else "EPS"
         sc = pd.DataFrame({s.title(): [f"{x:,.1f}" for x in lv[s]] + [f"{m[s]:.1f}×", f"{cur}{res['blends'][s]:,.0f}",
-                                                                   f"{res['cagr'][s]:+.1%}", f"{p:.0%}"]
+                                                                   _fmt(res['cagr'][s], "{:+.1%}"), f"{p:.0%}"]
                            for s, p in zip(("bear", "base", "bull"), res["probs"])},
                           index=[f"{kind} Y1", f"{kind} Y2", f"{kind} Y3", "Multiple", "Blend (PV)", "3y CAGR at CMP",
                                  "Probability"])
@@ -299,10 +315,10 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
             st.caption(f"Revenue growth bear/base/bull {si['growth']['bear']:+.0%} / {si['growth']['base']:+.0%} / "
                        f"{si['growth']['bull']:+.0%} a year; terminal net margin {si['terminal_margin']['bear']:.1%} / "
                        f"{si['terminal_margin']['base']:.1%} / {si['terminal_margin']['bull']:.1%} (TTM "
-                       f"{si['margin_ttm']:.1%}, worst demonstrated {si['worst_margin']:.1%}). {res['path_note']}.")
+                       f"{_fmt(si['margin_ttm'], '{:.1%}')}, worst demonstrated {_fmt(si['worst_margin'], '{:.1%}')}). {res['path_note']}.")
         else:
-            st.caption(f"ROE bear/base/bull {si['ROE']['bear']:.1%} / {si['ROE']['base']:.1%} / {si['ROE']['bull']:.1%}, "
-                       f"payout {si['payout']:.0%}, BVPS today {cur}{si['BVPS0']:,.1f}. {res['path_note']}.")
+            st.caption(f"ROE bear/base/bull {_fmt(si['ROE']['bear'], '{:.1%}')} / {_fmt(si['ROE']['base'], '{:.1%}')} / {_fmt(si['ROE']['bull'], '{:.1%}')}, "
+                       f"payout {_fmt(si['payout'], '{:.0%}')}, BVPS today {cur}{_fmt(si['BVPS0'], '{:,.1f}')}. {res['path_note']}.")
         mm = pd.DataFrame({"value": [m["own_5y_median"], m["own_5y_p10"], m["peer_median"], m["sector_median"],
                                      m["neutral"], m["modifiers_sum"] * 100, m["ceiling"], m["spot"]]},
                           index=[f"own 5Y median ({m['own_months']} months)", "own 5Y P10 (trough)",
@@ -335,11 +351,12 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
         st.markdown("**Gates**")
         gt = pd.DataFrame([(g, "✅" if v["ok"] else "❌", v["detail"]) for g, v in res["gates"].items()] +
                           [("1F", "✅" if res["sanity_1f"]["ok"] else "❌",
-                            f"base Y1 ÷ TTM = {res['sanity_1f']['ratio']:.2f}" +
+                            f"base Y1 ÷ TTM = {_fmt(res['sanity_1f']['ratio'], '{:.2f}')}" +
                             (" (1.5-2.5x: explain)" if res["sanity_1f"]["flag"] else ""))],
                           columns=["gate", "", "detail"])
         st.dataframe(gt, hide_index=True, use_container_width=True)
-        rg = pd.DataFrame({s: [f"{v['share']:.0%}", f"{cur}{v['mean']:,.0f}"] for s, v in res["regimes"].items()},
+        rg = pd.DataFrame({s: [f"{v['share']:.0%}", f"{cur}{v['mean']:,.0f}" if np.isfinite(v['mean']) else "—"]
+                           for s, v in res["regimes"].items()},
                           index=["trial share", "conditional mean"])
         st.dataframe(rg, use_container_width=True)
         if res.get("sensitivity"):
@@ -418,7 +435,7 @@ def render_reference(df: pd.DataFrame):
             st.info("No reference runs logged yet." if R.empty else "Mechanical snapshot not built yet.")
             return
         files = ("data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv",
-                 "data/monthly_prices.csv", "data/valuation_overrides.csv")
+                 "data/monthly_prices.csv", "data/fundamentals_cache.csv", "data/valuation_overrides.csv")
         T = _reference_eval(os.path.getmtime(REFERENCE), _ctx_stamp(files))
         if "pct_gap" in T:
             ok = T.dropna(subset=["pct_gap"])

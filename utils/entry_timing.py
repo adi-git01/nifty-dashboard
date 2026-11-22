@@ -76,27 +76,30 @@ def add_entry_freshness(df: pd.DataFrame) -> pd.DataFrame:
     out['rs_accel'] = rs_accel.round(2)
 
     trend = _col(out, 'trend_score')
-    # An entry only makes sense if the name is actually in an uptrend.
-    uptrend = (trend >= 55) | (dist_ma50 > 0)
+    # An entry only makes sense if the name is in an uptrend (trend >= 55, or > MA50 when trend_score is absent)
+    # and not stretched more than _PULLBACK_MIN (-10%) below MA50.
+    uptrend = (trend >= 55) | (trend.isna() & (dist_ma50 > 0))
+    eligible = uptrend & (dist_ma50 >= _PULLBACK_MIN)
 
     # Freshness score (higher = fresher / better risk-adjusted entry).
     ext_score = _clip(100 - dist_ma50.clip(lower=0) * 3.0, 0, 100)   # extension penalty
     accel_score = _clip(50 + rs_accel.fillna(0) * 4.0, 0, 100)        # 50 = neutral
     fresh = (0.65 * ext_score + 0.35 * accel_score)
-    fresh = fresh.where(uptrend, 0)
+    fresh = fresh.where(eligible, 0)
     # NaN (e.g. missing MA50) -> 0 so the Fresh progress column never renders
     # a broken bar and these rows sort to the bottom.
     out['freshness'] = fresh.fillna(0).round(0)
 
-    # Ordinal label (precedence matters).
+    # Ordinal label (precedence matters; identical gate to freshness).
     def _label(row):
         d = row['dist_ma50']
         a = row['rs_accel']
         ts = row.get('trend_score')
-        up = (pd.notna(ts) and float(ts) >= 55) or (pd.notna(d) and d > 0)
+        ts_num = float(ts) if pd.notna(ts) else np.nan
+        up = (ts_num >= 55) if np.isfinite(ts_num) else (pd.notna(d) and d > 0)
         if pd.isna(d):
             return "—"
-        if not up:
+        if not up or d < _PULLBACK_MIN:
             return "⚪ Weak"
         if pd.notna(a) and a < _FADING_ACCEL:
             return "🔴 Late/Fading"
@@ -104,8 +107,6 @@ def add_entry_freshness(df: pd.DataFrame) -> pd.DataFrame:
             return "🟡 Extended"
         if _PULLBACK_MIN <= d <= _PULLBACK_MAX:
             return "🔵 Pullback Buy"
-        if d < _PULLBACK_MIN:
-            return "⚪ Weak"
         return "🟢 Actionable"
 
     out['entry_label'] = out.apply(_label, axis=1)
@@ -130,7 +131,7 @@ def add_position_sizing(df: pd.DataFrame, capital: float, risk_pct: float,
         return out
 
     price = _col(out, 'price', 'currentPrice')
-    vol_annual = _col(out, 'volatility').fillna(40.0)
+    vol_annual = _col(out, 'volatility').where(lambda s: s > 0).fillna(40.0)
     dist_ma50 = pd.to_numeric(out['dist_ma50'], errors='coerce')
 
     daily_vol = vol_annual / np.sqrt(252.0)
@@ -148,8 +149,9 @@ def add_position_sizing(df: pd.DataFrame, capital: float, risk_pct: float,
     with np.errstate(divide='ignore', invalid='ignore'):
         raw_value = risk_rupees / (stop_pct / 100.0)
     value = np.minimum(raw_value, eq_weight_cap)
-    out['suggested_value'] = value.round(0)
     with np.errstate(divide='ignore', invalid='ignore'):
         shares = np.floor(value / price)
-    out['suggested_shares'] = shares.where(price > 0).fillna(0).astype('int64', errors='ignore')
+    sh_series = shares.where(price > 0).fillna(0).astype('int64', errors='ignore')
+    out['suggested_shares'] = sh_series
+    out['suggested_value'] = (sh_series * price).where((price > 0) & (sh_series > 0), 0.0).round(0)
     return out

@@ -87,18 +87,18 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["s_industry"] = (x.ind_group.isin(["LEADING", "IMPROVING"]) | x.ind_status.isin(["UPTREND", "TURNING UP"])) & ~x.ind_group.eq("WEAKENING")
 
     # 2 trend
-    x["scanner"] = d.get("dna_signal", pd.Series("", index=d.index)).astype(str)
+    x["scanner"] = d["dna_signal"].fillna("").astype(str) if "dna_signal" in d.columns else ""
     x["stage"] = _num(d, "simba_stage")
     x["comp_rs"], x["rs_3m"], x["dist_52w"] = _num(d, "comp_rs"), _num(d, "rs_3m"), _num(d, "dist_52w")
     x["s_trend"] = x.scanner.eq("BUY") & ~x.stage.isin([3, 4])
 
     # 4 setup
-    x["technicals"] = d.get("fx_action", pd.Series("", index=d.index)).astype(str)
+    x["technicals"] = d["fx_action"].fillna("").astype(str) if "fx_action" in d.columns else ""
     m, si = _num(d, "simba_m_since"), _num(d, "simba_si_since")
     x["simba_days"] = pd.concat([m, si], axis=1).min(axis=1)
     x["stop"], x["stop_pct"], x["t1"], x["t2"] = _num(d, "fx_stop"), _num(d, "fx_stop_pct"), _num(d, "fx_t1"), _num(d, "fx_t2")
     x["entry"] = _num(d, "fx_entry").fillna(x.price) if "fx_entry" in d else x.price      # the trigger for BUY ON TRIGGER
-    x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where((x.stop > 0) & (x.entry > 0) & (x.stop < x.entry))
+    x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where((x.stop > 0) & (x.entry > 0) & (x.price > 0) & (x.stop < x.entry) & (x.stop < x.price))
     x["t1"] = x["t1"].where(x["t1"] > x.entry).fillna(x.entry + 2 * (x.entry - x.stop)).where(x.risk_pct.notna())
     x["signal"] = x.technicals.isin(["BUY NOW", "BUY ON TRIGGER"]) | ((x.simba_days >= 0) & (x.simba_days <= SETUP_DAYS))
     x["s_setup"] = x.signal & (x.risk_pct <= MAX_RISK_PCT)

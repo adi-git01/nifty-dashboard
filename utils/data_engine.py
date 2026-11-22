@@ -46,6 +46,19 @@ def get_stock_info(ticker):
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
+        if not isinstance(info, dict) or not info:
+            return None
+        has_core = any(
+            v is not None
+            for v in (
+                _safe_float(info.get("marketCap")),
+                _safe_float(info.get("trailingPE") or info.get("pe") or info.get("priceToEarnings")),
+                _safe_float(info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose")),
+                info.get("longName"),
+            )
+        )
+        if not has_core:
+            return None
         
         # Priority: nifty1000 sub-industry > nifty500 old sector > yfinance sector
         # nifty1000_list.csv is the most complete and uses current NSE classification.

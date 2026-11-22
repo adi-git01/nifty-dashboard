@@ -84,10 +84,23 @@ def _from_nse(tickers, kwargs, source=None):
     try:
         from utils import nse_prices
         sess = start[1] if isinstance(start, tuple) else None
+        if start is not None and not isinstance(start, tuple):
+            start = pd.Timestamp(start)
+            if getattr(start, "tzinfo", None) is not None:
+                start = start.tz_localize(None)
+        if end is not None:
+            end = pd.Timestamp(end)
+            if getattr(end, "tzinfo", None) is not None:
+                end = end.tz_localize(None)
         if start is not None and not sess:
-            first_dt = nse_prices.first_date("stocks")
-            if first_dt is not None and pd.Timestamp(start) < first_dt - pd.Timedelta(days=45):
-                return {}
+            kind = "stocks" if any(not str(t).startswith("^") for t in served) else "indices"
+            first_dt = nse_prices.first_date(kind)
+            if first_dt is not None:
+                f_ts = pd.Timestamp(first_dt)
+                if getattr(f_ts, "tzinfo", None) is not None:
+                    f_ts = f_ts.tz_localize(None)
+                if start.normalize() < f_ts.normalize() - pd.Timedelta(days=45):
+                    return {}
         out = nse_prices.history(served, start=None if sess or start is None else start, end=end)
     except Exception as e:
         print(f"[yf_safe] NSE store unavailable ({type(e).__name__}: {e}); using Yahoo", flush=True)
@@ -165,7 +178,9 @@ def safe_download(tickers, retries=DEFAULT_RETRIES, backoff=DEFAULT_BACKOFF, min
         print(f"[yf_safe] {len(got)} tickers from NSE; {len(rest)} not in NSE's files go to Yahoo: "
               f"{' '.join(map(str, rest[:15]))}{' …' if len(rest) > 15 else ''}", flush=True)
         _SOURCE_LOG["yahoo"] += len(rest)
-        ya = _safe_download_yahoo(rest, retries, backoff, min_coverage=0.0, **kwargs)
+        need_from_yahoo = max(int(round(min_coverage * len(tickers_list))) - len(got), 0)
+        rem_min_cov = max(min(need_from_yahoo / len(rest), 1.0), 1e-9) if min_coverage > 0 else 0.0
+        ya = _safe_download_yahoo(rest, retries, backoff, min_coverage=rem_min_cov, **kwargs)
         return _merge(nse_frame, ya, kwargs.get("group_by", "column"), rest)
     _SOURCE_LOG["yahoo"] += len(tickers_list)
     return _safe_download_yahoo(tickers if single else tickers_list, retries, backoff, min_coverage, **kwargs)
@@ -192,6 +207,9 @@ def _merge(nse_frame: pd.DataFrame, ya, group_by: str, rest) -> pd.DataFrame:
     if getattr(ya.index, "tz", None) is not None:
         ya = ya.copy()
         ya.index = ya.index.tz_localize(None)
+    if isinstance(ya.index, pd.DatetimeIndex):
+        ya = ya.copy()
+        ya.index = ya.index.normalize()
     return pd.concat([nse_frame, ya], axis=1).sort_index()
 
 
@@ -225,11 +243,13 @@ def _safe_download_yahoo(tickers, retries=DEFAULT_RETRIES, backoff=DEFAULT_BACKO
         print(f"[yf_safe] bulk download attempt {attempt}/{retries}: "
               f"{coverage*100:.0f}% coverage ({int(round(coverage*total))}/{total} tickers)", flush=True)
 
-        if coverage > best_coverage:
-            best_result, best_coverage = data, coverage
-
-        if coverage >= min_coverage:
-            return data
+        if data is not None and not data.empty:
+            if coverage > best_coverage:
+                best_result, best_coverage = data, coverage
+            if (coverage >= min_coverage and min_coverage > 0) or (min_coverage <= 0 and coverage > 0):
+                return data
+        elif best_result is None and best_coverage < 0:
+            best_result, best_coverage = data, 0.0
 
         if attempt < retries:
             wait = backoff * attempt

@@ -11,11 +11,12 @@ import streamlit as st
 
 from utils.market_breadth import render_breadth_widget
 from utils.market_mood import calculate_mood_metrics, chart_market_mood, load_mood_history
-from utils.positions import add_position, add_to_watchlist, is_position_exists, remove_position
+from utils.positions import add_position, add_to_watchlist, get_position, is_position_exists, remove_position
 from utils.ui_components import hero_pnl_card, page_header
 
 
 def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
+    df = df[df['extended'] != True].copy() if (df is not None and not df.empty and 'extended' in df.columns) else (df.copy() if df is not None else pd.DataFrame())
 
     # === HERO SECTION ===
     st.markdown(page_header("🌊 Alpha Trend Scanner", "Real-time momentum intelligence for Nifty 500 | Powered by AI"), unsafe_allow_html=True)
@@ -197,7 +198,7 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                                     "Price": st.column_config.NumberColumn("Current Price", format="₹%.2f"),
                                     "Entry": st.column_config.NumberColumn("Entry Price", format="₹%.2f"),
                                     "PnL%": st.column_config.NumberColumn("Unrealized P&L", format="%+.1f%%"),
-                                    "RS_Score": st.column_config.ProgressColumn("RS Score", min_value=0, max_value=100, format="%.1f"),
+                                    "RS_Score": st.column_config.NumberColumn("RS Score", format="%+.1f%%"),
                                     "Dist_MA50": st.column_config.NumberColumn("% vs MA50", format="%.1f%%")
                                 },
                                 hide_index=True,
@@ -228,10 +229,11 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                                         for p in dna3_data['portfolio']:
                                             t = p['Ticker']
                                             try:
-                                                if len(held_tickers) == 1:
-                                                    stock_df = live_prices.dropna(how='all')
+                                                if isinstance(live_prices.columns, pd.MultiIndex):
+                                                    _lv0 = live_prices.columns.get_level_values(0)
+                                                    stock_df = live_prices[t].dropna(how='all') if t in _lv0 else None
                                                 else:
-                                                    stock_df = live_prices[t].dropna(how='all') if t in live_prices.columns.get_level_values(0) else None
+                                                    stock_df = live_prices.dropna(how='all')
                                                 if stock_df is not None and not stock_df.empty and len(stock_df) > 50:
                                                     if stock_df.index.tz is not None:
                                                         stock_df.index = stock_df.index.tz_localize(None)
@@ -275,14 +277,28 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                                         # portfolio state file the CI engine writes;
                                         # a truncated write here is just as capable
                                         # of wiping the portfolio on next load.
-                                        from utils.atomic_io import atomic_json_dump
+                                        from utils.atomic_io import atomic_json_dump, atomic_to_csv
                                         atomic_json_dump(dna3_data, DNA3_SNAPSHOT, indent=4)
+                                        if os.path.exists(DNA3_EQUITY):
+                                            try:
+                                                _eq_live = pd.read_csv(DNA3_EQUITY)
+                                                _today_s = dna3_data['date']
+                                                _new_row = pd.DataFrame([{
+                                                    'Date': _today_s, 'Equity': round(float(total_equity), 2),
+                                                    'Cash': round(float(dna3_data.get('cash', 0)), 2),
+                                                    'Holdings': len(updated_portfolio),
+                                                    'Regime': dna3_data.get('regime', ''),
+                                                }])
+                                                _eq_live = _eq_live[_eq_live['Date'].astype(str) != _today_s]
+                                                _eq_live = pd.concat([_eq_live, _new_row], ignore_index=True)
+                                                atomic_to_csv(_eq_live, DNA3_EQUITY, index=False)
+                                            except Exception:
+                                                pass
 
                                         st.toast("✅ Portfolio prices updated!", icon="🔄")
-                                    st.rerun()
+                                        st.rerun()
                                 except Exception as e:
                                     st.error(f"Refresh failed: {e}")
-                                    st.rerun()
                         if os.path.exists(DNA3_LOG):
                             with open(DNA3_LOG, "rb") as file:
                                 st.download_button(
@@ -356,7 +372,7 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
             avg_trend = df['trend_score'].mean()
             breakout_count = len(df[df['dist_52w'] > -2.0])
 
-            col1.metric("🚀 Strong Momentum", f"{strong_uptrends}", help="Stocks with Trend Score > 80")
+            col1.metric("🚀 Strong Momentum", f"{strong_uptrends}", help="Stocks rated STRONG UPTREND (Trend Score >= 75)")
             col2.metric("📈 Total Uptrends", f"{total_uptrends}", help="Stocks in upward trajectory")
             col3.metric("📊 Avg Trend Score", f"{avg_trend:.0f}/100", help="Market-wide momentum gauge")
             col4.metric("🔥 Breakout Alerts", f"{breakout_count}", help="Near 52-week highs")
@@ -459,8 +475,8 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
             breakouts = df[df['dist_52w'] > -2.0].copy()  # Within 2% of High
             if not breakouts.empty:
                 with st.expander(f"🚨 **{len(breakouts)} BREAKOUT ALERTS** (Within 2% of 52W High)", expanded=False):
-                    # Sort by closest to high
-                    breakouts_sorted = breakouts.nsmallest(20, 'dist_52w').copy()
+                    # Closest to 52W high first (0.0% at top, -1.9% below)
+                    breakouts_sorted = breakouts.nlargest(20, 'dist_52w').copy()
                     breakouts_sorted['screener_link'] = "https://www.screener.in/company/" + breakouts_sorted['ticker'].str.replace('.NS', '', regex=False) + "/"
                     st.dataframe(
                         breakouts_sorted[['screener_link', 'name', 'price', 'dist_52w', 'trend_score', 'overall']],
@@ -528,15 +544,23 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                 with fc4:
                     min_volume = st.slider("Min Volume Score", 0, 10, 0, help="Filter for Accumulation (>7)")
 
+            # Pre-compute cross-sectional entry/breakout/momentum ranks BEFORE filtering so microcaps/filtered subsets
+            # never get re-ranked against only the filtered slice.
+            from utils.entry_timing import add_entry_freshness, add_position_sizing
+            from utils.breakout_tags import (add_breakout_tags, add_momentum_tags, BREAKOUT_OPTIONS, BREAKOUT_HELP,
+                                             MOMO_HELP, SIZE_HELP, FLAG_HELP)
+            df = add_entry_freshness(df)
+            df = add_momentum_tags(add_breakout_tags(df))
+
             # Apply Filters
             filtered_df = df.copy()
 
             # 1. Search Filter
             if search_query:
-                query = search_query.lower()
+                query = search_query.lower().strip()
                 filtered_df = filtered_df[
-                    filtered_df['ticker'].str.lower().str.contains(query) | 
-                    filtered_df['name'].str.lower().str.contains(query)
+                    filtered_df['ticker'].fillna('').astype(str).str.lower().str.contains(query, regex=False) |
+                    filtered_df['name'].fillna('').astype(str).str.lower().str.contains(query, regex=False)
                 ]
     
             if sel_sector:
@@ -566,8 +590,8 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                 filtered_df = filtered_df[filtered_df['trend_score'] >= threshold]
                 st.info(f"Preset: Showing top 20% by Trend Score (>= {threshold:.0f})")
             elif preset == "💎 Quality at Reasonable Price":
-                filtered_df = filtered_df[(filtered_df['overall'] >= 6) & (filtered_df['value'] >= 6)]
-                st.info("Preset: Quality (Score >= 6) + Reasonable Value (Value >= 6)")
+                filtered_df = filtered_df[(filtered_df['quality'] >= 6) & (filtered_df['value'] >= 6)]
+                st.info("Preset: Quality (Quality >= 6) + Reasonable Value (Value >= 6)")
             elif preset == "📈 Breakout Candidates":
                 filtered_df = filtered_df[filtered_df['dist_52w'] > -5]
                 st.info("Preset: Within 5% of 52-Week High")
@@ -588,13 +612,9 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
             if filtered_df.empty:
                 st.warning("No stocks found matching these filters.")
                 if st.button("🔄 Force Refresh Data"):
-
-                    # Remove both caches to force full rebuild
-                    if os.path.exists("nifty500_cache.csv"): os.remove("nifty500_cache.csv")
-                    if os.path.exists("market_data.parquet"): os.remove("market_data.parquet")
-        
-                    for key in list(st.session_state.keys()):
-                        del st.session_state[key]
+                    st.cache_data.clear()
+                    for key in ('market_data', '_loaded_live_mode', 'data_loaded_at', 'nifty_data', 'nifty_fetched_at'):
+                        st.session_state.pop(key, None)
                     st.rerun()
 
             from utils.ui_search import search_box as _search_box
@@ -712,12 +732,10 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
         
                     filter_val = st.slider(f"{filter_col} Range", min_val, max_val, (min_val, max_val))
         
-                # Apply Filter (only if user moved the slider from defaults)
+                # Apply Filter (only if user moved the slider from defaults; exclude NaN when narrowed)
                 if target_col in filtered_df.columns and (filter_val[0] > min_val or filter_val[1] < max_val):
-                    # Keep rows within range OR value is NaN (no data yet)
-                    filtered_df = filtered_df[
-                        ((filtered_df[target_col] >= filter_val[0]) & (filtered_df[target_col] <= filter_val[1])) | (filtered_df[target_col].isna())
-                    ]
+                    _vals = pd.to_numeric(filtered_df[target_col], errors='coerce')
+                    filtered_df = filtered_df[(_vals >= filter_val[0]) & (_vals <= filter_val[1])]
                     st.caption(f"Showing {len(filtered_df)} stocks with {filter_col} between {filter_val[0]:.1f} and {filter_val[1]:.1f}")
 
             _SIGNAL_EMOJI = {
@@ -732,9 +750,12 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                 lambda s: f"{_SIGNAL_EMOJI.get(s, '')} {s}" if s else s
             )
 
-            # === ENTRY FRESHNESS (near-MA vs extended, RS accelerating vs fading) ===
-            from utils.entry_timing import add_entry_freshness, add_position_sizing
-            filtered_df = add_entry_freshness(filtered_df)
+            # === ENTRY FRESHNESS FILTER ===
+            # (computed on full universe `df` above before filtering; ensure columns exist if custom path skipped)
+            if 'entry_label' not in filtered_df.columns:
+                filtered_df = add_entry_freshness(filtered_df)
+            if 'momo_entry' not in filtered_df.columns:
+                filtered_df = add_momentum_tags(add_breakout_tags(filtered_df))
 
             # === ENTRY STATUS FILTER ===
             _ENTRY_ORDER = ['🔵 Pullback Buy', '🟢 Actionable', '🟡 Extended', '🔴 Late/Fading', '⚪ Weak']
@@ -756,9 +777,6 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                     st.caption(f"Showing **{len(filtered_df)}** stocks with entry status: {' · '.join(_sel_entry)}")
 
             # === BREAKOUT / INDUSTRY FILTERS ===
-            from utils.breakout_tags import (add_breakout_tags, add_momentum_tags, BREAKOUT_OPTIONS, BREAKOUT_HELP,
-                                             MOMO_HELP, SIZE_HELP, FLAG_HELP)
-            filtered_df = add_momentum_tags(add_breakout_tags(filtered_df))
             _mf1, _mf2 = st.columns([1, 2])
             with _mf1:
                 _momo_only = st.toggle("🚀 Momentum entry (breakout / squeeze)", value=False, help=MOMO_HELP)
@@ -808,9 +826,11 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
             except Exception:
                 _bo_log = pd.DataFrame()
             if not _bo_log.empty:
-                _now = add_momentum_tags(add_breakout_tags(df)).set_index('ticker')
+                _now = df.drop_duplicates(subset=['ticker'], keep='last').set_index('ticker')
+                _g1_now = (_now['fx_gate1'].fillna(False).astype(bool) if 'fx_gate1' in _now.columns else pd.Series(False, index=_now.index))
+                _mom_now_s = _now['momo_entry'].ne("") | ((_now['mom_rank'] >= 90) & _g1_now)
                 _bo_log = _bo_log.assign(
-                    momentum_now=_bo_log.ticker.map(_now['momo_entry'].ne("") | (_now['mom_rank'] >= 90)).fillna(False),
+                    momentum_now=_bo_log.ticker.map(_mom_now_s).fillna(False),
                     flags_now=_bo_log.ticker.map(_now['watch_flags']).fillna(""),
                     screener_link="https://www.screener.in/company/" + _bo_log.ticker.str.replace('.NS', '', regex=False) + "/")
                 _bo_cfg = {
@@ -985,9 +1005,9 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
             )
             with _nifty_dl:
                 st.markdown("<div style='padding-top:10px'></div>", unsafe_allow_html=True)
-                _dl_cols = [c for c in display_cols if c != 'screener_link']
+                _dl_cols = ['ticker'] + [c for c in display_cols if c not in ('screener_link', 'ticker')]
                 _export = filtered_df[_dl_cols].sort_values(['trend_score', 'comp_rs'] if 'comp_rs' in _dl_cols else 'trend_score', ascending=False).copy()
-                _export['signal'] = _export.get('trend_signal', _export.get('signal_display', ''))
+                _export['signal'] = filtered_df.loc[_export.index, 'trend_signal'] if 'trend_signal' in filtered_df.columns else _export.get('signal_display', '')
                 st.download_button(
                     label="⬇️ Download CSV",
                     data=_export.to_csv(index=False),
@@ -1033,10 +1053,15 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
                             st.session_state['nav_page'] = "📉 Deep Dive"  # Signal to switch
                             st.rerun()  # Rerun to trigger navigation
                     with btn_col2:
-                        is_in_watchlist = selected_for_dive in st.session_state.get('watchlist', [])
-                        if is_in_watchlist:
-                            if st.button("⭐ Remove", use_container_width=True):
-                                st.session_state['watchlist'].remove(selected_for_dive)
+                        _pos_existing = get_position(selected_for_dive)
+                        _pos_status = _pos_existing.get('status') if _pos_existing else None
+                        if _pos_status == 'active':
+                            st.button("💼 Holding", disabled=True, use_container_width=True,
+                                      help="Already an active holding in My Book — use Untrack on the right to remove.")
+                        elif _pos_status == 'watching':
+                            if st.button("⭐ Unwatch", use_container_width=True):
+                                remove_position(selected_for_dive)
+                                st.toast(f"Removed {selected_for_dive} from Watchlist!", icon="⭐")
                                 st.rerun()
                         else:
                             if st.button("➕ Watch", use_container_width=True):
