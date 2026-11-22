@@ -30,10 +30,12 @@ import time
 import numpy as np
 import pandas as pd
 
+from utils import fund_paths
+
 UNIT = 1e7                       # USD per stored unit
 UNIVERSE = "data/sp500_tickers.csv"
-OUT_A, OUT_Q = "data/us_fundamentals_annual.csv.gz", "data/us_fundamentals_quarterly.csv.gz"
-OUT_M, OUT_F = "data/us_monthly_prices.csv.gz", "data/us_fundamentals_cache.csv"
+OUT_A, OUT_Q = fund_paths.US_ANNUAL, fund_paths.US_QUARTERLY
+OUT_M, OUT_F = fund_paths.US_MONTHLY, "data/us_fundamentals_cache.csv"
 
 # first tag with a value for a period wins (companies switch tags over the years)
 FLOW = {
@@ -65,6 +67,40 @@ STOCK = {
     "total_liab": ["Assets", "LiabilitiesAndStockholdersEquity", "Liabilities"],
     "deposits": ["Deposits"],
 }
+SHARES_FLOW_TAGS = [
+    "WeightedAverageNumberOfDilutedSharesOutstanding",
+    "WeightedAverageNumberOfSharesOutstandingBasic",
+    "WeightedAverageShares",
+    "AdjustedWeightedAverageShares",
+]
+SHARES_STOCK_TAGS = [
+    "CommonStockSharesOutstanding",
+    "NumberOfSharesIssued",
+    "NumberOfSharesOutstanding",
+]
+IFRS_FLOW = {
+    "sales": ["Revenue", "RevenueFromContractsWithCustomers"],
+    "np": ["ProfitLoss", "ProfitLossAttributableToOwnersOfParent"],
+    "op": ["ProfitLossFromOperatingActivities"],
+    "pbt": ["ProfitLossBeforeTax"],
+    "interest": ["FinanceCosts", "InterestExpense"],
+    "dep": ["DepreciationAndAmortisationExpense", "DepreciationExpense", "DepreciationDepletionAndAmortisation"],
+    "cfo": ["CashFlowsFromUsedInOperatingActivities"],
+    "cfi": ["CashFlowsFromUsedInInvestingActivities"],
+    "cff": ["CashFlowsFromUsedInFinancingActivities"],
+    "div": ["DividendsPaid"],
+}
+IFRS_STOCK = {
+    "reserves": ["Equity", "EquityAttributableToOwnersOfParent"],
+    "ltd": ["NoncurrentFinancialLiabilities", "Borrowings", "NoncurrentPortionOfNoncurrentLoansReceived"],
+    "ltd_nc": ["NoncurrentLiabilities"],
+    "ltd_c": ["CurrentPortionOfLongtermBorrowings"],
+    "debt_c": ["CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings"],
+    "stb": ["ShorttermBorrowings"],
+    "fixed_assets": ["PropertyPlantAndEquipment"],
+    "total_liab": ["Assets", "EquityAndLiabilities", "Liabilities"],
+    "deposits": ["DepositsFromCustomers"],
+}
 
 
 def _rows(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
@@ -87,9 +123,9 @@ def _rows(facts: dict, tags: list, unit: str = "USD") -> pd.DataFrame:
     return d
 
 
-def _flows(facts, tags):
+def _flows(facts, tags, unit: str = "USD"):
     """-> (annual Series by FY end, quarterly Series by quarter end) for a duration item."""
-    d = _rows(facts, tags)
+    d = _rows(facts, tags, unit=unit)
     if d.empty or "start" not in d:
         return pd.Series(dtype=float), pd.Series(dtype=float)
     d = d.dropna(subset=["start"])
@@ -106,8 +142,8 @@ def _flows(facts, tags):
     return a, q.sort_index()
 
 
-def _stock(facts, tags):
-    d = _rows(facts, tags)
+def _stock(facts, tags, unit: str = "USD"):
+    d = _rows(facts, tags, unit=unit)
     if d.empty:
         return pd.Series(dtype=float)
     s = d.drop_duplicates("end").set_index("end").val.astype(float).sort_index()
@@ -120,7 +156,7 @@ def _shares(facts_all: dict) -> float:
     d = pd.DataFrame(dei)
     if len(d):
         if "form" in d:
-            d = d[d.form.astype(str).str.match(r"^(10-K|10-Q)(?:/A)?$")]
+            d = d[d.form.astype(str).str.match(r"^(10-K|10-Q|20-F|40-F)(?:/A)?$")]
         d["end"] = pd.to_datetime(d["end"], errors="coerce")
         d = d.dropna(subset=["end", "val"])
         if len(d):
@@ -128,9 +164,11 @@ def _shares(facts_all: dict) -> float:
             last = last.drop_duplicates("val")
             if last.val.sum() > 0:
                 return float(last.val.sum())
-    w = _rows(facts_all.get("us-gaap", {}), ["WeightedAverageNumberOfDilutedSharesOutstanding",
-                                              "WeightedAverageNumberOfSharesOutstandingBasic"], unit="shares")
-    return float(w.sort_values("end").val.iloc[-1]) if len(w) else np.nan
+    for tax in ("us-gaap", "ifrs-full"):
+        w = _rows(facts_all.get(tax, {}), SHARES_FLOW_TAGS + SHARES_STOCK_TAGS, unit="shares")
+        if len(w):
+            return float(w.sort_values("end").val.iloc[-1])
+    return np.nan
 
 
 def _qend(ts: pd.Timestamp) -> pd.Timestamp:
@@ -143,10 +181,18 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
     """One company's companyfacts JSON -> (annual rows, quarterly rows) in the engine's long format."""
     full = facts_all.get("facts", facts_all)
     g = full.get("us-gaap", {})
+    flow_map, stock_map = FLOW, STOCK
     A, Q = {}, {}
-    for f, tags in FLOW.items():
+    for f, tags in flow_map.items():
         A[f], Q[f] = _flows(g, tags)
-    S = {f: _stock(g, tags) for f, tags in STOCK.items()}
+    if len(A["np"]) == 0 and full.get("ifrs-full"):
+        g = full.get("ifrs-full", {})
+        flow_map, stock_map = IFRS_FLOW, IFRS_STOCK
+        for f, tags in flow_map.items():
+            A[f], Q[f] = _flows(g, tags)
+    S = {f: _stock(g, tags) for f, tags in stock_map.items()}
+    sh_flow_a, _ = _flows(g, SHARES_FLOW_TAGS, unit="shares")
+    sh_stk = _stock(g, SHARES_STOCK_TAGS, unit="shares")
     fy = A["np"].index
     if len(fy) == 0:
         return [], []
@@ -155,8 +201,8 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
         if len(s) and ((s.index > e - pd.Timedelta(days=10)) & (s.index < e + pd.Timedelta(days=10))).any() else np.nan
     arows = []
     for e in fy:
-        v = {f: at(A[f], e) for f in FLOW}
-        b = {f: at(S[f], e) for f in STOCK}
+        v = {f: at(A[f], e) for f in flow_map}
+        b = {f: at(S[f], e) for f in stock_map}
         if not np.isfinite(v["op"]) and np.isfinite(v["pbt"]):
             v["op"] = v["pbt"] + (v["interest"] if np.isfinite(v["interest"]) else 0)
         debt = b["ltd"] if np.isfinite(b["ltd"]) else np.nansum([b["ltd_nc"], b["ltd_c"]]) if (
@@ -166,14 +212,20 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
         elif np.isfinite(b["debt_c"]) and not np.isfinite(b["ltd"]) and not np.isfinite(b["ltd_c"]):
             debt = (b["ltd_nc"] if np.isfinite(b["ltd_nc"]) else 0) + b["debt_c"]
         ebit = v["pbt"] + (v["interest"] if np.isfinite(v["interest"]) else 0) if np.isfinite(v["pbt"]) else v["op"]
+        ebitda = (v["op"] + v["dep"]) if (np.isfinite(v["op"]) and np.isfinite(v["dep"]) and v["dep"] >= 0) else v["op"]
         cap = b["reserves"] + (debt if np.isfinite(debt) else 0)
-        rec = dict(sales=v["sales"], op=v["op"], interest=v["interest"], dep=v["dep"], pbt=v["pbt"], np=v["np"],
+        rec = dict(sales=v["sales"], op=ebitda, interest=v["interest"], dep=v["dep"], pbt=v["pbt"], np=v["np"],
                    cfo=v["cfo"], cfi=v["cfi"], cff=v["cff"], reserves=b["reserves"], borrowings=debt,
                    fixed_assets=b["fixed_assets"], total_liab=b["total_liab"], deposits=b["deposits"])
         rec = {k: x / UNIT for k, x in rec.items() if np.isfinite(x)}
+        sh_e = at(sh_flow_a, e)
+        if not np.isfinite(sh_e):
+            sh_e = at(sh_stk, e)
+        if np.isfinite(sh_e) and sh_e > 0:
+            rec["shares_cr"] = sh_e / UNIT
         rec["eq_cap"] = 0.0
-        if np.isfinite(v["sales"]) and v["sales"] > 0 and np.isfinite(v["op"]):
-            rec["opm"] = 100 * v["op"] / v["sales"]
+        if np.isfinite(v["sales"]) and v["sales"] > 0 and np.isfinite(ebitda):
+            rec["opm"] = 100 * ebitda / v["sales"]
         if np.isfinite(ebit) and np.isfinite(cap) and cap > 0:
             rec["roce"] = 100 * ebit / cap
         if np.isfinite(v["div"]) and np.isfinite(v["np"]) and v["np"] > 0:
@@ -189,9 +241,10 @@ def parse(t: str, facts_all: dict, price: float | None = None) -> tuple[list, li
     qe = qe[qe >= qe.max() - pd.DateOffset(years=6)] if len(qe) else qe
     used_qe: set = set()
     for e in qe:
-        v = {f: at(Q[f], e) for f in ("sales", "np", "op", "interest", "pbt")}
+        v = {f: at(Q[f], e) for f in ("sales", "np", "op", "interest", "pbt", "dep")}
         if not np.isfinite(v["op"]) and np.isfinite(v["pbt"]):
             v["op"] = v["pbt"] + (v["interest"] if np.isfinite(v["interest"]) else 0)
+        v["op"] = (v["op"] + v["dep"]) if (np.isfinite(v["op"]) and np.isfinite(v["dep"]) and v["dep"] >= 0) else v["op"]
         rec = {k: v[k] / UNIT for k in ("sales", "np", "op", "interest") if np.isfinite(v[k])}
         if np.isfinite(v["sales"]) and v["sales"] > 0 and np.isfinite(v["op"]):
             rec["opm"] = 100 * v["op"] / v["sales"]
@@ -301,9 +354,9 @@ def main():
           f"missing {len(miss)}: {', '.join(miss[:30])}{' …' if len(miss) > 30 else ''}")
     if A.ticker.nunique() < 0.8 * len(tickers):
         sys.exit("Fewer than 80% of companies parsed -- not trusting this run; files left as they were.")
-    A.to_csv(OUT_A, index=False)
-    Q.to_csv(OUT_Q, index=False)
-    ml.to_csv(OUT_M, index=False)
+    fund_paths.write_sorted_csv(A, OUT_A, ["ticker", "field", "period"])
+    fund_paths.write_sorted_csv(Q, OUT_Q, ["ticker", "field", "period"])
+    fund_paths.write_sorted_csv(ml, OUT_M, ["ticker", "date"])
     F.reset_index().to_csv(OUT_F, index=False)
 
 

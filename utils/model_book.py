@@ -179,13 +179,22 @@ def pending(orders: List[Dict[str, Any]], log: Optional[List[Dict[str, Any]]] = 
 
 
 # ------------------------------------------------------------------ recording
-def log_order(order: Dict[str, Any], status: str, **fields) -> Dict[str, Any]:
-    """Create or update the log row for an order."""
+def log_order(order: Dict[str, Any], status: str, sync: Optional[bool] = None, **fields) -> Dict[str, Any]:
+    """Create or update the log row for an order. SENDING locks persist synchronously before broker calls."""
     row = {**order, "status": status, "ts": datetime.now(timezone(timedelta(hours=5, minutes=30))).isoformat(timespec="seconds"), **fields}
+    use_sync = (status == "SENDING") if sync is None else bool(sync)
+    bg = not use_sync
     if any(r.get("id") == order["id"] for r in LOG.load()):
-        LOG.commit({"patches": {order["id"]: {k: v for k, v in row.items() if k != "id"}}}, f"order {order['id']}: {status}", background=True)
+        ok = LOG.commit({"patches": {order["id"]: {k: v for k, v in row.items() if k != "id"}}}, f"order {order['id']}: {status}", background=bg)
     else:
-        LOG.commit({"adds": [row]}, f"order {order['id']}: {status}", background=True)
+        ok = LOG.commit({"adds": [row]}, f"order {order['id']}: {status}", background=bg)
+    if use_sync and status == "SENDING" and not ok:
+        try:
+            from utils import repo_store
+            if repo_store.is_configured():
+                raise RuntimeError(f"Could not lock order {order['id']} in store before sending: {getattr(LOG, 'last_error', None) or 'sync failed'}")
+        except ImportError:
+            pass
     return row
 
 

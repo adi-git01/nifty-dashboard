@@ -12,6 +12,7 @@ Units match Yahoo's: ratios as fractions (ROE 0.15), debtToEquity in percent (45
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -20,7 +21,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import numpy as np
 import pandas as pd
 
-ANNUAL, QUARTERLY = "data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz"
+ANNUAL, QUARTERLY = "data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv"
 CARRY = ["grossMargins", "forwardPE"]                 # no NSE / broker source: Yahoo fills them (yahoo_fill)
 # Yahoo .info field for each cache column, used only where NSE and Screener left a gap
 YAHOO_FIELDS = {"grossMargins": "grossMargins", "forwardPE": "forwardPE", "pe": "trailingPE", "pb": "priceToBook",
@@ -286,8 +287,11 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
         consolidate_sector = lambda x: x
     from utils.extended import eq_symbols
     names = eq_symbols()
-    A, Q = _pivot(ANNUAL, False), _pivot(QUARTERLY, True)
-    sc = pd.read_csv(ANNUAL)
+    from utils import fund_paths
+    ann_path = fund_paths.resolve(ANNUAL)
+    qtr_path = fund_paths.resolve(QUARTERLY)
+    A, Q = _pivot(ann_path, False), _pivot(qtr_path, True)
+    sc = pd.read_csv(ann_path)
     sc = sc[sc.field.isin(["mcap_cr", "price_scr"])].pivot_table(index="ticker", columns="field", values="value", aggfunc="last")
     # Resolve renamed symbols so legacy Screener rows follow symbol_changes.csv (e.g. HEG -> HEGAM).
     try:
@@ -324,7 +328,10 @@ def build(tickers: List[str], quotes: bool = True, log=print, sleep: float = 0.3
     H = npx.history(list(tickers) + ["^NSEI"], start=pd.Timestamp.today() - pd.Timedelta(days=420))
     bench = H.get("^NSEI", pd.DataFrame()).get("Close", pd.Series(dtype=float))
     S = None
-    if quotes:
+    skip_probe = (os.environ.get("GITHUB_ACTIONS") == "true" and os.environ.get("FORCE_NSE_QUOTES", "").strip() != "1")
+    if quotes and skip_probe:
+        log("[fund] skipping NSE quote-equity probe on GitHub Actions (HTTP 403); using Screener for P/E and shares")
+    elif quotes:
         try:
             from utils.nse_data import Session
             S = Session()

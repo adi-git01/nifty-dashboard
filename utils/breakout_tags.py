@@ -264,10 +264,12 @@ def _latest_eps_cached(path: str, mtime: float, lag_days: int, today_str: str) -
     return A.sort_values("period").groupby("ticker").value.last().to_dict()
 
 
-def latest_eps(path: str = "data/fundamentals_annual.csv.gz", lag_days: int = 92) -> dict:
+def latest_eps(path: str = "data/fundamentals_annual.csv", lag_days: int = 92) -> dict:
     """Latest annual EPS whose results were public (period end + 92 days), per ticker."""
     try:
-        return dict(_latest_eps_cached(path, os.path.getmtime(path), lag_days, pd.Timestamp.today().strftime("%Y-%m-%d")))
+        from utils import fund_paths
+        p = fund_paths.resolve(path)
+        return dict(_latest_eps_cached(p, os.path.getmtime(p), lag_days, pd.Timestamp.today().strftime("%Y-%m-%d")))
     except Exception:
         return {}
 

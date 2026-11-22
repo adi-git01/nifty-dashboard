@@ -40,4 +40,4 @@ jobs:
         run: python us_valuation_run.py
       - name: Commit
         run: |
-          bash scripts/commit_and_push.sh "US valuation inputs (SEC EDGAR)" data/us_fundamentals_annual.csv.gz data/us_fundamentals_quarterly.csv.gz data/us_monthly_prices.csv.gz data/us_fundamentals_cache.csv data/us_valuation_snapshot.csv
+          bash scripts/commit_and_push.sh "US valuation inputs (SEC EDGAR)" data/us_fundamentals_annual.csv data/us_fundamentals_quarterly.csv data/us_monthly_prices.csv data/us_fundamentals_cache.csv data/us_valuation_snapshot.csv

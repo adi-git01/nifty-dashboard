@@ -188,29 +188,37 @@ def dhan_merge(holdings: List[Dict[str, Any]], day: List[Dict[str, Any]]) -> Lis
     synced the same day read as "sold". A sale made today stays in the holding's total until settlement, while its
     available quantity drops; when that is so the sale is taken off here (otherwise the total is already net).
     """
+    from utils.portfolio_import import clean_symbol
+
     g = lambda h, *ks: next((h[k] for k in ks if h.get(k) not in (None, "")), None)
     f = lambda h, *ks: float(g(h, *ks) or 0)
     out: Dict[str, Dict[str, Any]] = {}
     for h in holdings:
-        sym = str(g(h, "tradingSymbol", "tradingsymbol", "symbol") or "")
-        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0))
+        raw_sym = str(g(h, "tradingSymbol", "tradingsymbol", "symbol") or "")
+        sym = clean_symbol(raw_sym) or raw_sym
+        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0, buy_val=0.0, sell_val=0.0))
         q, a = f(h, "totalQty", "totalQuantity", "quantity"), f(h, "avgCostPrice", "avgPrice", "averagePrice")
         o["total"] += q
         o["cost"] += q * a
-        if g(h, "availableQty") is not None:
-            o["avail"] = (o["avail"] or 0.0) + f(h, "availableQty") + f(h, "collateralQty")
+        if g(h, "availableQty", "t1Qty", "collateralQty") is not None:
+            o["avail"] = (o["avail"] or 0.0) + f(h, "availableQty") + f(h, "collateralQty") + f(h, "t1Qty")
     for p in day:
-        sym = str(g(p, "tradingSymbol", "tradingsymbol") or "")
+        raw_sym = str(g(p, "tradingSymbol", "tradingsymbol", "symbol") or "")
+        sym = clean_symbol(raw_sym) or raw_sym
         b, sl = f(p, "dayBuyQty"), f(p, "daySellQty")
         if not (b or sl):
             continue
-        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0))
+        o = out.setdefault(sym, dict(symbol=sym, total=0.0, avail=None, cost=0.0, buy_px=None, sell_px=None, b=0.0, s=0.0, buy_val=0.0, sell_val=0.0))
         o["b"] += b
         o["s"] += sl
         if b:
-            o["buy_px"] = f(p, "dayBuyValue") / b if f(p, "dayBuyValue") else f(p, "buyAvg")
+            b_val = f(p, "dayBuyValue") or (b * f(p, "buyAvg"))
+            o["buy_val"] += b_val
+            o["buy_px"] = o["buy_val"] / o["b"]
         if sl:
-            o["sell_px"] = f(p, "daySellValue") / sl if f(p, "daySellValue") else f(p, "sellAvg")
+            s_val = f(p, "daySellValue") or (sl * f(p, "sellAvg"))
+            o["sell_val"] += s_val
+            o["sell_px"] = o["sell_val"] / o["s"]
     rows = []
     for o in out.values():
         used = min(o["s"], o["total"])                              # sold out of holdings today

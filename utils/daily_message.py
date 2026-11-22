@@ -123,6 +123,8 @@ def build(df: pd.DataFrame, date: pd.Timestamp, nifty: Optional[pd.DataFrame] = 
 
     # 6 the rest, as counts
     L.append("")
-    L.append(f"Other scanners: {len(shocks or [])} earnings jumps, {len(rs or [])} red-day gainers, {tc_count} turnaround catalysts "
-             "(full lists and their track record in Signal Lab).")
+    other_parts = [f"{len(shocks or [])} earnings jumps", f"{len(rs or [])} red-day gainers"]
+    if tc_count:
+        other_parts.append(f"{tc_count} turnaround catalysts")
+    L.append("Other scanners: " + ", ".join(other_parts) + " (full lists and their track record in Signal Lab).")
     return "\n".join(L)

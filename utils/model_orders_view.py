@@ -163,8 +163,27 @@ def _awaiting(df: pd.DataFrame, log: List[Dict[str, Any]], ver: int) -> None:
     st.caption("An order that did not fill is offered again on the next ticket while the model still holds (or has sold) the stock.")
 
 
+def sebi_peak_margin_check(cash: float, sell_val: float, buy_val: float) -> Dict[str, Any]:
+    """
+    SEBI upfront/peak-margin check for simultaneous CNC SELL + BUY execution.
+    Only 80% of same-day CNC sell proceeds are available immediately before settlement.
+    """
+    cash = float(cash or 0)
+    sell_val = float(sell_val or 0)
+    buy_val = float(buy_val or 0)
+    usable_sell = 0.80 * sell_val
+    available_for_buy = cash + usable_sell
+    shortfall = max(0.0, buy_val - available_for_buy)
+    return dict(
+        has_both=bool(sell_val > 0 and buy_val > 0),
+        usable_sell=usable_sell,
+        available_for_buy=available_for_buy,
+        shortfall=shortfall,
+    )
+
+
 def _send(orders: List[Dict[str, Any]], book: List[Dict[str, Any]], log: List[Dict[str, Any]], S: Dict[str, Any], meta: Dict[str, Any]) -> int:
-    """Send the chosen orders to Dhan. Returns how many were accepted."""
+    """Send the chosen orders to Dhan (SELLs strictly before BUYs). Returns how many were accepted."""
     from utils import dhan_orders as do
     from utils.broker_sync import BrokerError
     cfg, token = do.settings(), st.session_state.get("dhan_token")
@@ -176,7 +195,8 @@ def _send(orders: List[Dict[str, Any]], book: List[Dict[str, Any]], log: List[Di
     except BrokerError as e:
         st.error(str(e))
         return 0
-    for o in orders:
+    ordered = sorted(orders, key=lambda o: 0 if o.get("side") == "SELL" else 1)
+    for o in ordered:
         why = do.check(o, held, log, max_order, float(meta.get("capital") or S["equity"]))
         if why:
             st.warning(f"{o['side']} {o['ticker'].replace('.NS', '')} not sent: {why}.")
@@ -250,13 +270,25 @@ def render(df: pd.DataFrame):
             pass
         buy = sum(o["value"] for o in chosen if o["side"] == "BUY")
         sell = sum(o["value"] for o in chosen if o["side"] == "SELL")
+        pm = sebi_peak_margin_check(S["cash"], sell, buy)
         st.caption(f"{len(chosen)} order(s): buy ₹{buy:,.0f}, sell ₹{sell:,.0f}; cash afterwards about ₹{S['cash'] + sell - buy:,.0f}. "
                    f"Limits are {float(meta.get('buffer') or 0.01) * 100:.1f}% through the last close ({S['model_date']}), so they fill at a "
                    "normal open and do not chase a gap. Delivery (CNC), valid for the day.")
         if S["cash"] + sell - buy < -1:
             st.error("The ticked buys cost more than the cash and sale proceeds. Untick or reduce some.")
+        elif pm["has_both"]:
+            if pm["shortfall"] > 1:
+                st.warning(
+                    f"⚠️ **SEBI 80% peak-margin rule:** Same-day CNC sell proceeds free only 80% upfront "
+                    f"(usable now: ₹{pm['available_for_buy']:,.0f} vs buys ₹{buy:,.0f}, shortfall ₹{pm['shortfall']:,.0f}). "
+                    "Send SELL orders first and wait for fills before sending the BUYs."
+                )
+            else:
+                st.info("ℹ️ SELL orders are sequenced before BUY orders to respect SEBI 80% same-day peak-margin credit.")
         cfg = do.settings()
         live = cfg["enabled"] and bool(st.session_state.get("dhan_token"))
+        if cfg.get("proxy", "").lower().startswith("http://"):
+            st.warning("⚠️ `order_proxy` uses cleartext `http://`. Enable TLS on the proxy and use `https://` before live trading.")
         how = st.radio("How to place them", ["I'll place them myself in the Dhan app", "Send to Dhan from here"], key="mo_how",
                        horizontal=True, index=0)
         if how.startswith("I'll"):
@@ -273,14 +305,25 @@ def render(df: pd.DataFrame):
                     + (" ✅" if st.session_state.get("dhan_token") else " ❌") + "; and the sending **IP address registered with Dhan** "
                     "(Streamlit Cloud has no fixed address, so this needs a fixed-IP exit in **order_proxy** or a host with a fixed address).")
         else:
+            sells_only = [o for o in chosen if o["side"] == "SELL"]
             word = st.text_input(f"Type CONFIRM to send {len(chosen)} order(s) worth ₹{buy + sell:,.0f} to Dhan", key=f"mo_word_{ver}")
-            if st.button(f"🚀 Send {len(chosen)} order(s) to Dhan", type="primary", key="mo_send",
-                         disabled=not chosen or word.strip().upper() != "CONFIRM" or S["cash"] + sell - buy < -1):
-                n = _send(chosen, book, log, S, meta)
-                if n:
-                    st.session_state["mo_ver"] = ver + 1
-                    st.toast(f"{n} order(s) accepted by Dhan", icon="🚀")
-                    st.rerun()
+            c_send1, c_send2 = st.columns([2, 1])
+            with c_send1:
+                if st.button(f"🚀 Send {len(chosen)} order(s) to Dhan", type="primary", key="mo_send",
+                             disabled=not chosen or word.strip().upper() != "CONFIRM" or S["cash"] + sell - buy < -1 or pm["shortfall"] > 1):
+                    n = _send(chosen, book, log, S, meta)
+                    if n:
+                        st.session_state["mo_ver"] = ver + 1
+                        st.toast(f"{n} order(s) accepted by Dhan", icon="🚀")
+                        st.rerun()
+            with c_send2:
+                if pm["has_both"] and st.button(f"📤 Send {len(sells_only)} SELL(s) first", key="mo_send_sells",
+                                               disabled=not sells_only or word.strip().upper() != "CONFIRM"):
+                    n = _send(sells_only, book, log, S, meta)
+                    if n:
+                        st.session_state["mo_ver"] = ver + 1
+                        st.toast(f"{n} SELL order(s) accepted by Dhan", icon="📤")
+                        st.rerun()
     if T["skipped"]:
         st.caption("Left out: " + "; ".join(f"{x['side']} {x['ticker'].replace('.NS', '')} — {x['why']}" for x in T["skipped"]) + ".")
 

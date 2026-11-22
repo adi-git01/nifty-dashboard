@@ -65,9 +65,12 @@ def _load(base: str, stamp: str) -> pd.DataFrame:
 
 def _tidy(d: pd.DataFrame) -> pd.DataFrame:
     d["date"] = pd.to_datetime(d["date"])
+    drop_cols = [c for c in ("vwap", "trades", "deliv_qty") if c in d.columns]
+    if drop_cols:
+        d = d.drop(columns=drop_cols)
     key = "symbol" if "symbol" in d else "index"
     d = d.drop_duplicates([key, "date"], keep="last").sort_values([key, "date"]).reset_index(drop=True)
-    for c in ("vwap", "deliv_pct", "trades", "pe", "pb", "dy"):    # secondary columns only: prices stay float64 (exact paise)
+    for c in ("deliv_pct", "pe", "pb", "dy"):    # secondary columns only: prices stay float64 (exact paise)
         if c in d and d[c].dtype.kind in "fi":
             d[c] = d[c].astype("float32")
     for c in (key, "series"):
@@ -92,9 +95,9 @@ def raw(kind: str = "stocks") -> pd.DataFrame:
 
 
 def _prepare_write(df: pd.DataFrame) -> pd.DataFrame:
-    """Downcast secondary columns to float32 while keeping OHLC/prev_close exact float64."""
-    out = df.copy()
-    for c in ("vwap", "deliv_pct", "pe", "pb", "dy"):
+    """Drop unused columns (vwap/trades/deliv_qty) and downcast secondary columns to float32 while keeping OHLC float64."""
+    out = df.drop(columns=[c for c in ("vwap", "trades", "deliv_qty") if c in df.columns]).copy()
+    for c in ("deliv_pct", "pe", "pb", "dy"):
         if c in out.columns and out[c].dtype.kind in "fi":
             out[c] = out[c].astype("float32")
     return out
@@ -174,9 +177,8 @@ def parse_stocks(content: bytes) -> pd.DataFrame:
         "date": pd.to_datetime(d["DATE1"].astype(str).str.strip(), format="%d-%b-%Y", errors="coerce"),
         "symbol": d["SYMBOL"].astype(str).str.strip(), "series": d["SERIES"],
         "open": _num(d["OPEN_PRICE"]), "high": _num(d["HIGH_PRICE"]), "low": _num(d["LOW_PRICE"]),
-        "close": _num(d["CLOSE_PRICE"]), "prev_close": _num(d["PREV_CLOSE"]), "vwap": _num(d.get("AVG_PRICE", pd.Series(dtype=str))),
-        "volume": _num(d["TTL_TRD_QNTY"]), "trades": _num(d.get("NO_OF_TRADES", pd.Series(dtype=str))),
-        "deliv_qty": _num(d.get("DELIV_QTY", pd.Series(dtype=str))), "deliv_pct": _num(d.get("DELIV_PER", pd.Series(dtype=str))),
+        "close": _num(d["CLOSE_PRICE"]), "prev_close": _num(d["PREV_CLOSE"]),
+        "volume": _num(d["TTL_TRD_QNTY"]), "deliv_pct": _num(d.get("DELIV_PER", pd.Series(dtype=str))),
     })
     out["series_rank"] = out["series"].map({s: i for i, s in enumerate(SERIES)})
     out = out.dropna(subset=["date", "close"]).sort_values("series_rank").drop_duplicates(["symbol", "date"])

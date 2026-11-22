@@ -29,7 +29,8 @@ DEFAULT_MAX_POSITIONS = 15
 
 # Freshness / label thresholds (percent above the 50-day MA), calibrated to
 # the live universe distribution.
-_PULLBACK_MAX = 6.0     # <= this above MA50 (incl. below) = near-support entry
+_PULLBACK_MIN = -10.0   # below -10% from MA50 is too extended to the downside to call a pullback buy
+_PULLBACK_MAX = 6.0     # [-10%, +6%] around MA50 = near-support entry
 _EXTENDED_MIN = 18.0    # > this above MA50 = stretched / chase risk
 _FADING_ACCEL = -6.0    # RS decelerating harder than this = momentum rolling over
 
@@ -101,8 +102,10 @@ def add_entry_freshness(df: pd.DataFrame) -> pd.DataFrame:
             return "🔴 Late/Fading"
         if d > _EXTENDED_MIN:
             return "🟡 Extended"
-        if d <= _PULLBACK_MAX:
+        if _PULLBACK_MIN <= d <= _PULLBACK_MAX:
             return "🔵 Pullback Buy"
+        if d < _PULLBACK_MIN:
+            return "⚪ Weak"
         return "🟢 Actionable"
 
     out['entry_label'] = out.apply(_label, axis=1)

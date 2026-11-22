@@ -30,7 +30,7 @@ OUT = "data/valuation_snapshot.csv"
 def main():
     ctx = load_context()
     if ctx.annual.empty:
-        sys.exit("[valuation] data/fundamentals_annual.csv.gz missing -- run fundamentals_annual.py first")
+        sys.exit("[valuation] data/fundamentals_annual.csv missing -- run fundamentals_annual.py first")
     try:                                     # so the dashboard loads them instead of rebuilding on each restart
         from utils.valuation import save_features, FEATURES_FILE
         save_features(ctx)

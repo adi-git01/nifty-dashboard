@@ -234,10 +234,11 @@ def _yoy(s: pd.Series) -> pd.Series:
 
 def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
     """One row per ticker: Earnings Reversal legs, quality and forensic checks."""
-    p = lambda f: os.path.join(root, f)
+    from utils import fund_paths
+    p = lambda f: fund_paths.resolve(f, root=root)
     rows: Dict[str, Dict[str, Any]] = {}
-    if os.path.exists(p("data/fundamentals_quarterly.csv.gz")):
-        Q = pd.read_csv(p("data/fundamentals_quarterly.csv.gz"))
+    if os.path.exists(p("data/fundamentals_quarterly.csv")):
+        Q = pd.read_csv(p("data/fundamentals_quarterly.csv"))
         Q["period"] = pd.to_datetime(Q["period"])
         Q = Q[Q.period.dt.month.isin([3, 6, 9, 12])]
         W = Q.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
@@ -270,8 +271,8 @@ def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
                           and npm.iloc[-1] - npm_prev >= 2.0 and last_np > 0)
             r.update(er_oplev=op_lev, er_turn=turn, er_accel=accel, er_margin=margin,
                      er=op_lev or turn or accel or margin)
-    if os.path.exists(p("data/fundamentals_annual.csv.gz")):
-        A = pd.read_csv(p("data/fundamentals_annual.csv.gz"))
+    if os.path.exists(p("data/fundamentals_annual.csv")):
+        A = pd.read_csv(p("data/fundamentals_annual.csv"))
         A["period"] = pd.to_datetime(A["period"])
         W = A.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
         for t, g in W.groupby(level=0):

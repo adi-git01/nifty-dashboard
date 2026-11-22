@@ -30,6 +30,7 @@ import pandas as pd
 
 OUT = "data/signal_scorecard.csv"
 BENCH_OUT = "data/model_portfolio_benchmark.csv"
+DERIVED_HIST = "data/cache/scorecard_derived_history.parquet"
 HORIZONS = (5, 21, 63)
 YARDSTICK = "Scanner BUY, any day (yardstick)"
 MIN_N = 100
@@ -49,8 +50,9 @@ LOGS = [
 
 
 def price_panel(root: str = ".") -> tuple[pd.DataFrame, Dict[pd.Timestamp, pd.DataFrame]]:
-    """Sessions x tickers close panel from the snapshots, holiday copies dropped, splits adjusted."""
-    P, extra, prev = {}, {}, None
+    """Sessions x tickers close panel seeded from close_panel.parquet + snapshots, holiday copies dropped, splits adjusted."""
+    P_rows, extra, prev = {}, {}, None
+    snap_entries = []
     for f in sorted(glob.glob(os.path.join(root, "data/cache/market_master_*.parquet"))):
         try:
             d = pd.read_parquet(f)
@@ -61,17 +63,46 @@ def price_panel(root: str = ".") -> tuple[pd.DataFrame, Dict[pd.Timestamp, pd.Da
         dt = pd.Timestamp(os.path.basename(f)[14:24].replace("_", "-"))
         if "bar_date" in d.columns and d["bar_date"].notna().any():
             dt = pd.Timestamp(d["bar_date"].dropna().iloc[0]).normalize()
-        if dt.weekday() >= 5 or dt in P:
+        if dt.weekday() >= 5:
+            continue
+        snap_entries.append((dt, px, d))
+
+    min_snap_dt = min((dt for dt, _, _ in snap_entries), default=None)
+    panel_candidates = [os.path.join(root, "data/cache/close_panel.parquet"), os.path.join(root, "data/close_panel.parquet")]
+    for cp in panel_candidates:
+        if os.path.exists(cp):
+            try:
+                base = pd.read_parquet(cp)
+                base.index = pd.to_datetime(base.index, errors="coerce").normalize()
+                base = base[base.index.notna() & (base.index.weekday < 5)].sort_index()
+                if min_snap_dt is not None:
+                    base = base[base.index < min_snap_dt]
+                for dt, row in base.iterrows():
+                    px = pd.to_numeric(row, errors="coerce")
+                    if dt in P_rows:
+                        continue
+                    if prev is not None:
+                        j = px.index.intersection(prev.index)
+                        valid_j = px[j].notna() & prev[j].notna()
+                        if valid_j.sum() > 100 and (px[j][valid_j] == prev[j][valid_j]).mean() > 0.9:
+                            continue
+                    P_rows[dt], prev = px, px
+                break
+            except Exception:
+                pass
+
+    for dt, px, d in snap_entries:
+        if dt in P_rows:
             continue
         if prev is not None:
             j = px.index.intersection(prev.index)
             if len(j) > 100 and (px[j] == prev[j]).mean() > 0.9:
                 continue
-        P[dt], prev = px, px
+        P_rows[dt], prev = px, px
         extra[dt] = d[[c for c in ("dna_signal", "trend_score", "volume_signal_score", "marketCap", "currentPrice", "fiftyDayAverage",
                                    "twoHundredDayAverage", "dist_52w", "comp_rs", "rs_3m", "fx_action", "fx_stop", "simba_stage")
                        if c in d.columns]]
-    P = pd.DataFrame(P).T.sort_index()
+    P = pd.DataFrame(P_rows).T.sort_index() if P_rows else pd.DataFrame()
     try:
         from utils import corp_actions
         for _, r in corp_actions.load().iterrows():
@@ -176,43 +207,78 @@ def build(root: str = ".", save: bool = True) -> pd.DataFrame:
         except Exception as e:
             print(f"[scorecard] funnel log: {e}")
     # derived lists the Morning Pulse page shows, and the yardstick
-    der = {YARDSTICK: [], "Morning Pulse: top-10 trend-score gainers": [], "Morning Pulse: top-10 trend-score losers": [],
-           "Morning Pulse: accumulation leaders (top 10)": []}
+    gainers_name = "Morning Pulse: top-10 trend-score gainers"
+    losers_name = "Morning Pulse: top-10 trend-score losers"
+    accum_name = "Morning Pulse: accumulation leaders (top 10)"
     F12, F124 = "Funnel stages 1+2: Scanner BUY in a leading industry (rebuilt)", "Funnel stages 1+2+4: …with an entry setup (rebuilt)"
-    der[F12], der[F124] = [], []
+    der = {YARDSTICK: [], gainers_name: [], losers_name: [], accum_name: [], F12: [], F124: []}
+
+    der_path = os.path.join(root, DERIVED_HIST)
+    old_der = pd.read_parquet(der_path) if os.path.exists(der_path) else pd.DataFrame(columns=["date", "signal", "ticker"])
+    if not old_der.empty:
+        old_der["date"] = pd.to_datetime(old_der["date"], errors="coerce").dt.strftime("%Y-%m-%d")
+        existing_dates = set(old_der["date"].dropna().unique())
+        existing_pairs = set(zip(old_der["date"], old_der["signal"]))
+    else:
+        existing_dates = set()
+        existing_pairs = set()
+
+    computed_pairs = set()
     dates = [d for d in extra if d in idx]
     for i, dt in enumerate(dates):
+        dt_str = pd.Timestamp(dt).strftime("%Y-%m-%d")
+        is_latest = (i == len(dates) - 1)
+        if dt_str in existing_dates and not is_latest:
+            continue
         d = extra[dt]
         if "dna_signal" in d:
             der[YARDSTICK] += [(t, dt) for t in d.index[d.dna_signal.astype(str) == "BUY"]]
-        try:                                   # the price-only funnel stages, rebuilt for every past session
-            from utils import funnel, industry_board
-            snap = d.reset_index()
-            prev = extra[dates[i - 21]].reset_index() if i >= 21 else None
-            T = funnel.table(snap, industry_board.board(snap, prev), None, business_for=[])
-            ok = T.s_industry & T.s_trend
-            der[F12] += [(t, dt) for t in T.ticker[ok]]
-            if "fx_action" in d:
-                der[F124] += [(t, dt) for t in T.ticker[ok & T.s_setup]]
-        except Exception:
-            pass
-        if i and "trend_score" in d and "trend_score" in extra[dates[i - 1]]:
+            computed_pairs.add((dt_str, YARDSTICK))
+        if i >= 21 or (dt_str, F12) not in existing_pairs:
+            try:                                   # the price-only funnel stages, rebuilt when 21-session lookback exists or date is new
+                from utils import funnel, industry_board
+                snap = d.reset_index()
+                prev = extra[dates[i - 21]].reset_index() if i >= 21 else None
+                T = funnel.table(snap, industry_board.board(snap, prev), None, business_for=[])
+                ok = T.s_industry & T.s_trend
+                der[F12] += [(t, dt) for t in T.ticker[ok]]
+                computed_pairs.add((dt_str, F12))
+                if "fx_action" in d:
+                    der[F124] += [(t, dt) for t in T.ticker[ok & T.s_setup]]
+                    computed_pairs.add((dt_str, F124))
+            except Exception as e:
+                print(f"[scorecard] funnel derived {dt_str}: {e}")
+        if i >= 1 and "trend_score" in d and "trend_score" in extra[dates[i - 1]]:
             ch = (pd.to_numeric(d.trend_score, errors="coerce")
                   - pd.to_numeric(extra[dates[i - 1]].trend_score, errors="coerce").reindex(d.index)).dropna()
-            der["Morning Pulse: top-10 trend-score gainers"] += [(t, dt) for t in ch.nlargest(10).index]
-            der["Morning Pulse: top-10 trend-score losers"] += [(t, dt) for t in ch.nsmallest(10).index]
+            der[gainers_name] += [(t, dt) for t in ch.nlargest(10).index]
+            der[losers_name] += [(t, dt) for t in ch.nsmallest(10).index]
+            computed_pairs.add((dt_str, gainers_name))
+            computed_pairs.add((dt_str, losers_name))
         if "volume_signal_score" in d:
             v = pd.to_numeric(d.volume_signal_score, errors="coerce")
-            der["Morning Pulse: accumulation leaders (top 10)"] += [(t, dt) for t in v.nlargest(10).index]
+            der[accum_name] += [(t, dt) for t in v.nlargest(10).index]
+            computed_pairs.add((dt_str, accum_name))
     claims = {YARDSTICK: "plain momentum: RS > 0, above the 50-day, liquid",
-              "Morning Pulse: top-10 trend-score gainers": "labelled 'turnaround candidates'",
-              "Morning Pulse: top-10 trend-score losers": "labelled 'caution / exit watch'",
-              "Morning Pulse: accumulation leaders (top 10)": "highest volume-accumulation score"}
+              gainers_name: "labelled 'turnaround candidates'",
+              losers_name: "labelled 'caution / exit watch'",
+              accum_name: "highest volume-accumulation score"}
     claims[F12] = "does the industry stage add to plain momentum? (all sessions)"
     claims[F124] = "…and the entry stage? (since Technicals data began, 30 Sep 2026)"
-    for name, lst in der.items():
-        if lst:
-            r = _score(name, pd.DataFrame(lst, columns=["ticker", "date"]), F, idx, first_days=0)
+    new_recs = [(pd.Timestamp(dt).strftime("%Y-%m-%d"), name, str(tk))
+                for name, lst in der.items() for tk, dt in lst]
+    new_der = pd.DataFrame(new_recs, columns=["date", "signal", "ticker"])
+    if not old_der.empty and computed_pairs:
+        keep_mask = [tuple(x) not in computed_pairs for x in zip(old_der["date"], old_der["signal"])]
+        old_der = old_der[keep_mask]
+    all_der = pd.concat([old_der, new_der], ignore_index=True).drop_duplicates(["date", "signal", "ticker"])
+    if save and not all_der.empty:
+        os.makedirs(os.path.dirname(der_path) or ".", exist_ok=True)
+        all_der.sort_values(["date", "signal", "ticker"]).to_parquet(der_path, index=False, compression="zstd")
+    for name in der:
+        sub = all_der[all_der["signal"] == name][["ticker", "date"]]
+        if len(sub):
+            r = _score(name, sub, F, idx, first_days=0)
             r.update(where="Trend Scanner" if name == YARDSTICK else "Investment Funnel" if name in (F12, F124) else "Morning Pulse",
                      claim=claims[name])
             rows.append(r)
@@ -239,13 +305,15 @@ def portfolio_benchmark(P: pd.DataFrame, extra: dict, root: str = ".") -> pd.Dat
     if not os.path.exists(f):
         return pd.DataFrame()
     e = pd.read_csv(f, parse_dates=["Date"]).drop_duplicates("Date").set_index("Date")
-    r = P.pct_change().clip(-0.25, 0.25)
+    r = P.pct_change(fill_method=None).clip(-0.25, 0.25)
     out = pd.DataFrame({"equal_weight": (1 + r.mean(axis=1).fillna(0)).cumprod()})
-    last = extra[max(extra)]
-    if "marketCap" in last:
-        m = pd.to_numeric(last["marketCap"], errors="coerce").dropna().nlargest(50)
-        m = m[m.index.isin(r.columns)]
-        out["top50"] = (1 + (r[m.index].fillna(0) * m / m.sum()).sum(axis=1)).cumprod()
+    if extra:
+        last = extra[max(extra)]
+        if "marketCap" in last:
+            m = pd.to_numeric(last["marketCap"], errors="coerce").dropna().nlargest(50)
+            m = m[m.index.isin(r.columns)]
+            if len(m) and m.sum() > 0:
+                out["top50"] = (1 + (r[m.index].fillna(0) * m / m.sum()).sum(axis=1)).cumprod()
     j = e.index.intersection(out.index)
     if len(j) < 10:
         return pd.DataFrame()

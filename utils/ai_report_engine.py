@@ -1,7 +1,12 @@
+from __future__ import annotations
+
 import os
 import json
 import streamlit as st
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 from fpdf import FPDF
 from datetime import datetime
 import textwrap
@@ -141,7 +146,7 @@ Your task is to write a highly professional, tabular, and terse "Deep Dive Resea
 
 def configure_llm(api_key: str):
     """Legacy shim — the Gemini path is no longer the primary transport."""
-    if api_key:
+    if api_key and genai is not None:
         try:
             genai.configure(api_key=api_key)
         except Exception:
@@ -154,9 +159,7 @@ def generate_ai_report_markdown(api_key: str = "", data_payload: dict | None = N
 
     Routes through utils.llm_client (OpenAI-compatible) when an LLM endpoint is
     configured, and only falls back to Gemini if a key was typed into the
-    sidebar. The old behaviour hard-bound gemini-1.5-pro to a per-session
-    password box: fine for one ad-hoc report, unusable for a batch across ~1000
-    names, and reduced to "feature unavailable" whenever the box was empty.
+    sidebar and google-generativeai is installed.
     """
     payload_str = json.dumps(data_payload or {}, indent=2)
     
@@ -173,13 +176,18 @@ DATA PAYLOAD:
     if llm_client.is_configured("judgment"):
         return llm_client.complete(prompt, role="judgment", temperature=0.2)
 
-    if api_key:
+    if api_key and genai is not None:
         configure_llm(api_key)
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        response = model.generate_content(prompt)
-        if response and response.text:
-            return response.text
-        raise Exception("Failed to generate content from AI model.")
+        last_err = None
+        for model_name in ("gemini-2.5-flash", "gemini-1.5-pro"):
+            try:
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text
+            except Exception as e:
+                last_err = e
+        raise RuntimeError(f"Failed to generate content from Gemini fallback: {last_err}")
 
     raise RuntimeError(
         "No LLM configured. Set [llm] in Streamlit secrets (or LLM_BASE_URL / "

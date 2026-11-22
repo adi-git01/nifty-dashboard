@@ -269,39 +269,103 @@ def get_rotation(limit: int = 60, date: Optional[str] = None) -> Dict:
     return {"rows": int(len(d)), "rotation": _records(d, limit)}
 
 
+def _safe_ticker_filename(ticker: str) -> str:
+    """Validate and return a path-safe ticker stem (blocks '/', '\\', '..', leading dots)."""
+    raw = str(ticker or "").strip()
+    if not raw or "/" in raw or "\\" in raw or ".." in raw or "\x00" in raw:
+        raise ValueError(f"Invalid ticker: {ticker!r}")
+    stem = raw.upper()
+    for sfx in (".NS", ".BO"):
+        if stem.endswith(sfx):
+            stem = stem[:-3]
+            break
+    if not stem or stem.startswith(".") or not re.fullmatch(r"[A-Za-z0-9._&-]+", stem):
+        raise ValueError(f"Invalid ticker: {ticker!r}")
+    return stem
+
+
 def get_valuation(ticker: str) -> Dict:
     """
-    Monte Carlo valuation card, if one has been generated for this ticker.
+    Intrinsic valuation (utils/valuation.py v4.1) for an Indian (.NS) or US stock.
 
-    The engine (utils/mc_valuation.py) and the Phase-0 pack builder
-    (utils/valuation_pack.py) are in the repo and tested, but nothing generates
-    cards yet — so this returns the scope decision and the research brief
-    instead of a card, which is the honest state and is still useful input.
+    Reads the precomputed valuation snapshot row when available, runs live
+    valuation estimation (`value_stock`) when fundamental inputs are present,
+    and falls back safely with an explicit error if the ticker is invalid or
+    missing inputs.
     """
+    safe_stem = _safe_ticker_filename(ticker)
     t = normalize_ticker(ticker)
-    card = _p("data", "mc_valuations", f"{t.replace('.NS', '')}.json")
-    if os.path.exists(card):
+    out: Dict[str, Any] = {"ticker": t, "has_card": False}
+
+    # Path-contained optional legacy MC card attachment (never allows traversal)
+    mc_dir = os.path.realpath(_p("data", "mc_valuations"))
+    card_path = os.path.realpath(os.path.join(mc_dir, f"{safe_stem}.json"))
+    if not card_path.startswith(mc_dir + os.sep):
+        raise ValueError(f"Invalid ticker path: {ticker!r}")
+    if os.path.exists(card_path):
         try:
-            return {"ticker": t, "has_card": True,
-                    "card": _clean(json.load(open(card)))}
-        except Exception as e:
-            return {"ticker": t, "has_card": False, "error": str(e)}
+            with open(card_path, encoding="utf-8") as fh:
+                out["legacy_card"] = _clean(json.load(fh))
+        except Exception:
+            pass
+
+    # Look up latest valuation snapshot (IN or US)
+    is_us = False
+    for market_flag, snap_file, key in (
+        (False, _p("data", "valuation_snapshot.csv"), safe_stem),
+        (True, _p("data", "us_valuation_snapshot.csv"), str(ticker or "").strip().upper()),
+    ):
+        if os.path.exists(snap_file):
+            try:
+                vs = pd.read_csv(snap_file)
+                hit = vs[vs["ticker"].astype(str).str.upper().str.replace(".NS", "", regex=False) == key.replace(".NS", "")]
+                if not hit.empty:
+                    out["snapshot_summary"] = _clean(hit.iloc[0].to_dict())
+                    is_us = market_flag
+                    break
+            except Exception:
+                pass
 
     try:
         import sys
         if ROOT not in sys.path:
             sys.path.insert(0, ROOT)
-        from utils.valuation_pack import build_pack
-        uni = pd.read_csv(_p("data", "nifty1000_list.csv"))
-        pack = build_pack(t, load_snapshot(), uni)
-        return {"ticker": t, "has_card": False,
-                "note": "no card generated yet; Phase-0 pack returned instead",
-                "in_scope": pack.in_scope,
-                "out_of_scope_reason": pack.out_of_scope_reason or None,
-                "identity": pack.identity, "identity_trigger": pack.identity_trigger,
-                "indicative_only": pack.indicative_only,
-                "snapshot": _clean(pack.snapshot), "peers": _clean(pack.peers),
-                "confidence_cap": pack.confidence_cap,
-                "research_brief": pack.research_brief(), "notes": pack.notes}
+        from utils import valuation as val_mod
+
+        market = "US" if is_us else "IN"
+        ctx = val_mod.load_context(root=ROOT, market=market)
+        sym = str(ticker or "").strip().upper() if market == "US" else t
+        if market == "IN" and sym not in set(ctx.annual["ticker"]) if not ctx.annual.empty else False:
+            us_ctx = val_mod.load_context(root=ROOT, market="US")
+            us_sym = safe_stem
+            if not us_ctx.annual.empty and us_sym in set(us_ctx.annual["ticker"]):
+                ctx, sym, market = us_ctx, us_sym, "US"
+
+        px = None
+        if market == "IN":
+            try:
+                snap_df = load_snapshot()
+                row = snap_df[snap_df["ticker"] == sym]
+                if not row.empty:
+                    px = float(pd.to_numeric(row.iloc[0].get("currentPrice", row.iloc[0].get("price")), errors="coerce"))
+            except Exception:
+                px = None
+        if (px is None or px != px) and ctx.monthly is not None and sym in getattr(ctx.monthly, "columns", []):
+            s_px = ctx.monthly[sym].dropna()
+            if len(s_px):
+                px = float(s_px.iloc[-1])
+
+        res = val_mod.value_stock(sym, ctx, price=px)
+        out["market"] = market
+        out["has_card"] = res.get("status") == "OK"
+        out["status"] = res.get("status")
+        out["identity"] = res.get("identity")
+        out["rating"] = val_mod.verdict(res) if res.get("status") == "OK" else res.get("reason")
+        out["valuation"] = _clean({
+            k: res.get(k) for k in ("snapshot", "dist", "cagr", "multiple", "scorecard", "confidence", "hurdle", "notes", "reason")
+            if k in res
+        })
+        return out
     except Exception as e:
-        return {"ticker": t, "has_card": False, "error": f"pack build failed: {e}"}
+        out["error"] = f"valuation failed: {e}"
+        return out

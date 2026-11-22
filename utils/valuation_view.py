@@ -49,7 +49,8 @@ def _ctx_us(key: tuple):
 
 
 def _ctx_stamp(files) -> tuple:
-    return tuple(os.path.getmtime(f) if os.path.exists(f) else 0 for f in files)
+    from utils import fund_paths
+    return tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in files))
 
 
 def ctx_us():
@@ -58,8 +59,8 @@ def ctx_us():
 
 
 def ctx():
-    files = ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz",
-             "data/monthly_prices.csv.gz", "data/valuation_overrides.csv")
+    files = ("data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv",
+             "data/monthly_prices.csv", "data/valuation_overrides.csv")
     return _ctx(_ctx_stamp(files))
 
 
@@ -416,8 +417,8 @@ def render_reference(df: pd.DataFrame):
         if R.empty or not os.path.exists(SNAPSHOT):
             st.info("No reference runs logged yet." if R.empty else "Mechanical snapshot not built yet.")
             return
-        files = ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz",
-                 "data/monthly_prices.csv.gz", "data/valuation_overrides.csv")
+        files = ("data/fundamentals_annual.csv", "data/fundamentals_quarterly.csv",
+                 "data/monthly_prices.csv", "data/valuation_overrides.csv")
         T = _reference_eval(os.path.getmtime(REFERENCE), _ctx_stamp(files))
         if "pct_gap" in T:
             ok = T.dropna(subset=["pct_gap"])

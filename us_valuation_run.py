@@ -1,7 +1,7 @@
 """
 US valuation for every S&P 500 stock -> data/us_valuation_snapshot.csv (status, rating, P10/P50/P90, CMP percentile).
 
-Price: the latest month-end close in data/us_monthly_prices.csv.gz (the report re-values live at today's
+Price: the latest month-end close in data/us_monthly_prices.csv (the report re-values live at today's
 price; this file is a coverage and sanity check after each SEC refresh). Run after us_fundamentals.py.
 """
 from __future__ import annotations

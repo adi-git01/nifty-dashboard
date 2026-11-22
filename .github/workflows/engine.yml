@@ -64,126 +64,17 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        
-    - name: Log hygiene (repair mis-dated and phantom rows)
-      # Idempotent: a no-op once each repair has been applied (scripts/repair_logs.py).
-      run: |
-        python scripts/repair_logs.py
-      continue-on-error: true
 
-    - name: "NSE data: daily prices, delivery %, corporate actions, surveillance, results dates, deals, market context"
-      # NSE's free daily files (utils/nse_prices.py, utils/nse_data.py). FIRST: every later step reads its daily
-      # bars from the NSE price store (utils/yf_safe.py) and asks Yahoo only for what NSE cannot serve. Never fails the run.
+    - name: Run EOD Pipeline (single-process orchestrator)
+      # Runs log hygiene, NSE daily feed, trading engine (2 attempts), model portfolio,
+      # heartbeat, alerts, RS divergence & daily signals (retiring nightly IAS/TC),
+      # valuation snapshot, alert daemons, and safe snapshot pruning.
       continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GITHUB_BRANCH: ${{ github.ref_name }}
       run: |
-        python scripts/nse_daily.py
-
-    - name: "Step 1/5: Trading Engine (Cache + Sub-Industry Rotation)"
-      # ✅ FIX #4: This used to be the ONLY step without continue-on-error,
-      # despite being the one most exposed to Yahoo Finance flakiness (the
-      # full 777-stock universe fetch). A single failed attempt here killed
-      # the whole job — no commit, no alerts, nothing downstream ran — which
-      # is how entire trading days went missing from the history (e.g.
-      # 2026-07-09). yf_safe.py now retries transient failures inside each
-      # Python call, but a longer-spaced shell-level retry catches outages
-      # that outlast those short in-process backoffs, and continue-on-error
-      # (matching every other step) means Steps 2-6 still run and commit
-      # their own independently-fetched data even if this one ultimately
-      # can't recover.
-      continue-on-error: true
-      env:
-        # reads your book so held / watched stocks outside the universe are downloaded too (utils/extended.py)
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        for attempt in 1 2; do
-          echo "Trading Engine attempt $attempt/2..."
-          python trading_engine.py --mode full --no-heartbeat && exit 0
-          echo "Attempt $attempt failed."
-          if [ "$attempt" -lt 2 ]; then
-            echo "Waiting 3 minutes before retry (outlasts in-process yfinance backoff)..."
-            sleep 180
-          fi
-        done
-        echo "Trading Engine failed after 2 attempts — continuing to later steps with continue-on-error."
-        exit 1
-
-    - name: "Step 2/5: Turnaround Screener (Institutional Accumulation Radar)"
-      continue-on-error: true  # Screener failure must not block portfolio engine or commit
-      run: |
-        python turnaround_screener.py
-
-    - name: "Step 3/5: OptComp-V22 Portfolio Engine (Live Prices + Exits/Rebalance)"
-      continue-on-error: true  # Portfolio engine failure must not block alerts or commit
-      run: |
-        python dna3_current_portfolio.py
-
-    - name: "Step 3b: Trading Engine Heartbeat (after portfolio snapshot)"
-      continue-on-error: true
-      run: |
-        python trading_engine.py --heartbeat-only
-
-    - name: "Step 4/5: DNA3 Morning Alert (Telegram + Email)"
-      continue-on-error: true  # Alert failure must not block commit
-      run: |
-        python dna3_morning_alert.py
-      # ✅ FIX #2: Portfolio snapshot is written in Step 3 (same run), so it
-      #    is available here — but only if checkout succeeded (fix #1 above).
-
-    - name: "Step 5/6: Position & Volume Alert Daemon (Stop-Loss / Volume Spikes)"
-      # ✅ FIX #3: alert_daemon.py was never called by the workflow.
-      # --force-volume bypasses the IST 4PM check (server runs UTC, check was always failing)
-      env:
-        # positions and price alerts live on the alert-state branch (utils/alert_store.py)
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        python alert_daemon.py --force-volume
-      continue-on-error: true  # Don't let alert failures block the commit
-
-    - name: "Step 6/7: Daily Signal Logger (signal logs, funnel log, scorecard, daily Telegram brief)"
-      env:
-        # the daily brief reads positions and the watchlist from the GitHub store
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        python run_daily_signals.py
-      continue-on-error: true
-
-    - name: "Valuation snapshot (fair-value distributions + percentile bands)"
-      # Offline, about a minute: re-runs the valuation on the stored fundamentals so the
-      # Technicals table never reads a weeks-old run.
-      run: |
-        python valuation_run.py
-      continue-on-error: true
-
-    - name: "Step 7/7: Composite-RS Crossing Alerts (Telegram)"
-      # Reads the master snapshot Step 1 just wrote — no Yahoo call, so this
-      # cannot fail on a rate limit. If Step 1 failed, the snapshot is stale and
-      # every alert's last_value already matches it, so nothing fires: a stale
-      # run is silent rather than wrong.
-      env:
-        # State goes through the Contents API as an atomic read-modify-write
-        # (utils/alert_store.py), not through the git commit below, whose
-        # -X theirs used to replace alerts added from the dashboard mid-run.
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        python rs_alert_daemon.py
-      continue-on-error: true
-
-    - name: "Industry / basket status alerts (Telegram)"
-      # Same snapshot as the RS alerts; status changes need two consecutive
-      # snapshot dates, so a re-run on the same day cannot fire twice.
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_BRANCH: ${{ github.ref_name }}
-      run: |
-        python industry_alert_daemon.py
-      continue-on-error: true
+        python scripts/eod_pipeline.py
 
     - name: Send the evening brief (one Telegram message for the whole run)
       if: always()
@@ -203,8 +94,8 @@ jobs:
       # landed during the run (see scripts/commit_and_push.sh).
       run: >
         bash scripts/commit_and_push.sh
-        "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Turnaround Radar, Alerts)"
-        'data/*.csv' 'data/*.json' 'data/cache/*.parquet' 'data/nse/*' positions.json
+        "🤖 System: EOD Engine Run (Cache, Portfolio, Sub-Industries, Signals, Alerts)"
+        'data/*.csv' 'data/*.json' 'data/*.parquet' 'data/cache/*.parquet' 'data/nse/*' positions.json
 
 
     - name: Data health check (fails the run if today's snapshot is missing)

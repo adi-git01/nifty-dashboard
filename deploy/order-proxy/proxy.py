@@ -8,18 +8,37 @@ It is an HTTPS tunnel (HTTP CONNECT) and nothing else:
   - only with the right user name and password
   - it cannot read what passes through: the dashboard's connection to Dhan is encrypted end to end,
     so your Dhan token never appears here, in memory or in logs
-Standard library only. Settings come from the environment: PROXY_USER, PROXY_PASS, PROXY_PORT (8443).
+Standard library only. Settings come from the environment:
+  PROXY_USER, PROXY_PASS, PROXY_PORT (8443), PROXY_TLS_CERT, PROXY_TLS_KEY, PROXY_REQUIRE_TLS (1/0).
 """
 import asyncio
 import base64
 import hmac
 import os
+import ssl
 import sys
 
 ALLOW = {"api.dhan.co", "api.ipify.org"}
 USER, PASS = os.environ.get("PROXY_USER", "dash"), os.environ.get("PROXY_PASS", "")
 PORT = int(os.environ.get("PROXY_PORT", "8443"))
+TLS_CERT = os.environ.get("PROXY_TLS_CERT", "").strip()
+TLS_KEY = os.environ.get("PROXY_TLS_KEY", "").strip()
+REQUIRE_TLS = os.environ.get("PROXY_REQUIRE_TLS", "").strip().lower() in ("1", "true", "yes")
 ALLOW |= {h.strip().lower() for h in os.environ.get("PROXY_ALLOW", "").split(",") if h.strip()}
+
+
+def build_ssl_context(cert_path: str = "", key_path: str = ""):
+    """Build TLS 1.2+ server SSLContext from cert/key PEM paths, or None if unset."""
+    if not cert_path and not key_path:
+        return None
+    if not (cert_path and key_path):
+        raise ValueError("Both PROXY_TLS_CERT and PROXY_TLS_KEY must be set together")
+    if not (os.path.exists(cert_path) and os.path.exists(key_path)):
+        raise FileNotFoundError(f"TLS cert/key not found: {cert_path}, {key_path}")
+    ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    ctx.load_cert_chain(certfile=cert_path, keyfile=key_path)
+    return ctx
 
 
 async def pipe(r, w):
@@ -70,8 +89,12 @@ async def handle(reader, writer):
 async def main():
     if not PASS:
         sys.exit("PROXY_PASS is not set")
-    server = await asyncio.start_server(handle, "0.0.0.0", PORT)
-    print(f"order proxy listening on :{PORT}, allowed: {sorted(ALLOW)}", flush=True)
+    if REQUIRE_TLS and not (TLS_CERT and TLS_KEY):
+        sys.exit("PROXY_REQUIRE_TLS is enabled but PROXY_TLS_CERT / PROXY_TLS_KEY are not set")
+    ssl_ctx = build_ssl_context(TLS_CERT, TLS_KEY)
+    server = await asyncio.start_server(handle, "0.0.0.0", PORT, ssl=ssl_ctx)
+    proto = "HTTPS (TLS)" if ssl_ctx is not None else "WARNING: cleartext HTTP (set PROXY_TLS_CERT & PROXY_TLS_KEY before live trading)"
+    print(f"order proxy ({proto}) listening on :{PORT}, allowed: {sorted(ALLOW)}", flush=True)
     async with server:
         await server.serve_forever()
 

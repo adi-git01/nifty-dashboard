@@ -240,7 +240,7 @@ def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[
     ev = n["events"]
     for a in plan["add"]:
         entry = a["avg"] or prices.get(a["ticker"])
-        extra = dict(source=source, synced_at=today, **({"lots": a["lots"]} if a.get("lots") else {}))
+        extra = dict(source=source, synced_at=today, price_basis_date=today, **({"lots": a["lots"]} if a.get("lots") else {}))
         if a.get("orig"):                                   # promote from the watchlist
             pos.update_position(a["orig"], status="active", entry_price=entry, quantity=a["qty"], entry_date=today, **extra)
         else:
@@ -252,6 +252,7 @@ def apply(plan: Dict[str, list], prices: Dict[str, float], names: Optional[Dict[
         f = dict(quantity=u["qty"], source=source, synced_at=today, **({"lots": u["lots"]} if u.get("lots") else {}))
         if u["avg"]:
             f["entry_price"] = u["avg"]
+            f["price_basis_date"] = today
         pos.update_position(u["orig"], **f)
         d = u["qty"] - int(u.get("old_qty") or 0)
         both = u.get("avg") and u.get("old_avg") and u.get("old_qty")

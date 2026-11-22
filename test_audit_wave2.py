@@ -25,6 +25,8 @@ def test_nse_prepare_write_dtypes():
             "close": [101.05],
             "prev_close": [100.00],
             "vwap": [100.90],
+            "trades": [1500.0],
+            "deliv_qty": [25000.0],
             "deliv_pct": [54.32],
             "pe": [22.5],
             "pb": [3.1],
@@ -32,9 +34,11 @@ def test_nse_prepare_write_dtypes():
         }
     )
     out = nse_prices._prepare_write(df)
+    for col in ("vwap", "trades", "deliv_qty"):
+        assert col not in out.columns
     for col in ("open", "high", "low", "close", "prev_close"):
         assert out[col].dtype == np.float64
-    for col in ("vwap", "deliv_pct", "pe", "pb", "dy"):
+    for col in ("deliv_pct", "pe", "pb", "dy"):
         assert out[col].dtype == np.float32
 
 

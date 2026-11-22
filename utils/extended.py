@@ -61,7 +61,7 @@ def _eq_cached(mtime: float) -> tuple:
     try:
         e = pd.read_csv(EQ_LIST)
         e.columns = [c.strip() for c in e.columns]
-        e = e[e["SERIES"].astype(str).str.strip() == "EQ"]
+        e = e[e["SERIES"].astype(str).str.strip().isin(["EQ", "BE", "BZ"])]
         return tuple((f"{s.strip()}.NS", n.strip()) for s, n in zip(e["SYMBOL"].astype(str), e["NAME OF COMPANY"].astype(str)))
     except Exception:
         return ()

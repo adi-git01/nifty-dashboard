@@ -16,9 +16,9 @@ and downloads ~6 years of month-end prices (Yahoo, adjusted) so the engine
 can rebuild each stock's own P/E and P/B history.
 
 Outputs (long format: ticker, field, period, value):
-  data/fundamentals_annual.csv.gz
-  data/fundamentals_quarterly.csv.gz
-  data/monthly_prices.csv.gz            (date, ticker, close)
+  data/fundamentals_annual.csv
+  data/fundamentals_quarterly.csv
+  data/monthly_prices.csv               (date, ticker, close)
   analysis/screener_samples/*.html      two raw pages, so the parser can be
                                         fixed offline if Screener's layout moves
 
@@ -38,11 +38,12 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from winners_setup_scan import QROWS, SROWS, _records, _table  # noqa: E402
+from utils import fund_paths  # noqa: E402
+from utils.screener_parser import QROWS, SROWS, _records, _table  # noqa: E402
 
-ANNUAL = "data/fundamentals_annual.csv.gz"
-QUARTERLY = "data/fundamentals_quarterly.csv.gz"
-MONTHLY = "data/monthly_prices.csv.gz"
+ANNUAL = fund_paths.ANNUAL
+QUARTERLY = fund_paths.QUARTERLY
+MONTHLY = fund_paths.MONTHLY
 SAMPLES = "analysis/screener_samples"
 
 PL = {"sales": "sales", "revenue": "sales", "operating profit": "op", "financing profit": "op",
@@ -209,6 +210,47 @@ def monthly_prices(tickers, batch=60):
     return pd.DataFrame(rows, columns=["date", "ticker", "close"])
 
 
+def enrich_bank_npas(A: pd.DataFrame, Q: pd.DataFrame, tickers=None, delay: float = 0.35) -> pd.DataFrame:
+    """
+    Fetch quarterly bank asset-quality & capital-adequacy rows (gnpa, nnpa, cet1) from NSE
+    /api/results-comparision for listed banks and merge into Q (non-fatal on network errors).
+    """
+    banks = set()
+    if A is not None and not A.empty and {"ticker", "field"} <= set(A.columns):
+        banks |= set(A[A["field"] == "deposits"]["ticker"].dropna().astype(str))
+    try:
+        from utils.nifty1000_list import SUB_INDUSTRY_MAP
+        banks |= {t for t, ind in SUB_INDUSTRY_MAP.items() if "bank" in str(ind).lower()}
+    except Exception:
+        pass
+    if tickers is not None:
+        banks &= set(tickers)
+    if not banks:
+        return Q
+    try:
+        from utils import nse_data as nd
+        S = nd.Session()
+        rows = []
+        for t in sorted(banks):
+            try:
+                rows.extend(nd.fetch_bank_npa(S, t))
+            except Exception as e:
+                print(f"[nse-bank] {t}: {e}")
+            if delay:
+                time.sleep(delay)
+        if not rows:
+            return Q
+        extra_q = pd.DataFrame(rows, columns=["ticker", "field", "period", "value"])
+        out = pd.concat([Q, extra_q.reindex(columns=Q.columns)], ignore_index=True) if Q is not None and not Q.empty else extra_q
+        out["period"] = out["period"].astype(str).str.slice(0, 10)
+        out = out.drop_duplicates(["ticker", "field", "period"], keep="last").reset_index(drop=True)
+        print(f"[nse-bank] merged {len(rows)} NPA/CET1 rows across {extra_q['ticker'].nunique()} banks", flush=True)
+        return out
+    except Exception as e:
+        print(f"[nse-bank] skipped: {e}", flush=True)
+        return Q
+
+
 def main():
     from utils.nifty1000_list import TICKERS_1000
 
@@ -226,7 +268,7 @@ def main():
     subset = bool(args.only_stale)
     if subset:
         try:
-            old = pd.read_csv(ANNUAL, parse_dates=["period"])
+            old = pd.read_csv(fund_paths.resolve(ANNUAL), parse_dates=["period"])
             last = old[old.field == "np"].groupby("ticker").period.max()
             fresh = set(last[(pd.Timestamp.today() - last).dt.days <= 640].index)
         except Exception:
@@ -245,9 +287,10 @@ def main():
     # A stock Screener did not serve this time keeps its previous rows; a partial scrape used to
     # overwrite the file and silently drop up to 40% of the universe.
     for new, path, lab in ((A, ANNUAL, "annual"), (Q, QUARTERLY, "quarterly")):
-        if os.path.exists(path):
+        old_path = fund_paths.resolve(path)
+        if os.path.exists(old_path):
             try:
-                old = pd.read_csv(path)
+                old = pd.read_csv(old_path)
                 # Only replace existing ticker rows when this scrape produced real statement rows (not headline mcap_cr/price_scr only).
                 if "field" in new.columns and not new.empty:
                     real = new[~new["field"].isin(["mcap_cr", "price_scr"])]
@@ -265,10 +308,11 @@ def main():
                         Q = merged
             except Exception as e:
                 if subset:
-                    sys.exit(f"[{lab}] --only-stale could not read previous {path} ({e}) -- aborting to avoid data loss")
+                    sys.exit(f"[{lab}] --only-stale could not read previous {old_path} ({e}) -- aborting to avoid data loss")
                 print(f"[{lab}] could not read the previous file ({e}) -- writing this run only")
-    A.to_csv(ANNUAL, index=False)
-    Q.to_csv(QUARTERLY, index=False)
+    Q = enrich_bank_npas(A, Q, tickers=tickers, delay=0.35)
+    fund_paths.write_sorted_csv(A, ANNUAL, ["ticker", "field", "period"])
+    fund_paths.write_sorted_csv(Q, QUARTERLY, ["ticker", "field", "period"])
     yrs = A[A.field == "np"].groupby("ticker").size()
     print(f"[annual] {na} stocks; years of net profit: median {yrs.median():.0f}, "
           f">= 5 years for {(yrs >= 5).sum()}; fields: {A.field.value_counts().to_dict()}")
@@ -278,7 +322,7 @@ def main():
     if not args.skip_prices:
         M = monthly_prices(tickers)
         if M.ticker.nunique() >= 0.6 * len(tickers):
-            M.to_csv(MONTHLY, index=False)
+            fund_paths.write_sorted_csv(M, MONTHLY, ["ticker", "date"])
             print(f"[prices] {M.ticker.nunique()} stocks, {M.date.nunique()} months -> {MONTHLY}")
         else:
             print(f"[prices] only {M.ticker.nunique()} stocks -- keeping the previous file")

@@ -30,9 +30,9 @@ import pandas as pd
 
 # core, then the extended list's weekly files (build_extended_universe.py), then the older one-off extra file;
 # the first file that has a (ticker, field, period) wins
-FILES = ("data/fundamentals_annual.csv.gz", "data/fundamentals_ext_annual.csv.gz", "data/fundamentals_annual_extra.csv.gz")
-QFILE = "data/fundamentals_quarterly.csv.gz"
-QFILES = (QFILE, "data/fundamentals_ext_quarterly.csv.gz")
+FILES = ("data/fundamentals_annual.csv", "data/fundamentals_ext_annual.csv", "data/fundamentals_annual_extra.csv")
+QFILE = "data/fundamentals_quarterly.csv"
+QFILES = (QFILE, "data/fundamentals_ext_quarterly.csv")
 UP, FLAT, DOWN, BUILD = "IMPROVING", "STABLE", "WORSENING", "INVESTING"
 ICON = {UP: "🟢", FLAT: "⚪", DOWN: "🔴", BUILD: "🏗️"}
 WEIGHTS = {"Growth": 0.30, "Margins": 0.25, "Cash & balance sheet": 0.25, "Returns on capital": 0.20}
@@ -49,13 +49,19 @@ def _mtime(paths) -> float:
     return max([os.path.getmtime(p) for p in paths if os.path.exists(p)] or [0.0])
 
 
+def _resolved_paths(root: str) -> tuple[list[str], list[str]]:
+    from utils import fund_paths
+    return ([fund_paths.resolve(f, root=root) for f in FILES],
+            [fund_paths.resolve(f, root=root) for f in QFILES])
+
+
 @lru_cache(maxsize=2)
 def _load(root: str, stamp: float):
-    p = lambda f: os.path.join(root, f)
-    A = [pd.read_csv(p(f)) for f in FILES if os.path.exists(p(f))]
+    a_files, q_files = _resolved_paths(root)
+    A = [pd.read_csv(f) for f in a_files if os.path.exists(f)]
     A = pd.concat(A, ignore_index=True).drop_duplicates(["ticker", "field", "period"]) if A else pd.DataFrame(
         columns=["ticker", "field", "period", "value"])
-    Q = [pd.read_csv(p(f)) for f in QFILES if os.path.exists(p(f))]
+    Q = [pd.read_csv(f) for f in q_files if os.path.exists(f)]
     Q = pd.concat(Q, ignore_index=True).drop_duplicates(["ticker", "field", "period"]) if Q else pd.DataFrame(
         columns=["ticker", "field", "period", "value"])
     for d in (A, Q):
@@ -64,7 +70,8 @@ def _load(root: str, stamp: float):
 
 
 def _data(root: str = "."):
-    return _load(root, _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+    a_files, q_files = _resolved_paths(root)
+    return _load(root, _mtime(a_files + q_files))
 
 
 def _key(ticker: str, d: dict) -> Optional[str]:
@@ -181,7 +188,8 @@ def roa_tree(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
 def annual(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     """as_of: use only fiscal years ending on or before this date (for point-in-time tests).
     The result is cached and shared: treat it as read-only."""
-    return _annual(ticker, root, None if as_of is None else str(as_of), _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+    a_files, q_files = _resolved_paths(root)
+    return _annual(ticker, root, None if as_of is None else str(as_of), _mtime(a_files + q_files))
 
 
 @lru_cache(maxsize=8192)
@@ -235,7 +243,8 @@ def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
 
 def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
     """Cached and shared: treat the result as read-only."""
-    return _quarterly(ticker, root, None if as_of is None else str(as_of), _mtime([os.path.join(root, f) for f in FILES + QFILES]))
+    a_files, q_files = _resolved_paths(root)
+    return _quarterly(ticker, root, None if as_of is None else str(as_of), _mtime(a_files + q_files))
 
 
 @lru_cache(maxsize=8192)

@@ -66,10 +66,10 @@ def _ext_val_ctx(stamp: float):
 def _extended_valuation(ticker: str, row: pd.Series, val: pd.DataFrame) -> pd.DataFrame:
     """Value an extended stock on request and return `val` with its row added (best effort)."""
     import os
-    from utils import valuation as V
+    from utils import fund_paths, valuation as V
     try:
-        stamp = max([os.path.getmtime(f) for f in ("data/fundamentals_ext_annual.csv.gz", "data/fundamentals_ext_quarterly.csv.gz",
-                                                   "data/fundamentals_annual_extra.csv.gz") if os.path.exists(f)] or [0.0])
+        paths = [fund_paths.resolve(p) for p in (fund_paths.EXT_ANNUAL, fund_paths.EXT_QUARTERLY, fund_paths.EXTRA_ANNUAL)]
+        stamp = max([os.path.getmtime(f) for f in paths if os.path.exists(f)] or [0.0])
         o = V.value_stock(ticker.replace(".NS", ""), _ext_val_ctx(stamp), price=float(row["currentPrice"]),
                           hi52=float(row.get("fiftyTwoWeekHigh")) if pd.notna(row.get("fiftyTwoWeekHigh")) else None,
                           lo52=float(row.get("fiftyTwoWeekLow")) if pd.notna(row.get("fiftyTwoWeekLow")) else None)
