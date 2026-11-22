@@ -7,7 +7,7 @@ Each stage reuses a tool the dashboard already has, in the order a top-down inve
                many positions and how much risk. Momentum entries lost to the typical stock only
                in the BEAR regime (analysis/REGIME_VERDICT.md).
   1 INDUSTRY   the stock's sub-industry is LEADING or IMPROVING on the leadership board, or its
-               trend status is UPTREND / TURNING UP (utils/industry_board.py)
+               trend status is UPTREND / TURNING UP (excluding WEAKENING) (utils/industry_board.py)
   2 TREND      Trend Scanner BUY (RS vs Nifty > 0, above the 50-day, liquid) and not in a
                Stage 3 / 4 chart (SIMBA stage)
   3 BUSINESS   business score >= 45 of 100 (growth, margins, cash and balance sheet, returns on
@@ -28,6 +28,7 @@ file); the combination is a disciplined checklist, not a proven system.
 """
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, Iterable, List, Optional
 
 import numpy as np
@@ -40,7 +41,7 @@ VALUE_MAX_PCT = 70
 SETUP_DAYS = 5
 MAX_RISK_PCT = 15         # a stop further away than this is not a tradable entry (SIMBA hard gate)
 WHAT = {
-    "industry": "Sub-industry is Leading / Improving on the leadership board, or in an Uptrend / Turning up",
+    "industry": "Sub-industry is Leading / Improving on the leadership board, or in an Uptrend / Turning up (excluding Weakening groups)",
     "trend": "Trend Scanner BUY (RS > 0, above 50-day, liquid) and not a Stage 3 / 4 chart",
     "business": "Business score ≥ 45/100 (growth, margins, cash, returns); cash conversion ≥ 50%; debt/equity ≤ 1.5",
     "setup": f"Technicals BUY NOW / BUY ON TRIGGER, or a SIMBA breakout / SI Opportunity within {SETUP_DAYS} sessions, with the stop within {MAX_RISK_PCT}%",
@@ -69,11 +70,12 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     s_business is NaN where it was not evaluated.
     """
     from utils.nifty1000_list import SUB_INDUSTRY_MAP
-    x = pd.DataFrame({"ticker": df["ticker"].values})
-    x["name"] = df.get("name", df["ticker"]).values
-    x["price"] = _num(df, "currentPrice").fillna(_num(df, "price")).values
+    d = df.drop_duplicates("ticker").reset_index(drop=True)
+    x = pd.DataFrame({"ticker": d["ticker"].values})
+    x["name"] = d.get("name", d["ticker"]).values
+    x["price"] = _num(d, "currentPrice").fillna(_num(d, "price")).values
+    x["extended"] = d["extended"].eq(True).values if "extended" in d.columns else False
     x["industry"] = x.ticker.map(SUB_INDUSTRY_MAP)
-    d = df.reset_index(drop=True)
 
     # 1 industry
     x["ind_group"], x["ind_status"], x["ind_score"] = "", "", np.nan
@@ -82,7 +84,7 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
         x["ind_group"] = x.industry.map(b["group"]).fillna("")
         x["ind_status"] = x.industry.map(b["status"]).fillna("")
         x["ind_score"] = x.industry.map(b["score"])
-    x["s_industry"] = x.ind_group.isin(["LEADING", "IMPROVING"]) | x.ind_status.isin(["UPTREND", "TURNING UP"])
+    x["s_industry"] = (x.ind_group.isin(["LEADING", "IMPROVING"]) | x.ind_status.isin(["UPTREND", "TURNING UP"])) & ~x.ind_group.eq("WEAKENING")
 
     # 2 trend
     x["scanner"] = d.get("dna_signal", pd.Series("", index=d.index)).astype(str)
@@ -96,18 +98,48 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["simba_days"] = pd.concat([m, si], axis=1).min(axis=1)
     x["stop"], x["stop_pct"], x["t1"], x["t2"] = _num(d, "fx_stop"), _num(d, "fx_stop_pct"), _num(d, "fx_t1"), _num(d, "fx_t2")
     x["entry"] = _num(d, "fx_entry").fillna(x.price) if "fx_entry" in d else x.price      # the trigger for BUY ON TRIGGER
-    x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where(x.stop < x.entry)
-    x["signal"] = x.technicals.isin(["BUY NOW", "BUY ON TRIGGER"]) | (x.simba_days <= SETUP_DAYS)
+    x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where((x.stop > 0) & (x.entry > 0) & (x.stop < x.entry))
+    x["t1"] = x["t1"].where(x["t1"] > x.entry).fillna(x.entry + 2 * (x.entry - x.stop)).where(x.risk_pct.notna())
+    x["signal"] = x.technicals.isin(["BUY NOW", "BUY ON TRIGGER"]) | ((x.simba_days >= 0) & (x.simba_days <= SETUP_DAYS))
     x["s_setup"] = x.signal & (x.risk_pct <= MAX_RISK_PCT)
 
     # 5 value
     x["val_pct"], x["val_p50"], x["val_rating"] = np.nan, np.nan, ""
     if val is not None and not val.empty:
         ok = val[val.get("status") == "OK"] if "status" in val else val
+        ok = ok[~ok.index.duplicated(keep="first")]
         x["val_pct"] = x.ticker.map(pd.to_numeric(ok["cmp_pct"], errors="coerce"))
         x["val_p50"] = x.ticker.map(pd.to_numeric(ok["p50"], errors="coerce"))
         x["val_rating"] = x.ticker.map(ok["rating"]).fillna("")
-    x["val_upside"] = (x.val_p50 / x.price - 1) * 100
+        if "grid" in ok.columns:
+            from utils import valuation as V
+            snap_px_col = pd.to_numeric(ok["price"], errors="coerce") if "price" in ok.columns else None
+            has_meta = all(c in ok.columns for c in ("gates_ok", "confidence", "identity"))
+            for i, t, px in zip(x.index, x.ticker, x.price):
+                if t not in ok.index or pd.isna(px) or px <= 0:
+                    continue
+                r = ok.loc[t]
+                raw_grid = r.get("grid")
+                if not raw_grid or pd.isna(raw_grid):
+                    continue
+                if snap_px_col is not None:
+                    sp = snap_px_col.get(t)
+                    if pd.notna(sp) and sp > 0 and abs(float(px) / float(sp) - 1.0) <= 1e-4:
+                        continue
+                try:
+                    g = json.loads(raw_grid) if isinstance(raw_grid, str) else list(raw_grid)
+                    if not g:
+                        continue
+                    if has_meta and len(g) == 99:
+                        pct, rat = V.rating_from_grid(g, float(px), bool(r["gates_ok"]), str(r["confidence"]), str(r["identity"]))
+                        x.at[i, "val_rating"] = rat
+                    else:
+                        ga = np.asarray(g, float)
+                        pct = float(np.interp(float(px), ga, np.linspace(1, 99, len(ga)), left=0.5, right=99.5))
+                    x.at[i, "val_pct"] = round(pct, 1)
+                except Exception:
+                    continue
+    x["val_upside"] = ((x.val_p50 / x.price - 1) * 100).where(x.price > 0)
     x["s_value"] = x.val_pct.isna() | (x.val_pct <= VALUE_MAX_PCT)
 
     # 3 business: every stock (the scores are precomputed, ~0.05 s for all). Checking only trend passers left the rest
@@ -136,7 +168,8 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
 def run(T: pd.DataFrame, on: Iterable[str] = DEFAULT_ON) -> Dict[str, Any]:
     """Apply the stages in order. Returns counts after each stage, the survivors and near misses."""
     on = [k for k, _ in STAGES if k in set(on)]
-    live = T[T.price.notna()]
+    ext = T["extended"].eq(True) if "extended" in T.columns else pd.Series(False, index=T.index)
+    live = T[T.price.notna() & (T.price > 0) & ~ext]
     counts: List[Dict[str, Any]] = [dict(stage="Universe", left=len(live))]
     mask = pd.Series(True, index=live.index)
     passes = {k: live[f"s_{k}"].eq(True) for k, _ in STAGES}

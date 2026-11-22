@@ -57,7 +57,7 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
     px = float(T.price)
     stop, t1, t2 = n("fx_stop"), n("fx_t1"), n("fx_t2")
     ent = n("fx_entry") if pd.notna(n("fx_entry")) else px              # the trigger for BUY ON TRIGGER
-    risk = (ent - stop) / ent * 100 if pd.notna(stop) and stop < ent else np.nan
+    risk = (ent - stop) / ent * 100 if pd.notna(stop) and stop > 0 and stop < ent else np.nan
     half = bool(r.get("fx_half_size")) if pd.notna(r.get("fx_half_size")) else False
     plan = dict(action=str(r.get("fx_action") or "—"), state=str(r.get("fx_state") or "—"), entry=ent, stop=stop, risk_pct=risk,
                 t1=t1 if pd.notna(t1) and t1 > ent else (ent + 2 * (ent - stop) if pd.notna(risk) else np.nan),
@@ -70,6 +70,10 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
         v = val.loc[ticker]
         vrow = {k: v.get(k) for k in ("status", "rating", "confidence", "cmp_pct", "p10", "p50", "p90", "band_k_lo", "band_k_hi",
                                       "q_grade", "q_note", "cagr_base", "mult_kind", "spot_mult", "base_mult", "reason", "as_of")}
+        if vrow.get("status") == "OK" and pd.notna(T.val_pct):
+            vrow["cmp_pct"] = float(T.val_pct)
+            if T.val_rating:
+                vrow["rating"] = T.val_rating
     tech = dict(ret={k: n(f"return_{k}") for k in ("1w", "1m", "3m", "6m", "1y")}, comp_rs=n("comp_rs"), rs_3m=n("rs_3m"),
                 dist_52w=n("dist_52w"), ma50=n("fiftyDayAverage"), ma200=n("twoHundredDayAverage"), stage=n("simba_stage"),
                 g_bits=str(r.get("simba_g_bits") or ""), m_bits=str(r.get("simba_m_bits") or ""), mtf=n("simba_mtf"),

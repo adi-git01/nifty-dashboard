@@ -11,7 +11,6 @@ from utils.industry_board_view import get_board
 from utils.ui_search import search_box
 
 VAL_FILE = "data/valuation_snapshot.csv"
-FUND_FILES = ("data/fundamentals_quarterly.csv", "data/fundamentals_annual.csv")
 
 
 def snap_key(df: pd.DataFrame) -> str:
@@ -67,9 +66,27 @@ def _table(key: str, fund_key: tuple, val_key: float, _df: pd.DataFrame) -> pd.D
 
 
 def get_table(df: pd.DataFrame) -> pd.DataFrame:
-    from utils import fund_paths
-    fk = tuple(os.path.getmtime(p) if os.path.exists(p) else 0 for p in (fund_paths.resolve(f) for f in FUND_FILES))
+    from utils import fund_paths, fund_trends
+    paths = [fund_paths.resolve(f) for f in fund_trends.FILES + fund_trends.QFILES] + [fund_trends.BRIEF_CACHE]
+    fk = tuple(os.path.getmtime(p) if os.path.exists(p) else 0.0 for p in paths)
     return _table(snap_key(df), fk, os.path.getmtime(VAL_FILE) if os.path.exists(VAL_FILE) else 0.0, df)
+
+
+def setup_labels(P: pd.DataFrame) -> list[str]:
+    """Human-readable setup label per row (surfaces SIMBA-only setups and trigger prices)."""
+    out: list[str] = []
+    for r in P.itertuples():
+        tech = str(getattr(r, "technicals", "") or "—")
+        sd = getattr(r, "simba_days", None)
+        ent = getattr(r, "entry", None)
+        px = getattr(r, "price", None)
+        if tech not in ("BUY NOW", "BUY ON TRIGGER") and pd.notna(sd) and 0 <= float(sd) <= funnel.SETUP_DAYS:
+            out.append(f"{tech} · SIMBA ({int(sd)}d)")
+        elif tech == "BUY ON TRIGGER" and pd.notna(ent) and pd.notna(px) and float(ent) > float(px):
+            out.append(f"BUY ON TRIGGER (₹{float(ent):,.1f})")
+        else:
+            out.append(tech)
+    return out
 
 
 def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
@@ -80,14 +97,15 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     V = pd.DataFrame({
         "Stock": P.ticker.str.replace(".NS", "", regex=False), "Name": P.name, **{c: P[c] for c in extra},
         "Industry": P.industry, "Ind.": P.ind_group.str.title(), "Price": P.price, "RS": P.comp_rs,
-        "Technicals": P.technicals, "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1,
+        "Technicals": setup_labels(P), "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1,
         "Business": P.biz_headline, "Latest qtr profit YoY": P.np_yoy, "Flags": P.biz_flags,
         "Value pctile": P.val_pct, "To mid value": P.val_upside})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),
+        "Technicals": st.column_config.TextColumn("Setup", help="Technicals action, plus recent SIMBA signal or trigger price"),
         "Stop": st.column_config.NumberColumn(format="₹%.1f", help="Technicals stop from the last close"),
-        "Risk %": st.column_config.NumberColumn(format="%.1f%%", help="Distance from price to stop"),
+        "Risk %": st.column_config.NumberColumn(format="%.1f%%", help="Distance from entry (or trigger) to stop"),
         "2× risk ref": st.column_config.NumberColumn(format="₹%.1f", help="A yardstick, not an exit: booking at 2× risk halved returns in the backtest"),
         "Latest qtr profit YoY": st.column_config.NumberColumn(format="%+.0f%%"),
         "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
