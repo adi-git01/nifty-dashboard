@@ -28,9 +28,11 @@ Position Schema:
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Optional, List, Dict
 from utils.alert_store import AlertStore
+
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 POSITIONS_FILE = "positions.json"
 
@@ -121,7 +123,8 @@ def add_position(
     """Add a new position or update existing."""
     positions = _load_positions()
     existing = next((p for p in positions if p.get('ticker') == ticker), None)
-    now = datetime.now().isoformat()
+    now_dt = datetime.now(_IST)
+    now = now_dt.isoformat()
 
     if existing:
         fields = {'status': status, 'alerts_enabled': alerts_enabled, 'updated_at': now}
@@ -140,7 +143,7 @@ def add_position(
         'sector': sector,
         'status': status,
         'entry_price': entry_price,
-        'entry_date': datetime.now().strftime('%Y-%m-%d'),
+        'entry_date': now_dt.strftime('%Y-%m-%d'),
         'stop_loss': stop_loss,
         'target': target,
         'quantity': quantity,
@@ -160,7 +163,7 @@ def update_position(ticker: str, **updates) -> Optional[Dict]:
     pos = get_position(ticker)
     if not pos:
         return None
-    updates['updated_at'] = datetime.now().isoformat()
+    updates['updated_at'] = datetime.now(_IST).isoformat()
     STORE.commit({"patches": {pos['id']: updates}}, f"update {ticker}", background=_BG)
     return {**pos, **updates}
 
@@ -170,7 +173,7 @@ def close_position(ticker: str, exit_price: float) -> Optional[Dict]:
         ticker,
         status='closed',
         exit_price=exit_price,
-        exit_date=datetime.now().strftime('%Y-%m-%d')
+        exit_date=datetime.now(_IST).strftime('%Y-%m-%d')
     )
 
 def remove_position(ticker: str) -> bool:
@@ -231,18 +234,19 @@ def get_positions_with_pnl(market_df) -> List[Dict]:
         if use:
             row = by_ticker.loc[use]
             current_price = row.get(pcol, 0)
-            pos['current_price'] = current_price
+            valid_px = current_price is not None and current_price == current_price and float(current_price) > 0
+            pos['current_price'] = float(current_price) if valid_px else None
 
-            if entry and entry > 0:
-                pos['pnl_pct'] = ((current_price - entry) / entry) * 100
-                pos['pnl_abs'] = (current_price - entry) * (pos.get('quantity', 1) / fac if fac else pos.get('quantity', 1))
+            if entry and entry > 0 and valid_px:
+                pos['pnl_pct'] = ((float(current_price) - entry) / entry) * 100
+                pos['pnl_abs'] = (float(current_price) - entry) * (pos.get('quantity', 1) / fac if fac else pos.get('quantity', 1))
             else:
                 pos['pnl_pct'] = 0
                 pos['pnl_abs'] = 0
 
             # Check alert triggers
-            pos['sl_triggered'] = bool(sl and current_price <= sl)
-            pos['target_triggered'] = bool(tgt and current_price >= tgt)
+            pos['sl_triggered'] = bool(sl and valid_px and float(current_price) <= sl)
+            pos['target_triggered'] = bool(tgt and valid_px and float(current_price) >= tgt)
 
             # Current trend
             pos['current_signal'] = row.get('trend_signal', 'N/A')

@@ -79,6 +79,20 @@ def suggest(ticker: str, df: Optional[pd.DataFrame] = None) -> Optional[Tuple[st
     """The real stock a mistyped symbol or a company name most likely meant (INVPRVECQ -> INVPRECQ)."""
     nm = names(df)
     base = str(ticker).upper().replace(".NS", "").replace(".BO", "")
+    try:
+        from utils import nse_prices as npx
+        chg = npx._symbol_map()
+        fwd = {}
+        for new_s, olds in chg.items():
+            for old_s, dt in olds:
+                if old_s not in fwd or dt > fwd[old_s][1]:
+                    fwd[old_s] = new_s
+        if base in fwd:
+            nt = f"{fwd[base]}.NS"
+            if nt in nm:
+                return nt, nm[nt]
+    except Exception:
+        pass
     syms = {t.replace(".NS", ""): t for t in nm if t.endswith(".NS")}
     m = difflib.get_close_matches(base, list(syms), n=1, cutoff=0.8)
     if m:

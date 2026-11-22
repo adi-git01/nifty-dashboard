@@ -24,7 +24,7 @@ AI_CAPEX_THEME = {
     'benchmark': 'SMH',           # VanEck Semiconductor ETF — better alpha baseline than SPY
     'rs_weights': [(252, 1.0)],   # 12-month RS: beat the 1w/1m/3m blend at 8/8 starts (analysis/TRANSFER_VERDICT.md)
     'ma_period': 30,
-    'lookback_days': 400,
+    'lookback_days': 760,
     'min_volume_usd': 2_000_000,
     'tickers': [
         # Tier 1: Core AI Compute
@@ -309,16 +309,17 @@ class ThemeEngine:
         Returns DataFrame with columns: date, Layer, CompRS, RS_Vel, Pct_Above_MA.
         """
         if not self.data_cache:
-            if not self.fetch_data(self.config.get('lookback_days', 400)):
+            if not self.fetch_data(self.config.get('lookback_days', 760)):
                 return pd.DataFrame()
 
         bench_close = self.benchmark_data['Close']
         n_total = len(bench_close)
+        min_bars = max([p for p, _ in self.rs_weights] + [63]) + 2
         rows = []
 
         for month_offset in range(n_months, 0, -1):
             end_idx = n_total - month_offset * 21
-            if end_idx < 65:
+            if end_idx < min_bars:
                 continue
 
             b_slice = bench_close.iloc[:end_idx]
@@ -332,7 +333,7 @@ class ThemeEngine:
                 df = self.data_cache[t]
                 close = df['Close']
                 n = min(len(close), end_idx)
-                if n < 65:
+                if n < min_bars:
                     continue
                 close_slice = close.iloc[:n]
                 rs = self._comp_rs_slice(close_slice, b_slice)

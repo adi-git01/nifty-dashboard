@@ -41,10 +41,13 @@ def load_sp500_universe() -> pd.DataFrame:
 # Cache helpers
 # ---------------------------------------------------------------------------
 
-def _us_parquet_path() -> str:
+def _us_parquet_path(benchmark: str = "SPY", rs_weights=None) -> str:
+    import hashlib
     os.makedirs("data/cache", exist_ok=True)
     today = datetime.now().strftime("%Y_%m_%d")
-    return f"{US_PARQUET_PREFIX}_{today}.parquet"
+    w = tuple((int(p), float(wt)) for p, wt in (rs_weights or DEFAULT_RS_WEIGHTS))
+    tag = hashlib.md5(f"{benchmark}:{w}".encode()).hexdigest()[:6]
+    return f"{US_PARQUET_PREFIX}_{today}_{benchmark}_{tag}.parquet"
 
 
 def clear_us_cache() -> int:
@@ -59,10 +62,10 @@ def clear_us_cache() -> int:
     return len(files)
 
 
-def _load_cached(live_mode: bool):
+def _load_cached(live_mode: bool, benchmark: str = "SPY", rs_weights=None):
     if live_mode:
         return None
-    path = _us_parquet_path()
+    path = _us_parquet_path(benchmark, rs_weights)
     if not os.path.exists(path):
         return None
     try:
@@ -92,10 +95,10 @@ def _load_cached(live_mode: bool):
     return None
 
 
-def _save_cache(df: pd.DataFrame) -> None:
+def _save_cache(df: pd.DataFrame, benchmark: str = "SPY", rs_weights=None) -> None:
     # Write to a temp file and rename (atomic on POSIX) so a mid-write crash
     # can't leave a truncated parquet at the real path for readers to trip over.
-    path = _us_parquet_path()
+    path = _us_parquet_path(benchmark, rs_weights)
     tmp_path = f"{path}.tmp{os.getpid()}"
     try:
         df.to_parquet(tmp_path)
@@ -152,7 +155,7 @@ def _comp_rs(stock_series: pd.Series, bench_series: pd.Series,
 def fetch_us_market_data(
     benchmark: str = "SPY",
     rs_weights=None,  # list of (period, weight) tuples or None
-    lookback_days: int = 400,
+    lookback_days: int = 420,
     live_mode: bool = False,
 ) -> pd.DataFrame:
     """
@@ -162,13 +165,16 @@ def fetch_us_market_data(
     Args:
         benchmark:    Ticker used as benchmark for RS (default "SPY").
         rs_weights:   List of (period, weight) e.g. [(5,.3),(21,.5),(63,.2)].
-        lookback_days: Calendar days of history to request (default 400).
+        lookback_days: Calendar days of history to request (default 420, auto-bumped for 252d RS).
         live_mode:    If True, skip parquet cache.
     """
     if rs_weights is None:
         rs_weights = DEFAULT_RS_WEIGHTS
 
-    cached = _load_cached(live_mode)
+    max_p = max([p for p, _ in rs_weights] + [63])
+    lookback_days = max(lookback_days, int(max_p * 1.65))
+
+    cached = _load_cached(live_mode, benchmark=benchmark, rs_weights=rs_weights)
     if cached is not None:
         return cached
 
@@ -331,5 +337,5 @@ def fetch_us_market_data(
         return pd.DataFrame()
 
     result = pd.DataFrame(rows)
-    _save_cache(result)
+    _save_cache(result, benchmark=benchmark, rs_weights=rs_weights)
     return result

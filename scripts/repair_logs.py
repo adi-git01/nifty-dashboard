@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -95,9 +96,13 @@ def fix_rotation(path: str = "data/sub_industry_rotation.csv") -> dict:
         return {}
     d = pd.read_csv(path)
     raw = d["record_date"].astype(str)
-    norm = pd.to_datetime(raw, format="mixed", errors="coerce").dt.strftime("%Y-%m-%d")
-    stats = dict(reformatted=int((raw != norm).sum()), stale_dropped=0, redated=0)
+    parsed = pd.to_datetime(raw, format="mixed", errors="coerce")
+    norm = parsed.dt.strftime("%Y-%m-%d")
+    wk = parsed.dt.weekday >= 5
+    stats = dict(reformatted=int((raw != norm).sum()), weekend=int(wk.sum()), stale_dropped=0, redated=0)
     d["record_date"] = norm
+    if wk.any():
+        d = d[~wk].reset_index(drop=True)
     for bad, good in MISDATED.items():
         if not (d.record_date == bad).any():
             continue
@@ -114,7 +119,127 @@ def fix_rotation(path: str = "data/sub_industry_rotation.csv") -> dict:
         else:
             d = d[d.record_date != bad]
     if sum(stats.values()):
+        sort_cols = ["record_date", "sub_industry"] if "sub_industry" in d.columns else ["record_date"]
+        d = d.sort_values(sort_cols).reset_index(drop=True)
         _save(d, path)
+    return stats
+
+
+def _val_diff(cur, target, tol: float = 1e-2) -> bool:
+    c_num = pd.to_numeric(pd.Series([cur]), errors="coerce").iloc[0]
+    t_num = pd.to_numeric(pd.Series([target]), errors="coerce").iloc[0]
+    if pd.isna(c_num) and pd.isna(t_num):
+        return False
+    if pd.isna(c_num) != pd.isna(t_num):
+        return True
+    return abs(float(c_num) - float(t_num)) > tol
+
+
+def recompute_split_returns() -> dict:
+    """Recompute split/bonus-affected returns in signal logs from NSE adjusted history (idempotent)."""
+    from utils import corp_actions, nse_prices
+    ca = corp_actions.load()
+    if ca is None or ca.empty:
+        return {}
+    stats = {}
+    targets = [
+        ("data/tc_log.csv", "closed21"),
+        ("data/earnings_shock_log.csv", "closed21"),
+        ("data/ias_signal_log.csv", "ias"),
+    ]
+    for path, mode in targets:
+        if not os.path.exists(path):
+            continue
+        df = pd.read_csv(path)
+        if df.empty or "ticker" not in df.columns or "signal_date" not in df.columns:
+            continue
+        facs = corp_actions.factor_map(ca, df["ticker"], df["signal_date"])
+        idxs = df.index[facs != 1.0].tolist()
+        if not idxs:
+            continue
+        hit_tickers = sorted({str(df.at[i, "ticker"]) for i in idxs})
+        hmap = nse_prices.history(hit_tickers)
+        changed = 0
+        for i in idxs:
+            t = str(df.at[i, "ticker"])
+            sd = pd.Timestamp(str(df.at[i, "signal_date"])[:10])
+            h = hmap.get(t)
+            if h is None or h.empty or h.loc[:sd].empty:
+                continue
+            sig_raw = pd.to_numeric(df.at[i, "signal_price"], errors="coerce")
+            if pd.isna(sig_raw) or float(sig_raw) <= 0:
+                continue
+            sig_adj = float(h.loc[:sd, "Close"].iloc[-1])
+            if sig_adj <= 0:
+                continue
+            row_changed = False
+            if mode == "closed21":
+                is_closed = str(df.at[i, "status"]).upper() == "CLOSED"
+                if is_closed:
+                    close_end = sd + pd.Timedelta(days=22)
+                    sub = h.loc[:close_end, "Close"]
+                    if sub.empty:
+                        continue
+                    cur_adj = float(sub.iloc[-1])
+                    fac_closed = corp_actions.cumulative_factor(ca, t, sd, close_end)
+                    new_cur = round(float(sig_raw) * fac_closed * (cur_adj / sig_adj), 2)
+                    new_ret = round((cur_adj / sig_adj - 1.0) * 100.0, 2)
+                else:
+                    cur_adj = float(h["Close"].iloc[-1])
+                    new_cur = round(cur_adj, 2)
+                    new_ret = round((cur_adj / sig_adj - 1.0) * 100.0, 2)
+                if _val_diff(df.at[i, "current_price"], new_cur):
+                    df.at[i, "current_price"] = new_cur
+                    row_changed = True
+                if _val_diff(df.at[i, "return_since_signal"], new_ret):
+                    df.at[i, "return_since_signal"] = new_ret
+                    row_changed = True
+                if is_closed and "return_21d" in df.columns and _val_diff(df.at[i, "return_21d"], new_ret):
+                    df.at[i, "return_21d"] = new_ret
+                    row_changed = True
+            else:
+                cur_adj = float(h["Close"].iloc[-1])
+                new_cur = round(cur_adj, 1)
+                new_ret = round((cur_adj / sig_adj - 1.0) * 100.0, 1)
+                after_eq = h.loc[h.index >= sd, "Close"]
+                new_max = round((float(after_eq.max()) / sig_adj - 1.0) * 100.0, 1) if len(after_eq) else new_ret
+                new_max_dt = after_eq.idxmax().strftime("%Y-%m-%d") if len(after_eq) else str(df.at[i, "max_gain_date"])[:10]
+                if _val_diff(df.at[i, "current_price"], new_cur):
+                    df.at[i, "current_price"] = new_cur
+                    row_changed = True
+                if _val_diff(df.at[i, "return_since_signal"], new_ret):
+                    df.at[i, "return_since_signal"] = new_ret
+                    row_changed = True
+                if _val_diff(df.at[i, "max_gain"], new_max):
+                    df.at[i, "max_gain"] = new_max
+                    row_changed = True
+                if str(df.at[i, "max_gain_date"])[:10] != new_max_dt:
+                    df.at[i, "max_gain_date"] = new_max_dt
+                    row_changed = True
+                after_gt = h.loc[h.index > sd, "Close"]
+                for n, col_p, col_r in ((5, "signal_price_at_5d", "return_5d"),
+                                        (21, "signal_price_at_21d", "return_21d"),
+                                        (63, "signal_price_at_63d", "return_63d")):
+                    if col_p in df.columns and col_r in df.columns and len(after_gt) >= n:
+                        px = float(after_gt.iloc[n - 1])
+                        t_px = round(px, 1)
+                        t_ret = round((px / sig_adj - 1.0) * 100.0, 1)
+                        if _val_diff(df.at[i, col_p], t_px):
+                            df.at[i, col_p] = t_px
+                            row_changed = True
+                        if _val_diff(df.at[i, col_r], t_ret):
+                            df.at[i, col_r] = t_ret
+                            row_changed = True
+                days = (h.index[-1] - sd).days
+                new_xirr = round(((cur_adj / sig_adj) ** (365.0 / days) - 1.0) * 100.0, 1) if days >= 30 and cur_adj > 0 else np.nan
+                if "xirr" in df.columns and _val_diff(df.at[i, "xirr"], new_xirr):
+                    df.at[i, "xirr"] = new_xirr
+                    row_changed = True
+            if row_changed:
+                changed += 1
+        if changed:
+            _save(df, path)
+            stats[os.path.basename(path)] = changed
     return stats
 
 
@@ -125,6 +250,7 @@ def main() -> int:
         ("data/tc_log.csv", ["signal_date"], ["ticker", "signal_date"], (), True),
         ("data/breakout_log.csv", ["first_seen"], ["ticker", "kind", "breakout_date"], ("breakout_date",), False),
         ("data/consensus_log.csv", ["first_seen", "last_agree"], ["ticker", "first_seen"], (), False),
+        ("data/ias_signal_log.csv", ["signal_date"], ["ticker", "signal_date"], (), False),
     ]
     for path, cols, key, shift, stale in jobs:
         try:
@@ -143,6 +269,11 @@ def main() -> int:
         print(f"   sub_industry_rotation.csv: {s if sum(s.values()) else 'ok'}")
     except Exception as e:
         print(f"   sub_industry_rotation.csv: FAILED {e}")
+    try:
+        sp = recompute_split_returns()
+        print(f"   split return repair: {sp if sp else 'ok'}")
+    except Exception as e:
+        print(f"   split return repair: FAILED {e}")
     return 0
 
 

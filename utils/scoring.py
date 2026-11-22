@@ -70,34 +70,29 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     bonuses = quality_config.get("bonuses", {})
     
     # Extract raw metrics — use None-passthrough so normalize() returns neutral 5
-    _roe_raw = data.get("roe")
-    if _roe_raw is None:
-        roe_pct = None
-    else:
-        _r = float(_roe_raw)
-        roe_pct = _r * 100 if abs(_r) < 1 else _r
+    def _to_pct(val):
+        if val is None:
+            return None
+        try:
+            r = float(val)
+        except (TypeError, ValueError):
+            return None
+        if r != r or abs(r) == float("inf"):
+            return None
+        return r * 100.0 if abs(r) <= 5.0 else r
 
-    _roa_raw = data.get("roa")
-    if _roa_raw is None:
-        roa_pct = None
-    else:
-        _r = float(_roa_raw)
-        roa_pct = _r * 100 if abs(_r) < 1 else _r
-    
-    _npm_raw = data.get("profitMargins")
-    npm_pct = None if _npm_raw is None else (float(_npm_raw) * 100 if float(_npm_raw) < 1 else float(_npm_raw))
+    roe_pct = _to_pct(data.get("roe"))
+    roa_pct = _to_pct(data.get("roa"))
+    npm_pct = _to_pct(data.get("profitMargins"))
+    gpm_pct = _to_pct(data.get("grossMargins"))
 
-    _gpm_raw = data.get("grossMargins")
-    gpm_pct = None if _gpm_raw is None else (float(_gpm_raw) * 100 if float(_gpm_raw) < 1 else float(_gpm_raw))
-    
     de_raw = data.get("debtToEquity")
-    
+
     if de_raw is None:
         s_debt = 5  # Neutral penalty for missing data
         de = 0 # Default for other calculations if needed, but score is fixed
     else:
-        de = safe_num(de_raw, 0)
-        de = de / 100 if de > 10 else de
+        de = safe_num(de_raw, 0) / 100.0
         s_debt = 10 - normalize(de, 0, 2.0)
     
     eq = safe_num(data.get("earningsQuality"), 1.0)
@@ -138,7 +133,8 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
         s_gpm * weights.get("gpm", 0.10) +
         s_debt * weights.get("debt", 0.15) +
         s_eq * weights.get("eq", 0.12) +
-        s_pb_bonus * weights.get("pb_bonus", 0)
+        s_pb_bonus * weights.get("pb_bonus", 0) +
+        5.0 * weights.get("base", 0)
     )
     
     # Apply profile-specific bonuses
@@ -155,7 +151,7 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
             quality = min(10, quality + bonuses["npm_decent"]["bonus"])
 
     if "roa_excellent" in bonuses:
-        if roa_pct > bonuses["roa_excellent"]["threshold"]:
+        if roa_pct is not None and roa_pct > bonuses["roa_excellent"]["threshold"]:
             quality = min(10, quality + bonuses["roa_excellent"]["bonus"])
 
     if "gpm_excellent" in bonuses:
@@ -168,7 +164,7 @@ def calculate_scores(data, sector_pe_median=None, sector=None):
     
     if "profitability_combo" in bonuses:
         b = bonuses["profitability_combo"]
-        if npm_pct is not None and roe_pct > b["roe_threshold"] and npm_pct > b["npm_threshold"]:
+        if roe_pct is not None and npm_pct is not None and roe_pct > b["roe_threshold"] and npm_pct > b["npm_threshold"]:
             quality = min(10, quality + b["bonus"])
 
 

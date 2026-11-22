@@ -141,7 +141,12 @@ def add_tracked(fundamentals: pd.DataFrame, extras: Optional[List[str]] = None) 
         if not extras:
             return fundamentals
         print(f"[EXTENDED] adding {len(extras)} tracked stock(s) outside the universe: {' '.join(t[:-3] for t in extras[:20])}", flush=True)
-        return pd.concat([fundamentals, _fund_frame(extras)], ignore_index=True)
+        base = fundamentals.copy()
+        if "extended" not in base.columns:
+            base["extended"] = False
+        ext_df = _fund_frame(extras)
+        ext_df["extended"] = True
+        return pd.concat([base, ext_df], ignore_index=True)
     except Exception as e:
         print(f"[EXTENDED] tracked extras not added: {e}", flush=True)
         return fundamentals

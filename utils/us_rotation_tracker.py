@@ -189,11 +189,11 @@ def backfill_us_rotation_if_needed(
     sec_map  = universe.set_index("ticker")["sector"].to_dict()
 
     all_tickers = [benchmark] + tickers
-    print(f"[US BACKFILL] Downloading 400d history for {len(all_tickers)} tickers…", flush=True)
+    print(f"[US BACKFILL] Downloading 2y history for {len(all_tickers)} tickers…", flush=True)
 
     try:
         raw = yf.download(
-            all_tickers, period="400d", interval="1d",
+            all_tickers, period="2y", interval="1d",
             group_by="ticker", threads=False, progress=False, auto_adjust=True,
         )
     except Exception as e:
@@ -217,12 +217,13 @@ def backfill_us_rotation_if_needed(
         freq="BME", periods=13
     )
 
+    max_p = max([p for p, _ in rs_weights] + [63])
     snapshot_rows = []
 
     for me_date in month_ends:
         # Slice data up to this month-end
         bench_slice = bench_all.loc[:me_date].dropna()
-        if len(bench_slice) < 65:
+        if len(bench_slice) < max_p + 2:
             continue
 
         # Compute RS for each ticker at this point in time
@@ -237,14 +238,17 @@ def backfill_us_rotation_if_needed(
                     close_all = raw["Close"].dropna()
 
                 close_slice = close_all.loc[:me_date].dropna()
-                if len(close_slice) < 65:
+                if len(close_slice) < max_p + 2:
                     continue
 
                 rs5  = _period_rs(close_slice, bench_slice, 5)
                 rs21 = _period_rs(close_slice, bench_slice, 21)
                 rs63 = _period_rs(close_slice, bench_slice, 63)
-                comp = sum(rs5 * w if p == 5 else rs21 * w if p == 21 else rs63 * w
-                           for p, w in rs_weights)
+                rs_map = {5: rs5, 21: rs21, 63: rs63}
+                for p, _ in rs_weights:
+                    if p not in rs_map:
+                        rs_map[p] = _period_rs(close_slice, bench_slice, p)
+                comp = sum(rs_map[p] * w for p, w in rs_weights)
 
                 ticker_rs[ticker] = {
                     "rs_5d": rs5, "rs_21d": rs21, "rs_63d": rs63, "comp_rs": comp,
@@ -505,8 +509,9 @@ def render_us_rotation_heatmap(score_pivot: pd.DataFrame, hover_pivot: pd.DataFr
         xaxis=dict(title="Month", side="top", tickangle=0),
         yaxis=dict(title="", autorange="reversed", tickfont=dict(size=11)),
         margin=dict(l=240, r=40, t=60, b=20),
-        template="plotly_dark",
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
+        template="plotly_white",
+        font=dict(color="#1E293B"),
+        plot_bgcolor="#FFFFFF",
+        paper_bgcolor="#FFFFFF",
     )
     st.plotly_chart(fig, use_container_width=True, key="us_rotation_heatmap_chart")

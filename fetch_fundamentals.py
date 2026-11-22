@@ -9,6 +9,7 @@ Streamlit load — eliminating the 75-second per-restart fetch cost.
 Run schedule: 1st and 15th of each month via GitHub Actions.
 Can also be triggered manually: python fetch_fundamentals.py
 """
+from __future__ import annotations
 
 import yfinance as yf
 import pandas as pd
@@ -237,18 +238,25 @@ def main_nse():
     source), within a time budget; what it does not reach carries the previous values forward. A comparison with the previous cache goes to
     analysis/FUNDAMENTALS_NSE_VS_YAHOO.md.
     """
-    from utils.fundamentals_build import CARRY, build, compare, yahoo_fill
+    from utils.fundamentals_build import CARRY, YAHOO_FIELDS, build, compare, yahoo_fill
     os.makedirs("data", exist_ok=True)
     tickers = list(TICKERS_1000)
     df = build(tickers)
     old = pd.read_csv(OUTPUT_PATH) if os.path.exists(OUTPUT_PATH) else pd.DataFrame()
     if "--no-yahoo" not in sys.argv:
-        df = yahoo_fill(df)                                 # only the gaps: grossMargins, forwardPE, and any NaN field
+        df = yahoo_fill(df, workers=4)                      # only the gaps: grossMargins, forwardPE, and any NaN field
     if len(old):
         prev = old.set_index("ticker")
-        for c in CARRY:                                     # Yahoo also had nothing: keep the last known value
-            if c in prev:
-                df[c] = df[c].fillna(df["ticker"].map(prev[c]))
+        skip_map = df.attrs.get("skip_yahoo") or {}
+        carry_cols = list(dict.fromkeys(CARRY + list(YAHOO_FIELDS) + ["earningsQuality", "earningsTrend"]))
+        for c in carry_cols:                                # preserve prior values for non-skipped transient gaps
+            if c in prev and c in df.columns:
+                prev_vals = df["ticker"].map(prev[c])
+                if skip_map:
+                    allowed = ~df["ticker"].map(lambda tk, col=c: col in (skip_map.get(tk) or ()))
+                    df[c] = df[c].where(df[c].notna() | ~allowed, prev_vals)
+                else:
+                    df[c] = df[c].fillna(prev_vals)
         try:
             os.makedirs("analysis", exist_ok=True)
             with open("analysis/FUNDAMENTALS_NSE_VS_YAHOO.md", "w") as f:

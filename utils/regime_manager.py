@@ -35,8 +35,8 @@ def classify_regime(nifty_close: float, nifty_ma200: float,
     if nifty_dd <= -0.30:
         return "CRISIS"
 
-    # BEAR: significant drawdown + well below MA200
-    if nifty_dd <= -0.20 and nifty_close < nifty_ma200 * 0.95:
+    # BEAR: deep drawdown or >5% below 200DMA
+    if (nifty_dd <= -0.20 and nifty_close < nifty_ma200 * 0.95) or nifty_close < nifty_ma200 * 0.95:
         return "BEAR"
 
     # CAUTION: moderate drawdown OR hovering near MA200

@@ -263,11 +263,12 @@ class OptCompV21Engine:
         # accepting shorter history than the 200-day scan threshold since
         # valuation/exits only need ~64 days.
         held = list(self.load_state().get('holdings', {}).keys())
+        from utils.yf_safe import safe_history
         for t in [h for h in held if h not in self.data_cache]:
             for _attempt in range(2):
                 try:
-                    df = yf.Ticker(t).history(start=start_date)
-                    if not df.empty and len(df) >= 64:
+                    df = safe_history(t, start=start_date)
+                    if df is not None and not df.empty and len(df) >= 64:
                         df.index = df.index.tz_localize(None) if df.index.tz is not None else df.index
                         self.data_cache[t] = df
                         loaded += 1
@@ -310,9 +311,12 @@ class OptCompV21Engine:
         for t, h in holdings.items():
             df = self.data_cache.get(t)
             ed = pd.Timestamp(h.get('entry_date', ''))
-            if df is None or ed not in df.index:
+            if df is None or ed not in df.index or not h.get('entry_price'):
                 continue
-            raw = float(df.at[ed, 'Close']) / float(h['entry_price'])
+            c_ed = df.at[ed, 'Close']
+            if isinstance(c_ed, pd.Series):
+                c_ed = c_ed.iloc[-1]
+            raw = float(c_ed) / float(h['entry_price'])
             if not np.isfinite(raw) or abs(raw - 1) <= CORP_ACTION_TOL:
                 continue
             ratio = min(CORP_ACTION_RATIOS, key=lambda r: abs(r / raw - 1))

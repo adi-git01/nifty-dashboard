@@ -54,9 +54,11 @@ def _window(kwargs):
         per = str(per).lower()
         today = pd.Timestamp.today().normalize()
         if per == "max":
-            start = None
+            start = ("max", None)
         elif per == "ytd":
             start = pd.Timestamp(today.year, 1, 1)
+        elif per == "mtd":
+            start = pd.Timestamp(today.year, today.month, 1)
         elif per.endswith("d"):
             start = ("sessions", int(per[:-1]))
         elif per.endswith("mo"):
@@ -77,9 +79,15 @@ def _from_nse(tickers, kwargs, source=None):
     if w is None:
         return {}
     start, end = w
+    if isinstance(start, tuple) and start[0] == "max":
+        return {}
     try:
         from utils import nse_prices
         sess = start[1] if isinstance(start, tuple) else None
+        if start is not None and not sess:
+            first_dt = nse_prices.first_date("stocks")
+            if first_dt is not None and pd.Timestamp(start) < first_dt - pd.Timedelta(days=45):
+                return {}
         out = nse_prices.history(served, start=None if sess or start is None else start, end=end)
     except Exception as e:
         print(f"[yf_safe] NSE store unavailable ({type(e).__name__}: {e}); using Yahoo", flush=True)
@@ -156,6 +164,7 @@ def safe_download(tickers, retries=DEFAULT_RETRIES, backoff=DEFAULT_BACKOFF, min
             return nse_frame
         print(f"[yf_safe] {len(got)} tickers from NSE; {len(rest)} not in NSE's files go to Yahoo: "
               f"{' '.join(map(str, rest[:15]))}{' …' if len(rest) > 15 else ''}", flush=True)
+        _SOURCE_LOG["yahoo"] += len(rest)
         ya = _safe_download_yahoo(rest, retries, backoff, min_coverage=0.0, **kwargs)
         return _merge(nse_frame, ya, kwargs.get("group_by", "column"), rest)
     _SOURCE_LOG["yahoo"] += len(tickers_list)
@@ -201,8 +210,14 @@ def _safe_download_yahoo(tickers, retries=DEFAULT_RETRIES, backoff=DEFAULT_BACKO
         coverage = 0.0
         if data is not None and not data.empty:
             if isinstance(data.columns, pd.MultiIndex):
-                present = set(data.columns.get_level_values(0))
-                have = sum(1 for t in tickers_list if t in present and not data[t].dropna(how='all').empty)
+                lvl0 = set(data.columns.get_level_values(0))
+                lvl1 = set(data.columns.get_level_values(1))
+                if any(t in lvl0 for t in tickers_list):
+                    have = sum(1 for t in tickers_list if t in lvl0 and not data[t].dropna(how='all').empty)
+                elif any(t in lvl1 for t in tickers_list):
+                    have = sum(1 for t in tickers_list if t in lvl1 and not data.xs(t, level=1, axis=1).dropna(how='all').empty)
+                else:
+                    have = 0
             else:
                 have = 1 if not data.dropna(how='all').empty else 0
             coverage = have / total

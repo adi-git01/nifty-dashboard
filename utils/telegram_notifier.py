@@ -15,9 +15,11 @@ Auto-Trigger:
 - Can be scheduled via cron/Task Scheduler
 """
 
-import requests
+import html
 import json
 import os
+import re
+import requests
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
@@ -130,15 +132,55 @@ def queue_message(message: str, path: str) -> Tuple[bool, str]:
         return False, f"could not queue: {e}"
 
 
+_TG_TAG_RE = re.compile(r"<(/?)(b|i|u|s|code|pre|a)(\b[^>]*)?>", re.I)
+
+
+def _balance_html_pair(chunk: str, carry_open: List[Tuple[str, str]]) -> Tuple[str, List[Tuple[str, str]]]:
+    """Prepend unclosed tags from previous chunk, track open tags in chunk, and close them at end."""
+    prefix = "".join(tag_str for _, tag_str in carry_open)
+    st: List[Tuple[str, str]] = list(carry_open)
+    for m in _TG_TAG_RE.finditer(chunk):
+        closing, name = bool(m.group(1)), m.group(2).lower()
+        if closing:
+            for idx in range(len(st) - 1, -1, -1):
+                if st[idx][0] == name:
+                    st.pop(idx)
+                    break
+        else:
+            st.append((name, m.group(0)))
+    suffix = "".join(f"</{n}>" for n, _ in reversed(st))
+    return prefix + chunk + suffix, st
+
+
 def _chunks(parts: List[str]) -> List[str]:
     out, cur = [], ""
     for p in parts:
-        while len(p) > TG_LIMIT:                    # one oversized section: cut at line breaks
-            cut = p.rfind("\n", 0, TG_LIMIT)
-            cut = cut if cut > 0 else TG_LIMIT
-            out.append(p[:cut]); p = p[cut:].lstrip("\n")
-        if cur and len(cur) + len(p) + 2 > TG_LIMIT:
-            out.append(cur); cur = p
+        if len(p) > TG_LIMIT:
+            if cur:
+                out.append(cur)
+                cur = ""
+            carry: List[Tuple[str, str]] = []
+            rem = p
+            while rem:
+                prefix_len = sum(len(t) for _, t in carry)
+                room = max(200, TG_LIMIT - prefix_len - 48)
+                if len(rem) <= room:
+                    piece, carry = _balance_html_pair(rem, carry)
+                    out.append(piece)
+                    break
+                cut = rem.rfind("\n", 0, room)
+                if cut <= 0:
+                    cut = room
+                lt = rem.rfind("<", 0, cut)
+                gt = rem.rfind(">", 0, cut)
+                if lt > gt and lt > 0:
+                    cut = lt
+                piece, carry = _balance_html_pair(rem[:cut], carry)
+                out.append(piece)
+                rem = rem[cut:].lstrip("\n")
+        elif cur and len(cur) + len(p) + 2 > TG_LIMIT:
+            out.append(cur)
+            cur = p
         else:
             cur = f"{cur}\n\n{p}" if cur else p
     if cur:
@@ -146,7 +188,7 @@ def _chunks(parts: List[str]) -> List[str]:
     return out
 
 
-def send_batch(path: str) -> Tuple[bool, str]:
+def send_batch(path: str, clear: bool = False) -> Tuple[bool, str]:
     """Send everything queued in `path` as one brief (split only where Telegram's length limit forces it)."""
     if not os.path.exists(path):
         return True, "nothing queued"
@@ -167,7 +209,85 @@ def send_batch(path: str) -> Tuple[bool, str]:
     for c in chunks:
         ok, last = _send_now(c)
         ok_all &= ok
+    if ok_all and clear:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
     return ok_all, f"{len(parts)} message(s) sent as {len(chunks)} Telegram message(s)" if ok_all else last
+
+
+def queue_commit(spec: dict, batch_path: Optional[str] = None) -> bool:
+    """Defer alert-store state commits while TELEGRAM_BATCH is queuing until send_brief delivers."""
+    path = (batch_path if batch_path is not None else os.environ.get("TELEGRAM_BATCH", "")).strip()
+    if not path:
+        return False
+    cpath = path + ".commits.jsonl"
+    try:
+        with open(cpath, "a", encoding="utf-8") as f:
+            f.write(json.dumps(spec) + "\n")
+        return True
+    except Exception:
+        return False
+
+
+def replay_queued_commits(batch_path: str) -> int:
+    """Apply state commits deferred during a TELEGRAM_BATCH run after the brief sends."""
+    cpath = (batch_path or "").strip() + ".commits.jsonl"
+    if not batch_path or not os.path.exists(cpath):
+        return 0
+    specs = []
+    with open(cpath, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                specs.append(json.loads(line))
+            except Exception:
+                pass
+    if not specs:
+        try:
+            os.remove(cpath)
+        except OSError:
+            pass
+        return 0
+    done, failed = 0, []
+    import pandas as pd
+    for sp in specs:
+        try:
+            kind = sp.get("kind")
+            if kind == "positions_patch":
+                from utils.positions import STORE as POS_STORE
+                POS_STORE.commit({"patches": sp["patches"]}, sp.get("reason", "alerts sent"))
+            elif kind == "price_alerts_patch":
+                from utils.alerts import STORE as ALERTS_STORE
+                ALERTS_STORE.commit({"patches": sp["patches"]}, sp.get("reason", "price alerts sent"))
+            elif kind == "rs_persist":
+                from utils.rs_alerts import check_rs_alerts
+                df = pd.read_parquet(sp["snapshot"])
+                check_rs_alerts(df, persist=True)
+            elif kind == "industry_persist":
+                from utils.industry_alerts import check_industry_alerts
+                df = pd.read_parquet(sp["snapshot"])
+                check_industry_alerts(df, sp["session"], persist=True)
+            done += 1
+        except Exception as e:
+            print(f"[brief] commit replay failed ({sp.get('kind')}): {e}")
+            failed.append(sp)
+    if failed:
+        try:
+            with open(cpath, "w", encoding="utf-8") as f:
+                for sp in failed:
+                    f.write(json.dumps(sp) + "\n")
+        except OSError:
+            pass
+    else:
+        try:
+            os.remove(cpath)
+        except OSError:
+            pass
+    return done
 
 
 def send_telegram_message(message: str) -> Tuple[bool, str]:
@@ -198,10 +318,10 @@ def _send_now(message: str) -> Tuple[bool, str]:
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         
         # Method to send with specific parse mode
-        def _attempt_send(mode=None):
+        def _attempt_send(mode=None, text=message):
             payload = {
                 "chat_id": chat_id,
-                "text": message,
+                "text": text,
                 "disable_web_page_preview": True
             }
             if mode:
@@ -211,7 +331,7 @@ def _send_now(message: str) -> Tuple[bool, str]:
         # Attempt 1: HTML
         response = _attempt_send("HTML")
         
-        # Attempt 2: If Bad Request (likely formatting), try Plaintext
+        # Attempt 2: If Bad Request (likely formatting), strip HTML and try Plaintext
         if response.status_code == 400:
             # Try to log the error for debugging
             try:
@@ -219,8 +339,8 @@ def _send_now(message: str) -> Tuple[bool, str]:
             except: 
                 pass
             
-            # Retry without parse_mode
-            response = _attempt_send(None)
+            plain = html.unescape(re.sub(r"</?(?:b|i|u|s|code|pre|a)(?:\s+[^>]*)?>", "", message, flags=re.I))
+            response = _attempt_send(None, text=plain)
         
         if response.status_code == 200:
             return True, "Message sent successfully"

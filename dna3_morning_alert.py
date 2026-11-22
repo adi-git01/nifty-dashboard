@@ -12,7 +12,9 @@ Schedule via Windows Task Scheduler at 8:30 AM IST for automatic daily alerts.
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+_IST = timezone(timedelta(hours=5, minutes=30))
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -42,8 +44,9 @@ def build_telegram_message(data):
     
     # CAGR calculation
     initial = 1000000
-    start = datetime(2026, 2, 1)
-    days = (datetime.now() - start).days
+    start = datetime(2026, 2, 1, tzinfo=_IST)
+    now_ist = datetime.now(_IST)
+    days = (now_ist - start).days
     if days > 0 and equity > 0:
         cagr = ((equity / initial) ** (365.25 / days) - 1) * 100
         total_ret = ((equity - initial) / initial) * 100
@@ -62,10 +65,9 @@ def build_telegram_message(data):
     rebal_freq = config.get('rebalance_days', 13)
     if last_reb and rebal_freq < 999:
         try:
-            from datetime import timedelta
             last_reb_dt = datetime.strptime(last_reb, '%Y-%m-%d')
             import numpy as _np                      # the interval is in trading sessions, not calendar days
-            days_since = int(_np.busday_count(last_reb_dt.date(), datetime.now().date()))
+            days_since = int(_np.busday_count(last_reb_dt.date(), now_ist.date()))
             days_left = max(0, rebal_freq - days_since)
             if days_left <= 1:
                 msg += f"\u26a1 <b>Rebalance DUE</b> (day {days_since}/{rebal_freq})\n"
@@ -126,8 +128,9 @@ def build_email_html(data):
     trail_pct = config.get('trailing_stop', 0.15)
     
     initial = 1000000
-    start = datetime(2026, 2, 1)
-    days = (datetime.now() - start).days
+    start = datetime(2026, 2, 1, tzinfo=_IST)
+    now_ist = datetime.now(_IST)
+    days = (now_ist - start).days
     if days > 0 and equity > 0:
         cagr = ((equity / initial) ** (365.25 / days) - 1) * 100
         total_ret = ((equity - initial) / initial) * 100
@@ -206,8 +209,9 @@ def build_email_html(data):
     rebal_freq = config.get('rebalance_days', 13)
     if last_reb and rebal_freq < 999:
         try:
+            import numpy as _np
             last_reb_dt = datetime.strptime(last_reb, '%Y-%m-%d')
-            days_since = (datetime.now() - last_reb_dt).days
+            days_since = int(_np.busday_count(last_reb_dt.date(), datetime.now(_IST).date()))
             days_left = max(0, rebal_freq - days_since)
             if days_left <= 1:
                 html += f'\u26a1 <strong>Rebalance DUE</strong> (day {days_since}/{rebal_freq})'

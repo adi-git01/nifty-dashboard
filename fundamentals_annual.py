@@ -156,8 +156,15 @@ def scrape(tickers, delay, industries=None, deadline=None, checkpoint=None, ever
             recent = last is not None and (pd.Timestamp.today() - pd.Timestamp(last)).days <= 640
             # consolidated first, but only if it is current: for some companies it stops years ago (PFIZER 2008,
             # COLPAL 2010) while the standalone page is up to date
+            best_years = sum(1 for (f, _) in best_a if f == "np")
             best_last = max((p for (f, p) in best_a if f == "np"), default=None)
-            if not best_a or (years >= 3 and (best_last is None or (last is not None and last > best_last))):
+            if not best_a:
+                best_a, best_q, basis = a, q, b
+            elif best_years == 0 and a:
+                best_a, best_q, basis = a, q, b
+            elif years >= 3 and (best_last is None or (last is not None and last > best_last)):
+                best_a, best_q, basis = a, q, b
+            elif best_years < 3 and years > best_years and (best_last is None or (last is not None and last >= best_last)):
                 best_a, best_q, basis = a, q, b
             if years >= 3 and recent:
                 break
@@ -241,8 +248,14 @@ def main():
         if os.path.exists(path):
             try:
                 old = pd.read_csv(path)
-                keep = old[~old.ticker.isin(set(new.ticker))]
-                keep = keep[keep.ticker.isin(set(tickers))] if not (args.max_tickers or subset) else keep
+                # Only replace existing ticker rows when this scrape produced real statement rows (not headline mcap_cr/price_scr only).
+                if "field" in new.columns and not new.empty:
+                    real = new[~new["field"].isin(["mcap_cr", "price_scr"])]
+                    valid_tickers = set(real["ticker"])
+                else:
+                    valid_tickers = set(new["ticker"]) if "ticker" in new.columns else set()
+                keep = old[~old["ticker"].isin(valid_tickers)]
+                keep = keep[keep["ticker"].isin(set(tickers))] if not (args.max_tickers or subset) else keep
                 if len(keep):
                     print(f"[{lab}] {keep.ticker.nunique()} stocks not parsed this run -- previous rows kept")
                     merged = pd.concat([new, keep.reindex(columns=new.columns)], ignore_index=True)
@@ -251,6 +264,8 @@ def main():
                     else:
                         Q = merged
             except Exception as e:
+                if subset:
+                    sys.exit(f"[{lab}] --only-stale could not read previous {path} ({e}) -- aborting to avoid data loss")
                 print(f"[{lab}] could not read the previous file ({e}) -- writing this run only")
     A.to_csv(ANNUAL, index=False)
     Q.to_csv(QUARTERLY, index=False)

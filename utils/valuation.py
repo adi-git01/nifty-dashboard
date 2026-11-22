@@ -63,7 +63,7 @@ COMMODITY_GRAN = {"Ferrous Metals", "Non - Ferrous Metals", "Diversified Metals"
                   "Consumable Fuels", "Oil", "Metals & Minerals Trading", "Petroleum Products"}
 OUT_GRAN = {"Insurance": "insurance", "Realty": "NAV-driven real estate"}
 # US (GICS sub-industries in data/sp500_tickers.csv)
-BFSI_GRAN |= {"Regional Banks", "Diversified Banks", "Consumer Finance"}
+BFSI_GRAN |= {"Regional Banks", "Diversified Banks", "Consumer Finance", "Investment Banking & Brokerage"}
 COMMODITY_GRAN |= {"Oil & Gas Exploration & Production", "Integrated Oil & Gas", "Oil & Gas Refining & Marketing",
                    "Steel", "Copper", "Gold", "Aluminum", "Diversified Metals & Mining", "Commodity Chemicals",
                    "Fertilizers & Agricultural Chemicals", "Paper & Forest Products"}
@@ -176,12 +176,20 @@ FEATURES_VERSION = "f2"
 
 
 def features_fingerprint(root: str = ".") -> str:
-    """Sizes of the files the peer features are built from: equal sizes = same data (mtimes change on every checkout)."""
+    """Content hashes of the files the peer features are built from (mtimes change on checkout, sizes can collide)."""
+    import hashlib
     parts = [FEATURES_VERSION]               # a change to _features must not reuse features built by the old code
     for f in ("data/fundamentals_annual.csv.gz", "data/fundamentals_quarterly.csv.gz", "data/monthly_prices.csv.gz",
               "data/fundamentals_cache.csv"):
         q = os.path.join(root, f)
-        parts.append(str(os.path.getsize(q)) if os.path.exists(q) else "0")
+        if os.path.exists(q):
+            h = hashlib.sha256()
+            with open(q, "rb") as fh:
+                for chunk in iter(lambda: fh.read(65536), b""):
+                    h.update(chunk)
+            parts.append(h.hexdigest()[:16])
+        else:
+            parts.append("0")
     return "|".join(parts)
 
 
@@ -230,8 +238,7 @@ def _features(A, F, M=None, Q=None) -> pd.DataFrame:
                                                                      aggfunc="last").sort_index()
         if "np" not in piv:
             continue
-        m = piv.index.month.value_counts().idxmax()
-        piv = piv[piv.index.month == m].iloc[-6:]
+        piv = _fy(piv).iloc[-6:]
         book = piv.get("eq_cap", np.nan) + piv.get("reserves", np.nan)
         sales = piv.get("sales", pd.Series(np.nan, index=piv.index))
         attr = np.nan
@@ -434,11 +441,18 @@ class _GroupIndex:
 
 
 def _fy(s):
-    """Annual series restricted to fiscal year ends (month-end columns that repeat yearly)."""
+    """Annual series restricted to one row per fiscal year, preserving pre-switch history for FY-end switchers."""
     if s.empty:
         return s
-    m = s.index.month.value_counts().idxmax()
-    return s[s.index.month == m]
+    s = s.sort_index()
+    kept_pos = []
+    last_kept = None
+    for pos in range(len(s) - 1, -1, -1):
+        dt = pd.Timestamp(s.index[pos])
+        if last_kept is None or (last_kept - dt).days >= 220:
+            kept_pos.append(pos)
+            last_kept = dt
+    return s.iloc[sorted(kept_pos)]
 
 
 def _all_cagr3(A):
@@ -495,7 +509,7 @@ def simulate(lever, mult, probs, rho, w, r, n=N_DEFAULT, seed=SEED, mult_floor=N
     link=False draws the multiple independently of the lever (Gate C implementation check).
     """
     rng = np.random.default_rng(seed)
-    rr = rho if rho_regime is None else rho_regime
+    rr = 0.0 if rho_regime is None else rho_regime
     ze = rng.standard_normal(n)
     zr = rr * ze + np.sqrt(1 - rr ** 2) * rng.standard_normal(n)
     e2 = rng.standard_normal(n)
@@ -583,7 +597,8 @@ def _ov(ov, key, default=np.nan, cast=float):
 # the run
 # ----------------------------------------------------------------------------
 def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = N_DEFAULT,
-                knobs: bool = True, hi52: float | None = None, lo52: float | None = None) -> dict:
+                knobs: bool = True, hi52: float | None = None, lo52: float | None = None,
+                as_of: pd.Timestamp | str | None = None) -> dict:
     """Full mechanical v4.1 run for one stock. Returns a dict (see keys at the end)."""
     us = getattr(ctx, "market", "IN") == "US"
     t = ticker.upper().replace(".", "-") if us else ticker if ticker.endswith(".NS") else ticker + ".NS"
@@ -596,7 +611,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     f = ctx.funda.loc[t] if t in ctx.funda.index else None
     gran = f["sector_granular"] if f is not None else ""
     gran = gran if isinstance(gran, str) else ""       # NaN for a stock with no sub-industry
-    name = (f["name"] if f is not None else t) or t
+    raw_name = f["name"] if f is not None and "name" in f else t
+    name = str(raw_name) if pd.notna(raw_name) and str(raw_name).strip() else t
     out.update(name=name, sector=f["sector"] if f is not None else "", sub_industry=gran)
     if price is None or not np.isfinite(price):
         return {**out, "status": "NO PRICE"}
@@ -612,10 +628,18 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     q_sales = q_sales[q_sales.index.month.isin([3, 6, 9, 12])]
     if len(q_np) < 4:
         return {**out, "status": "OUT OF SCOPE", "reason": "fewer than 4 reported quarters"}
-    if q_np.index.max() < pd.Timestamp.today() - pd.Timedelta(days=270):
+    ref_day = pd.Timestamp(as_of).tz_localize(None).normalize() if as_of is not None else pd.Timestamp.today()
+    if q_np.index.max() < ref_day - pd.Timedelta(days=270):
         return {**out, "status": "NO DATA", "reason": f"latest reported quarter is {q_np.index.max():%b %Y} -- stale"}
+    q_np_idx = q_np.index[-4:]
+    if (q_np_idx[-1] - q_np_idx[0]).days > 395 or any((q_np_idx[i] - q_np_idx[i - 1]).days > 140 for i in range(1, 4)):
+        return {**out, "status": "OUT OF SCOPE", "reason": "last 4 reported quarters have a gap"}
     ttm_np = float(q_np.iloc[-4:].sum())
-    ttm_sales = float(q_sales.iloc[-4:].sum()) if len(q_sales) >= 4 else np.nan
+    ttm_sales = np.nan
+    if len(q_sales) >= 4:
+        q_s_idx = q_sales.index[-4:]
+        if (q_s_idx[-1] - q_s_idx[0]).days <= 395 and all((q_s_idx[i] - q_s_idx[i - 1]).days <= 140 for i in range(1, 4)):
+            ttm_sales = float(q_sales.iloc[-4:].sum())
     if ttm_np <= 0:
         return {**out, "status": "OUT OF SCOPE", "reason": "TTM net profit is not positive -- EPS x PE undefined"}
     sc_mcap, sc_px = _series(ctx.annual, t, "mcap_cr"), _series(ctx.annual, t, "price_scr")
@@ -749,8 +773,15 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     if len(inst) >= 5:
         d = inst.iloc[-1] - inst.iloc[-5]
         sc["FII+DII trend (4Q)"] = (1 if d >= 2 else -1 if d <= -2 else 0, f"{d:+.1f} pp")
-    if len(q_np) >= 8:
-        yoy = (q_np.iloc[-4:].values - q_np.iloc[-8:-4].values) / np.abs(q_np.iloc[-8:-4].values)
+    yoy_pairs = []
+    for dt_q, cur_v in zip(q_np.index[-4:], q_np.iloc[-4:].values):
+        target = pd.Timestamp(dt_q) - pd.DateOffset(years=1)
+        diffs = np.abs((q_np.index - target).days)
+        j = int(np.argmin(diffs))
+        if diffs[j] <= 45 and q_np.iloc[j] != 0:
+            yoy_pairs.append((cur_v - q_np.iloc[j]) / abs(q_np.iloc[j]))
+    if len(yoy_pairs) == 4:
+        yoy = np.array(yoy_pairs, dtype=float)
         hits = int((yoy > 0).sum())
         s = 1 if hits >= 3 else -1 if hits <= 1 else 0
         if (yoy < -0.5).any():
@@ -784,8 +815,17 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
 
     # ---- Phase 1 scenarios -------------------------------------------------------------
     g_hist = a_sales.pct_change().dropna().iloc[-5:]
-    ttm_yoy = (float(q_sales.iloc[-4:].sum() / q_sales.iloc[-8:-4].sum() - 1)
-               if len(q_sales) >= 8 and q_sales.iloc[-8:-4].sum() > 0 else np.nan)
+    ttm_yoy = np.nan
+    if np.isfinite(ttm_sales) and len(q_sales) >= 8:
+        prev4_vals = []
+        for dt_q in q_sales.index[-4:]:
+            target = pd.Timestamp(dt_q) - pd.DateOffset(years=1)
+            diffs = np.abs((q_sales.index - target).days)
+            j = int(np.argmin(diffs))
+            if diffs[j] <= 45:
+                prev4_vals.append(float(q_sales.iloc[j]))
+        if len(prev4_vals) == 4 and sum(prev4_vals) > 0:
+            ttm_yoy = float(ttm_sales / sum(prev4_vals) - 1)
     parts = [(0.4, _cagr(a_sales, 3)), (0.3, _cagr(a_sales, 5)), (0.3, ttm_yoy)]
     parts = [(wt, v) for wt, v in parts if np.isfinite(v)]
     base_g = sum(wt * v for wt, v in parts) / sum(wt for wt, _ in parts) if parts else 0.08
@@ -798,7 +838,13 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
          "bull": float(np.clip(base_g + sd_g, base_g + 0.02, 0.50))}
     for s in g:
         g[s] = _ov(ov, f"g_{s}", g[s])
-    q_marg = (q_np.rolling(4).sum() / q_sales.rolling(4).sum()).dropna() if len(q_sales) >= 4 else pd.Series(dtype=float)
+    if len(q_sales) >= 4 and len(q_np) >= 4:
+        _rn, _rs = q_np.rolling(4).sum(), q_sales.rolling(4).sum()
+        _span_n = pd.Series(q_np.index, index=q_np.index).diff(3).dt.days
+        _span_s = pd.Series(q_sales.index, index=q_sales.index).diff(3).dt.days
+        q_marg = (_rn.where(_span_n <= 395) / _rs.where(_span_s <= 395)).dropna()
+    else:
+        q_marg = pd.Series(dtype=float)
     m_ttm = ttm_np / ttm_sales if ttm_sales and ttm_sales > 0 else np.nan
     hist_m = margins.iloc[-6:]
     # F2: the worst demonstrated run-rate of the LAST stress -- last 5 fiscal years and the quarterly
@@ -950,7 +996,11 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     peer_g = ctx.peer_cagr3.get(t)
     peers_g = [ctx.peer_cagr3[x] for x in pool.index if x in ctx.peer_cagr3]
     share_gain = (peer_g is not None and len(peers_g) >= 3 and peer_g > float(np.median(peers_g)))
-    rerate = bool(share_gain and np.isfinite(roce_now) and roce_now >= 0.20 and np.isfinite(cfo_pat) and cfo_pat >= 0.8)
+    if ident == "BFSI":
+        roe_now = roe_ttm if np.isfinite(roe_ttm) else (float(roe_hist.iloc[-1]) if len(roe_hist) else np.nan)
+        rerate = bool(share_gain and np.isfinite(roe_now) and roe_now >= 0.15)
+    else:
+        rerate = bool(share_gain and np.isfinite(roce_now) and roce_now >= 0.20 and np.isfinite(cfo_pat) and cfo_pat >= 0.8)
     rerate = bool(_ov(ov, "rerating_pass", float(rerate)))
     precedence, indeterminate = False, False
     # Spot ceiling (durable re-rating branch). Mechanical reading: it binds only when the market already

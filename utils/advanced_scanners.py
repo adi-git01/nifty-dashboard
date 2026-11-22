@@ -393,6 +393,8 @@ def refresh_signal_log_prices(log_file, cols, price_map):
     if fix.any():
         cur = pd.to_numeric(df.loc[fix, "current_price"], errors="coerce")
         df.loc[fix, "return_since_signal"] = ((cur / adj_sig[fix] - 1) * 100).round(2)
+        if "return_21d" in df.columns:
+            df.loc[fix, "return_21d"] = df.loc[fix, "return_since_signal"]
 
     # 5- and 21-day returns (earnings-shock log): stamped once, when the row first reaches that
     # age. They were declared as columns and never filled.

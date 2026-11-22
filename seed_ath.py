@@ -31,7 +31,12 @@ def main():
                              auto_adjust=True, min_coverage=0.5)
         for t in chunk:
             try:
-                c = (bulk[t] if len(chunk) > 1 else bulk)["Close"].dropna()
+                if isinstance(bulk.columns, pd.MultiIndex):
+                    lv0 = bulk.columns.get_level_values(0)
+                    sub = bulk[t] if t in lv0 else bulk.droplevel(1 if "Close" in lv0 else 0, axis=1)
+                else:
+                    sub = bulk
+                c = sub["Close"].dropna()
                 if c.index.tz is not None:
                     c.index = c.index.tz_localize(None)
                 r = seed_row(t, c)

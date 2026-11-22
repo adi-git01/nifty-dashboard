@@ -51,7 +51,7 @@ SL_INIT, DIST_LEN, DIST_MAX, ROC_LEN, ROC_MIN = 15.0, 25, 4, 10, -12.0
 
 MIN_BARS = STAGE_LEN + 20          # stage MA and its 20-bar slope
 FULL_BARS = STAGE_LEN + 20 + BASE_LEN   # G1 needs the stage MA 120 bars back
-HISTORY_DAYS = 430                 # calendar days the engine downloads (~290 sessions)
+HISTORY_DAYS = 760                 # ~520 sessions: ~250 bars of full Ghoomega history
 BENCH = "^CRSLDX"                  # Nifty 500, the document's RS benchmark
 LOOKBACK = 60                      # "bars since" fields are reported within this window
 
@@ -214,7 +214,7 @@ def chart_signals(df: pd.DataFrame, bench: Optional[pd.Series] = None) -> Dict[s
         "simba_base_low": fl(t_lo),
         "simba_vol_x": fl(vol_x),
         "simba_vol_x_m": (round(float(vol_x.iloc[-1 - int(m_since)]), 2) if np.isfinite(m_since) else np.nan),
-        "simba_dryup": bool(dry_up.iloc[-1]),
+        "simba_dryup": (bool(dry_up.iloc[-1 - int(m_since)]) if np.isfinite(m_since) else bool(dry_up.iloc[-1])),
         "simba_vcp": bool(vcp.iloc[-1]),
         "simba_caution": lvl,
         "simba_dist_days": int(dist_cnt.iloc[-1]) if pd.notna(dist_cnt.iloc[-1]) else 0,
@@ -276,7 +276,13 @@ def fundamentals(root: str = ".", stale_days: int = 270) -> pd.DataFrame:
         W = A.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
         for t, g in W.groupby(level=0):
             g = g.droplevel(0).sort_index()
-            g = g[g.index.month == g.index.month.value_counts().idxmax()].tail(10)   # fiscal year ends
+            kept_pos, last_dt = [], None
+            for pos in range(len(g) - 1, -1, -1):
+                dt = pd.Timestamp(g.index[pos])
+                if last_dt is None or (last_dt - dt).days >= 220:
+                    kept_pos.append(pos)
+                    last_dt = dt
+            g = g.iloc[sorted(kept_pos)].tail(10)                               # keep FY-end switchers' history
             r = rows.setdefault(t, {})
             col = lambda f: g[f].dropna() if f in g else pd.Series(dtype=float)
             roce, opm = col("roce"), col("opm")
@@ -396,9 +402,9 @@ def score_table(df: pd.DataFrame, regime: Dict[str, Any], fund: Optional[pd.Data
     if fund is not None and not fund.empty:
         x = x.merge(fund, on="ticker", how="left")
     ind = ind or {}
-    r6 = pd.to_numeric(x.get("return_6m"), errors="coerce")
+    r6 = pd.to_numeric(x["return_6m"] if "return_6m" in x.columns else pd.Series(np.nan, index=x.index), errors="coerce")
     x["rs_rating"] = (r6.rank(pct=True) * 98 + 1).round(0)
-    sec_pe = pd.to_numeric(x.get("pe"), errors="coerce").where(lambda s: s > 0)
+    sec_pe = pd.to_numeric(x["pe"] if "pe" in x.columns else pd.Series(np.nan, index=x.index), errors="coerce").where(lambda s: s > 0)
     x["pe_vs_sector"] = sec_pe / sec_pe.groupby(x.get("sector", pd.Series("", index=x.index))).transform("median")
     reg = regime.get("regime", "UNKNOWN")
     rows = []
@@ -435,13 +441,14 @@ def score_table(df: pd.DataFrame, regime: Dict[str, Any], fund: Optional[pd.Data
             gates.append("liquidity < ₹5 cr/day")
         if px < 20:
             gates.append("price < ₹20")
-        if _f(r.get("de")) > 1 or (_f(r.get("cfo_ebitda")) < 0.6):
-            gates.append("forensics (D/E > 1 or CFO/EBITDA < 60%)")
+        de_v, cfo_v = _f(r.get("de")), _f(r.get("cfo_ebitda"))
+        if not np.isfinite(de_v) or not np.isfinite(cfo_v) or de_v > 1 or cfo_v < 0.6:
+            gates.append("forensics (D/E > 1, CFO/EBITDA < 60%, or missing)")
         if reg == "BEAR CONTRACTION" and not (_f(r.get("rs_rating")) >= 90 and er):
             gates.append("bear contraction")
         if _b(r.get("simba_ext")) or _f(r.get("simba_ext_ma150")) > MAX_EXT:
             gates.append("extended")
-        if not (stop_pct <= SL_INIT):
+        if not (np.isfinite(stop_pct) and 0 < stop_pct <= SL_INIT):
             gates.append("stop > 15% below")
         grade = "A+" if total >= 80 else "A" if total >= 65 else "B" if total >= 50 else "—"
         if gates and grade != "—":

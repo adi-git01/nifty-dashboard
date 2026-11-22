@@ -31,7 +31,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-03,THANGAMAYL.NS,Thangamayil Jewellery Limited,Consumer Durables,4795.0,5097.0,4.5,2.3,🟡 Neutral (Priced-In),6.3,,6.3,170,CLOSED
 2026-06-03,VIPIND.NS,V.I.P. Industries Limited,Consumer Durables,332.5,300.95,4.5,3.0,🟡 Neutral (Priced-In),-9.49,,-9.49,170,CLOSED
 2026-06-03,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1189.8,1372.7,4.2,2.3,🟡 Neutral (Priced-In),15.37,,15.37,170,CLOSED
-2026-06-03,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1286.3,742.0,4.2,2.7,🟢 Buy (Drifter),-42.32,,-42.32,170,CLOSED
+2026-06-03,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1286.3,1255.1,4.2,2.7,🟢 Buy (Drifter),-2.43,,-2.43,170,CLOSED
 2026-06-03,IIFL.NS,IIFL Finance Limited,Financial Services,498.8,617.55,4.0,2.3,🟢 Buy (Drifter),23.81,,23.81,170,CLOSED
 2026-06-03,JINDALSAW.NS,Jindal Saw Limited,Metals & Mining,250.9,283.1,4.0,2.7,🟢 Buy (Drifter),12.83,,12.83,170,CLOSED
 2026-06-04,MSTCLTD.NS,MSTC Limited,Capital Goods,531.8,738.05,19.1,3.0,🟢 Buy (Drifter),38.78,,38.78,169,CLOSED
@@ -104,7 +104,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-09,CERA.NS,Cera Sanitaryware Limited,Cement & Materials,5835.0,5492.5,6.6,2.7,Unknown,-5.87,,-5.87,164,CLOSED
 2026-06-09,GRWRHITECH.NS,Garware Hi-Tech Films Limited,Chemicals,6225.0,6342.5,6.6,3.3,🟡 Neutral (Priced-In),1.89,,1.89,164,CLOSED
 2026-06-09,OLAELEC.NS,OLAELEC.NS,Auto,47.3,42.52,6.5,3.0,🟡 Neutral (Priced-In),-10.11,,-10.11,164,CLOSED
-2026-06-09,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1272.2,1478.8,6.3,2.3,🟡 Neutral (Priced-In),16.24,,16.24,164,CLOSED
+2026-06-09,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1272.2,1286.2,6.3,2.3,🟡 Neutral (Priced-In),1.1,,1.1,164,CLOSED
 2026-06-09,J&KBANK.NS,Jammu and Kashmir Bank Limited,Banking,157.0,147.07,6.0,3.0,🟡 Neutral (Priced-In),-6.32,,-6.32,164,CLOSED
 2026-06-09,RAIN.NS,Rain Industries Limited,Metals & Mining,204.0,218.23,5.9,3.0,🟢 Buy (Drifter),6.98,,6.98,164,CLOSED
 2026-06-09,ACI.NS,Archean Chemical Industries Limited,Metals & Mining,544.3,491.4,5.8,3.0,🟢 Buy (Drifter),-9.72,,-9.72,164,CLOSED
@@ -144,7 +144,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-10,AKUMS.NS,AKUMS.NS,Pharma & Healthcare,592.1,817.6,8.0,2.7,🟡 Neutral (Priced-In),38.08,,38.08,163,CLOSED
 2026-06-10,CHAMBLFERT.NS,Chambal Fertilisers and Chemicals Limited,Chemicals,477.6,418.2,5.0,3.3,🟡 Neutral (Priced-In),-12.44,,-12.44,163,CLOSED
 2026-06-10,AFCONS.NS,AFCONS.NS,Infrastructure,330.0,253.75,4.6,2.3,🟡 Neutral (Priced-In),-23.11,,-23.11,163,CLOSED
-2026-06-10,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.7,1478.8,4.6,2.3,🟡 Neutral (Priced-In),11.13,,11.13,163,CLOSED
+2026-06-10,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.7,1286.1,4.6,2.3,🟡 Neutral (Priced-In),-3.35,,-3.35,163,CLOSED
 2026-06-10,ABSLAMC.NS,ABSLAMC.NS,Financial Services,1110.3,1024.2,4.5,2.7,🟢 Buy (Drifter),-7.75,,-7.75,163,CLOSED
 2026-06-10,RATEGAIN.NS,RateGain Travel Technologies Limited,IT & Technology,783.6,824.0,4.4,3.0,🟢 Buy (Drifter),5.16,,5.16,163,CLOSED
 2026-06-11,AEGISLOG.NS,AEGISLOG.NS,Oil & Gas,925.9,1369.7,15.6,3.0,🟡 Neutral (Priced-In),47.93,,47.93,162,CLOSED
@@ -232,7 +232,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-12,EIEL.NS,EIEL.NS,Infrastructure,185.5,201.63,4.7,2.7,🟡 Neutral (Priced-In),8.7,,8.7,161,CLOSED
 2026-06-12,JISLJALEQS.NS,Jain Irrigation Systems Limited,Capital Goods,31.0,28.58,4.7,2.3,🟢 Buy (Drifter),-7.81,,-7.81,161,CLOSED
 2026-06-12,APARINDS.NS,APAR Industries Limited,Capital Goods,15221.0,17804.0,4.6,3.3,🟢 Buy (Drifter),16.97,,16.97,161,CLOSED
-2026-06-12,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,678.6,606.2,4.6,3.0,🟢 Buy (Drifter),19.11,,19.11,161,CLOSED
+2026-06-12,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,678.6,513.85,4.6,3.0,🟢 Buy (Drifter),0.96,,0.96,161,CLOSED
 2026-06-12,DCAL.NS,Dishman Carbogen Amcis Limited,Pharma & Healthcare,184.6,168.19,4.6,2.7,🟡 Neutral (Priced-In),-8.89,,-8.89,161,CLOSED
 2026-06-12,INDIGO.NS,InterGlobe Aviation Limited,Infrastructure,4709.7,4890.0,4.6,3.0,🟡 Neutral (Priced-In),3.83,,3.83,161,CLOSED
 2026-06-12,NAM-INDIA.NS,Nippon Life India Asset Management Limited,Financial Services,1089.1,1144.9,4.6,2.3,🟢 Buy (Drifter),5.12,,5.12,161,CLOSED
@@ -327,7 +327,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-16,AGI.NS,AGI Greenpac Limited,Consumer Durables,702.0,821.35,6.3,3.0,🟡 Neutral (Priced-In),17.0,,17.0,157,CLOSED
 2026-06-16,ABREL.NS,Aditya Birla Real Estate Limited,Real Estate,1315.7,1211.8,6.1,2.3,🟢 Buy (Drifter),-7.9,,-7.9,157,CLOSED
 2026-06-16,NETWEB.NS,Netweb Technologies India Limited,IT & Technology,4884.4,4661.5,5.9,3.0,🟢 Buy (Drifter),-4.56,,-4.56,157,CLOSED
-2026-06-16,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,720.2,606.2,5.3,3.0,🟢 Buy (Drifter),12.23,,12.23,157,CLOSED
+2026-06-16,BRIGADE.NS,Brigade Enterprises Limited,Real Estate,720.2,502.72,5.3,3.0,🟢 Buy (Drifter),-6.93,,-6.93,157,CLOSED
 2026-06-16,EDELWEISS.NS,Edelweiss Financial Services Limited,Financial Services,120.6,139.01,5.3,2.7,🟢 Buy (Drifter),15.27,,15.27,157,CLOSED
 2026-06-16,PARADEEP.NS,Paradeep Phosphates Limited,Chemicals,134.2,154.5,5.2,2.7,🟡 Neutral (Priced-In),15.13,,15.13,157,CLOSED
 2026-06-16,MTARTECH.NS,MTAR Technologies Limited,Capital Goods,7698.5,7050.0,4.8,2.3,🟢 Buy (Drifter),-8.42,,-8.42,157,CLOSED
@@ -339,7 +339,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-16,SPARC.NS,Sun Pharma Advanced Research Company Limited,Pharma & Healthcare,238.4,203.98,4.1,3.0,🟡 Neutral (Priced-In),-14.44,,-14.44,157,CLOSED
 2026-06-17,PARAS.NS,Paras Defence and Space Technologies Limited,Aerospace & Defense,1285.7,1343.4,18.0,3.0,🟢 Buy (Drifter),4.49,,4.49,156,CLOSED
 2026-06-17,IDBI.NS,IDBI Bank Limited,Banking,90.4,82.6,17.1,3.0,🟡 Neutral (Priced-In),-8.63,,-8.63,156,CLOSED
-2026-06-17,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,1832.4,697.75,11.3,3.0,🟢 Buy (Drifter),-61.92,,-61.92,156,CLOSED
+2026-06-17,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,1832.4,1782.1,11.3,3.0,🟢 Buy (Drifter),-2.75,,-2.75,156,CLOSED
 2026-06-17,CARTRADE.NS,CarTrade Tech Limited,IT & Technology,2614.9,3004.8,9.7,3.0,🟢 Buy (Drifter),14.91,,14.91,156,CLOSED
 2026-06-17,LLOYDSENGG.NS,Lloyds Engineering Works Limited,Capital Goods,87.7,90.91,9.7,3.0,🟢 Buy (Drifter),3.66,,3.66,156,CLOSED
 2026-06-17,ANUP.NS,The Anup Engineering Limited,Capital Goods,2132.4,1670.1,8.5,3.0,🟢 Buy (Drifter),-21.68,,-21.68,156,CLOSED
@@ -397,9 +397,9 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-18,CARBORUNIV.NS,Carborundum Universal Limited,Capital Goods,1192.2,1296.5,5.5,2.7,🟢 Buy (Drifter),8.75,,8.75,155,CLOSED
 2026-06-18,GRANULES.NS,Granules India Limited,Pharma & Healthcare,782.1,853.0,5.5,2.7,🟡 Neutral (Priced-In),9.07,,9.07,155,CLOSED
 2026-06-18,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,45.9,51.48,5.5,2.3,🟡 Neutral (Priced-In),12.16,,12.16,155,CLOSED
-2026-06-18,CCAVENUE.NS,AvenuesAI Limited,Financial Services,15.0,15.99,5.1,2.3,🟢 Buy (Drifter),6.6,,6.6,155,CLOSED
+2026-06-18,CCAVENUE.NS,AvenuesAI Limited,Financial Services,15.0,18.09,5.1,2.3,🟢 Buy (Drifter),20.59,,20.59,155,CLOSED
 2026-06-18,HFCL.NS,HFCL Limited,Telecom,199.6,210.69,5.0,3.0,🟡 Neutral (Priced-In),5.56,,5.56,155,CLOSED
-2026-06-18,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,1743.5,1273.6,5.0,3.0,🟡 Neutral (Priced-In),-26.95,,-26.95,155,CLOSED
+2026-06-18,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,1743.5,1998.0,5.0,3.0,🟡 Neutral (Priced-In),14.6,,14.6,155,CLOSED
 2026-06-18,STLTECH.NS,Sterlite Technologies Limited,Telecom,647.2,823.75,5.0,2.7,🟡 Neutral (Priced-In),27.28,,27.28,155,CLOSED
 2026-06-18,THOMASCOOK.NS,Thomas Cook (India) Limited,Hospitality,116.6,103.97,4.8,3.0,Unknown,-10.83,,-10.83,155,CLOSED
 2026-06-18,ADANIPOWER.NS,Adani Power Limited,Power & Utilities,230.6,199.48,4.6,2.3,🟢 Buy (Drifter),-13.5,,-13.5,155,CLOSED
@@ -418,7 +418,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-19,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,Hospitality,494.2,533.2,8.0,3.0,Unknown,7.89,,7.89,154,CLOSED
 2026-06-19,PARAS.NS,Paras Defence and Space Technologies Limited,Aerospace & Defense,1408.7,1343.4,7.5,3.0,🟢 Buy (Drifter),-4.64,,-4.64,154,CLOSED
 2026-06-19,JINDWORLD.NS,Jindal Worldwide Limited,Consumer Durables,32.4,49.17,6.7,2.3,🟡 Neutral (Priced-In),51.76,,51.76,154,CLOSED
-2026-06-19,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,1950.0,697.75,6.7,3.0,🟢 Buy (Drifter),-64.22,,-64.22,154,CLOSED
+2026-06-19,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,1950.0,1783.7,6.7,3.0,🟢 Buy (Drifter),-8.53,,-8.53,154,CLOSED
 2026-06-19,CAPLIPOINT.NS,Caplin Point Laboratories Limited,Pharma & Healthcare,2503.5,2867.4,6.1,3.0,🟡 Neutral (Priced-In),14.54,,14.54,154,CLOSED
 2026-06-19,ITCHOTELS.NS,ITCHOTELS.NS,Hospitality,170.9,164.01,6.1,3.0,Unknown,-4.03,,-4.03,154,CLOSED
 2026-06-19,SWSOLAR.NS,Sterling and Wilson Renewable Energy Limited,Power & Utilities,235.5,177.34,6.0,2.7,🟢 Buy (Drifter),-24.7,,-24.7,154,CLOSED
@@ -451,7 +451,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-22,EIEL.NS,EIEL.NS,Infrastructure,224.9,201.63,9.2,2.7,🟡 Neutral (Priced-In),-10.35,,-10.35,151,CLOSED
 2026-06-22,RBA.NS,Restaurant Brands Asia Limited,Hospitality,79.7,90.65,8.2,3.0,Unknown,13.74,,13.74,151,CLOSED
 2026-06-22,IMAGICAA.NS,Imagicaaworld Entertainment Limited,Media,48.0,51.48,7.8,2.7,🟡 Neutral (Priced-In),7.25,,7.25,151,CLOSED
-2026-06-22,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,2091.5,697.75,7.3,3.0,🟢 Buy (Drifter),-66.64,,-66.64,151,CLOSED
+2026-06-22,KIRLPNU.NS,Kirloskar Pneumatic Company Limited,Capital Goods,2091.5,1749.9,7.3,3.0,🟢 Buy (Drifter),-16.33,,-16.33,151,CLOSED
 2026-06-22,KIRLOSBROS.NS,Kirloskar Brothers Limited,Capital Goods,2073.3,1768.4,7.2,3.0,🟢 Buy (Drifter),-14.71,,-14.71,151,CLOSED
 2026-06-22,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,212.6,221.83,7.1,3.0,🟢 Buy (Drifter),4.34,,4.34,151,CLOSED
 2026-06-22,GRINFRA.NS,G R Infraprojects Limited,Capital Goods,959.1,810.3,7.1,2.3,🟢 Buy (Drifter),-15.51,,-15.51,151,CLOSED
@@ -467,7 +467,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-22,DELHIVERY.NS,Delhivery Limited,Infrastructure,483.8,426.3,4.9,2.3,🟡 Neutral (Priced-In),-11.89,,-11.89,151,CLOSED
 2026-06-22,NIACL.NS,The New India Assurance Company Limited,Insurance,212.1,180.4,4.8,3.0,🟡 Neutral (Priced-In),-14.95,,-14.95,151,CLOSED
 2026-06-22,SCHNEIDER.NS,Schneider Electric Infrastructure Limited,Capital Goods,1395.5,1387.0,4.8,3.0,🟢 Buy (Drifter),-0.61,,-0.61,151,CLOSED
-2026-06-22,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,1878.6,1273.6,4.7,3.0,🟡 Neutral (Priced-In),-32.2,,-32.2,151,CLOSED
+2026-06-22,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,1878.6,1997.3,4.7,3.0,🟡 Neutral (Priced-In),6.32,,6.32,151,CLOSED
 2026-06-22,ZYDUSWELL.NS,Zydus Wellness Limited,Consumer Goods,536.5,520.15,4.7,3.0,🟢 Buy (Drifter),-3.05,,-3.05,151,CLOSED
 2026-06-22,PNCINFRA.NS,PNC Infratech Limited,Infrastructure,236.4,136.72,4.6,2.7,🟡 Neutral (Priced-In),-42.17,,-42.17,151,CLOSED
 2026-06-22,PRIVISCL.NS,Privi Speciality Chemicals Limited,Chemicals,3655.8,3537.9,4.6,2.7,🟡 Neutral (Priced-In),-3.23,,-3.23,151,CLOSED
@@ -486,7 +486,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-23,KIRLOSENG.NS,Kirloskar Oil Engines Limited,Capital Goods,2504.4,2164.5,4.8,2.3,🟢 Buy (Drifter),-13.57,,-13.57,150,CLOSED
 2026-06-23,SANSERA.NS,Sansera Engineering Limited,Auto,3120.6,4605.6,4.3,2.7,🟡 Neutral (Priced-In),47.59,,47.59,150,CLOSED
 2026-06-24,ICIL.NS,Indo Count Industries Limited,Consumer Durables,433.9,450.95,10.3,3.0,🟡 Neutral (Priced-In),3.93,,3.93,149,CLOSED
-2026-06-24,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2081.0,1273.6,10.2,3.0,🟡 Neutral (Priced-In),-38.8,,-38.8,149,CLOSED
+2026-06-24,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2081.0,2048.5,10.2,3.0,🟡 Neutral (Priced-In),-1.56,,-1.56,149,CLOSED
 2026-06-24,AETHER.NS,Aether Industries Limited,Chemicals,1357.2,1646.2,9.1,3.0,🟡 Neutral (Priced-In),21.29,,21.29,149,CLOSED
 2026-06-24,PATELENG.NS,Patel Engineering Limited,Capital Goods,34.6,27.68,7.8,3.0,🟢 Buy (Drifter),-20.0,,-20.0,149,CLOSED
 2026-06-24,KPRMILL.NS,K.P.R. Mill Limited,Textiles,1218.4,1113.8,7.7,3.0,🟡 Neutral (Priced-In),-8.59,,-8.59,149,CLOSED
@@ -547,7 +547,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-06-29,KRN.NS,KRN.NS,Capital Goods,1250.5,1401.6,5.0,2.7,🟢 Buy (Drifter),12.08,,12.08,144,CLOSED
 2026-06-29,THANGAMAYL.NS,Thangamayil Jewellery Limited,Consumer Durables,5875.1,5097.0,5.0,3.0,🟡 Neutral (Priced-In),-13.24,,-13.24,144,CLOSED
 2026-06-29,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1153.8,1372.7,4.7,2.7,🟡 Neutral (Priced-In),18.97,,18.97,144,CLOSED
-2026-06-29,CCAVENUE.NS,AvenuesAI Limited,Financial Services,16.8,15.99,4.5,3.0,🟢 Buy (Drifter),-4.82,,-4.82,144,CLOSED
+2026-06-29,CCAVENUE.NS,AvenuesAI Limited,Financial Services,16.8,17.05,4.5,3.0,🟢 Buy (Drifter),1.49,,1.49,144,CLOSED
 2026-06-29,CENTRALBK.NS,Central Bank of India,Banking,33.6,31.19,4.4,3.0,🟡 Neutral (Priced-In),-7.17,,-7.17,144,CLOSED
 2026-06-29,CARBORUNIV.NS,Carborundum Universal Limited,Capital Goods,1191.9,1296.5,4.3,2.3,🟢 Buy (Drifter),8.78,,8.78,144,CLOSED
 2026-06-29,GRANULES.NS,Granules India Limited,Pharma & Healthcare,794.8,853.0,4.0,2.3,🟡 Neutral (Priced-In),7.32,,7.32,144,CLOSED
@@ -605,7 +605,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-01,RHIM.NS,RHI Magnesita India Limited,Capital Goods,387.7,383.8,5.4,3.0,🟢 Buy (Drifter),-1.01,,-1.01,142,CLOSED
 2026-07-01,DABUR.NS,Dabur India Limited,Consumer Goods,444.8,385.7,5.3,2.7,🟢 Buy (Drifter),-13.29,,-13.29,142,CLOSED
 2026-07-01,SUNTECK.NS,Sunteck Realty Limited,Real Estate,326.7,284.05,5.1,2.7,🟢 Buy (Drifter),-13.05,,-13.05,142,CLOSED
-2026-07-01,CCAVENUE.NS,AvenuesAI Limited,Financial Services,17.3,15.99,5.0,3.0,🟢 Buy (Drifter),-7.57,,-7.57,142,CLOSED
+2026-07-01,CCAVENUE.NS,AvenuesAI Limited,Financial Services,17.3,16.14,5.0,3.0,🟢 Buy (Drifter),-6.7,,-6.7,142,CLOSED
 2026-07-01,CEMPRO.NS,Cemindia Projects Limited,Infrastructure,1363.3,1268.5,5.0,3.0,🟡 Neutral (Priced-In),-6.95,,-6.95,142,CLOSED
 2026-07-01,EMIL.NS,Electronics Mart India Limited,Consumer Durables,127.8,189.16,5.0,3.0,🟡 Neutral (Priced-In),48.01,,48.01,142,CLOSED
 2026-07-01,GODREJPROP.NS,Godrej Properties Limited,Real Estate,1959.6,1671.2,5.0,2.7,🟢 Buy (Drifter),-14.72,,-14.72,142,CLOSED
@@ -621,7 +621,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-01,CEATLTD.NS,CEAT Limited,Auto,3634.8,3353.8,4.4,3.0,🟡 Neutral (Priced-In),-7.73,,-7.73,142,CLOSED
 2026-07-01,MCX.NS,Multi Commodity Exchange of India Limited,Financial Services,2962.0,3427.7,4.4,2.3,🟢 Buy (Drifter),15.72,,15.72,142,CLOSED
 2026-07-01,DBREALTY.NS,Valor Estate Limited,Real Estate,115.7,100.22,4.3,3.0,🟢 Buy (Drifter),-13.38,,-13.38,142,CLOSED
-2026-07-01,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1028.3,306.0,4.3,2.3,🟢 Buy (Drifter),-70.24,,-70.24,142,CLOSED
+2026-07-01,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1028.3,1173.3,4.3,2.3,🟢 Buy (Drifter),14.1,,14.1,142,CLOSED
 2026-07-01,VIYASH.NS,Viyash Scientific Limited,Pharma & Healthcare,288.2,246.0,4.1,2.3,🟡 Neutral (Priced-In),-14.64,,-14.64,142,CLOSED
 2026-07-01,WELSPUNLIV.NS,Welspun Living Limited,Textiles,165.3,222.32,4.0,3.0,🟡 Neutral (Priced-In),34.49,,34.49,142,CLOSED
 2026-07-02,COMSYN.NS,COMSYN.NS,Packaging & Containers,186.8,292.5,19.4,3.0,🟡 Neutral (Priced-In),56.58,,56.58,141,CLOSED
@@ -664,7 +664,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-02,GREAVESCOT.NS,Greaves Cotton Limited,Capital Goods,231.0,221.83,4.5,2.7,🟢 Buy (Drifter),-3.97,,-3.97,141,CLOSED
 2026-07-02,BEPL.NS,BEPL.NS,Chemicals,102.4,127.09,4.3,2.3,🟡 Neutral (Priced-In),24.11,,24.11,141,CLOSED
 2026-07-02,GPTHEALTH.NS,GPTHEALTH.NS,Medical Care Facilities,156.5,161.73,4.3,2.7,🟡 Neutral (Priced-In),3.34,,3.34,141,CLOSED
-2026-07-02,GENESYS.NS,GENESYS.NS,Software - Application,335.8,283.18,4.2,3.0,🟡 Neutral (Priced-In),-15.67,,-15.67,141,CLOSED
+2026-07-02,GENESYS.NS,GENESYS.NS,Software - Application,335.8,297.7,4.2,3.0,🟡 Neutral (Priced-In),-11.35,,-11.35,141,CLOSED
 2026-07-02,ABSLAMC.NS,ABSLAMC.NS,Financial Services,1191.3,1024.2,4.1,3.0,🟢 Buy (Drifter),-14.03,,-14.03,141,CLOSED
 2026-07-03,ELGIRUBCO.NS,ELGIRUBCO.NS,Auto Parts,55.3,57.15,20.0,3.0,🟡 Neutral (Priced-In),3.35,,3.35,140,CLOSED
 2026-07-03,DIGITIDE.NS,DIGITIDE.NS,Specialty Business Services,102.2,79.76,15.4,3.0,🟢 Buy (Drifter),-21.96,,-21.96,140,CLOSED
@@ -681,11 +681,11 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-03,AVG.NS,AVG.NS,Integrated Freight & Logistics,224.2,162.99,7.3,3.0,🟡 Neutral (Priced-In),-27.3,,-27.3,140,CLOSED
 2026-07-03,COMSYN.NS,COMSYN.NS,Packaging & Containers,200.3,292.5,7.3,3.0,🟡 Neutral (Priced-In),46.03,,46.03,140,CLOSED
 2026-07-03,ECLERX.NS,eClerx Services Limited,Capital Goods,1488.8,1890.1,7.0,2.7,🟢 Buy (Drifter),26.95,,26.95,140,CLOSED
-2026-07-03,GOLDIAM.NS,GOLDIAM.NS,Luxury Goods,480.4,321.7,6.8,3.0,🟢 Buy (Drifter),-33.03,,-33.03,140,CLOSED
+2026-07-03,GOLDIAM.NS,GOLDIAM.NS,Luxury Goods,480.4,349.5,6.8,3.0,🟢 Buy (Drifter),-3.0,,-3.0,140,CLOSED
 2026-07-03,FILATEX.NS,FILATEX.NS,Textile Manufacturing,56.0,105.32,6.7,2.7,🟡 Neutral (Priced-In),88.07,,88.07,140,CLOSED
 2026-07-03,GCSL.NS,GCSL.NS,Capital Markets,490.5,532.45,6.6,3.0,🟢 Buy (Drifter),8.55,,8.55,140,CLOSED
 2026-07-03,DENTA.NS,DENTA.NS,Engineering & Construction,352.9,270.1,6.4,3.0,🟡 Neutral (Priced-In),-23.46,,-23.46,140,CLOSED
-2026-07-03,BANSALWIRE.NS,BANSALWIRE.NS,Steel,365.8,323.35,6.2,2.7,🟡 Neutral (Priced-In),-11.6,,-11.6,140,CLOSED
+2026-07-03,BANSALWIRE.NS,BANSALWIRE.NS,Steel,365.8,324.0,6.2,2.7,🟡 Neutral (Priced-In),-11.43,,-11.43,140,CLOSED
 2026-07-03,GINNIFILA.NS,GINNIFILA.NS,Textile Manufacturing,54.7,42.39,6.2,3.3,🟡 Neutral (Priced-In),-22.5,,-22.5,140,CLOSED
 2026-07-03,COSMOFIRST.NS,COSMOFIRST.NS,Packaging & Containers,853.1,857.25,6.1,3.0,🟡 Neutral (Priced-In),0.49,,0.49,140,CLOSED
 2026-07-03,FUSION.NS,FUSION.NS,Credit Services,229.4,176.8,6.1,3.0,🟡 Neutral (Priced-In),-22.93,,-22.93,140,CLOSED
@@ -693,7 +693,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-03,HCLTECH.NS,HCL Technologies Limited,IT & Technology,1139.0,1243.6,5.6,2.3,🟢 Buy (Drifter),9.18,,9.18,140,CLOSED
 2026-07-03,DCW.NS,DCW.NS,Chemicals,50.4,48.36,5.4,2.7,🟡 Neutral (Priced-In),-4.05,,-4.05,140,CLOSED
 2026-07-03,DAMODARIND.NS,DAMODARIND.NS,Textile Manufacturing,32.1,28.61,5.2,2.3,🟡 Neutral (Priced-In),-10.87,,-10.87,140,CLOSED
-2026-07-03,BLSE.NS,BLSE.NS,Specialty Business Services,265.1,326.7,4.9,3.0,🟢 Buy (Drifter),23.24,,23.24,140,CLOSED
+2026-07-03,BLSE.NS,BLSE.NS,Specialty Business Services,265.1,282.31,4.9,3.0,🟢 Buy (Drifter),6.49,,6.49,140,CLOSED
 2026-07-03,HFCL.NS,HFCL Limited,Telecom,214.5,210.69,4.8,2.3,🟡 Neutral (Priced-In),-1.78,,-1.78,140,CLOSED
 2026-07-03,HUDCO.NS,Housing and Urban Development Corporation Limited,Financial Services,215.6,174.32,4.2,2.3,🟢 Buy (Drifter),-19.15,,-19.15,140,CLOSED
 2026-07-03,DIVGIITTS.NS,DIVGIITTS.NS,Auto Parts,1021.5,1156.6,4.1,3.0,🟡 Neutral (Priced-In),13.23,,13.23,140,CLOSED
@@ -712,7 +712,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-06,DIXON.NS,Dixon Technologies (India) Limited,Consumer Durables,13304.0,13299.0,6.8,3.0,🟡 Neutral (Priced-In),-0.04,,-0.04,137,CLOSED
 2026-07-06,63MOONS.NS,63MOONS.NS,IT - Software,700.7,862.9,6.5,2.7,🟡 Neutral (Priced-In),23.15,,23.15,137,CLOSED
 2026-07-06,AEGISLOG.NS,AEGISLOG.NS,Oil & Gas,1409.2,1369.7,6.3,3.0,🟡 Neutral (Priced-In),-2.8,,-2.8,137,CLOSED
-2026-07-06,BUILDPRO.NS,BUILDPRO.NS,Retailing,1043.0,1272.6,6.2,2.7,🟡 Neutral (Priced-In),22.01,,22.01,137,CLOSED
+2026-07-06,BUILDPRO.NS,BUILDPRO.NS,Retailing,1043.0,1192.5,6.2,2.7,🟡 Neutral (Priced-In),14.33,,14.33,137,CLOSED
 2026-07-06,DEVIT.NS,DEVIT.NS,IT - Services,29.0,22.59,5.8,3.0,🟡 Neutral (Priced-In),-22.1,,-22.1,137,CLOSED
 2026-07-06,ANDHRSUGAR.NS,ANDHRSUGAR.NS,Chemicals & Petrochemicals,88.3,92.98,5.5,2.7,🟡 Neutral (Priced-In),5.3,,5.3,137,CLOSED
 2026-07-06,CORALFINAC.NS,CORALFINAC.NS,Realty,35.0,31.29,5.5,2.3,🟢 Buy (Drifter),-10.6,,-10.6,137,CLOSED
@@ -765,8 +765,8 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-10,CDSL.NS,Central Depository Services (India) Limited,Financial Services,1431.9,1320.0,6.3,3.0,🟢 Buy (Drifter),-7.81,,-7.81,133,CLOSED
 2026-07-10,BLUSPRING.NS,BLUSPRING.NS,Capital Goods,113.0,140.56,6.0,3.0,🟢 Buy (Drifter),24.39,,24.39,133,CLOSED
 2026-07-10,EXICOM.NS,EXICOM.NS,Capital Goods,170.0,164.64,6.0,2.7,🟢 Buy (Drifter),-3.15,,-3.15,133,CLOSED
-2026-07-10,HEG.NS,HEG Limited,Capital Goods,545.0,237.3,6.0,2.7,🟢 Buy (Drifter),-56.46,,-56.46,133,CLOSED
-2026-07-10,CCAVENUE.NS,AvenuesAI Limited,Financial Services,18.1,15.99,5.7,2.7,🟢 Buy (Drifter),-11.66,,-11.66,133,CLOSED
+2026-07-10,HEG.NS,HEG Limited,Capital Goods,545.0,657.19,6.0,2.7,🟢 Buy (Drifter),20.59,,20.59,133,CLOSED
+2026-07-10,CCAVENUE.NS,AvenuesAI Limited,Financial Services,18.1,15.85,5.7,2.7,🟢 Buy (Drifter),-12.43,,-12.43,133,CLOSED
 2026-07-10,CONFIPET.NS,CONFIPET.NS,Oil & Gas,76.4,86.29,5.7,2.7,🟡 Neutral (Priced-In),12.95,,12.95,133,CLOSED
 2026-07-10,GUJAPOLLO.NS,GUJAPOLLO.NS,Capital Goods,368.6,327.4,5.7,2.3,🟢 Buy (Drifter),-11.18,,-11.18,133,CLOSED
 2026-07-10,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,386.3,311.6,5.7,2.7,🟢 Buy (Drifter),-19.34,,-19.34,133,CLOSED
@@ -780,7 +780,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-10,HIKAL.NS,Hikal Limited,Chemicals,244.8,214.15,4.8,2.7,🟡 Neutral (Priced-In),-12.52,,-12.52,133,CLOSED
 2026-07-10,FIRSTCRY.NS,FIRSTCRY.NS,Retail,212.2,179.63,4.3,2.3,🟡 Neutral (Priced-In),-15.35,,-15.35,133,CLOSED
 2026-07-10,AEROENTER.NS,AEROENTER.NS,Metals & Mining,125.0,126.86,4.2,2.7,🟢 Buy (Drifter),1.49,,1.49,133,CLOSED
-2026-07-10,BUILDPRO.NS,BUILDPRO.NS,Retail,1250.5,1272.6,4.2,3.3,🟡 Neutral (Priced-In),1.77,,1.77,133,CLOSED
+2026-07-10,BUILDPRO.NS,BUILDPRO.NS,Retail,1250.5,1242.2,4.2,3.3,🟡 Neutral (Priced-In),-0.66,,-0.66,133,CLOSED
 2026-07-10,DATAMATICS.NS,Datamatics Global Services Limited,IT & Technology,900.5,783.95,4.2,2.3,🟢 Buy (Drifter),-12.94,,-12.94,133,CLOSED
 2026-07-10,ECLERX.NS,eClerx Services Limited,Capital Goods,1621.7,1890.1,4.2,2.7,🟢 Buy (Drifter),16.55,,16.55,133,CLOSED
 2026-07-10,BAJAJCON.NS,BAJAJCON.NS,Consumer Goods,670.2,501.7,4.1,3.0,🟢 Buy (Drifter),-25.14,,-25.14,133,CLOSED
@@ -806,10 +806,10 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-13,ARKADE.NS,ARKADE.NS,Real Estate,140.9,124.73,6.3,3.0,🟢 Buy (Drifter),-11.48,,-11.48,130,CLOSED
 2026-07-13,BEPL.NS,BEPL.NS,Chemicals,108.1,127.09,5.8,2.7,🟡 Neutral (Priced-In),17.57,,17.57,130,CLOSED
 2026-07-13,DAMCAPITAL.NS,DAMCAPITAL.NS,Financial Services,162.0,137.2,5.6,2.7,🟢 Buy (Drifter),-15.31,,-15.31,130,CLOSED
-2026-07-13,HEG.NS,HEG Limited,Capital Goods,575.4,237.3,5.6,3.0,🟢 Buy (Drifter),-58.76,,-58.76,130,CLOSED
+2026-07-13,HEG.NS,HEG Limited,Capital Goods,575.4,678.95,5.6,3.0,🟢 Buy (Drifter),18.0,,18.0,130,CLOSED
 2026-07-13,HAPPSTMNDS.NS,Happiest Minds Technologies Limited,IT & Technology,407.5,311.6,5.5,3.0,🟢 Buy (Drifter),-23.53,,-23.53,130,CLOSED
 2026-07-13,BHARATSE.NS,BHARATSE.NS,Auto,254.6,217.55,5.4,3.0,🟡 Neutral (Priced-In),-14.55,,-14.55,130,CLOSED
-2026-07-13,GENESYS.NS,GENESYS.NS,IT & Technology,343.8,283.18,5.4,2.7,🟢 Buy (Drifter),-17.63,,-17.63,130,CLOSED
+2026-07-13,GENESYS.NS,GENESYS.NS,IT & Technology,343.8,316.7,5.4,2.7,🟢 Buy (Drifter),-7.88,,-7.88,130,CLOSED
 2026-07-13,ASAHISONG.NS,ASAHISONG.NS,Chemicals,284.0,388.0,5.3,2.7,🟡 Neutral (Priced-In),36.62,,36.62,130,CLOSED
 2026-07-13,BIRLAMONEY.NS,BIRLAMONEY.NS,Financial Services,157.8,118.66,5.3,3.3,🟢 Buy (Drifter),-24.8,,-24.8,130,CLOSED
 2026-07-13,GALLANTT.NS,Gallantt Ispat Limited,Metals & Mining,701.0,545.25,5.0,3.0,🟢 Buy (Drifter),-22.22,,-22.22,130,CLOSED
@@ -822,7 +822,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-13,CRAMC.NS,CRAMC.NS,Financial Services,265.2,228.8,4.6,2.7,🟢 Buy (Drifter),-13.73,,-13.73,130,CLOSED
 2026-07-13,EVERESTIND.NS,EVERESTIND.NS,Cement & Materials,513.4,431.75,4.4,3.0,Unknown,-15.9,,-15.9,130,CLOSED
 2026-07-13,HEALTHX.NS,HEALTHX.NS,Retail,337.6,310.3,4.4,2.7,🟡 Neutral (Priced-In),-8.09,,-8.09,130,CLOSED
-2026-07-13,GOODLUCK.NS,GOODLUCK.NS,Metals & Mining,1629.4,530.45,4.1,3.3,🟢 Buy (Drifter),-67.45,,-67.45,130,CLOSED
+2026-07-13,GOODLUCK.NS,GOODLUCK.NS,Metals & Mining,1629.4,1502.3,4.1,3.3,🟢 Buy (Drifter),-7.8,,-7.8,130,CLOSED
 2026-07-13,ALGOQUANT.NS,ALGOQUANT.NS,Financial Services,61.3,73.37,4.0,2.3,🟢 Buy (Drifter),19.69,,19.69,130,CLOSED
 2026-07-14,BALPHARMA.NS,BALPHARMA.NS,Pharma & Healthcare,91.0,105.02,15.0,2.7,🟡 Neutral (Priced-In),15.41,,15.41,129,CLOSED
 2026-07-14,COUNCODOS.NS,COUNCODOS.NS,Real Estate,7.1,6.38,11.9,3.0,🟢 Buy (Drifter),-10.14,,-10.14,129,CLOSED
@@ -978,7 +978,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-23,AMDIND.NS,AMDIND.NS,Capital Goods,48.9,56.09,4.4,2.7,🟢 Buy (Drifter),14.7,,14.7,120,CLOSED
 2026-07-23,CROWN.NS,CROWN.NS,Capital Goods,121.0,117.94,4.4,2.7,🟢 Buy (Drifter),-2.53,,-2.53,120,CLOSED
 2026-07-23,GRPLTD.NS,GRPLTD.NS,Auto,1972.6,1987.8,4.4,2.7,🟡 Neutral (Priced-In),0.77,,0.77,120,CLOSED
-2026-07-23,HEG.NS,HEG Limited,Capital Goods,623.8,237.3,4.2,2.7,🟢 Buy (Drifter),-61.96,,-61.96,120,CLOSED
+2026-07-23,HEG.NS,HEG Limited,Capital Goods,623.8,700.94,4.2,2.7,🟢 Buy (Drifter),12.37,,12.37,120,CLOSED
 2026-07-24,AARON.NS,AARON.NS,Capital Goods,135.2,116.68,20.0,3.0,🟢 Buy (Drifter),-13.7,,-13.7,119,CLOSED
 2026-07-24,BTML.NS,BTML.NS,Media,7.0,6.97,14.5,3.0,🟡 Neutral (Priced-In),-0.43,,-0.43,119,CLOSED
 2026-07-24,CNL.NS,CNL.NS,IT & Technology,987.0,1106.9,12.3,3.0,🟢 Buy (Drifter),12.15,,12.15,119,CLOSED
@@ -988,7 +988,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-24,DBL.NS,Dilip Buildcon Limited,Capital Goods,420.2,412.6,8.6,3.0,🟢 Buy (Drifter),-1.81,,-1.81,119,CLOSED
 2026-07-24,CINELINE.NS,CINELINE.NS,Media,86.7,89.17,8.0,2.3,🟡 Neutral (Priced-In),2.85,,2.85,119,CLOSED
 2026-07-24,DIACABS.NS,Diamond Power Infrastructure Limited,Capital Goods,295.1,360.45,7.7,3.0,🟢 Buy (Drifter),22.15,,22.15,119,CLOSED
-2026-07-24,BLSE.NS,BLSE.NS,Capital Goods,282.3,326.7,7.2,3.0,🟢 Buy (Drifter),15.73,,15.73,119,CLOSED
+2026-07-24,BLSE.NS,BLSE.NS,Capital Goods,282.3,314.23,7.2,3.0,🟢 Buy (Drifter),11.31,,11.31,119,CLOSED
 2026-07-24,HUHTAMAKI.NS,HUHTAMAKI.NS,Capital Goods,318.7,242.45,7.2,3.0,🟢 Buy (Drifter),-23.93,,-23.93,119,CLOSED
 2026-07-24,BANARBEADS.NS,BANARBEADS.NS,Consumer Durables,121.9,115.86,6.9,2.7,🟡 Neutral (Priced-In),-4.95,,-4.95,119,CLOSED
 2026-07-24,ACE.NS,Action Construction Equipment Limited,Auto,1039.4,1241.0,6.2,2.3,🟡 Neutral (Priced-In),19.4,,19.4,119,CLOSED
@@ -1078,9 +1078,9 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-29,CROMPTON.NS,Crompton Greaves Consumer Electricals Limited,Consumer Durables,264.2,219.8,6.8,2.3,🟡 Neutral (Priced-In),-16.81,,-16.81,114,CLOSED
 2026-07-29,CRAFTSMAN.NS,Craftsman Automation Limited,Auto,9913.0,10710.0,6.7,3.0,🟡 Neutral (Priced-In),8.04,,8.04,114,CLOSED
 2026-07-29,GSPCROP.NS,GSPCROP.NS,Chemicals,582.7,595.1,6.6,3.0,🟡 Neutral (Priced-In),2.13,,2.13,114,CLOSED
-2026-07-29,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.4,1478.8,5.9,2.3,🟡 Neutral (Priced-In),11.15,,11.15,114,CLOSED
+2026-07-29,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1330.4,1576.7,5.9,2.3,🟡 Neutral (Priced-In),18.51,,18.51,114,CLOSED
 2026-07-29,GOKULAGRO.NS,GOKULAGRO.NS,Consumer Goods,223.2,224.98,5.9,2.3,🟢 Buy (Drifter),0.8,,0.8,114,CLOSED
-2026-07-29,BLSE.NS,BLSE.NS,Capital Goods,298.8,326.7,5.7,3.0,🟢 Buy (Drifter),9.34,,9.34,114,CLOSED
+2026-07-29,BLSE.NS,BLSE.NS,Capital Goods,298.8,321.09,5.7,3.0,🟢 Buy (Drifter),7.46,,7.46,114,CLOSED
 2026-07-29,DYNPRO.NS,DYNPRO.NS,Chemicals,251.4,232.85,5.5,2.3,🟡 Neutral (Priced-In),-7.38,,-7.38,114,CLOSED
 2026-07-29,ASIANTILES.NS,ASIANTILES.NS,Cement & Materials,60.7,50.35,5.4,2.3,Unknown,-17.05,,-17.05,114,CLOSED
 2026-07-29,BLUEJET.NS,Blue Jet Healthcare Limited,Pharma & Healthcare,602.8,573.45,5.4,3.0,🟡 Neutral (Priced-In),-4.87,,-4.87,114,CLOSED
@@ -1135,7 +1135,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-07-31,EMSLIMITED.NS,EMSLIMITED.NS,Infrastructure,411.5,358.6,7.3,2.7,🟡 Neutral (Priced-In),-12.86,,-12.86,112,CLOSED
 2026-07-31,BALKRISIND.NS,Balkrishna Industries Limited,Auto,2473.5,2167.8,7.2,3.0,🟡 Neutral (Priced-In),-12.36,,-12.36,112,CLOSED
 2026-07-31,BLUESTONE.NS,BLUESTONE.NS,Consumer Durables,816.2,807.15,7.0,3.0,🟡 Neutral (Priced-In),-1.11,,-1.11,112,CLOSED
-2026-07-31,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1420.8,1478.8,6.8,3.0,🟡 Neutral (Priced-In),4.08,,4.08,112,CLOSED
+2026-07-31,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1420.8,1571.3,6.8,3.0,🟡 Neutral (Priced-In),10.59,,10.59,112,CLOSED
 2026-07-31,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,15.6,14.74,6.7,2.3,🟡 Neutral (Priced-In),-5.51,,-5.51,112,CLOSED
 2026-07-31,BBTCL.NS,BBTCL.NS,Capital Goods,241.2,229.17,6.5,3.0,🟢 Buy (Drifter),-4.99,,-4.99,112,CLOSED
 2026-07-31,BAJAJFINSV.NS,Bajaj Finserv Ltd.,Diversified,2029.1,1762.3,6.3,3.0,🟡 Neutral (Priced-In),-13.15,,-13.15,112,CLOSED
@@ -1161,12 +1161,12 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-03,ADL.NS,ADL.NS,Consumer Durables,79.0,69.82,10.7,2.3,🟡 Neutral (Priced-In),-11.62,,-11.62,109,CLOSED
 2026-08-03,BALRAMCHIN.NS,Balrampur Chini Mills Limited,Consumer Goods,646.8,659.4,10.3,3.0,🟡 Neutral (Priced-In),1.95,,1.95,109,CLOSED
 2026-08-03,A2ZINFRA.NS,A2ZINFRA.NS,Infrastructure,17.1,14.74,10.0,2.7,🟡 Neutral (Priced-In),-13.8,,-13.8,109,CLOSED
-2026-08-03,CCAVENUE.NS,AvenuesAI Limited,Financial Services,17.4,15.99,10.0,2.7,🟡 Neutral (Priced-In),-8.1,,-8.1,109,CLOSED
+2026-08-03,CCAVENUE.NS,AvenuesAI Limited,Financial Services,17.4,15.03,10.0,2.7,🟡 Neutral (Priced-In),-13.6,,-13.6,109,CLOSED
 2026-08-03,ATULAUTO.NS,ATULAUTO.NS,Auto,563.3,447.55,9.3,3.0,🟡 Neutral (Priced-In),-20.55,,-20.55,109,CLOSED
 2026-08-03,DEEPINDS.NS,DEEPINDS.NS,Oil & Gas,649.3,766.0,8.8,3.0,🟡 Neutral (Priced-In),17.97,,17.97,109,CLOSED
 2026-08-03,GATECH.NS,GATECH.NS,Financial Services,0.8,0.73,8.7,3.0,🟡 Neutral (Priced-In),-8.75,,-8.75,109,CLOSED
 2026-08-03,AEGISLOG.NS,AEGISLOG.NS,Oil & Gas,1388.3,1369.7,8.4,2.3,🟡 Neutral (Priced-In),-1.34,,-1.34,109,CLOSED
-2026-08-03,BUILDPRO.NS,BUILDPRO.NS,Retail,1343.6,1272.6,8.2,3.0,🟡 Neutral (Priced-In),-5.28,,-5.28,109,CLOSED
+2026-08-03,BUILDPRO.NS,BUILDPRO.NS,Retail,1343.6,1241.3,8.2,3.0,🟡 Neutral (Priced-In),-7.61,,-7.61,109,CLOSED
 2026-08-03,ASKAUTOLTD.NS,ASKAUTOLTD.NS,Auto,569.7,642.75,7.9,3.0,🟡 Neutral (Priced-In),12.82,,12.82,109,CLOSED
 2026-08-03,CTE.NS,CTE.NS,IT & Technology,37.7,43.79,7.8,3.0,🟡 Neutral (Priced-In),16.15,,16.15,109,CLOSED
 2026-08-03,DPABHUSHAN.NS,DPABHUSHAN.NS,Consumer Durables,1420.2,1405.6,7.8,3.0,🟡 Neutral (Priced-In),-1.03,,-1.03,109,CLOSED
@@ -1210,7 +1210,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-04,AARTISURF.NS,AARTISURF.NS,Chemicals,541.8,516.75,35.2,3.0,🟡 Neutral (Priced-In),-4.62,,-4.62,108,CLOSED
 2026-08-04,CENTEXT.NS,CENTEXT.NS,Metals & Mining,23.7,18.82,19.1,3.0,🟡 Neutral (Priced-In),-20.59,,-20.59,108,CLOSED
 2026-08-04,BESTAGRO.NS,BESTAGRO.NS,Chemicals,22.7,20.35,18.5,3.0,🟡 Neutral (Priced-In),-10.35,,-10.35,108,CLOSED
-2026-08-04,GENESYS.NS,GENESYS.NS,IT & Technology,316.6,283.18,16.6,2.3,🟡 Neutral (Priced-In),31.14,,31.14,108,CLOSED
+2026-08-04,GENESYS.NS,GENESYS.NS,IT & Technology,316.6,246.26,16.6,2.3,🟡 Neutral (Priced-In),14.04,,14.04,108,CLOSED
 2026-08-04,ATHERENERG.NS,Ather Energy Limited,Auto,1450.4,1499.0,14.0,3.0,🟡 Neutral (Priced-In),3.35,,3.35,108,CLOSED
 2026-08-04,CTE.NS,CTE.NS,IT & Technology,39.8,43.79,14.0,2.7,🟡 Neutral (Priced-In),10.03,,10.03,108,CLOSED
 2026-08-04,DPABHUSHAN.NS,DPABHUSHAN.NS,Consumer Durables,1486.6,1405.6,12.8,3.0,🟡 Neutral (Priced-In),-5.45,,-5.45,108,CLOSED
@@ -1275,7 +1275,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-05,ALMONDZ.NS,ALMONDZ.NS,Financial Services,14.6,19.86,6.4,3.0,🟡 Neutral (Priced-In),36.03,,36.03,107,CLOSED
 2026-08-05,DVL.NS,DVL.NS,Financial Services,264.0,293.8,6.3,2.3,🟡 Neutral (Priced-In),11.29,,11.29,107,CLOSED
 2026-08-05,HINDZINC.NS,Hindustan Zinc Limited,Metals & Mining,597.0,587.15,6.0,3.0,🟡 Neutral (Priced-In),-1.65,,-1.65,107,CLOSED
-2026-08-05,BLSE.NS,BLSE.NS,Capital Goods,319.1,326.7,5.9,3.3,🟢 Buy (Drifter),2.38,,2.38,107,CLOSED
+2026-08-05,BLSE.NS,BLSE.NS,Capital Goods,319.1,314.0,5.9,3.3,🟢 Buy (Drifter),-1.6,,-1.6,107,CLOSED
 2026-08-05,BOSCH-HCIL.NS,Bosch Home Comfort India Limited,Consumer Durables,1523.8,1730.0,5.9,3.0,🟡 Neutral (Priced-In),13.53,,13.53,107,CLOSED
 2026-08-05,CUPID.NS,CUPID.NS,Consumer Goods,252.1,266.3,5.9,3.0,🟡 Neutral (Priced-In),5.63,,5.63,107,CLOSED
 2026-08-05,AGARWALEYE.NS,AGARWALEYE.NS,Pharma & Healthcare,521.0,502.1,5.6,2.3,🟡 Neutral (Priced-In),-3.63,,-3.63,107,CLOSED
@@ -1331,7 +1331,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-07,SAPPHIRE.NS,Sapphire Foods India Limited,Hospitality,224.2,225.7,12.3,3.0,🟡 Neutral (Priced-In),0.67,,0.67,105,CLOSED
 2026-08-07,ENRIN.NS,Siemens Energy India Limited,Power & Utilities,3648.8,3215.4,12.2,3.0,🟢 Buy (Drifter),-11.88,,-11.88,105,CLOSED
 2026-08-07,BTML.NS,Bodhi Tree Multimedia Limited,Media,8.0,6.97,11.3,3.0,🟡 Neutral (Priced-In),-12.88,,-12.88,105,CLOSED
-2026-08-07,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2464.1,1273.6,10.9,3.0,🟡 Neutral (Priced-In),-48.31,,-48.31,105,CLOSED
+2026-08-07,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2464.1,2314.3,10.9,3.0,🟡 Neutral (Priced-In),-6.08,,-6.08,105,CLOSED
 2026-08-07,AVALON.NS,Avalon Technologies Limited,Capital Goods,1965.3,2316.1,10.8,3.0,🟢 Buy (Drifter),17.85,,17.85,105,CLOSED
 2026-08-07,EMIL.NS,Electronics Mart India Limited,Retail,165.8,189.16,10.7,3.0,🟡 Neutral (Priced-In),14.09,,14.09,105,CLOSED
 2026-08-07,VARROC.NS,Varroc Engineering Limited,Auto,811.2,833.4,10.2,3.0,🟡 Neutral (Priced-In),2.74,,2.74,105,CLOSED
@@ -1454,7 +1454,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-11,POLYPLEX.NS,Polyplex Corporation Limited,Chemicals,1229.6,1097.4,4.2,3.0,🟡 Neutral (Priced-In),-10.75,,-10.75,101,CLOSED
 2026-08-11,ATHERENERG.NS,Ather Energy Limited,Auto,1525.4,1499.0,4.0,2.7,🟡 Neutral (Priced-In),-1.73,,-1.73,101,CLOSED
 2026-08-11,GRMOVER.NS,GRM Overseas Limited,Consumer Goods,94.2,79.87,4.0,2.3,🟡 Neutral (Priced-In),-15.21,,-15.21,101,CLOSED
-2026-08-12,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1480.1,742.0,16.0,3.0,🟢 Buy (Drifter),0.26,,0.26,100,CLOSED
+2026-08-12,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1480.1,722.55,16.0,3.0,🟢 Buy (Drifter),-2.36,,-2.36,100,CLOSED
 2026-08-12,DIVGIITTS.NS,Divgi TorqTransfer Systems Limited,Auto,1231.9,1156.6,14.5,3.0,🟡 Neutral (Priced-In),-6.11,,-6.11,100,CLOSED
 2026-08-12,DOLPHIN.NS,Dolphin Offshore Enterprises (India) Limited,Oil & Gas,494.4,685.3,12.2,3.0,🟡 Neutral (Priced-In),38.61,,38.61,100,CLOSED
 2026-08-12,MARKSANS.NS,Marksans Pharma Limited,Pharma & Healthcare,312.6,337.4,12.1,3.0,🟡 Neutral (Priced-In),7.93,,7.93,100,CLOSED
@@ -1606,9 +1606,9 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-17,RENUKA.NS,Shree Renuka Sugars Limited,Consumer Goods,23.0,22.92,4.8,2.3,🟡 Neutral (Priced-In),-0.35,,-0.35,95,CLOSED
 2026-08-17,CHENNPETRO.NS,Chennai Petroleum Corporation Limited,Oil & Gas,1382.4,1372.7,4.6,3.0,🟡 Neutral (Priced-In),-0.7,,-0.7,95,CLOSED
 2026-08-17,OBEROIRLTY.NS,Oberoi Realty Limited,Real Estate,1931.0,1837.5,4.6,2.7,🟢 Buy (Drifter),-4.84,,-4.84,95,CLOSED
-2026-08-17,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1515.0,1478.8,4.4,3.0,🟡 Neutral (Priced-In),-2.39,,-2.39,95,CLOSED
+2026-08-17,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1515.0,1470.5,4.4,3.0,🟡 Neutral (Priced-In),-2.94,,-2.94,95,CLOSED
 2026-08-17,EMAMIPAP.NS,Emami Paper Mills Limited,Cement & Materials,113.9,115.54,4.4,2.3,🟡 Neutral (Priced-In),1.44,,1.44,95,CLOSED
-2026-08-17,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1548.8,742.0,4.3,3.0,🟢 Buy (Drifter),-4.18,,-4.18,95,CLOSED
+2026-08-17,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,1548.8,768.8,4.3,3.0,🟢 Buy (Drifter),-0.72,,-0.72,95,CLOSED
 2026-08-17,COUNCODOS.NS,Country Condo's Limited,Real Estate,6.7,6.38,4.2,2.3,🟢 Buy (Drifter),-4.78,,-4.78,95,CLOSED
 2026-08-17,NETWEB.NS,Netweb Technologies India Limited,IT & Technology,5212.4,4661.5,4.1,3.0,🟡 Neutral (Priced-In),-10.57,,-10.57,95,CLOSED
 2026-08-17,TBOTEK.NS,TBOTEK.NS,IT & Technology,1700.0,1687.2,4.1,3.0,🟡 Neutral (Priced-In),-0.75,,-0.75,95,CLOSED
@@ -1627,11 +1627,11 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-18,AEROFLEX.NS,Aeroflex Industries Limited,Capital Goods,485.9,527.2,6.6,3.0,🟢 Buy (Drifter),8.5,,8.5,94,CLOSED
 2026-08-18,GLAXO.NS,GlaxoSmithKline Pharmaceuticals Limited,Pharma & Healthcare,2877.4,2829.2,6.5,3.0,🟡 Neutral (Priced-In),-1.68,,-1.68,94,CLOSED
 2026-08-18,ACE.NS,Action Construction Equipment Limited,Auto,1184.8,1241.0,6.4,3.0,🟡 Neutral (Priced-In),4.74,,4.74,94,CLOSED
-2026-08-18,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1139.2,306.0,6.4,2.7,🟡 Neutral (Priced-In),-56.08,,-56.08,94,CLOSED
+2026-08-18,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1139.2,910.39,6.4,2.7,🟡 Neutral (Priced-In),30.68,,30.68,94,CLOSED
 2026-08-18,AEGISLOG.NS,AEGISLOG.NS,Oil & Gas,1367.7,1369.7,6.3,2.3,🟡 Neutral (Priced-In),0.15,,0.15,94,CLOSED
 2026-08-18,CUPID.NS,Cupid Limited,Consumer Goods,284.0,266.3,6.3,3.0,🟡 Neutral (Priced-In),-6.23,,-6.23,94,CLOSED
 2026-08-18,ZENTEC.NS,Zen Technologies Limited,Aerospace & Defense,1982.4,1645.7,6.3,2.7,🟢 Buy (Drifter),-16.98,,-16.98,94,CLOSED
-2026-08-18,HEG.NS,HEG Limited,Capital Goods,739.2,237.3,5.9,2.7,🟢 Buy (Drifter),-16.57,,-16.57,94,CLOSED
+2026-08-18,HEG.NS,HEG Limited,Capital Goods,739.2,283.15,5.9,2.7,🟢 Buy (Drifter),-0.45,,-0.45,94,CLOSED
 2026-08-18,BALUFORGE.NS,Balu Forge Industries Limited,Capital Goods,542.5,498.1,5.7,3.0,🟢 Buy (Drifter),-8.18,,-8.18,94,CLOSED
 2026-08-18,WELSPUNLIV.NS,Welspun Living Limited,Textiles,177.8,222.32,5.7,2.3,🟡 Neutral (Priced-In),25.04,,25.04,94,CLOSED
 2026-08-18,DEEPINDS.NS,Deep Industries Limited,Oil & Gas,718.0,766.0,5.5,3.0,🟡 Neutral (Priced-In),6.69,,6.69,94,CLOSED
@@ -1765,7 +1765,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-21,THELEELA.NS,Leela Palaces Hotels & Resorts Limited,Hospitality,561.7,533.2,4.1,3.0,🟡 Neutral (Priced-In),-5.07,,-5.07,91,CLOSED
 2026-08-21,VEDL.NS,Vedanta Limited,Metals & Mining,279.0,267.5,4.1,2.7,🟡 Neutral (Priced-In),-4.12,,-4.12,91,CLOSED
 2026-08-21,ARIES.NS,Aries Agro Limited,Chemicals,452.7,466.9,4.0,3.0,🟡 Neutral (Priced-In),3.14,,3.14,91,CLOSED
-2026-08-21,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1146.5,306.0,4.0,2.7,🟡 Neutral (Priced-In),-56.36,,-56.36,91,CLOSED
+2026-08-21,INDIAGLYCO.NS,India Glycols Limited,Metals & Mining,1146.5,891.06,4.0,2.7,🟡 Neutral (Priced-In),27.09,,27.09,91,CLOSED
 2026-08-24,BANG.NS,Bang Overseas Limited,Textiles,34.0,31.61,18.6,3.0,🟡 Neutral (Priced-In),-7.03,,-7.03,88,CLOSED
 2026-08-24,RATNAMANI.NS,Ratnamani Metals & Tubes Limited,Metals & Mining,2697.0,2824.2,14.6,2.7,🟡 Neutral (Priced-In),4.72,,4.72,88,CLOSED
 2026-08-24,ARCHIDPLY.NS,Archidply Industries Limited,Cement & Materials,111.5,106.47,13.8,3.0,🟡 Neutral (Priced-In),-4.51,,-4.51,88,CLOSED
@@ -1976,7 +1976,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-31,LUMAXTECH.NS,Lumax Auto Technologies Limited,Consumer Durables,2078.5,2068.8,7.7,3.0,🟡 Neutral (Priced-In),-0.47,,-0.47,81,CLOSED
 2026-08-31,AVTNPL.NS,AVT Natural Products Limited,Chemicals,92.1,92.93,7.5,3.0,🟡 Neutral (Priced-In),0.9,,0.9,81,CLOSED
 2026-08-31,GHCLTEXTIL.NS,GHCL Textiles Limited,Textiles,134.8,135.34,7.5,3.0,🟡 Neutral (Priced-In),0.4,,0.4,81,CLOSED
-2026-08-31,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2463.8,1273.6,7.4,3.0,🟡 Neutral (Priced-In),3.39,,3.39,81,CLOSED
+2026-08-31,PGIL.NS,Pearl Global Industries Limited,Consumer Durables,2463.8,1194.9,7.4,3.0,🟡 Neutral (Priced-In),-3.0,,-3.0,81,CLOSED
 2026-08-31,EMKAY.NS,Emkay Global Financial Services Limited,Financial Services,257.2,272.55,7.3,2.3,🟡 Neutral (Priced-In),5.97,,5.97,81,CLOSED
 2026-08-31,HAPPYFORGE.NS,HAPPYFORGE.NS,Capital Goods,2412.0,2084.8,7.2,3.3,🟢 Buy (Drifter),-13.57,,-13.57,81,CLOSED
 2026-08-31,DRCSYSTEMS.NS,DRC Systems India Limited,IT & Technology,13.7,12.55,7.0,2.7,🟡 Neutral (Priced-In),-8.39,,-8.39,81,CLOSED
@@ -2008,7 +2008,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-08-31,INDHOTEL.NS,The Indian Hotels Company Limited,Hospitality,737.9,728.8,4.5,2.3,🟡 Neutral (Priced-In),-1.23,,-1.23,81,CLOSED
 2026-08-31,KPRMILL.NS,K.P.R. Mill Limited,Textiles,1177.6,1113.8,4.5,2.7,🟡 Neutral (Priced-In),-5.42,,-5.42,81,CLOSED
 2026-08-31,VGUARD.NS,V-Guard Industries Limited,Consumer Durables,346.4,308.6,4.5,3.0,🟡 Neutral (Priced-In),-10.91,,-10.91,81,CLOSED
-2026-08-31,BLSE.NS,BLSE.NS,Capital Goods,327.9,326.7,4.4,3.0,🟢 Buy (Drifter),-0.37,,-0.37,81,CLOSED
+2026-08-31,BLSE.NS,BLSE.NS,Capital Goods,327.9,328.1,4.4,3.0,🟢 Buy (Drifter),0.06,,0.06,81,CLOSED
 2026-08-31,BANG.NS,Bang Overseas Limited,Textiles,34.9,31.61,4.3,2.3,🟡 Neutral (Priced-In),-9.43,,-9.43,81,CLOSED
 2026-08-31,BANARISUG.NS,Bannari Amman Sugars Limited,Consumer Goods,3925.7,3306.5,4.2,2.7,🟡 Neutral (Priced-In),-15.77,,-15.77,81,CLOSED
 2026-08-31,PRICOLLTD.NS,Pricol Limited,Auto,803.2,763.8,4.2,2.7,🟡 Neutral (Priced-In),-4.91,,-4.91,81,CLOSED
@@ -2330,7 +2330,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-09-11,BBOX.NS,Black Box Limited,IT & Technology,800.8,795.85,7.5,2.7,🟡 Neutral (Priced-In),-0.62,,-0.62,70,CLOSED
 2026-09-11,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,628.2,606.15,7.2,3.3,🟡 Neutral (Priced-In),-3.51,,-3.51,70,CLOSED
 2026-09-11,AIIL.NS,Authum Investment & Infrastructure Limited,Financial Services,544.3,539.3,6.3,2.7,🟡 Neutral (Priced-In),-0.92,,-0.92,70,CLOSED
-2026-09-11,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,15.28,6.1,2.3,🟡 Neutral (Priced-In),-6.26,,-6.26,70,CLOSED
+2026-09-11,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,15.28,6.1,2.3,🟡 Neutral (Priced-In),-6.2,,-6.2,70,CLOSED
 2026-09-11,PTCIL.NS,PTC Industries Limited,Capital Goods,23630.0,22025.0,5.6,3.0,🟢 Buy (Drifter),-6.79,,-6.79,70,CLOSED
 2026-09-11,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,804.9,792.15,5.5,2.7,🟢 Buy (Drifter),-1.58,,-1.58,70,CLOSED
 2026-09-11,YESBANK.NS,Yes Bank Limited,Banking,23.5,20.75,5.3,2.7,🟡 Neutral (Priced-In),-11.7,,-11.7,70,CLOSED
@@ -2355,7 +2355,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-09-14,BBOX.NS,Black Box Limited,IT & Technology,800.8,795.85,7.5,2.7,🟡 Neutral (Priced-In),-0.62,,-0.62,67,CLOSED
 2026-09-14,BLACKBUCK.NS,BlackBuck Limited,IT & Technology,628.2,606.15,7.2,3.3,🟡 Neutral (Priced-In),-3.51,,-3.51,67,CLOSED
 2026-09-14,AIIL.NS,Authum Investment & Infrastructure Limited,Financial Services,544.3,539.3,6.3,2.7,🟡 Neutral (Priced-In),-0.92,,-0.92,67,CLOSED
-2026-09-14,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,15.28,6.1,2.3,🟡 Neutral (Priced-In),-6.26,,-6.26,67,CLOSED
+2026-09-14,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,15.36,6.1,2.3,🟡 Neutral (Priced-In),-5.77,,-5.77,67,CLOSED
 2026-09-14,PTCIL.NS,PTC Industries Limited,Capital Goods,23630.0,22025.0,5.6,3.0,🟢 Buy (Drifter),-6.79,,-6.79,67,CLOSED
 2026-09-14,TDPOWERSYS.NS,TD Power Systems Limited,Capital Goods,804.9,792.15,5.5,2.7,🟢 Buy (Drifter),-1.58,,-1.58,67,CLOSED
 2026-09-14,YESBANK.NS,Yes Bank Limited,Banking,23.5,20.75,5.3,2.7,🟡 Neutral (Priced-In),-11.7,,-11.7,67,CLOSED
@@ -2420,7 +2420,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-09-17,ELGIRUBCO.NS,Elgi Rubber Company Limited,Auto,60.8,54.24,7.3,2.7,🟡 Neutral (Priced-In),-10.79,,-10.79,64,CLOSED
 2026-09-17,NIACL.NS,The New India Assurance Company Limited,Insurance,197.1,158.14,7.0,2.7,🟡 Neutral (Priced-In),-19.77,,-19.77,64,CLOSED
 2026-09-17,SYRMA.NS,Syrma SGS Technology Limited,Capital Goods,1617.7,1680.9,7.0,3.0,🟢 Buy (Drifter),3.91,,3.91,64,CLOSED
-2026-09-17,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,15.02,6.5,2.3,🟡 Neutral (Priced-In),-7.85,,-7.85,64,CLOSED
+2026-09-17,CCAVENUE.NS,AvenuesAI Limited,IT & Technology,16.3,14.88,6.5,2.3,🟡 Neutral (Priced-In),-8.7,,-8.7,64,CLOSED
 2026-09-17,GOCLCORP.NS,GOCL Corporation Limited,Chemicals,456.1,357.6,6.5,2.3,🟡 Neutral (Priced-In),-21.6,,-21.6,64,CLOSED
 2026-09-17,TATACHEM.NS,Tata Chemicals Limited,Chemicals,779.3,592.95,6.5,2.3,🟡 Neutral (Priced-In),-23.91,,-23.91,64,CLOSED
 2026-09-17,ARFIN.NS,Arfin India Limited,Metals & Mining,87.9,107.52,6.3,2.7,🟡 Neutral (Priced-In),22.32,,22.32,64,CLOSED
@@ -2576,7 +2576,7 @@ signal_date,ticker,name,sector,signal_price,current_price,jump_pct,vol_mult,pead
 2026-09-21,MANKIND.NS,Mankind Pharma Limited,Pharma & Healthcare,2437.8,2368.5,6.0,3.0,🟡 Neutral (Priced-In),-2.84,,-2.84,60,CLOSED
 2026-09-21,20MICRONS.NS,20 Microns Limited,Metals & Mining,220.1,196.12,5.7,2.3,🟡 Neutral (Priced-In),-10.9,,-10.9,60,CLOSED
 2026-09-21,CHEMPLASTS.NS,Chemplast Sanmar Limited,Chemicals,181.2,214.68,5.7,3.0,🟡 Neutral (Priced-In),18.48,,18.48,60,CLOSED
-2026-09-21,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1579.4,1361.4,5.7,2.7,🟡 Neutral (Priced-In),-13.8,,-13.8,60,CLOSED
+2026-09-21,CONCORDBIO.NS,Concord Biotech Limited,Pharma & Healthcare,1579.4,1369.7,5.7,2.7,🟡 Neutral (Priced-In),-13.28,,-13.28,60,CLOSED
 2026-09-21,GKENERGY.NS,GK Energy Limited,Power & Utilities,126.6,113.08,5.7,2.3,🟢 Buy (Drifter),-10.68,,-10.68,60,CLOSED
 2026-09-21,SUPRIYA.NS,Supriya Lifescience Limited,Pharma & Healthcare,957.7,847.65,5.7,3.0,🟡 Neutral (Priced-In),-11.49,,-11.49,60,CLOSED
 2026-09-21,DELTACORP.NS,Delta Corp Limited,Hospitality,61.6,81.31,5.6,2.3,🟡 Neutral (Priced-In),32.0,,32.0,60,CLOSED

@@ -13,6 +13,10 @@ on:
         type: string
         default: ""
 
+concurrency:
+  group: repo-data-write
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest

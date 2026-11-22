@@ -14,14 +14,15 @@ Run: python industry_alert_daemon.py [--dry-run]
 import argparse
 import os
 import sys
+from datetime import datetime
 
 import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from rs_alert_daemon import MAX_SNAPSHOT_AGE_DAYS, latest_snapshot  # noqa: E402
+from rs_alert_daemon import IST, MAX_SNAPSHOT_AGE_DAYS, latest_snapshot  # noqa: E402
 from utils.industry_alerts import check_industry_alerts, load_industry_alerts, storage_status  # noqa: E402
-from utils.telegram_notifier import is_telegram_configured, send_telegram_message  # noqa: E402
+from utils.telegram_notifier import is_telegram_configured, queue_commit, send_telegram_message  # noqa: E402
 
 
 def main() -> int:
@@ -37,7 +38,7 @@ def main() -> int:
     if df is None:
         print("[IND] No usable market snapshot — skipping.")
         return 0
-    age = (pd.Timestamp.now().normalize() - date).days
+    age = (pd.Timestamp(datetime.now(tz=IST).date()) - date).days
     print(f"[IND] {len(alerts)} alert(s); snapshot {os.path.basename(path)} ({age}d old)")
     if age > MAX_SNAPSHOT_AGE_DAYS:
         print(f"[IND] Snapshot older than {MAX_SNAPSHOT_AGE_DAYS}d — skipping.")
@@ -68,8 +69,11 @@ def main() -> int:
     else:
         print("[IND] Telegram not configured — logged only.")
     if ok:
-        check_industry_alerts(df, sess, persist=True)
-        print(f"[IND] store: {storage_status()}")
+        if bool(os.environ.get("TELEGRAM_BATCH", "").strip()) and path and queue_commit({"kind": "industry_persist", "snapshot": path, "session": sess}):
+            print("[IND] persistence queued for daily brief delivery")
+        else:
+            check_industry_alerts(df, sess, persist=True)
+            print(f"[IND] store: {storage_status()}")
     else:
         print("[IND] state not saved, so these changes are sent again on the next run")
     return 0

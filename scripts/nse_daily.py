@@ -37,8 +37,11 @@ def _my_tickers() -> set:
 
 def brief(ctx: dict, mine: set, prev_ctx: dict) -> str:
     L = []
-    if ctx.get("nifty_pe") == ctx.get("nifty_pe"):            # not NaN
-        L.append(f"Nifty P/E {ctx['nifty_pe']:.1f} · P/B {ctx.get('nifty_pb', float('nan')):.2f} · yield {ctx.get('nifty_dy', float('nan')):.2f}%")
+    if "nifty_pe" in ctx and pd.notna(ctx.get("nifty_pe")):
+        pb = ctx.get("nifty_pb", float("nan"))
+        dy = ctx.get("nifty_dy", float("nan"))
+        L.append(f"Nifty P/E {ctx['nifty_pe']:.1f} · P/B {(pb if pd.notna(pb) else float('nan')):.2f} · "
+                 f"yield {(dy if pd.notna(dy) else float('nan')):.2f}%")
     flows = [f"{k.split('_')[0].upper()} {'+' if v >= 0 else ''}{v:,.0f} cr" for k, v in ctx.items()
              if k in ("fii_net", "dii_net") and v == v]
     if flows:
@@ -74,7 +77,8 @@ def main() -> int:
     try:                                       # the daily price store every later step reads (utils/yf_safe.py)
         got = npx.update(S, upto=start)
         day = npx.last_date("stocks")
-        print(f"[nse] prices: {got} · store holds sessions to {day:%d %b %Y} · current: {npx.is_current()}")
+        day_s = f"{day:%d %b %Y}" if day is not None else "none"
+        print(f"[nse] prices: {got} · store holds sessions to {day_s} · current: {npx.is_current()}")
         ok["prices"] = True
     except Exception as x:
         print(f"[nse] prices: {x}")

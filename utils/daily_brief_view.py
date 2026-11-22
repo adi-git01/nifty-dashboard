@@ -25,6 +25,17 @@ SNAP = "data/dna3_portfolio_snapshot.json"
 NEAR_STOP = 3.0
 
 
+@st.cache_data(ttl=1800, show_spinner=False)
+def _read_csv_cached(path: str, mtime: float, parse_dates: tuple = ()) -> pd.DataFrame:
+    return pd.read_csv(path, parse_dates=list(parse_dates) if parse_dates else False)
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def _read_json_cached(path: str, mtime: float) -> dict:
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
 @st.cache_data(ttl=6 * 3600, show_spinner=False)
 def _prev_pass(key: str, _board: pd.DataFrame) -> set:
     """Tickers that passed Trend and Setup in the previous snapshot (to mark today's new entries)."""
@@ -46,7 +57,7 @@ def _market(df: pd.DataFrame):
     f = "data/market_breadth_history.csv"
     if not os.path.exists(f):
         return
-    h = pd.read_csv(f, parse_dates=["date"]).sort_values("date")
+    h = _read_csv_cached(f, os.path.getmtime(f), ("date",)).sort_values("date")
     if len(h) < 6:
         return
     now, wk = h.iloc[-1], h.iloc[-6]
@@ -91,7 +102,7 @@ def _nse_context():
     for col, k, lab in ((c[2], "fii_net", "FII cash"), (c[3], "dii_net", "DII cash")):
         v = g(now, k)
         if v is not None:
-            col.metric(lab, f"₹{v:+,.0f} cr", "net bought" if v >= 0 else "net sold", delta_color="normal" if v >= 0 else "inverse")
+            col.metric(lab, f"₹{v:+,.0f} cr", "+ net bought" if v >= 0 else "- net sold", delta_color="normal")
     lp = g(now, "fii_idx_long_pct")
     if lp is not None:
         c[4].metric("FII index futures", f"{lp:.0f}% long", f"{lp - g(prev, 'fii_idx_long_pct'):+.1f} pp" if g(prev, "fii_idx_long_pct") else None,
@@ -225,9 +236,9 @@ def _model_portfolio():
     if not (os.path.exists(BENCH) and os.path.exists(SNAP)):
         st.caption("Benchmark file not built yet; it appears after the next end-of-day run.")
         return
-    b = pd.read_csv(BENCH, parse_dates=["date"])
+    b = _read_csv_cached(BENCH, os.path.getmtime(BENCH), ("date",))
     try:
-        snap = json.load(open(SNAP))
+        snap = _read_json_cached(SNAP, os.path.getmtime(SNAP))
     except Exception:
         snap = {}
     last = b.iloc[-1]

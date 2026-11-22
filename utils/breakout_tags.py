@@ -22,6 +22,7 @@ UI side      add_breakout_tags(df)  ind_score, bo_type, bo_days, bo_anchor (volu
 """
 from __future__ import annotations
 
+from functools import lru_cache
 import os
 
 import numpy as np
@@ -131,24 +132,37 @@ def vol_stats(df: pd.DataFrame, i: int) -> tuple[bool, float]:
 # ----------------------------------------------------------------------------
 # UI side
 # ----------------------------------------------------------------------------
+@lru_cache(maxsize=4)
+def _load_industry_scores_cached(path: str, mtime: float) -> dict:
+    r = pd.read_csv(path)
+    r["record_date"] = pd.to_datetime(r["record_date"], format="mixed")
+    last = r[r.record_date == r.record_date.max()]
+    return dict(zip(last["sub_industry"], pd.to_numeric(last["score_0_100"], errors="coerce")))
+
+
 def load_industry_scores(path: str = "data/sub_industry_rotation.csv") -> dict:
     """Latest score_0_100 per sub-industry from the rotation history."""
     try:
-        r = pd.read_csv(path)
-        r["record_date"] = pd.to_datetime(r["record_date"], format="mixed")
-        last = r[r.record_date == r.record_date.max()]
-        return dict(zip(last["sub_industry"], pd.to_numeric(last["score_0_100"], errors="coerce")))
+        return dict(_load_industry_scores_cached(path, os.path.getmtime(path)))
     except Exception:
         return {}
+
+
+@lru_cache(maxsize=4)
+def _load_tag_edges_cached(path: str, mtime: float) -> dict:
+    t = pd.read_csv(path)
+    return {(r["view"], r["case"]): (r.get("3mo vsTypical"), r.get("6mo vsTypical"), r.get("yrs 3mo>0"))
+            for r in t.to_dict("records")}
 
 
 def load_tag_edges(path: str = TAG_STUDY) -> dict:
     """{(view, tag): (3m pp, 6m pp, 'years')} from the scanner-tag backtest."""
     if not os.path.exists(path):
         return {}
-    t = pd.read_csv(path)
-    return {(r["view"], r["case"]): (r.get("3mo vsTypical"), r.get("6mo vsTypical"), r.get("yrs 3mo>0"))
-            for r in t.to_dict("records")}
+    try:
+        return dict(_load_tag_edges_cached(path, os.path.getmtime(path)))
+    except Exception:
+        return {}
 
 
 def _edge_view(band: str, fresh: bool) -> list[str]:
@@ -243,12 +257,17 @@ FLAG_HELP = ("⚠ loss-maker: latest published annual EPS <= 0 -- momentum names
 TIERS = ((100, "Large"), (250, "Mid"), (500, "Small"))
 
 
+@lru_cache(maxsize=4)
+def _latest_eps_cached(path: str, mtime: float, lag_days: int, today_str: str) -> dict:
+    A = pd.read_csv(path, parse_dates=["period"])
+    A = A[(A.field == "eps") & (A.period + pd.Timedelta(days=lag_days) <= pd.Timestamp(today_str))]
+    return A.sort_values("period").groupby("ticker").value.last().to_dict()
+
+
 def latest_eps(path: str = "data/fundamentals_annual.csv.gz", lag_days: int = 92) -> dict:
     """Latest annual EPS whose results were public (period end + 92 days), per ticker."""
     try:
-        A = pd.read_csv(path, parse_dates=["period"])
-        A = A[(A.field == "eps") & (A.period + pd.Timedelta(days=lag_days) <= pd.Timestamp.today())]
-        return A.sort_values("period").groupby("ticker").value.last().to_dict()
+        return dict(_latest_eps_cached(path, os.path.getmtime(path), lag_days, pd.Timestamp.today().strftime("%Y-%m-%d")))
     except Exception:
         return {}
 

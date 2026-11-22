@@ -117,8 +117,9 @@ class AlertStore:
         atomic_json_dump(ob, self.outbox_path, indent=2)
 
     def pending(self) -> int:
-        ob = self._outbox()
-        return len(ob["adds"]) + len(ob["removes"]) + len(ob["patches"])
+        with self._lock:
+            ob = self._outbox()
+            return len(ob["adds"]) + len(ob["removes"]) + len(ob["patches"])
 
     # ------------------------------------------------------------------ operations
     @staticmethod
@@ -127,11 +128,16 @@ class AlertStore:
         alerts = alerts if isinstance(alerts, list) else []
         removed = set(ob.get("removes") or [])
         out = [dict(a) for a in alerts if a.get("id") not in removed]
-        ids = {a.get("id") for a in out}
+        pos_by_id = {a.get("id"): idx for idx, a in enumerate(out) if a.get("id") is not None}
         for a in ob.get("adds") or []:
-            if a.get("id") not in ids and a.get("id") not in removed:
+            aid = a.get("id")
+            if aid in removed:
+                continue
+            if aid in pos_by_id:
+                out[pos_by_id[aid]] = dict(a)
+            else:
+                pos_by_id[aid] = len(out)
                 out.append(dict(a))
-                ids.add(a.get("id"))
         patches = ob.get("patches") or {}
         for a in out:
             if a.get("id") in patches:
@@ -146,8 +152,16 @@ class AlertStore:
                 ob["removes"].append(rid)
             ob["patches"].pop(rid, None)
         ob["adds"] = [a for a in ob["adds"] if a.get("id") not in set(ob["removes"])]
+        add_list = delta.get("adds") or []
+        add_ids = {a.get("id") for a in add_list if a.get("id") is not None}
+        if add_ids:
+            ob["removes"] = [r for r in ob["removes"] if r not in add_ids]
+            ob["adds"] = [a for a in ob["adds"] if a.get("id") not in add_ids]
         seen = {a.get("id") for a in ob["adds"]}
-        ob["adds"] += [a for a in delta.get("adds") or [] if a.get("id") not in seen]
+        for a in add_list:
+            if a.get("id") not in seen:
+                ob["adds"].append(a)
+                seen.add(a.get("id"))
         for rid, f in (delta.get("patches") or {}).items():
             if rid not in ob["removes"]:
                 ob["patches"].setdefault(rid, {}).update(f)
@@ -158,8 +172,8 @@ class AlertStore:
     def _subtract(ob: Dict[str, Any], sent: Dict[str, Any]) -> Dict[str, Any]:
         """What is left in the outbox after `sent` landed; anything queued meanwhile stays."""
         ob = copy.deepcopy(ob)
-        sent_adds = {a.get("id") for a in sent["adds"]}
-        ob["adds"] = [a for a in ob["adds"] if a.get("id") not in sent_adds]
+        sent_adds = list(sent["adds"])
+        ob["adds"] = [a for a in ob["adds"] if a not in sent_adds]
         ob["removes"] = [r for r in ob["removes"] if r not in sent["removes"]]
         for rid, f in sent["patches"].items():
             left = {k: v for k, v in ob["patches"].get(rid, {}).items() if f.get(k) != v}
@@ -214,8 +228,10 @@ class AlertStore:
             return False
         return self.flush()
 
-    def flush_soon(self, delay: float = FLUSH_DELAY) -> None:
+    def flush_soon(self, delay: Optional[float] = None) -> None:
         """Debounced background publish; repeated calls within `delay` share one commit."""
+        if delay is None:
+            delay = FLUSH_DELAY
         if not repo_store.is_configured():
             return
         repo_store.get_token(); repo_store.get_repo(); repo_store.get_branch()   # resolve secrets on this thread
@@ -230,8 +246,11 @@ class AlertStore:
         try:
             self.flush()
         except Exception as e:                       # a background thread must never raise
-            self.last_error = str(e)
-        if self.pending() and not self.last_error:
+            with self._lock:
+                self.last_error = str(e)
+        with self._lock:
+            more = self.pending() and not self.last_error
+        if more:
             self.flush_soon()                        # more was queued while we were sending
 
     def flush(self, reason: Optional[str] = None) -> bool:
@@ -249,17 +268,18 @@ class AlertStore:
             why = ob["reasons"] or [reason or "sync"]
             msg = f"🔔 {self.label}: " + ("; ".join(why) if len(why) <= 3 else f"{len(why)} changes")
             ok, new, err = repo_store.update_json(self.path, lambda cur: self.apply(cur, ob), msg, branch=self.branch)
+            with self._lock:
+                self.last_error = err
+                if ok:
+                    self._save_outbox(self._subtract(self._outbox(), ob))
+                    try:
+                        atomic_json_dump(new, self.cache, indent=2)
+                    except Exception:
+                        pass
+                return ok
         finally:
-            self.flushing = False
-        with self._lock:
-            self.last_error = err
-            if ok:
-                self._save_outbox(self._subtract(self._outbox(), ob))
-                try:
-                    atomic_json_dump(new, self.cache, indent=2)
-                except Exception:
-                    pass
-            return ok
+            with self._lock:
+                self.flushing = False
 
     def mutate(self, fn: Callable[[List[Dict[str, Any]]], Any], reason: Callable[[Any], str]) -> Tuple[Any, bool]:
         """

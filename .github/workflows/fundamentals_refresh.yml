@@ -7,6 +7,10 @@ on:
     - cron: '30 17 15 * *'
   workflow_dispatch:  # Allow manual trigger
 
+concurrency:
+  group: repo-data-write
+  cancel-in-progress: false
+
 jobs:
   fetch-fundamentals:
     runs-on: ubuntu-latest

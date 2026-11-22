@@ -13,11 +13,20 @@ Output: data/turnaround_watchlist.csv
 Run   : python turnaround_screener.py   (or via GitHub Actions daily)
 """
 
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 import os, sys, glob, warnings
+
+_IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def _now_ist() -> datetime:
+    return datetime.now(tz=_IST)
 
 warnings.filterwarnings("ignore")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -103,7 +112,7 @@ def _calc_ias_full(rs21_d5: float, lfl: float, pct_off_low: float, rs63: float,
 
 
 def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series,
-                 nifty: pd.Series, sub_map: dict) -> dict | None:
+                 nifty: pd.Series, sub_map: dict, high_px: Optional[pd.Series] = None) -> dict | None:
     """Compute today's IAS for a single ticker. Returns None if gates not met."""
     try:
         if len(close) < 70:
@@ -112,6 +121,9 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
             close.index = close.index.tz_localize(None)
         if volume.index.tz is not None:
             volume.index = volume.index.tz_localize(None)
+        if high_px is not None and getattr(high_px.index, "tz", None) is not None:
+            high_px = high_px.copy()
+            high_px.index = high_px.index.tz_localize(None)
 
         nb = nifty.reindex(close.index, method="ffill")
 
@@ -125,7 +137,8 @@ def score_ticker(t: str, close: pd.Series, volume: pd.Series, open_px: pd.Series
         liq10_min = liq_daily.rolling(10).min().clip(lower=0.01)
         lfl       = (liq5 / liq10_min)
 
-        h252 = close.rolling(252, min_periods=50).max()
+        h_series = high_px.reindex(close.index) if (high_px is not None and not high_px.empty) else close
+        h252 = h_series.fillna(close).rolling(252, min_periods=50).max()
         l252 = close.rolling(252, min_periods=50).min()
 
         rs21_d5   = rs21.diff(5)
@@ -254,11 +267,12 @@ _LOG_COLS = [
 ]
 
 
-def _cagr(signal_price: float, current_price: float, signal_date_str: str) -> float | None:
-    """Annualised return (CAGR) from signal date to today. Returns None if < 1 day elapsed."""
+def _cagr(signal_price: float, current_price: float, signal_date_str: str, as_of=None) -> float | None:
+    """Annualised return (CAGR) from signal date to today. Returns None if < 30 days elapsed."""
     try:
-        days = (datetime.now() - datetime.strptime(str(signal_date_str)[:10], "%Y-%m-%d")).days
-        if days < 1 or signal_price <= 0 or current_price <= 0:
+        end_dt = pd.Timestamp(as_of).normalize() if as_of else pd.Timestamp(_now_ist().date())
+        days = (end_dt - pd.Timestamp(str(signal_date_str)[:10])).days
+        if days < 30 or signal_price <= 0 or current_price <= 0:
             return None
         return round(((current_price / signal_price) ** (365.0 / days) - 1) * 100, 1)
     except Exception:
@@ -362,11 +376,18 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
             "current_price": round(cur, 1),
             "return_since_signal": round((cur / r["CMP"] - 1) * 100, 1) if r["CMP"] else 0.0,
             "max_gain": 0.0, "max_gain_date": today_str,
-            "xirr": 0.0,
+            "xirr": None,
         })
 
     if new_rows:
         log = pd.concat([log, pd.DataFrame(new_rows)], ignore_index=True)
+
+    try:
+        from utils import corp_actions
+        ca = corp_actions.load()
+    except Exception:
+        corp_actions = None
+        ca = None
 
     # ── 2. Update every existing entry ───────────────────────────────────────
     for i, entry in log.iterrows():
@@ -376,8 +397,13 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
         if sig_price <= 0:
             continue
 
-        cur = _cur_price(ticker) or sig_price
-        ret_now = round((cur / sig_price - 1) * 100, 1)
+        fac = corp_actions.cumulative_factor(ca, ticker, sig_date) if ca is not None and sig_date else 1.0
+        adj_sig = sig_price * fac
+        if adj_sig <= 0:
+            continue
+
+        cur = _cur_price(ticker) or adj_sig
+        ret_now = round((cur / adj_sig - 1) * 100, 1)
 
         log.at[i, "current_price"]       = round(cur, 1)
         log.at[i, "return_since_signal"] = ret_now
@@ -399,13 +425,13 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
                 idx = idx.tz_localize(None)   # else comparing tz-aware vs naive raises
             after = cs[idx >= pd.Timestamp(sig_date)]
             if len(after):
-                peak_ret = round((float(after.max()) / sig_price - 1) * 100, 1)
+                peak_ret = round((float(after.max()) / adj_sig - 1) * 100, 1)
                 peak_dt = after.idxmax().strftime("%Y-%m-%d")
         except Exception:
             pass
         if peak_ret is None:
             peak_ret, peak_dt = ret_now, today_str
-        if peak_ret >= prev_max:
+        if peak_ret >= prev_max or (fac != 1.0 and peak_ret is not None):
             log.at[i, "max_gain"]      = peak_ret
             log.at[i, "max_gain_date"] = peak_dt
 
@@ -417,10 +443,10 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
                 px = _price_n_days_after(ticker, sig_date, n, bulk)
                 if px is not None:
                     log.at[i, col_p] = round(px, 1)
-                    log.at[i, col_r] = round((px / sig_price - 1) * 100, 1)
+                    log.at[i, col_r] = round((px / adj_sig - 1) * 100, 1)
 
         # XIRR / CAGR
-        cagr = _cagr(sig_price, cur, sig_date)
+        cagr = _cagr(adj_sig, cur, sig_date, as_of=today_str)
         if cagr is not None:
             log.at[i, "xirr"] = cagr
 
@@ -429,8 +455,12 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
         if status == "GRADUATED":
             continue  # Locked — never downgrade a graduate
 
+        already_counted = str(entry.get("last_seen_date", ""))[:10] == today_str
         if ticker in today_set:
             r = today_map[ticker]
+            if status == "DROPPED":
+                log.at[i, "status"] = "ACTIVE"
+                log.at[i, "dropped_date"] = None
             log.at[i, "last_seen_date"] = today_str
             log.at[i, "last_tier"]      = r["Tier"]
             log.at[i, "last_ias"]       = r["IAS"]
@@ -441,7 +471,7 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
             log.at[i, "last_rs63"]      = r["RS63"]
 
             prev_days = int(entry["days_on_watchlist"]) if pd.notna(entry.get("days_on_watchlist")) else 0
-            log.at[i, "days_on_watchlist"] = prev_days + 1
+            log.at[i, "days_on_watchlist"] = prev_days if already_counted else (prev_days + 1)
 
             # Peak tier / IAS
             if _TIER_RANK.get(r["Tier"], 0) > _TIER_RANK.get(str(entry.get("peak_tier", "")), 0):
@@ -472,14 +502,14 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
 def main():
     print("=" * 65)
     print("  INSTITUTIONAL TURNAROUND RADAR — Daily Scan")
-    print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"  {_now_ist().strftime('%Y-%m-%d %H:%M IST')}")
     print("=" * 65)
 
     os.makedirs("data", exist_ok=True)
 
     # 1. Load Nifty benchmark
     print("\n  [1/4] Loading Nifty benchmark...")
-    start = (datetime.now() - timedelta(days=400)).strftime("%Y-%m-%d")
+    start = (_now_ist() - timedelta(days=400)).strftime("%Y-%m-%d")
     nifty_raw = safe_history("^NSEI", start=start)
     if nifty_raw.empty:
         print("  ERROR: Cannot fetch Nifty after retries. Aborting.")
@@ -487,6 +517,7 @@ def main():
     if nifty_raw.index.tz:
         nifty_raw.index = nifty_raw.index.tz_localize(None)
     nifty_close = nifty_raw["Close"]
+    bar_str = pd.Timestamp(nifty_close.index[-1]).strftime("%Y-%m-%d")
 
     # 2. Load sub-industry map
     print("  [2/4] Loading sub-industry map...")
@@ -518,9 +549,10 @@ def main():
             close  = data["Close"].dropna()
             volume = data["Volume"].dropna()
             open_px = data["Open"].dropna()
+            high_px = data["High"].dropna() if "High" in data.columns else None
             if len(close) < 70:
                 continue
-            row = score_ticker(t, close, volume, open_px, nifty_close, sub_map)
+            row = score_ticker(t, close, volume, open_px, nifty_close, sub_map, high_px=high_px)
             if row:
                 results.append(row)
         except Exception:
@@ -539,8 +571,7 @@ def main():
 
     # ── Signal log ────────────────────────────────────────────────────────────
     try:
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        update_signal_log(df, bulk, today_str)
+        update_signal_log(df, bulk, bar_str)
     except Exception as e:
         print(f"  [LOG] Signal log update failed: {e}")
 
@@ -562,7 +593,10 @@ def main():
             print(f"  [IAS] WARNING: {STATE_FILE} is corrupt ({e}); starting from empty state.")
             prev_state = {}
     
-    current_state = {}
+    prev_meta = prev_state.get("_meta") if isinstance(prev_state.get("_meta"), dict) else {}
+    same_session = (prev_meta.get("session_date") == bar_str)
+
+    current_state = {"_meta": {"session_date": bar_str}}
     new_ready = []
     tc_alerts = []  # Turnaround Confirmation
     demotions = []  # READY -> WATCH
@@ -573,11 +607,15 @@ def main():
         ias = r.get('IAS', 0)
         
         # Tracking days >= 35 (the minimum gate)
-        prev_days = prev_state.get(t, {}).get('days_active', 0)
-        curr_days = prev_days + 1
+        prev_rec = prev_state.get(t, {}) if isinstance(prev_state.get(t), dict) else {}
+        prev_days = prev_rec.get('days_active', 0)
+        curr_days = prev_rec.get('days_active', 1) if (same_session and t in prev_state) else (prev_days + 1)
         current_state[t] = {'tier': tier, 'days_active': curr_days, 'ias': ias}
         
-        prev_tier = prev_state.get(t, {}).get('tier', 'NONE')
+        if same_session:
+            continue
+
+        prev_tier = prev_rec.get('tier', 'NONE')
         
         # 🟢 Turnaround Confirmation (3 days active)
         if curr_days == 3:
@@ -592,12 +630,15 @@ def main():
             demotions.append((t, r['Name'], prev_tier, tier, ias))
             
     # For stocks that dropped off the scanner completely (IAS < 35)
-    for t, p_st in prev_state.items():
-        if t not in current_state:
-            p_tier = p_st.get('tier')
-            if p_tier in ['READY', 'ALERT']:
-                # Dropped from a high tier to nothing
-                demotions.append((t, t.replace('.NS', ''), p_tier, 'DROPPED', 0))
+    if not same_session:
+        for t, p_st in prev_state.items():
+            if str(t).startswith("_") or not isinstance(p_st, dict):
+                continue
+            if t not in current_state:
+                p_tier = p_st.get('tier')
+                if p_tier in ['READY', 'ALERT']:
+                    # Dropped from a high tier to nothing
+                    demotions.append((t, t.replace('.NS', ''), p_tier, 'DROPPED', 0))
 
     # Save state (atomic — see the read-side comment above for why)
     atomic_json_dump(current_state, STATE_FILE, indent=4)
