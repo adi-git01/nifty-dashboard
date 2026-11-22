@@ -121,6 +121,35 @@ def render(df: pd.DataFrame):
     render_reference(df)
 
 
+def _add_distance_cols(v: pd.DataFrame) -> pd.DataFrame:
+    """Compute price % distances to technical stop-loss, 50-DMA, and 52W high."""
+    out = v.copy()
+    px = pd.to_numeric(out["price"], errors="coerce") if "price" in out else pd.Series(np.nan, index=out.index, dtype="float64")
+
+    stop = pd.to_numeric(out["fx_stop"], errors="coerce") if "fx_stop" in out else pd.Series(np.nan, index=out.index, dtype="float64")
+    valid_stop = px.notna() & (px > 0) & stop.notna() & (stop > 0)
+    out["dist_stop_pct"] = np.where(valid_stop, (px - stop) / px * 100.0, np.nan)
+
+    ma50 = pd.to_numeric(out["fiftyDayAverage"], errors="coerce") if "fiftyDayAverage" in out else pd.Series(np.nan, index=out.index, dtype="float64")
+    valid_ma50 = px.notna() & (px > 0) & ma50.notna() & (ma50 > 0)
+    d_ma50 = pd.Series(np.where(valid_ma50, (px / ma50 - 1.0) * 100.0, np.nan), index=out.index, dtype="float64")
+    for col in ("dist_ma50", "dist_50dma"):
+        if col in out:
+            d_ma50 = d_ma50.fillna(pd.to_numeric(out[col], errors="coerce"))
+    out["dist_ma50_pct"] = d_ma50
+
+    d_52w = pd.to_numeric(out["dist_52w"], errors="coerce") if "dist_52w" in out else pd.Series(np.nan, index=out.index, dtype="float64")
+    for col in ("fiftyTwoWeekHigh", "high_52w"):
+        if col in out:
+            hi52 = pd.to_numeric(out[col], errors="coerce")
+            valid_hi = px.notna() & (px > 0) & hi52.notna() & (hi52 > 0)
+            d_52w = d_52w.fillna(pd.Series(np.where(valid_hi, (px / hi52 - 1.0) * 100.0, np.nan), index=out.index, dtype="float64"))
+    if "fx_dist_hi" in out:
+        d_52w = d_52w.fillna(pd.to_numeric(out["fx_dist_hi"], errors="coerce"))
+    out["dist_52w_pct"] = d_52w
+    return out
+
+
 def _table(df: pd.DataFrame):
     from utils.breakout_tags import load_industry_scores
     from utils.nifty1000_list import SUB_INDUSTRY_MAP
@@ -233,15 +262,20 @@ def _table(df: pd.DataFrame):
     _bare_tk = v.ticker.astype(str).str.replace(".NS", "", regex=False).str.replace(".BO", "", regex=False)
     v["link"] = "https://www.screener.in/company/" + _bare_tk + "/"
     v["_bare_tk"] = _bare_tk
+    v = _add_distance_cols(v)
     order = {a: k for k, a in enumerate(ACTIONS)}
     v = v.assign(_o=v.fx_action.map(order)).sort_values(["_o", "edge_6m", "ind_score"],
                                                         ascending=[True, False, False], na_position="last")
-    cols = ["link", "name", "sub_industry", "ind_score", "price", "fx_action", "state_l", "flags", "fx_anchor_date",
-            "fx_anchor_volx", "fx_days", "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
-            "shares", "buy_value", "sized_by", "fx_t1", "fx_t2", "edge_3m", "edge_6m", "edge_years",
-            "fx_dist_hi", "fx_adx", "fx_bbp", "fx_rsi"]
-    cols[5:5] = ["signal"]
-    cols[7:7] = ["val_rating", "val_band", "val_pct", "val_cagr_base", "val_note"]
+    cols = [
+        "link", "name", "sub_industry", "ind_score", "price",
+        "dist_stop_pct", "dist_ma50_pct", "dist_52w_pct",
+        "signal", "fx_action",
+        "val_rating", "val_band", "val_pct", "val_cagr_base", "val_note",
+        "state_l", "flags", "fx_anchor_date", "fx_anchor_volx", "fx_days",
+        "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
+        "shares", "buy_value", "sized_by", "fx_t1", "fx_t2",
+        "edge_3m", "edge_6m", "edge_years", "fx_dist_hi", "fx_adx", "fx_bbp", "fx_rsi",
+    ]
     st.caption(f"Showing **{len(v)}** stocks. Sorted by action, then the backtested 6-month edge of the row's cell.")
     st.dataframe(
         v[cols],
@@ -250,6 +284,12 @@ def _table(df: pd.DataFrame):
             "name": "Name", "sub_industry": "Sub-industry",
             "ind_score": st.column_config.ProgressColumn("Industry", min_value=0, max_value=100, format="%d"),
             "price": st.column_config.NumberColumn("Price", format="₹ %.2f"),
+            "dist_stop_pct": st.column_config.NumberColumn("vs Stop", format="%+.1f%%",
+                                                            help="% distance of current price above (+) or below (−) the technical stop-loss. Negative means price is already below the stop."),
+            "dist_ma50_pct": st.column_config.NumberColumn("vs MA50", format="%+.1f%%",
+                                                            help="% distance of current price above (+) or below (−) its 50-day moving average."),
+            "dist_52w_pct": st.column_config.NumberColumn("vs 52W High", format="%+.1f%%",
+                                                           help="% distance of current price from its 52-week high (0% = at the high)."),
             "fx_action": "Action", "state_l": "Event state",
             "flags": st.column_config.TextColumn("Flags", help="⭐ absorption · 🪤 shakeout · ↗️ gap on the anchor day · "
                                                  "dist. = distribution (not a warning in the backtest)"),
