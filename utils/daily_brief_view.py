@@ -82,6 +82,8 @@ def _market(df: pd.DataFrame):
 _SERIES = {"Nifty 50": "#2a78d6", "Midcap 150": "#eb6834", "Smallcap 250": "#1baf7a"}
 _FII, _DII = "#2a78d6", "#eb6834"
 _INK, _MUTED, _GRID = "#0b0b0b", "#52514e", "rgba(82,81,78,0.15)"
+_rs = lambda v: f"{'+' if v >= 0 else '−'}₹{abs(v):,.0f}"          # +₹10,308 / −₹4,860
+_rs_k = lambda v: f"{'+' if v >= 0 else '−'}₹{abs(v) / 1000:.1f}k" if abs(v) >= 1000 else _rs(v)   # end labels on a phone
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -149,25 +151,46 @@ def _context_charts():
     elif "fii_idx_long_pct" in W:
         st.caption("FII positioning history is being back-filled from NSE's participant files.")
 
-    # 3. FII vs DII net cash: grouped bars, one zero baseline
+    # 3. FII vs DII net cash: daily bars, daily lines, or cumulative lines (one axis, one zero baseline)
     F = W[[c for c in ("fii_net", "dii_net") if c in W]].dropna(how="all")
     if len(F):
+        view = st.radio("FII / DII view", ["Daily bars", "Daily lines", "Cumulative"], index=0, horizontal=True,
+                        key="ctx_flow_view", label_visibility="collapsed")
         fig = go.Figure()
         xs = [f"{d:%d %b}" for d in F.index]          # category axis: one slot per session, no weekend gaps or 00:00 ticks
-        for col, name, color in (("fii_net", "FII", _FII), ("dii_net", "DII", _DII)):
-            if col in F:
-                fig.add_trace(go.Bar(x=xs, y=F[col], name=name, marker=dict(color=color, line=dict(width=0)),
-                                     hovertemplate=f"{name}: ₹%{{y:,.0f}} cr<extra></extra>"))
-        fig.add_hline(y=0, line=dict(color=_MUTED, width=1))
         n = len(F)
-        fig.update_layout(barmode="group", bargap=max(0.2, 0.75 - 0.05 * n), bargroupgap=0.08, barcornerradius=4)
-        fig.update_xaxes(type="category", range=[-0.5, max(n, 6) - 0.5])   # keep bars slim while history is short
-        st.plotly_chart(_ctx_layout(fig, "FII vs DII net cash buying · ₹ crore", ""), use_container_width=True,
-                        config={"displayModeBar": False})
+        series = (("fii_net", "FII", _FII), ("dii_net", "DII", _DII))
+        if view == "Daily bars":
+            for col, name, color in series:
+                if col in F:
+                    fig.add_trace(go.Bar(x=xs, y=F[col], name=name, marker=dict(color=color, line=dict(width=0)),
+                                         hovertemplate=f"{name}: ₹%{{y:,.0f}} cr<extra></extra>"))
+            fig.update_layout(barmode="group", bargap=max(0.2, 0.75 - 0.05 * n), bargroupgap=0.08, barcornerradius=4)
+            title = "FII vs DII net cash buying · ₹ crore per session"
+        else:
+            cum = view == "Cumulative"
+            mode = "lines+markers" if n < 30 else "lines"   # markers keep a short history visible
+            for col, name, color in series:
+                if col not in F:
+                    continue
+                y = F[col].fillna(0).cumsum() if cum else F[col]
+                fig.add_trace(go.Scatter(x=xs, y=y, name=name, mode=mode, line=dict(color=color, width=2),
+                                         marker=dict(size=8, color=color, line=dict(width=2, color="#ffffff")),
+                                         hovertemplate=f"{name}: ₹%{{y:,.0f}} cr<extra></extra>"))
+                if y.notna().any():
+                    fig.add_annotation(x=xs[-1], y=float(y.dropna().iloc[-1]), text=_rs_k(float(y.dropna().iloc[-1])),
+                                       showarrow=False, xanchor="left", xshift=8, font=dict(size=11, color=_INK))
+            title = ("FII vs DII cumulative net cash · ₹ crore since " + f"{F.index.min():%d %b %Y}") if cum \
+                else "FII vs DII net cash buying · ₹ crore per session"
+        fig.add_hline(y=0, line=dict(color=_MUTED, width=1))
+        # a spare slot on the right keeps the end labels on screen; tick density capped for phones
+        fig.update_xaxes(type="category", range=[-0.5, max(n, 6) - 0.5 + (2.2 if view != "Daily bars" else 0)], nticks=8, tickangle=0)
+        st.plotly_chart(_ctx_layout(fig, title, ""), use_container_width=True, config={"displayModeBar": False})
         tot = F.sum()
-        st.caption(f"{len(F)} session(s) since NSE flows were first saved ({F.index.min():%d %b %Y}): "
-                   + " · ".join(f"{k.split('_')[0].upper()} ₹{v:+,.0f} cr" for k, v in tot.items())
-                   + ". NSE keeps no archive of this, so the history grows by one bar each evening.")
+        st.caption(f"{n} session(s) since NSE flows were first saved ({F.index.min():%d %b %Y}): "
+                   + " · ".join(f"{k.split('_')[0].upper()} {_rs(v)} cr" for k, v in tot.items())
+                   + ". NSE keeps no archive of this, so the history grows by one session each evening. "
+                   "Cumulative shows who has been the net buyer over the period.")
     with st.popover("Table view") if hasattr(st, "popover") else st.container():
         cols = [c for c in ("nifty_close", "nifty_pe", "midcap_pe", "smallcap_pe", "nifty_pb", "nifty_dy", "fii_idx_long_pct", "fii_net", "dii_net") if c in W]
         st.dataframe(W[cols].sort_index(ascending=False).round(2), use_container_width=True, height=280)
