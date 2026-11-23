@@ -135,19 +135,24 @@ def _context_charts():
         st.plotly_chart(_ctx_layout(fig, f"P/E · last {span}", "×"), use_container_width=True, config={"displayModeBar": False})
         st.caption("Today vs the period shown: " + " · ".join(notes) + ". Higher = richer; your 10-year Nifty range is roughly 18–28.")
 
-    # 2. FII index-futures positioning: one series, a reference line at the historically bearish 30%
+    # 2. FII index-futures positioning: one series against its own median (no fixed threshold: FIIs sat under 30%
+    #    long on 433 of the 503 sessions from Nov 2024, so a static "heavily short" line would fire almost every day)
     if "fii_idx_long_pct" in W and W["fii_idx_long_pct"].notna().sum() >= 2:
         y = W["fii_idx_long_pct"].dropna()
+        med, pct = float(y.median()), float((y < y.iloc[-1]).mean() * 100)
         fig = go.Figure(go.Scatter(x=y.index, y=y, mode="lines", line=dict(color=_FII, width=2), name="FII long %",
                                    hovertemplate="FII long: %{y:.0f}%<extra></extra>"))
-        fig.add_hline(y=30, line=dict(color=_MUTED, width=1, dash="dash"),
-                      annotation_text="30%: heavily short", annotation_position="bottom left", annotation_font_color=_MUTED)
+        fig.add_hline(y=med, line=dict(color=_MUTED, width=1, dash="dash"),
+                      annotation_text=f"median {med:.0f}%", annotation_position="top left", annotation_font_color=_MUTED)
         fig.add_annotation(x=y.index[-1], y=y.iloc[-1], text=f"{y.iloc[-1]:.0f}%", showarrow=False, xanchor="left", xshift=4,
                            font=dict(size=11, color=_INK))
-        fig.update_yaxes(range=[0, 100])
+        fig.update_yaxes(range=[0, max(60.0, float(y.max()) + 5)])
         fig.update_layout(showlegend=False)
         st.plotly_chart(_ctx_layout(fig, "FII index futures · long contracts as % of long + short", "%"), use_container_width=True,
                         config={"displayModeBar": False})
+        st.caption(f"Today {y.iloc[-1]:.0f}% long: higher than {pct:.0f}% of sessions in the period shown "
+                   f"(range {y.min():.0f}–{y.max():.0f}%, median {med:.0f}%). FIIs usually run net short index futures, "
+                   "so read the level against its own history and watch the direction: rising = short covering / turning bullish.")
     elif "fii_idx_long_pct" in W:
         st.caption("FII positioning history is being back-filled from NSE's participant files.")
 
@@ -223,9 +228,12 @@ def _nse_context():
             col.metric(lab, f"₹{v:+,.0f} cr", "+ net bought" if v >= 0 else "- net sold", delta_color="normal")
     lp = g(now, "fii_idx_long_pct")
     if lp is not None:
+        hist = pd.to_numeric(C.get("fii_idx_long_pct"), errors="coerce").dropna() if "fii_idx_long_pct" in C else pd.Series(dtype=float)
+        ctx = (f" Over the last {len(hist)} sessions it ranged {hist.min():.0f}–{hist.max():.0f}% (median {hist.median():.0f}%); "
+               f"today is above {(hist < lp).mean() * 100:.0f}% of them.") if len(hist) >= 20 else ""
         c[4].metric("FII index futures", f"{lp:.0f}% long", f"{lp - g(prev, 'fii_idx_long_pct'):+.1f} pp" if g(prev, "fii_idx_long_pct") else None,
-                    help="FIIs' long contracts as a share of their long + short index futures. Readings under ~30% have marked "
-                         "heavy bearish positioning; a rise from there often comes with short covering")
+                    help="FIIs' long contracts as a share of their long + short index futures. FIIs usually hold more shorts "
+                         "than longs, so judge the level against its own history; a rising reading often means short covering." + ctx)
     mid, small = g(now, "midcap_pe"), g(now, "smallcap_pe")
     if mid or small:
         st.caption(" · ".join(x for x in (f"Midcap 150 P/E {mid:.1f}" if mid else "", f"Smallcap 250 P/E {small:.1f}" if small else "") if x))
