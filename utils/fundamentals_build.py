@@ -65,7 +65,7 @@ def yahoo_fill(df: pd.DataFrame, fields=None, sleep: float = 0.5, log=print, max
     gap = _needs_mask(core).loc[need.index] if core else pd.Series(False, index=need.index)
     rest = need[~gap]
     if len(rest):
-        k = pd.Timestamp.today().dayofyear * 97 % len(rest)
+        k = pd.Timestamp.today().day_of_year * 97 % len(rest)
         rest = pd.concat([rest.iloc[k:], rest.iloc[:k]])
     need = pd.concat([need[gap], rest])
     calls = filled = 0

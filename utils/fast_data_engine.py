@@ -567,8 +567,11 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 float(df['Close'].rolling(200).mean().iloc[-1]) if len(df) >= 200 else np.nan
             )
 
-            high_52 = float(df['High'].iloc[-252:].max() if len(df) >= 252 else df['High'].max())
-            low_52 = float(df['Low'].iloc[-252:].min() if len(df) >= 252 else df['Low'].min())
+            # a calendar year, not 252 rows: NSE trades ~248 sessions a year, so 252 rows reached back past
+            # the 52-week mark (CDSL on 20 Nov 2026 picked up the 20 Nov 2025 high) -- TradingView uses the calendar
+            _yr = df[df.index > df.index[-1] - pd.Timedelta(days=365)] if isinstance(df.index, pd.DatetimeIndex) else df.iloc[-252:]
+            high_52 = float(_yr['High'].max())
+            low_52 = float(_yr['Low'].min())
 
             base_data['fiftyTwoWeekHigh'] = high_52 if np.isfinite(high_52) and high_52 > 0 else np.nan
             base_data['fiftyTwoWeekLow'] = low_52 if np.isfinite(low_52) and low_52 > 0 else np.nan

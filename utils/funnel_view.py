@@ -133,8 +133,27 @@ def _trend_labels(P: pd.DataFrame) -> list[str]:
     return out
 
 
+def _inst_labels(P: pd.DataFrame) -> list[str]:
+    icon = {"ACCUMULATING": "🟢", "DISTRIBUTING": "🔴", "NEUTRAL": "⚪"}
+    out: list[str] = []
+    for r in P.itertuples():
+        lab = str(getattr(r, "inst_label", "") or "")
+        q, y = getattr(r, "inst_q", None), getattr(r, "inst_y", None)
+        if not lab:
+            out.append("—")
+            continue
+        bits = [f"{float(q):+.1f} QoQ" if pd.notna(q) else "", f"{float(y):+.1f} YoY" if pd.notna(y) else ""]
+        out.append(f"{icon.get(lab, '')} " + " · ".join(b for b in bits if b))
+    return out
+
+
 def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     P = search_box(P, key, cols=("name", "ticker", "industry"))
+    if P is not None and not P.empty and "inst_label" in P.columns and st.toggle(
+            "🏦 Institutions accumulating only", key=f"{key}_inst",
+            help="FII + DII holding up ≥ 1 pp last quarter or ≥ 2 pp over a year (quarterly filings). "
+                 "Nov 2023 - Nov 2026: beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp). Context, not a gate."):
+        P = P[P["inst_label"].eq("ACCUMULATING")]
     if P is None or P.empty:
         st.caption("Nothing here.")
         return
@@ -148,7 +167,8 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Trend": _trend_labels(P),
         "Business": P.biz_headline, "Q Sales YoY": col_s("sales_yoy"),
         "Latest qtr profit YoY": P.np_yoy, "OPM Δ": col_s("opm_chg"), "Flags": P.biz_flags,
-        "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""),
+        "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""), "Institutions": _inst_labels(P),
+        "Inst deals": col_s("deal_inst_cr"),
         "Value pctile": P.val_pct, "To mid value": P.val_upside})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
@@ -170,6 +190,10 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "OPM Δ": st.column_config.NumberColumn(format="%+.1f pp", help="Latest quarter operating margin YoY change (percentage points)"),
         "P/E": st.column_config.NumberColumn(format="%.1f×", help="Trailing P/E"),
         "Valuation": st.column_config.TextColumn("Val Rating", help="Valuation v4.1 action rating"),
+        "Institutions": st.column_config.TextColumn("FII+DII Δ pp", help="Change in FII + DII holding from quarterly filings. "
+                                                    "🟢 accumulating (≥ +1 pp QoQ or ≥ +2 pp YoY) · 🔴 distributing · ⚪ neutral"),
+        "Inst deals": st.column_config.NumberColumn("Inst deals ₹cr", format="%+.1f", help="Net FII + MF + insurer buying in NSE bulk/block "
+                                                   "deals over 90 days (₹ crore; blank = no deals). Bucketed from client names."),
         "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
         "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price")})
 

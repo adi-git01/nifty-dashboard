@@ -95,7 +95,8 @@ def engine_mode(nifty_df: pd.DataFrame) -> dict:
     try:
         c = nifty_df["Close"]
         mode = classify_regime(float(c.iloc[-1]), float(c.rolling(200).mean().iloc[-1]),
-                               float(nifty_df["High"].rolling(252).max().iloc[-1]))
+                               float(nifty_df["High"][nifty_df.index > nifty_df.index[-1] - pd.Timedelta(days=365)].max()
+                                     if isinstance(nifty_df.index, pd.DatetimeIndex) else nifty_df["High"].tail(252).max()))
     except Exception:
         mode = "CAUTION"
     return {"mode": mode, **get_regime_params(mode)}

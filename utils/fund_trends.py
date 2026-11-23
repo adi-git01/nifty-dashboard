@@ -37,7 +37,7 @@ UP, FLAT, DOWN, BUILD = "IMPROVING", "STABLE", "WORSENING", "INVESTING"
 ICON = {UP: "🟢", FLAT: "⚪", DOWN: "🔴", BUILD: "🏗️"}
 WEIGHTS = {"Growth": 0.30, "Margins": 0.25, "Cash & balance sheet": 0.25, "Returns on capital": 0.20}
 LABELS = ((70, "STRONG"), (55, "HEALTHY"), (40, "MIXED"), (0, "WEAK"))
-SCORE_VERSION = "s3"       # bump when the scoring changes (invalidates data/business_scores.csv)
+SCORE_VERSION = "s4"       # bump when the scoring changes (invalidates data/business_scores.csv)
 STALE_DAYS = 640           # ~21 months after the fiscal year end: a year's results should have come in by then
 MIN_PILLARS = 3            # of 4
 PASS_SCORE = 45            # the funnel's business stage passes at or above this, with no hard flag
@@ -492,7 +492,14 @@ def read(ticker: str, root: str = ".", as_of=None) -> Dict[str, Any]:
     if len(r) >= 8 and nf:
         opm_ok = r["opm"].notna().sum() >= 8
         m = r["opm"] if opm_ok else r["npm"]
-        m4, mp = float(m.iloc[-4:].mean()), float(m.iloc[-8:-4].mean())
+        # the margin of the 4 quarters together (profit / sales, sales-weighted), not the average of 4 percentages:
+        # CDSL Dec-25..Sep-26 is 642 / 1,254 = 51.2%, the plain average said 50.2%
+        num = r["op"] if opm_ok and "op" in r else r["np"] if "np" in r else None
+        if num is not None and "sales" in r and num.iloc[-8:].notna().all() and (r["sales"].iloc[-8:] > 0).all():
+            m4 = float(num.iloc[-4:].sum() / r["sales"].iloc[-4:].sum() * 100)
+            mp = float(num.iloc[-8:-4].sum() / r["sales"].iloc[-8:-4].sum() * 100)
+        else:
+            m4, mp = float(m.iloc[-4:].mean()), float(m.iloc[-8:-4].mean())
         if np.isfinite(m4) and np.isfinite(mp):
             way = FLAT if abs(m4 - mp) < 1 else UP if m4 > mp else DOWN
             add("Margins", "Quarterly operating margin" if opm_ok else "Quarterly net margin", way,
@@ -780,3 +787,65 @@ def q_opm_map(root: str = ".") -> Dict[str, tuple[float, float]]:
     """Cached map of `.NS` ticker -> `(latest_opm_pct, yoy_opm_delta_pp)`."""
     _, q_files = _resolved_paths(root)
     return _q_opm_map(root, _mtime(q_files))
+
+
+# ---------------------------------------------------------------- institutional holding change (FII + DII)
+INST_ACC_Y, INST_ACC_Q, INST_DIS_Y, INST_DIS_Q = 2.0, 1.0, -2.0, -0.5
+
+
+def inst_label(d_q: float, d_y: float) -> str:
+    """ACCUMULATING / DISTRIBUTING / NEUTRAL from the FII + DII change in percentage points.
+    Backtest Nov 2023 - Nov 2026 (12 filing quarters, ~10k stock-quarters, entry a month after the filing deadline):
+    ACCUMULATING beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp, 56% hit); DISTRIBUTING was
+    mixed (median ~0), so it is context, not a warning. Shown, never a funnel gate."""
+    if pd.notna(d_q) and (d_q >= INST_ACC_Q or (pd.notna(d_y) and d_y >= INST_ACC_Y)):
+        return "ACCUMULATING"
+    if pd.notna(d_y) and d_y <= INST_DIS_Y and pd.notna(d_q) and d_q <= INST_DIS_Q:
+        return "DISTRIBUTING"
+    return "NEUTRAL" if pd.notna(d_q) else ""
+
+
+@lru_cache(maxsize=4)
+def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
+    _, Q = _data(root)
+    if not Q:
+        return {}
+    L = pd.concat(Q.values(), ignore_index=True)
+    L = L[L["field"].isin(["fii", "dii", "promoters"]) & L["period"].dt.month.isin([3, 6, 9, 12])]
+    if L.empty:
+        return {}
+    W = L.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
+    W = W.apply(pd.to_numeric, errors="coerce").reset_index()
+    if "fii" not in W or "dii" not in W:
+        return {}
+    if "promoters" not in W:
+        W["promoters"] = np.nan
+    W = W.dropna(subset=["fii", "dii"]).sort_values(["period", "ticker"])
+    W["inst"] = W["fii"] + W["dii"]
+    last = W.sort_values("period").groupby("ticker").tail(1)
+    cols = ["ticker", "period", "fii", "dii", "inst"]
+    out_df = last.copy()
+    for tag, months in (("q", 3), ("y", 12)):           # the filing N months earlier, matched within 45 days
+        probe = last[["ticker", "period"]].assign(target=last["period"] - pd.DateOffset(months=months)).sort_values("target")
+        prev = W[cols].rename(columns={"period": "p_prev"}).sort_values("p_prev")
+        m = pd.merge_asof(probe, prev, left_on="target", right_on="p_prev", by="ticker", direction="nearest",
+                          tolerance=pd.Timedelta(days=45))
+        m = m[m["p_prev"] < m["period"]].set_index("ticker")
+        for c in ("fii", "dii", "inst"):
+            out_df[f"d_{c}_{tag}"] = out_df["ticker"].map(out_df.set_index("ticker")[c] - m[c])
+    out: Dict[str, Dict[str, Any]] = {}
+    for r in out_df.itertuples(index=False):
+        tk = str(r.ticker)
+        full_tk = tk if tk.endswith(".NS") else f"{tk}.NS"
+        f = lambda v: float(v) if pd.notna(v) else np.nan
+        out[full_tk] = dict(period=pd.Timestamp(r.period).strftime("%b %Y"), fii=f(r.fii), dii=f(r.dii), promoters=f(r.promoters),
+                            d_fii_q=f(r.d_fii_q), d_dii_q=f(r.d_dii_q), d_inst_q=f(r.d_inst_q),
+                            d_fii_y=f(r.d_fii_y), d_dii_y=f(r.d_dii_y), d_inst_y=f(r.d_inst_y),
+                            label=inst_label(f(r.d_inst_q), f(r.d_inst_y)))
+    return out
+
+
+def inst_map(root: str = ".") -> Dict[str, Dict[str, Any]]:
+    """Cached `.NS` ticker -> latest FII / DII % and their quarter-on-quarter and year-on-year change (pp)."""
+    _, q_files = _resolved_paths(root)
+    return _inst_map(root, _mtime(q_files))

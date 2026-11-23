@@ -1,6 +1,7 @@
 """📋 Stock Report page: the one-shot report (utils/stock_report.py)."""
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -85,6 +86,62 @@ def _extended_valuation(ticker: str, row: pd.Series, val: pd.DataFrame) -> pd.Da
         return pd.concat([val, pd.DataFrame([r]).set_index("ticker").reindex(columns=val.columns)]) if len(val) else pd.DataFrame([r]).set_index("ticker")
     except Exception:
         return val
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _deal_tally() -> dict:
+    from utils import nse_data
+    return nse_data.deal_tally(90)
+
+
+def _chart_analysis(t: str):
+    """Technicals' structural chart read (forensics.plan, chart-prompt v6) for the selected stock, inline."""
+    try:
+        from utils import technicals_view as tv
+        from utils.forensics import SUPPLY_LABEL, _p, plan
+        from utils.forensics_chart import levels_ladder, price_chart
+        h = tv._history(t)
+        P = plan(h, None, None, 10_000.0) if h is not None and len(h) else None
+    except Exception as e:
+        st.caption(f"Chart analysis unavailable ({type(e).__name__}).")
+        return
+    if not P:
+        st.caption("Chart analysis needs at least 60 closed sessions.")
+        return
+    r, cfg = P["r"], {"displayModeBar": False}
+    st.markdown("**Chart analysis** (Technicals structural read: event, supply shelves, anchored levels)")
+    k = st.columns(4)
+    k[0].metric("Action", P["action"])
+    k[1].metric("Event", r["state"], f"day {r['days']}" if "days" in r else None, delta_color="off")
+    k[2].metric("Supply", SUPPLY_LABEL.get(r["supply"], r["supply"]))
+    if P["trigger"]:
+        k[3].metric("Trigger (close >)", f"₹{P['trigger']:,.2f}", f"{(P['trigger'] / r['close'] - 1) * 100:+.1f}%", delta_color="off")
+    else:
+        k[3].metric("Trend (Gate 1)", "PASS" if r["gate1"] else "FAIL", f"{r['dist_ma50']:+.1f}% vs MA50", delta_color="off")
+    st.plotly_chart(price_chart(P, t), use_container_width=True, config=cfg)
+    c1, c2 = st.columns([1, 1])
+    with c1:
+        st.plotly_chart(levels_ladder(P), use_container_width=True, config=cfg)
+    with c2:
+        notes = []
+        if P.get("trig_a"):
+            notes.append(f"**Trigger A** · {P['trig_a']}")
+        if P.get("trig_b"):
+            notes.append(f"**Trigger B** · {P['trig_b']}")
+        sig = r.get("signature")
+        if sig:
+            notes.append(f"**Pullback** · {sig.lower()}: down days {_p(r.get('dn_vs_med'), 2)}× median volume"
+                         + (" ⭐ best backtested cell with GO" if sig == "ABSORPTION" else ""))
+        if r.get("shakeout"):
+            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke ₹{_p(r['shakeout_level'])} intraday, "
+                         f"closed back above on {_p(r['shakeout_volx'], 2)}× volume")
+        if np.isfinite(r.get("stop", np.nan)) and 0 < r["stop"] < r["close"]:
+            notes.append(f"**Stop** · ₹{r['stop']:,.2f} ({-r['stop_pct']:.1f}%)" + (" · half size" if r.get("half_size") else ""))
+        notes.append(f"**Lens** · RSI {_p(r.get('rsi'), 0)} · ADX {_p(r.get('adx'), 0)} (+DI {_p(r.get('pdi'), 0)} / −DI {_p(r.get('ndi'), 0)})")
+        st.markdown("\n\n".join(notes))
+        src = h.attrs.get("source", "")
+        st.caption((f"{src} to {pd.Timestamp(h.index[-1]):%d %b %Y}. " if src else "")
+                   + "Held-position exits, valuation and the full report: **Technicals → Stock report**.")
 
 
 def render(df: pd.DataFrame):
@@ -209,6 +266,8 @@ def render(df: pd.DataFrame):
         + (f" · caution level {f(tech['caution'], '{:.0f}')}" if pd.notna(tech["caution"]) and tech["caution"] > 0 else "")
         + (f"\n- **SIMBA score** {f(srow.get('score'), '{:.0f}')}/100, grade {srow.get('grade')}" + (f" — gates hit: {srow['gates']}" if srow.get("gates") else " — no gates hit") if srow else ""))
 
+    _chart_analysis(t)
+
     st.markdown("#### 4 · Entry plan")
     if pd.notna(p["risk_pct"]):
         m = st.columns(5)
@@ -253,6 +312,39 @@ def render(df: pd.DataFrame):
         if tr.get("ownership"):
             st.markdown("**Ownership** (shown for context, not part of the score): " + " · ".join(
                 f"{fund_trends.ICON[x['way']]} {x['metric']} {x['text']}" for x in tr["ownership"]))
+        try:
+            im = fund_trends.inst_map().get(t)
+        except Exception:
+            im = None
+        if im and im.get("label"):
+            fq = lambda v: "—" if pd.isna(v) else f"{v:+.1f} pp"
+            badge = {"ACCUMULATING": "🟢 **Institutions accumulating**", "DISTRIBUTING": "🔴 **Institutions distributing**",
+                     "NEUTRAL": "⚪ **Institutions steady**"}[im["label"]]
+            st.markdown(f"{badge} ({im['period']} filing): FII + DII {fq(im['d_inst_q'])} on the quarter "
+                        f"(FII {fq(im['d_fii_q'])}, DII {fq(im['d_dii_q'])}) · {fq(im['d_inst_y'])} on the year")
+            st.caption("Accumulating = FII + DII up ≥ 1 pp in a quarter or ≥ 2 pp in a year. Nov 2023 – Nov 2026: such stocks beat "
+                       "the median stock over the next 6 months in 9 of 9 filing quarters (median +2.9 pp, 56% hit). Distributing was mixed, "
+                       "so treat it as context. Only 12 quarters of filings: a tilt, not proof.")
+        try:
+            from utils import nse_data as _nd
+            dl = _deal_tally().get(t)
+        except Exception:
+            dl = None
+        if dl:
+            fc = lambda v: f"{v:+,.1f}"
+            parts = " · ".join(f"{k} ₹{fc(dl[k])} cr" for k in ("FII", "MF", "Insurance", "Other") if abs(dl[k]) >= 0.05)
+            st.markdown(f"**Bulk / block deals** since {dl['since']:%d %b} ({dl['n']} prints, net buy − sell): {parts or 'flat'}")
+            with st.expander("Deal prints"):
+                D = _nd.deals_for([t], days=90)
+                if not D.empty:
+                    D = D.assign(bucket=D.client.map(_nd.deal_kind))
+                    st.dataframe(D[["date", "kind", "side", "client", "bucket", "qty", "price", "value_cr"]], hide_index=True,
+                                 use_container_width=True, column_config={
+                                     "date": st.column_config.DateColumn("Date", format="DD MMM YY"),
+                                     "value_cr": st.column_config.NumberColumn("₹ cr", format="%.2f"),
+                                     "price": st.column_config.NumberColumn("Price", format="%.2f")})
+            st.caption("Bucket is read from the client name (FII = foreign names / Singapore, Mauritius, PTE, LLC…; MF = AMCs and trustees; "
+                       "Insurance = insurers; Other = brokers, prop desks, HNIs, promoters). The deal file keeps 120 days and fills up day by day.")
         if tr.get("lender_kind"):
             st.caption(f"Scored as a **{tr['lender_kind'].lower()}** on its ROA tree: ROA, spread and leverage are judged against "
                        "break-points for that type of lender (a bank earning 1% on assets is good; a gold-loan company should earn 3.5%+).")

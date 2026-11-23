@@ -711,7 +711,8 @@ def backtest_vcp_us(tickers, n_months=6, top_n=15):
                 continue
 
             # Gate 4: not already within 1% of 52W high
-            hi_52w = hist["Close"].rolling(252).max().iloc[-1]
+            _yr = hist[hist.index > hist.index[-1] - pd.Timedelta(days=365)] if isinstance(hist.index, pd.DatetimeIndex) else hist.tail(252)
+            hi_52w = _yr["Close"].max() if len(hist) >= 200 else np.nan
             if pd.isna(hi_52w) or hi_52w <= 0:
                 continue
             dist_hi = (price / hi_52w - 1) * 100

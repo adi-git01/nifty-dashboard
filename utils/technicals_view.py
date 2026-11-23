@@ -263,13 +263,21 @@ def _table(df: pd.DataFrame):
     v["link"] = "https://www.screener.in/company/" + _bare_tk + "/"
     v["_bare_tk"] = _bare_tk
     v = _add_distance_cols(v)
+    try:                                       # FII + DII holding change from the quarterly filings (context, not scored)
+        from utils import fund_trends as _ft
+        _im = _ft.inst_map()
+        _icon = {"ACCUMULATING": "🟢", "DISTRIBUTING": "🔴", "NEUTRAL": "⚪"}
+        v["inst_y"] = [(_im.get(t) or {}).get("d_inst_y", np.nan) for t in v.ticker]
+        v["inst_l"] = [_icon.get((_im.get(t) or {}).get("label", ""), "") for t in v.ticker]
+    except Exception:
+        v["inst_y"], v["inst_l"] = np.nan, ""
     order = {a: k for k, a in enumerate(ACTIONS)}
     v = v.assign(_o=v.fx_action.map(order)).sort_values(["_o", "edge_6m", "ind_score"],
                                                         ascending=[True, False, False], na_position="last")
     cols = [
         "link", "name", "sub_industry", "ind_score", "price",
         "dist_stop_pct", "dist_ma50_pct", "dist_52w_pct",
-        "signal", "fx_action",
+        "signal", "fx_action", "inst_l", "inst_y",
         "val_rating", "val_band", "val_pct", "val_cagr_base", "val_note",
         "state_l", "flags", "fx_anchor_date", "fx_anchor_volx", "fx_days",
         "fx_retention", "supply_l", "trigger", "fx_stop", "fx_stop_pct",
@@ -291,6 +299,9 @@ def _table(df: pd.DataFrame):
             "dist_52w_pct": st.column_config.NumberColumn("vs 52W High", format="%+.1f%%",
                                                            help="% distance of current price from its 52-week high (0% = at the high)."),
             "fx_action": "Action", "state_l": "Event state",
+            "inst_l": st.column_config.TextColumn("Inst.", help="🟢 FII + DII accumulating (≥ +1 pp QoQ or ≥ +2 pp YoY) · 🔴 distributing · "
+                                                  "⚪ steady. Quarterly filings; context, not part of the action"),
+            "inst_y": st.column_config.NumberColumn("FII+DII 1y", format="%+.1f pp", help="Change in FII + DII holding over a year"),
             "flags": st.column_config.TextColumn("Flags", help="⭐ absorption · 🪤 shakeout · ↗️ gap on the anchor day · "
                                                  "dist. = distribution (not a warning in the backtest)"),
             "fx_anchor_date": "Anchor", "fx_anchor_volx": st.column_config.NumberColumn("Vol ×", format="%.1f×"),
@@ -536,7 +547,7 @@ def _trade_plan_card(P: dict, name: str, h: pd.DataFrame, us: bool = False, exte
     try:
         c = _val_ctx_us() if us else _val_ctx(extended=extended)
         if not c.annual.empty:
-            hh = h.tail(252)
+            hh = h[h.index > h.index[-1] - pd.Timedelta(days=365)] if isinstance(h.index, pd.DatetimeIndex) else h.tail(252)
             val = value_stock(name, c, price=float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()))
     except Exception:
         val = None
@@ -691,7 +702,7 @@ def _visual_report(h: pd.DataFrame, name: str, held_price, held_date, risk: floa
         st.code(report(dc, name, P=P), language=None)
     st.divider()
     from utils.valuation_view import render_stock
-    hh = dc.tail(252)
+    hh = dc[dc.index > dc.index[-1] - pd.Timedelta(days=365)] if isinstance(dc.index, pd.DatetimeIndex) else dc.tail(252)
     render_stock(name, float(r["close"]), hi52=float(hh["High"].max()), lo52=float(hh["Low"].min()),
                  tech_buy=P["r"]["action"] == "BUY NOW" and not P["held"],
                  below_both=bool(r["close"] < r["ma50"] and r["close"] < r["ma200"]),

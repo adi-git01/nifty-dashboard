@@ -697,3 +697,79 @@ def test_context_history_and_positioning_backfill(tmp_path, monkeypatch):
     assert out.loc["2026-11-20", "fii_idx_long_pct"] == 34.1                    # existing value kept
     assert round(out.loc["2026-11-18", "fii_idx_long_pct"], 1) == 30.0          # back-filled
     assert out.loc["2026-11-20", "fii_net"] == 10308.4
+
+
+# ---- institutional holding change, bulk/block deal buckets, 52-week window ----------------------------------------
+def test_inst_label_bounds():
+    from utils.fund_trends import inst_label
+    assert inst_label(1.0, 0.0) == "ACCUMULATING"
+    assert inst_label(0.2, 2.0) == "ACCUMULATING"
+    assert inst_label(-0.5, -2.0) == "DISTRIBUTING"
+    assert inst_label(-0.4, -3.0) == "NEUTRAL"          # both legs required for distributing
+    assert inst_label(float("nan"), 3.0) == ""          # no current change -> unlabeled
+    assert inst_label(0.1, float("nan")) == "NEUTRAL"
+
+
+def test_inst_map_matches_calendar_quarters(monkeypatch):
+    from utils import fund_trends as ft
+    rows = []
+    for p, fii, dii in (("2025-09-30", 10, 10), ("2026-03-31", 11, 10), ("2026-06-30", 11, 11), ("2026-09-30", 12, 12)):
+        for f, v in (("fii", fii), ("dii", dii), ("promoters", 50)):
+            rows.append(dict(ticker="AAA", period=pd.Timestamp(p), field=f, value=v))
+    # BBB skips a quarter: no QoQ match within 45 days, so no quarterly change
+    for p, v in (("2026-03-31", 5), ("2026-09-30", 9)):
+        for f in ("fii", "dii"):
+            rows.append(dict(ticker="BBB.NS", period=pd.Timestamp(p), field=f, value=v))
+    Q = {"q": pd.DataFrame(rows)}
+    monkeypatch.setattr(ft, "_data", lambda root: ({}, Q))
+    ft._inst_map.cache_clear()
+    m = ft._inst_map("x", 1.0)
+    a = m["AAA.NS"]
+    assert a["d_inst_q"] == pytest.approx(2.0) and a["d_inst_y"] == pytest.approx(4.0)
+    assert a["label"] == "ACCUMULATING"
+    b = m["BBB.NS"]
+    assert pd.isna(b["d_inst_q"]) and b["label"] == ""
+    ft._inst_map.cache_clear()
+
+
+def test_deal_kind_buckets():
+    from utils.nse_data import deal_kind
+    assert deal_kind("HDFC LIFE INSURANCE COMPANY LIMITED") == "Insurance"
+    assert deal_kind("NIPPON LIFE INDIA TRUSTEE LTD-A/C NIPPON INDIA SMALL CAP FUND") == "MF"
+    assert deal_kind("SBI MUTUAL FUND") == "MF"
+    assert deal_kind("MORGAN STANLEY ASIA (SINGAPORE) PTE.") == "FII"
+    assert deal_kind("QE SECURITIES LLP") == "Other"
+    assert deal_kind(None) == "Other"
+
+
+def test_deal_tally_nets_by_bucket_and_window():
+    from utils.nse_data import deal_tally
+    d = pd.DataFrame(dict(
+        date=pd.to_datetime(["2026-11-20", "2026-11-20", "2026-11-19", "2026-07-01"]),
+        symbol=["XYZ", "XYZ", "XYZ", "XYZ"],
+        client=["SBI MUTUAL FUND", "GOLDMAN SACHS (SINGAPORE) PTE", "QE SECURITIES LLP", "SBI MUTUAL FUND"],
+        side=["BUY", "SELL", "BUY", "BUY"], qty=[1_000_000, 500_000, 100_000, 9_000_000], price=[100.0, 100.0, 100.0, 100.0],
+        kind=["bulk"] * 4))
+    t = deal_tally(90, d)["XYZ.NS"]
+    assert t["MF"] == pytest.approx(10.0) and t["FII"] == pytest.approx(-5.0) and t["Other"] == pytest.approx(1.0)
+    assert t["inst"] == pytest.approx(5.0) and t["net"] == pytest.approx(6.0) and t["n"] == 3   # July print is outside 90 days
+    assert deal_tally(90, d.iloc[0:0]) == {}
+
+
+def test_delivery_old_names_single_concat(monkeypatch):
+    from utils import nse_data as nd
+    monkeypatch.setattr(nd, "_rename_aliases", lambda: {"OLD": "NEW", "GONE": "MISSING"})
+    piv = pd.DataFrame({"NEW.NS": [50.0, 60.0]}, index=pd.to_datetime(["2026-11-19", "2026-11-20"]))
+    out = nd._with_old_names(piv)
+    assert list(out.columns) == ["NEW.NS", "OLD.NS"] and out["OLD.NS"].tolist() == [50.0, 60.0]
+
+
+def test_52w_high_uses_365_calendar_days():
+    # ~248 NSE sessions a year: 252 rows reach back past one year and can pick up a stale high
+    b = pd.bdate_range(end="2026-11-20", periods=300)
+    idx = b[[i % 20 != 7 for i in range(len(b))]]         # drop ~13 "holidays" a year -> ~248 sessions
+    df = pd.DataFrame({"High": 100.0, "Low": 90.0, "Close": 95.0}, index=idx)
+    df.loc[idx[-251], "High"] = 200.0                     # inside the last 252 rows, older than 365 days
+    assert idx[-251] <= idx[-1] - pd.Timedelta(days=365)
+    yr = df[df.index > df.index[-1] - pd.Timedelta(days=365)]
+    assert yr["High"].max() == 100.0 and df.iloc[-252:]["High"].max() == 200.0
