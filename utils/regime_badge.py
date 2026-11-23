@@ -154,11 +154,12 @@ def render(info: dict, st, compact: bool = False) -> None:
     rg = n.get("regime", "UNKNOWN")
     col = COLORS.get(rg, "#8E8E93")
     detail = ""
-    if rg != "UNKNOWN":
-        detail = (f"Nifty {n['vs_ma200']:+.1f}% vs its 200-day average, {n['dd']:.1f}% from its 52-week high, "
+    if rg != "UNKNOWN" and n.get("vs_ma200") is not None and n.get("dd") is not None:
+        detail = (f"Nifty {float(n['vs_ma200']):+.1f}% vs its 200-day average, {float(n['dd']):.1f}% from its 52-week high, "
                   f"200-day average {'rising' if n.get('ma200_rising') else 'falling'}")
-    br = (f"{b['pct']:.0f}% of {b['n']} stocks above their 200-day average → {ICONS.get(b['regime'], '')} {b['regime']}"
-          if b.get("regime", "UNKNOWN") != "UNKNOWN" else "n/a")
+    b_n = b.get("n", b.get("total", 0))
+    br = (f"{float(b.get('pct', 0)):.0f}% of {b_n} stocks above their 200-day average → {ICONS.get(b['regime'], '')} {b['regime']}"
+          if b.get("regime", "UNKNOWN") != "UNKNOWN" and b.get("pct") is not None else "n/a")
     split = ""
     if rg != "UNKNOWN" and b.get("regime", "UNKNOWN") != "UNKNOWN" and b["regime"] != rg:
         split = (" — <b>the two reads disagree</b> (they agree on only ~half of days); "
@@ -167,13 +168,15 @@ def render(info: dict, st, compact: bool = False) -> None:
     eng = ""
     if e.get("mode", "UNKNOWN") != "UNKNOWN":
         m = str(e["mode"])
+        from utils.regime_manager import get_regime_params
+        p = {**get_regime_params(m), **{k: v for k, v in e.items() if v is not None}}
         act = ENGINE_ACTION.get(m, m.title())
         reb = ("rebalance paused"
-               if (not e.get("new_entries", True) or int(e.get("rebalance_freq", 0)) >= 999)
-               else f"rebalance every {int(e['rebalance_freq'])} sessions")
-        eng = (f"{ENGINE_ICONS.get(m, '⚪')} <b>{act}</b> — entry floor CompRS ≥ {e['min_comp_rs'] * 100:.0f}, "
-               f"trail stop {e['trail_stop'] * 100:.0f}%, {reb}"
-               + ("" if e.get("new_entries", True) else ", <b>new entries suspended</b>"))
+               if (not p.get("new_entries", True) or int(p.get("rebalance_freq", 0) or 0) >= 999)
+               else f"rebalance every {int(p.get('rebalance_freq', 15))} sessions")
+        eng = (f"{ENGINE_ICONS.get(m, '⚪')} <b>{act}</b> — entry floor CompRS ≥ {float(p.get('min_comp_rs', 0)) * 100:.0f}, "
+               f"trail stop {float(p.get('trail_stop', 0.15)) * 100:.0f}%, {reb}"
+               + ("" if p.get("new_entries", True) else ", <b>new entries suspended</b>"))
     st.markdown(f"""
     <div style="background:{col}22;border-left:5px solid {col};padding:12px 16px;border-radius:6px;">
       <div style="font-size:1.15em;font-weight:700;color:{col};">{ICONS.get(rg, '⚪')} Market regime: {rg}</div>

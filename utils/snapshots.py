@@ -35,14 +35,27 @@ def latest(n: int = 1) -> list:
 
 def is_new_session(today: pd.DataFrame, prev: Optional[pd.DataFrame]) -> bool:
     """False when `today` holds the same session as `prev` (market holiday or a re-run)."""
+    if today is None or today.empty:
+        return False
     if prev is None or prev.empty:
         return True
     a, b = bar_date(today), bar_date(prev)
     if a is not None and b is not None:
         return a > b
-    j = today.merge(prev, on="ticker", suffixes=("", "_p"))
-    col = "currentPrice" if "currentPrice" in j.columns else "price"
-    return not (len(j) and (j[col] == j[f"{col}_p"]).mean() > 0.95)
+    if "ticker" not in today.columns or "ticker" not in prev.columns:
+        return True
+    t_px = pd.to_numeric(today["currentPrice"], errors="coerce") if "currentPrice" in today.columns else pd.Series(float("nan"), index=today.index)
+    if "price" in today.columns:
+        t_px = t_px.fillna(pd.to_numeric(today["price"], errors="coerce"))
+    p_px = pd.to_numeric(prev["currentPrice"], errors="coerce") if "currentPrice" in prev.columns else pd.Series(float("nan"), index=prev.index)
+    if "price" in prev.columns:
+        p_px = p_px.fillna(pd.to_numeric(prev["price"], errors="coerce"))
+    j = (
+        pd.DataFrame({"ticker": today["ticker"], "_px": t_px}).drop_duplicates("ticker")
+        .merge(pd.DataFrame({"ticker": prev["ticker"], "_px_p": p_px}).drop_duplicates("ticker"), on="ticker")
+        .dropna(subset=["_px", "_px_p"])
+    )
+    return not (len(j) and (j["_px"] == j["_px_p"]).mean() > 0.95)
 
 
 def _session_probe(path: str) -> tuple[Optional[pd.Timestamp], Optional[pd.DataFrame]]:

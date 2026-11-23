@@ -32,149 +32,174 @@ def _nifty_rs_refs(_nifty_recent_fn):
 
 
 def render_compare_stocks(df: pd.DataFrame) -> None:
-    st.markdown(page_header("⚖️ Stock Comparison Tool", "Compare two stocks side-by-side on all metrics"), unsafe_allow_html=True)
+    from utils import funnel, funnel_view, stock_compare
+    from utils.industry_board_view import get_board
+    from utils.yf_safe import safe_history
 
-    # Stock selectors
-    available_tickers = sorted(df['ticker'].tolist())
+    st.markdown(
+        page_header(
+            "⚖️ Stock Comparison & Decision Matrix",
+            "Compare 2–4 stocks head-to-head across Funnel Stages, Scanner RS, Technicals v6, Quarterly Earnings, and Valuation v4.1",
+        ),
+        unsafe_allow_html=True,
+    )
 
-    col1, col2 = st.columns(2)
-    with col1:
-        stock_a = st.selectbox("📊 Stock A", available_tickers, index=0, key="comp_stock_a")
-    with col2:
-        stock_b = st.selectbox("📊 Stock B", available_tickers, index=min(1, len(available_tickers)-1), key="comp_stock_b")
+    if df is None or df.empty or "ticker" not in df.columns:
+        st.warning("No market snapshot loaded.")
+        return
 
-    if stock_a and stock_b:
-        # Get stock data
-        data_a = df[df['ticker'] == stock_a].iloc[0] if not df[df['ticker'] == stock_a].empty else None
-        data_b = df[df['ticker'] == stock_b].iloc[0] if not df[df['ticker'] == stock_b].empty else None
-    
-        if data_a is not None and data_b is not None:
-            st.markdown("---")
-            st.markdown("### 📈 Key Metrics Comparison")
-        
-            # Metrics comparison table
-            metrics_cols = st.columns(3)
-        
-            def format_metric(val, is_pct=False, higher_better=True):
-                if pd.isna(val):
-                    return "N/A"
-                if is_pct:
-                    return f"{val:+.1f}%" if val >= 0 else f"{val:.1f}%"
-                return f"{val:.1f}"
-        
-            with metrics_cols[0]:
-                st.markdown(f"**Metric**")
-                for m in ["Trend Score", "Quality", "Value", "Growth", "Momentum", "Volume", "Overall"]:
-                    st.write(f"📊 {m}")
-        
-            with metrics_cols[1]:
-                st.markdown(f"**{stock_a.replace('.NS', '')}**")
-                st.write(f"🎯 {data_a.get('trend_score', 0):.0f}/100")
-                st.write(f"⭐ {data_a.get('quality', 0):.1f}/10")
-                st.write(f"💰 {data_a.get('value', 0):.1f}/10")
-                st.write(f"📈 {data_a.get('growth', 0):.1f}/10")
-                st.write(f"⚡ {data_a.get('momentum', 0):.1f}/10")
-                st.write(f"📊 {data_a.get('volume_signal_score', 0):.1f}/10")
-                st.write(f"🏆 {data_a.get('overall', 0):.1f}/10")
-        
-            with metrics_cols[2]:
-                st.markdown(f"**{stock_b.replace('.NS', '')}**")
-                st.write(f"🎯 {data_b.get('trend_score', 0):.0f}/100")
-                st.write(f"⭐ {data_b.get('quality', 0):.1f}/10")
-                st.write(f"💰 {data_b.get('value', 0):.1f}/10")
-                st.write(f"📈 {data_b.get('growth', 0):.1f}/10")
-                st.write(f"⚡ {data_b.get('momentum', 0):.1f}/10")
-                st.write(f"📊 {data_b.get('volume_signal_score', 0):.1f}/10")
-                st.write(f"🏆 {data_b.get('overall', 0):.1f}/10")
-        
-            st.markdown("---")
-            st.markdown("### 📊 Score Comparison")
-        
-            # Radar chart comparison
-        
-            categories = ['Trend', 'Quality', 'Value', 'Growth', 'Momentum', 'Volume']
-        
-            # Normalize trend score to 0-10 scale for comparison
-            values_a = [
-                data_a.get('trend_score', 0) / 10,
-                data_a.get('quality', 0),
-                data_a.get('value', 0),
-                data_a.get('growth', 0),
-                data_a.get('momentum', 0),
-                data_a.get('volume_signal_score', 0)
-            ]
-            values_b = [
-                data_b.get('trend_score', 0) / 10,
-                data_b.get('quality', 0),
-                data_b.get('value', 0),
-                data_b.get('growth', 0),
-                data_b.get('momentum', 0),
-                data_b.get('volume_signal_score', 0)
-            ]
-        
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
-                r=values_a + [values_a[0]],
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=stock_a.replace('.NS', ''),
-                line_color='#00d4ff'
-            ))
-            fig.add_trace(go.Scatterpolar(
-                r=values_b + [values_b[0]],
-                theta=categories + [categories[0]],
-                fill='toself',
-                name=stock_b.replace('.NS', ''),
-                line_color='#ff6b6b'
-            ))
-            fig.update_layout(
-                polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
-                showlegend=True,
-                template='plotly_white',
-                height=400
+    available_tickers = sorted(df["ticker"].dropna().astype(str).unique().tolist())
+    if len(available_tickers) < 2:
+        st.info("Need at least 2 tickers in the universe to compare.")
+        return
+
+    # Quick presets
+    p1, p2, _ = st.columns([1.4, 1.8, 2.8])
+    if p1.button("🏆 Top 3 Funnel Picks", key="cmp_preset_top3", use_container_width=True):
+        try:
+            T_all = funnel_view.get_table(df)
+            picks = funnel.run(T_all)["picks"]["ticker"].tolist()[:3]
+            if len(picks) >= 2:
+                st.session_state["compare_tickers"] = picks
+                st.session_state["cmp_multi_tickers"] = picks
+        except Exception:
+            pass
+    auto_pair = [t for t in ("MINDACORP.NS", "ASKAUTOLTD.NS") if t in available_tickers]
+    if len(auto_pair) == 2 and p2.button("🚗 MINDACORP vs ASKAUTOLTD", key="cmp_preset_auto", use_container_width=True):
+        st.session_state["compare_tickers"] = auto_pair
+        st.session_state["cmp_multi_tickers"] = auto_pair
+
+    seed = stock_compare.normalize_tickers(
+        st.session_state.get("compare_tickers") or auto_pair or available_tickers[:2],
+        available=available_tickers,
+        max_items=4,
+    )
+    if len(seed) < 2:
+        seed = available_tickers[:2]
+    if "cmp_multi_tickers" not in st.session_state:
+        st.session_state["cmp_multi_tickers"] = seed
+
+    selected = st.multiselect(
+        "📊 Select 2 to 4 stocks to compare head-to-head",
+        options=available_tickers,
+        max_selections=4,
+        format_func=lambda x: x.replace(".NS", ""),
+        key="cmp_multi_tickers",
+    )
+    st.session_state["compare_tickers"] = selected
+
+    if len(selected) < 2:
+        st.info("Select at least 2 stocks above to build the side-by-side Decision Matrix.")
+        return
+
+    board = get_board(df)
+    val = funnel_view.valuation()
+    res = stock_compare.build_comparison(selected, df, board=board, val=val)
+    matrix = res["matrix"]
+    sw = res.get("swing_winner", {})
+    gw = res.get("garp_winner", {})
+
+    c_sw, c_gw = st.columns(2)
+    if sw.get("bare"):
+        c_sw.info(f"**🏆 3–6m Swing / Momentum Advantage: `{sw['bare']}`**  \n{sw.get('why', '')}")
+    if gw.get("bare"):
+        c_gw.success(f"**🛡️ 2–3y Core / GARP Advantage: `{gw['bare']}`**  \n{gw.get('why', '')}")
+
+    st.markdown("### 🧭 Unified 5-Pillar Decision Matrix")
+    st.dataframe(matrix, use_container_width=True, hide_index=True, height=410)
+
+    act_c1, act_c2, act_c3 = st.columns([2.2, 1.2, 1.6])
+    rpt_t = act_c1.selectbox(
+        "Open full Stock Report for",
+        options=res["tickers"],
+        format_func=lambda x: x.replace(".NS", ""),
+        key="cmp_open_rpt_sel",
+        label_visibility="collapsed",
+    )
+    if act_c2.button("📋 Open Stock Report", key="cmp_open_rpt_btn", use_container_width=True):
+        st.session_state["report_ticker"] = rpt_t
+        st.session_state["nav_page"] = "📋 Stock Report"
+        st.rerun()
+    act_c3.download_button(
+        "⬇️ Download Matrix CSV",
+        data=matrix.to_csv(index=False).encode("utf-8"),
+        file_name=f"comparison_{'_vs_'.join(res['bares'])}.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+    # 6-Month Relative Price Performance (Base 100) using local-first safe_history
+    st.markdown("---")
+    st.markdown("### 📈 Price Performance (Last 6 Months · Base 100)")
+    palette = ["#00d4ff", "#ff6b6b", "#10b981", "#f59e0b"]
+    fig2 = go.Figure()
+    perfs: list[tuple[str, float]] = []
+    for idx, (t, bare) in enumerate(zip(res["tickers"], res["bares"])):
+        hist = safe_history(t, period="6mo", timeout=10)
+        if hist is None or hist.empty or "Close" not in hist.columns:
+            continue
+        s_close = pd.to_numeric(hist["Close"], errors="coerce").dropna()
+        if len(s_close) < 2 or float(s_close.iloc[0]) <= 0:
+            continue
+        norm = (s_close / float(s_close.iloc[0])) * 100.0
+        ret_6m = float((s_close.iloc[-1] / s_close.iloc[0] - 1.0) * 100.0)
+        perfs.append((bare, ret_6m))
+        fig2.add_trace(
+            go.Scatter(
+                x=norm.index,
+                y=norm.values,
+                name=f"{bare} ({ret_6m:+.1f}%)",
+                line=dict(color=palette[idx % len(palette)], width=2.2),
             )
-            st.plotly_chart(fig, use_container_width=True)
-        
-            # Price comparison chart
-            st.markdown("---")
-            st.markdown("### 📈 Price Performance (Last 6 Months)")
-        
+        )
+    if perfs:
+        fig2.add_hline(y=100, line_dash="dash", line_color="gray", annotation_text="Base 100")
+        fig2.update_layout(
+            height=360,
+            template="plotly_white",
+            yaxis_title="Performance (Base 100)",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02),
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+        p_cols = st.columns(len(perfs) + 1)
+        for i, (bare, ret_6m) in enumerate(perfs):
+            p_cols[i].metric(f"{bare} (6M)", f"{ret_6m:+.1f}%")
+        best_6m = max(perfs, key=lambda x: x[1])
+        p_cols[-1].metric("🏆 6M Price Leader", best_6m[0], f"{best_6m[1]:+.1f}%")
 
-        
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=180)
-        
-            with st.spinner("Fetching price data..."):
-                prices_a = yf.download(stock_a, start=start_date, end=end_date, progress=False)['Close']
-                prices_b = yf.download(stock_b, start=start_date, end=end_date, progress=False)['Close']
-        
-            if not prices_a.empty and not prices_b.empty:
-                # Normalize to base 100
-                norm_a = (prices_a / prices_a.iloc[0]) * 100
-                norm_b = (prices_b / prices_b.iloc[0]) * 100
-            
-                fig2 = go.Figure()
-                fig2.add_trace(go.Scatter(x=norm_a.index, y=norm_a.values, name=stock_a.replace('.NS', ''), line=dict(color='#00d4ff', width=2)))
-                fig2.add_trace(go.Scatter(x=norm_b.index, y=norm_b.values, name=stock_b.replace('.NS', ''), line=dict(color='#ff6b6b', width=2)))
-                fig2.add_hline(y=100, line_dash="dash", line_color="gray", annotation_text="Base")
-                fig2.update_layout(
-                    height=350,
-                    template='plotly_white',
-                    yaxis_title='Performance (Base 100)',
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02)
+    # Collapsible Legacy 0-10 Pillar Radar
+    with st.expander("📊 Legacy 0–10 Pillar Radar & Scores", expanded=False):
+        categories = ["Trend", "Quality", "Value", "Growth", "Momentum", "Volume"]
+        fig = go.Figure()
+        for idx, (t, bare) in enumerate(zip(res["tickers"], res["bares"])):
+            sub_row = df[df["ticker"] == t]
+            if sub_row.empty:
+                continue
+            r0 = sub_row.iloc[0]
+            vals = [
+                float(r0.get("trend_score", 0) or 0) / 10.0,
+                float(r0.get("quality", 0) or 0),
+                float(r0.get("value", 0) or 0),
+                float(r0.get("growth", 0) or 0),
+                float(r0.get("momentum", 0) or 0),
+                float(r0.get("volume_signal_score", 0) or 0),
+            ]
+            fig.add_trace(
+                go.Scatterpolar(
+                    r=vals + [vals[0]],
+                    theta=categories + [categories[0]],
+                    fill="toself",
+                    name=bare,
+                    line_color=palette[idx % len(palette)],
                 )
-                st.plotly_chart(fig2, use_container_width=True)
-            
-                # Performance summary - extract scalar values from Series
-                perf_a = float(((prices_a.iloc[-1] / prices_a.iloc[0]) - 1) * 100)
-                perf_b = float(((prices_b.iloc[-1] / prices_b.iloc[0]) - 1) * 100)
-            
-                winner = stock_a if perf_a > perf_b else stock_b
-            
-                p_cols = st.columns(3)
-                p_cols[0].metric(stock_a.replace('.NS', ''), f"{perf_a:+.1f}%")
-                p_cols[1].metric(stock_b.replace('.NS', ''), f"{perf_b:+.1f}%")
-                p_cols[2].metric("🏆 Winner", winner.replace('.NS', ''))
+            )
+        fig.update_layout(
+            polar=dict(radialaxis=dict(visible=True, range=[0, 10])),
+            showlegend=True,
+            template="plotly_white",
+            height=380,
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 
 def render_deep_dive() -> None:

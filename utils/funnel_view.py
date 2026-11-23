@@ -89,25 +89,87 @@ def setup_labels(P: pd.DataFrame) -> list[str]:
     return out
 
 
+def _ind_labels(P: pd.DataFrame) -> list[str]:
+    out: list[str] = []
+    for r in P.itertuples():
+        grp = str(getattr(r, "ind_group", "") or "").strip().title()
+        sc = getattr(r, "ind_score", None)
+        if grp and pd.notna(sc):
+            out.append(f"{grp} {float(sc):.0f}")
+        else:
+            out.append(grp or "—")
+    return out
+
+
+def _supply_labels(P: pd.DataFrame) -> list[str]:
+    out: list[str] = []
+    for r in P.itertuples():
+        sup = str(getattr(r, "fx_supply", "") or "").strip()
+        sig = str(getattr(r, "fx_signature", "") or "").strip()
+        shk = getattr(r, "fx_shakeout", False)
+        bits = [sup] if sup else []
+        if sig == "ABSORPTION":
+            bits.append("⭐ ABSORPTION")
+        if shk is True or str(shk).strip().lower() in ("true", "1"):
+            bits.append("🪤 SHAKEOUT")
+        out.append(" · ".join(bits) if bits else "—")
+    return out
+
+
+def _trend_labels(P: pd.DataFrame) -> list[str]:
+    out: list[str] = []
+    for r in P.itertuples():
+        stg = getattr(r, "stage", None)
+        mtf = getattr(r, "simba_mtf", None)
+        adx = getattr(r, "fx_adx", None)
+        bits: list[str] = []
+        if pd.notna(stg) or pd.notna(mtf):
+            s_txt = f"S{int(float(stg))}" if pd.notna(stg) else "S?"
+            m_txt = f"M{int(float(mtf))}/3" if pd.notna(mtf) else ""
+            bits.append(f"{s_txt}{('·' + m_txt) if m_txt else ''}")
+        if pd.notna(adx):
+            bits.append(f"ADX {float(adx):.0f}")
+        out.append(" · ".join(bits) if bits else "—")
+    return out
+
+
 def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     P = search_box(P, key, cols=("name", "ticker", "industry"))
     if P is None or P.empty:
         st.caption("Nothing here.")
         return
+    col_s = lambda c, default=None: P[c] if c in P.columns else pd.Series(default, index=P.index)
     V = pd.DataFrame({
         "Stock": P.ticker.str.replace(".NS", "", regex=False), "Name": P.name, **{c: P[c] for c in extra},
-        "Industry": P.industry, "Ind.": P.ind_group.str.title(), "Price": P.price, "RS": P.comp_rs,
-        "Technicals": setup_labels(P), "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1,
-        "Business": P.biz_headline, "Latest qtr profit YoY": P.np_yoy, "Flags": P.biz_flags,
+        "Industry": P.industry, "Ind.": _ind_labels(P), "Price": P.price,
+        "vs Stop": col_s("dist_stop_pct"), "vs MA50": col_s("dist_ma50"), "vs 52W High": col_s("dist_52w"),
+        "Scanner": col_s("scanner", ""), "RS": P.comp_rs, "RS 3M": col_s("rs_3m"),
+        "Technicals": setup_labels(P), "Supply": _supply_labels(P),
+        "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Trend": _trend_labels(P),
+        "Business": P.biz_headline, "Q Sales YoY": col_s("sales_yoy"),
+        "Latest qtr profit YoY": P.np_yoy, "OPM Δ": col_s("opm_chg"), "Flags": P.biz_flags,
+        "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""),
         "Value pctile": P.val_pct, "To mid value": P.val_upside})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
-        "Price": st.column_config.NumberColumn(format="₹%.1f"), "RS": st.column_config.NumberColumn(format="%+.1f"),
+        "Price": st.column_config.NumberColumn(format="₹%.1f"),
+        "vs Stop": st.column_config.NumberColumn(format="%+.1f%%", help="(Price − Stop) / Price %"),
+        "vs MA50": st.column_config.NumberColumn(format="%+.1f%%", help="(Price / 50-DMA − 1) %"),
+        "vs 52W High": st.column_config.NumberColumn(format="%+.1f%%", help="Distance from 52-week high %"),
+        "Scanner": st.column_config.TextColumn("Scanner", help="Trend Scanner signal (BUY / HOLD / AVOID)"),
+        "RS": st.column_config.NumberColumn(format="%+.1f", help="Composite RS vs Nifty"),
+        "RS 3M": st.column_config.NumberColumn(format="%+.1f", help="3-month relative strength vs Nifty"),
         "Technicals": st.column_config.TextColumn("Setup", help="Technicals action, plus recent SIMBA signal or trigger price"),
+        "Supply": st.column_config.TextColumn("Supply & Vol", help="Overhead supply zone + absorption / shakeout signatures"),
         "Stop": st.column_config.NumberColumn(format="₹%.1f", help="Technicals stop from the last close"),
         "Risk %": st.column_config.NumberColumn(format="%.1f%%", help="Distance from entry (or trigger) to stop"),
         "2× risk ref": st.column_config.NumberColumn(format="₹%.1f", help="A yardstick, not an exit: booking at 2× risk halved returns in the backtest"),
+        "Trend": st.column_config.TextColumn("Stage · MTF · ADX", help="SIMBA Stage, Multi-Timeframe score (/3), and ADX trend strength"),
+        "Q Sales YoY": st.column_config.NumberColumn(format="%+.0f%%", help="Latest quarter revenue YoY %"),
         "Latest qtr profit YoY": st.column_config.NumberColumn(format="%+.0f%%"),
+        "OPM Δ": st.column_config.NumberColumn(format="%+.1f pp", help="Latest quarter operating margin YoY change (percentage points)"),
+        "P/E": st.column_config.NumberColumn(format="%.1f×", help="Trailing P/E"),
+        "Valuation": st.column_config.TextColumn("Val Rating", help="Valuation v4.1 action rating"),
         "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
         "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price")})
 
@@ -171,3 +233,33 @@ def render(df: pd.DataFrame):
         N = R["near"]
         if len(N):
             _show(N.rename(columns={"missed": "Missed"}), "fn_nq", extra=("Missed",))
+
+    cand_pool = list(dict.fromkeys(pk + R["near"].ticker.tolist() + T.ticker.dropna().tolist()))
+    if len(cand_pool) >= 2:
+        with st.expander("⚖️ Compare 2–4 candidates head-to-head (All 5 Pillars + Advantage)", expanded=False):
+            from utils import stock_compare
+            default_cmp = pk[:2] if len(pk) >= 2 else cand_pool[:2]
+            c_sel, c_btn = st.columns([3.5, 1.2])
+            sel_cmp = c_sel.multiselect(
+                "Select 2 to 4 stocks to compare",
+                options=cand_pool,
+                default=default_cmp,
+                max_selections=4,
+                format_func=lambda x: x.replace(".NS", ""),
+                key="fn_cmp_sel",
+            )
+            if c_btn.button("⚖️ Open in Compare Stocks", key="fn_cmp_go", use_container_width=True) and len(sel_cmp) >= 2:
+                st.session_state["compare_tickers"] = sel_cmp
+                st.session_state["nav_page"] = "⚖️ Compare Stocks"
+                st.rerun()
+            if len(sel_cmp) >= 2:
+                cmp_res = stock_compare.build_comparison(sel_cmp, df, board=get_board(df), val=valuation())
+                sw, gw = cmp_res.get("swing_winner", {}), cmp_res.get("garp_winner", {})
+                w1, w2 = st.columns(2)
+                if sw.get("bare"):
+                    w1.info(f"**🏆 3–6m Swing / Momentum Pick: `{sw['bare']}`**  \n{sw.get('why', '')}")
+                if gw.get("bare"):
+                    w2.success(f"**🛡️ 2–3y Core / GARP Pick: `{gw['bare']}`**  \n{gw.get('why', '')}")
+                st.dataframe(cmp_res["matrix"], hide_index=True, use_container_width=True, height=390)
+            else:
+                st.caption("Pick at least 2 stocks above to view the side-by-side Decision Matrix.")
