@@ -310,13 +310,7 @@ def fetch_market_context(S: Session, day: pd.Timestamp) -> Dict:
         print(f"[nse] FII/DII: {e}")
     try:
         raw = S.get(f"{ARCH}/content/nsccl/fao_participant_oi_{_d(day)}.csv").content.decode("utf-8", "ignore")
-        d = pd.read_csv(io.StringIO(raw), skiprows=1)
-        d.columns = [c.strip() for c in d.columns]
-        fii = d[d.iloc[:, 0].astype(str).str.strip().str.upper() == "FII"]
-        if len(fii):
-            lo = pd.to_numeric(fii.iloc[0].get("Future Index Long"), errors="coerce")
-            sh = pd.to_numeric(fii.iloc[0].get("Future Index Short"), errors="coerce")
-            row.update(fii_idx_long=lo, fii_idx_short=sh, fii_idx_long_pct=100 * lo / (lo + sh) if lo + sh else np.nan)
+        row.update(parse_participant_oi(raw))
     except Exception as e:
         print(f"[nse] participant OI: {e}")
     old = _read(F["ctx"])
@@ -545,6 +539,59 @@ def deals_for(tickers=None, days: int = 5) -> pd.DataFrame:
 
 def market_context() -> pd.DataFrame:
     return _read(F["ctx"])
+
+
+CTX_INDICES = {"nifty 50": "nifty", "nifty midcap 150": "midcap", "nifty smallcap 250": "smallcap"}
+
+
+def context_history() -> pd.DataFrame:
+    """
+    Daily valuation and flows for the Daily Brief charts: Nifty / Midcap 150 / Smallcap 250 close and P/E
+    (+ Nifty P/B and yield) from the NSE index store (2 years), joined with FII / DII cash and FII index-futures
+    positioning from market_context.csv (cash from 20 Nov 2026; positioning back-filled from NSE's participant files).
+    """
+    out = pd.DataFrame()
+    try:
+        from utils import nse_prices as npx
+        X = npx.raw("indices")
+        if len(X):
+            X = X[X["index"].astype(str).str.lower().isin(CTX_INDICES)].copy()
+            X["k"] = X["index"].astype(str).str.lower().map(CTX_INDICES)
+            parts = []
+            for col in ("close", "pe", "pb", "dy"):
+                w = X.pivot_table(index="date", columns="k", values=col, aggfunc="last")
+                w.columns = [f"{c}_{col}" for c in w.columns]
+                parts.append(w)
+            out = pd.concat(parts, axis=1)
+            out = out[[c for c in out.columns if not (c.endswith("_pb") or c.endswith("_dy")) or c.startswith("nifty")]]
+    except Exception:
+        out = pd.DataFrame()
+    C = market_context()
+    if len(C):
+        C = C.copy()
+        C["date"] = pd.to_datetime(C["date"], errors="coerce")
+        C = C.dropna(subset=["date"]).drop_duplicates("date", keep="last").set_index("date")
+        flows = C[[c for c in ("fii_net", "dii_net", "fii_idx_long", "fii_idx_short", "fii_idx_long_pct") if c in C.columns]]
+        out = flows if out.empty else out.join(flows, how="outer")
+        for k in ("nifty_pe", "nifty_pb", "nifty_dy", "midcap_pe", "smallcap_pe"):   # fill a day the store lacks
+            if k in C.columns:
+                out[k] = out[k].combine_first(C[k]) if k in out.columns else C[k]
+    if len(out):
+        out.index = pd.DatetimeIndex(out.index, name="date")
+        out = out.sort_index()
+    return out
+
+
+def parse_participant_oi(raw: str) -> Dict[str, float]:
+    """FII long / short index-futures contracts from NSE's fao_participant_oi file."""
+    d = pd.read_csv(io.StringIO(raw), skiprows=1)
+    d.columns = [c.strip() for c in d.columns]
+    fii = d[d.iloc[:, 0].astype(str).str.strip().str.upper() == "FII"]
+    if fii.empty:
+        return {}
+    lo = pd.to_numeric(fii.iloc[0].get("Future Index Long"), errors="coerce")
+    sh = pd.to_numeric(fii.iloc[0].get("Future Index Short"), errors="coerce")
+    return dict(fii_idx_long=lo, fii_idx_short=sh, fii_idx_long_pct=100 * lo / (lo + sh) if lo + sh else np.nan)
 
 
 def attach(df: pd.DataFrame) -> pd.DataFrame:

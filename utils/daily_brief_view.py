@@ -78,6 +78,101 @@ def _market(df: pd.DataFrame):
     _nse_context()
 
 
+# reference palette (dataviz skill), slots 1-3: validated for colour-blind separation in every chart form
+_SERIES = {"Nifty 50": "#2a78d6", "Midcap 150": "#eb6834", "Smallcap 250": "#1baf7a"}
+_FII, _DII = "#2a78d6", "#eb6834"
+_INK, _MUTED, _GRID = "#0b0b0b", "#52514e", "rgba(82,81,78,0.15)"
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def _ctx_history(_stamp: str) -> pd.DataFrame:
+    from utils import nse_data as nd
+    return nd.context_history()
+
+
+def _ctx_stamp() -> str:
+    import glob
+    files = sorted(glob.glob("data/nse/indices/*.parquet")) + sorted(glob.glob("data/nse/indices/d/*.parquet")) + ["data/nse/market_context.csv"]
+    return "|".join(f"{f}:{os.path.getmtime(f):.0f}" for f in files[-3:] if os.path.exists(f))
+
+
+def _ctx_layout(fig: go.Figure, title: str, ysuffix: str = "", height: int = 300) -> go.Figure:
+    fig.update_layout(template="plotly_white", height=height, margin=dict(l=8, r=8, t=56, b=8),
+                      title=dict(text=title, x=0, font=dict(size=14, color=_INK)),
+                      legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0, font=dict(color=_MUTED)),
+                      hovermode="x unified", font=dict(color=_MUTED))
+    fig.update_xaxes(showgrid=False, linecolor=_GRID)
+    fig.update_yaxes(gridcolor=_GRID, zeroline=False, ticksuffix=ysuffix)
+    return fig
+
+
+def _context_charts():
+    """P/E of Nifty / Midcap 150 / Smallcap 250, FII index-futures long %, and FII vs DII net cash, from NSE."""
+    H = _ctx_history(_ctx_stamp())
+    if H is None or H.empty:
+        st.caption("No NSE history yet.")
+        return
+    span = st.radio("Range", ["6M", "1Y", "2Y"], index=1, horizontal=True, key="ctx_range", label_visibility="collapsed")
+    days = {"6M": 183, "1Y": 365, "2Y": 730}[span]
+    W = H[H.index >= H.index.max() - pd.Timedelta(days=days)]
+
+    # 1. valuation: three P/E lines on one axis (same unit), legend + end labels
+    fig = go.Figure()
+    notes = []
+    for name, col in (("Nifty 50", "nifty_pe"), ("Midcap 150", "midcap_pe"), ("Smallcap 250", "smallcap_pe")):
+        if col not in W or W[col].dropna().empty:
+            continue
+        y = W[col].dropna()
+        fig.add_trace(go.Scatter(x=y.index, y=y, name=name, mode="lines", line=dict(color=_SERIES[name], width=2),
+                                 hovertemplate=f"{name}: %{{y:.1f}}×<extra></extra>"))
+        fig.add_annotation(x=y.index[-1], y=y.iloc[-1], text=f"{y.iloc[-1]:.1f}", showarrow=False, xanchor="left", xshift=4,
+                           font=dict(size=11, color=_INK))
+        pct = (y < y.iloc[-1]).mean() * 100
+        notes.append(f"{name} {y.iloc[-1]:.1f} (range {y.min():.1f}–{y.max():.1f}, {pct:.0f}th percentile)")
+    if fig.data:
+        st.plotly_chart(_ctx_layout(fig, f"P/E · last {span}", "×"), use_container_width=True, config={"displayModeBar": False})
+        st.caption("Today vs the period shown: " + " · ".join(notes) + ". Higher = richer; your 10-year Nifty range is roughly 18–28.")
+
+    # 2. FII index-futures positioning: one series, a reference line at the historically bearish 30%
+    if "fii_idx_long_pct" in W and W["fii_idx_long_pct"].notna().sum() >= 2:
+        y = W["fii_idx_long_pct"].dropna()
+        fig = go.Figure(go.Scatter(x=y.index, y=y, mode="lines", line=dict(color=_FII, width=2), name="FII long %",
+                                   hovertemplate="FII long: %{y:.0f}%<extra></extra>"))
+        fig.add_hline(y=30, line=dict(color=_MUTED, width=1, dash="dash"),
+                      annotation_text="30%: heavily short", annotation_position="bottom left", annotation_font_color=_MUTED)
+        fig.add_annotation(x=y.index[-1], y=y.iloc[-1], text=f"{y.iloc[-1]:.0f}%", showarrow=False, xanchor="left", xshift=4,
+                           font=dict(size=11, color=_INK))
+        fig.update_yaxes(range=[0, 100])
+        fig.update_layout(showlegend=False)
+        st.plotly_chart(_ctx_layout(fig, "FII index futures · long contracts as % of long + short", "%"), use_container_width=True,
+                        config={"displayModeBar": False})
+    elif "fii_idx_long_pct" in W:
+        st.caption("FII positioning history is being back-filled from NSE's participant files.")
+
+    # 3. FII vs DII net cash: grouped bars, one zero baseline
+    F = W[[c for c in ("fii_net", "dii_net") if c in W]].dropna(how="all")
+    if len(F):
+        fig = go.Figure()
+        xs = [f"{d:%d %b}" for d in F.index]          # category axis: one slot per session, no weekend gaps or 00:00 ticks
+        for col, name, color in (("fii_net", "FII", _FII), ("dii_net", "DII", _DII)):
+            if col in F:
+                fig.add_trace(go.Bar(x=xs, y=F[col], name=name, marker=dict(color=color, line=dict(width=0)),
+                                     hovertemplate=f"{name}: ₹%{{y:,.0f}} cr<extra></extra>"))
+        fig.add_hline(y=0, line=dict(color=_MUTED, width=1))
+        n = len(F)
+        fig.update_layout(barmode="group", bargap=max(0.2, 0.75 - 0.05 * n), bargroupgap=0.08, barcornerradius=4)
+        fig.update_xaxes(type="category", range=[-0.5, max(n, 6) - 0.5])   # keep bars slim while history is short
+        st.plotly_chart(_ctx_layout(fig, "FII vs DII net cash buying · ₹ crore", ""), use_container_width=True,
+                        config={"displayModeBar": False})
+        tot = F.sum()
+        st.caption(f"{len(F)} session(s) since NSE flows were first saved ({F.index.min():%d %b %Y}): "
+                   + " · ".join(f"{k.split('_')[0].upper()} ₹{v:+,.0f} cr" for k, v in tot.items())
+                   + ". NSE keeps no archive of this, so the history grows by one bar each evening.")
+    with st.popover("Table view") if hasattr(st, "popover") else st.container():
+        cols = [c for c in ("nifty_close", "nifty_pe", "midcap_pe", "smallcap_pe", "nifty_pb", "nifty_dy", "fii_idx_long_pct", "fii_net", "dii_net") if c in W]
+        st.dataframe(W[cols].sort_index(ascending=False).round(2), use_container_width=True, height=280)
+
+
 def _nse_context():
     """NSE's daily valuation and flows (scripts/nse_daily.py): Nifty P/E, FII / DII cash, FII index-futures positioning."""
     try:
@@ -111,6 +206,11 @@ def _nse_context():
     mid, small = g(now, "midcap_pe"), g(now, "smallcap_pe")
     if mid or small:
         st.caption(" · ".join(x for x in (f"Midcap 150 P/E {mid:.1f}" if mid else "", f"Smallcap 250 P/E {small:.1f}" if small else "") if x))
+    with st.expander("📈 Valuation & flows history (P/E, FII positioning, FII / DII cash)"):
+        try:
+            _context_charts()
+        except Exception as e:
+            st.caption(f"History unavailable: {e}")
     try:
         D = nd.deals_for(None, days=3)
     except Exception:

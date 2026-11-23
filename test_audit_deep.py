@@ -661,3 +661,39 @@ def test_opm_hidden_for_lenders_and_bounded(tmp_path, monkeypatch):
     assert m["AAA.NS"] == (15.0, 5.0) and "BBB.NS" not in m          # -50,000% margin dropped
     from utils import funnel
     assert {"Banks", "Finance"} <= funnel.LENDER_INDUSTRIES
+
+
+def test_context_history_and_positioning_backfill(tmp_path, monkeypatch):
+    """Daily Brief history: P/E from the index store joined with flows; the back-fill fills blanks, never overwrites."""
+    import pandas as pd
+    from utils import nse_data as nd, nse_prices as npx
+    ctx = tmp_path / "market_context.csv"
+    pd.DataFrame({"date": ["2026-11-20"], "fii_net": [10308.4], "dii_net": [-4859.8], "fii_idx_long_pct": [34.1]}).to_csv(ctx, index=False)
+    monkeypatch.setitem(nd.F, "ctx", str(ctx))
+    monkeypatch.setattr(nd, "DIR", str(tmp_path))
+    idx = pd.DataFrame({"date": pd.to_datetime(["2026-11-18", "2026-11-19", "2026-11-20"] * 3),
+                        "index": ["Nifty 50"] * 3 + ["Nifty Midcap 150"] * 3 + ["Nifty Smallcap 250"] * 3,
+                        "close": [25000.0, 25500, 25800] * 3, "pe": [20.5, 20.8, 21.0, 27.8, 28.0, 28.2, 31.9, 32.2, 32.1],
+                        "pb": 3.1, "dy": 1.3, "open": 1.0, "high": 1.0, "low": 1.0, "volume": 0.0})
+    monkeypatch.setattr(npx, "raw", lambda kind="stocks": idx if kind == "indices" else pd.DataFrame())
+    H = nd.context_history()
+    assert list(H.index.strftime("%Y-%m-%d")) == ["2026-11-18", "2026-11-19", "2026-11-20"]
+    assert H.loc["2026-11-20", "midcap_pe"] == 28.2 and H.loc["2026-11-20", "fii_net"] == 10308.4
+    assert pd.isna(H.loc["2026-11-18", "fii_net"])
+
+    raw = "Participant wise OI\nClient Type,Future Index Long,Future Index Short\nFII,60000,140000\nDII,1,1\n"
+
+    class FakeS:
+        def get(self, url, tries=2, timeout=20):
+            return type("R", (), {"content": raw.encode()})()
+    monkeypatch.setattr(nd, "Session", FakeS)
+    import importlib.util, os
+    spec = importlib.util.spec_from_file_location("bf", os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "nse_context_backfill.py"))
+    bf = importlib.util.module_from_spec(spec); spec.loader.exec_module(bf)
+    monkeypatch.setattr(bf.time, "sleep", lambda s: None)
+    monkeypatch.setattr(pd.Timestamp, "today", classmethod(lambda cls: pd.Timestamp("2026-11-21")))
+    assert bf.main(["--days", "30"]) == 0
+    out = pd.read_csv(ctx).set_index("date")
+    assert out.loc["2026-11-20", "fii_idx_long_pct"] == 34.1                    # existing value kept
+    assert round(out.loc["2026-11-18", "fii_idx_long_pct"], 1) == 30.0          # back-filled
+    assert out.loc["2026-11-20", "fii_net"] == 10308.4
