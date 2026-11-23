@@ -18,7 +18,8 @@ def _board(key: str, _df: pd.DataFrame) -> pd.DataFrame:
 
 def get_board(df: pd.DataFrame) -> pd.DataFrame:
     """The board for the loaded snapshot, cached per snapshot."""
-    key = f"{len(df)}|{df.get('bar_date', pd.Series(['?'])).iloc[0]}|{float(pd.to_numeric(df.get('comp_rs'), errors='coerce').sum()):.2f}"
+    bar = df["bar_date"].iloc[0] if "bar_date" in df.columns and len(df) else "?"
+    key = f"{len(df)}|{bar}|{float(pd.to_numeric(df.get('comp_rs'), errors='coerce').sum()):.2f}"
     return _board(key, df)
 
 

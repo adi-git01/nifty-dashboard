@@ -740,3 +740,44 @@ def brief(ticker: str, root: str = ".") -> Dict[str, Any]:
             return dict(hit)
     a_files, q_files = _resolved_paths(root)
     return _brief(ticker, root, _mtime(a_files + q_files))
+
+
+@lru_cache(maxsize=4)
+def _q_opm_map(root: str, stamp: float) -> Dict[str, tuple[float, float]]:
+    """Fast map of ticker -> (latest_opm_pct, yoy_opm_delta_pp) across all quarterly filings."""
+    _, Q = _data(root)
+    out: Dict[str, tuple[float, float]] = {}
+    for tk, g in Q.items():
+        w = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+        w = w[w.index.month.isin([3, 6, 9, 12])]
+        if w.empty:
+            continue
+        if "op" in w and "sales" in w:
+            s_op = pd.to_numeric(w["op"], errors="coerce")
+            s_sa = pd.to_numeric(w["sales"], errors="coerce")
+            opm_s = (s_op / s_sa.where(s_sa > 0) * 100.0).dropna()
+        elif "opm" in w:
+            opm_s = pd.to_numeric(w["opm"], errors="coerce").dropna()
+        else:
+            continue
+        if opm_s.empty:
+            continue
+        opm_now = float(opm_s.iloc[-1])
+        dt_now = opm_s.index[-1]
+        opm_chg = np.nan
+        if len(opm_s) >= 2:
+            target = dt_now - pd.DateOffset(years=1)
+            prev_idx = opm_s.index[:-1]
+            diffs = np.abs((prev_idx - target).days)
+            j = int(np.argmin(diffs))
+            if diffs[j] <= 45:
+                opm_chg = opm_now - float(opm_s.iloc[j])
+        full_tk = tk if str(tk).endswith(".NS") else f"{tk}.NS"
+        out[full_tk] = (round(opm_now, 1), round(opm_chg, 1) if np.isfinite(opm_chg) else np.nan)
+    return out
+
+
+def q_opm_map(root: str = ".") -> Dict[str, tuple[float, float]]:
+    """Cached map of `.NS` ticker -> `(latest_opm_pct, yoy_opm_delta_pp)`."""
+    _, q_files = _resolved_paths(root)
+    return _q_opm_map(root, _mtime(q_files))

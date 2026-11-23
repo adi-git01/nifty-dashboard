@@ -57,8 +57,9 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
     px = float(T.price)
     stop, t1, t2 = n("fx_stop"), n("fx_t1"), n("fx_t2")
     ent = n("fx_entry") if pd.notna(n("fx_entry")) else px              # the trigger for BUY ON TRIGGER
-    risk = (ent - stop) / ent * 100 if pd.notna(stop) and stop > 0 and stop < ent else np.nan
-    _raw_half = r.get("half_size", r.get("fx_half_size"))
+    risk = (ent - stop) / ent * 100 if (pd.notna(stop) and stop > 0 and pd.notna(ent) and ent > 0
+                                        and pd.notna(px) and px > 0 and stop < min(px, ent)) else np.nan
+    _raw_half = r.get("fx_half_size") if pd.notna(r.get("fx_half_size")) else r.get("half_size")
     half = _raw_half is True or str(_raw_half).strip().lower() in ("true", "1")
     _txt = lambda k: str(r.get(k)).strip() if pd.notna(r.get(k)) and str(r.get(k)).strip() not in ("", "nan", "None") else "—"
     plan = dict(action=_txt("fx_action"), state=_txt("fx_state"), entry=ent, stop=stop, risk_pct=risk,
@@ -70,6 +71,8 @@ def gather(ticker: str, df: pd.DataFrame, board: Optional[pd.DataFrame] = None, 
     vrow = None
     if val is not None and not val.empty and ticker in val.index:
         v = val.loc[ticker]
+        if isinstance(v, pd.DataFrame):
+            v = v.iloc[-1]
         vrow = {k: v.get(k) for k in ("status", "rating", "confidence", "cmp_pct", "p10", "p50", "p90", "band_k_lo", "band_k_hi",
                                       "q_grade", "q_note", "cagr_base", "mult_kind", "spot_mult", "base_mult", "reason", "as_of")}
         if vrow.get("status") == "OK" and pd.notna(T.val_pct):

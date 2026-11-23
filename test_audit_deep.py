@@ -419,3 +419,209 @@ def test_technicals_view_distance_columns():
     assert pd.isna(res.loc[2, "dist_stop_pct"])
     assert pd.isna(res.loc[2, "dist_ma50_pct"])
     assert math.isclose(float(res.loc[2, "dist_52w_pct"]), -6.5, abs_tol=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# Recent Commits Audit Fixes (PR #157–#160) & Unified Funnel / Stock Compare
+# ---------------------------------------------------------------------------
+
+def test_recent_commits_bug_fixes(tmp_path, monkeypatch):
+    from utils import funnel, funnel_log, industry_board_view, regime_badge, snapshots, stock_report
+
+    # 1. snapshots.is_new_session: empty today -> False; mixed currentPrice vs price -> no KeyError
+    prev_df = pd.DataFrame({"ticker": ["A.NS", "B.NS"], "price": [100.0, 200.0]})
+    assert snapshots.is_new_session(pd.DataFrame(), prev_df) is False
+    today_same = pd.DataFrame({"ticker": ["A.NS", "B.NS"], "currentPrice": [100.0, 200.0]})
+    assert snapshots.is_new_session(today_same, prev_df) is False
+    today_diff = pd.DataFrame({"ticker": ["A.NS", "B.NS"], "currentPrice": [105.0, 210.0]})
+    assert snapshots.is_new_session(today_diff, prev_df) is True
+
+    # 2. industry_board_view.get_board on empty DataFrame with bar_date column -> no IndexError
+    empty_df = pd.DataFrame(columns=["ticker", "bar_date", "comp_rs", "industry"])
+    b_empty = industry_board_view.get_board(empty_df)
+    assert isinstance(b_empty, pd.DataFrame)
+
+    # 3. stock_report.gather: inverted stop (px < stop < entry) -> risk_pct & size_pct are NaN; duplicate val index ok
+    inv_df = pd.DataFrame(
+        {
+            "ticker": ["INV.NS"],
+            "name": ["Inverted Stop Co"],
+            "industry": ["Auto Components"],
+            "sector": ["Consumer Cyclical"],
+            "price": [170.0],
+            "currentPrice": [170.0],
+            "fx_stop": [175.0],
+            "fx_entry": [190.0],
+            "fx_action": ["WAIT"],
+            "half_size": [np.nan],
+        }
+    )
+    dup_val = pd.DataFrame(
+        {"status": ["OK", "OK"], "cmp_pct": [30.0, 35.0], "p50": [200.0, 210.0], "rating": ["BUY", "ACCUMULATE"]},
+        index=["INV.NS", "INV.NS"],
+    )
+    rep = stock_report.gather("INV.NS", inv_df, board=pd.DataFrame(), val=dup_val)
+    assert pd.isna(rep["plan"]["risk_pct"])
+    assert pd.isna(rep["plan"]["size_pct"])
+
+    # 4. funnel.checklist: NaN in string fields must not raise AttributeError
+    nan_row = pd.Series(
+        {
+            "s_industry": False,
+            "industry": np.nan,
+            "ind_group": np.nan,
+            "ind_status": np.nan,
+            "ind_score": np.nan,
+            "s_trend": False,
+            "scanner": np.nan,
+            "stage": np.nan,
+            "comp_rs": np.nan,
+            "dist_52w": np.nan,
+            "s_business": np.nan,
+            "biz_verdict": np.nan,
+            "biz_headline": np.nan,
+            "biz_flags": np.nan,
+            "quarter": np.nan,
+            "sales_yoy": np.nan,
+            "np_yoy": np.nan,
+            "s_setup": False,
+            "technicals": np.nan,
+            "simba_days": np.nan,
+            "risk_pct": np.nan,
+            "signal": False,
+            "val_pct": np.nan,
+            "s_value": True,
+        }
+    )
+    chk = funnel.checklist(nan_row)
+    assert len(chk) == 5
+
+    # 5. funnel_log.update: tz-aware snap & out-of-order earlier backfill date must not be swallowed
+    flog = tmp_path / "funnel_log.csv"
+    monkeypatch.setattr(funnel_log, "LOG_FILE", str(flog))
+    df_in = pd.DataFrame(
+        {
+            "ticker": ["MINDACORP.NS"],
+            "name": ["Minda Corp"],
+            "industry": ["Auto Components"],
+            "price": [750.0],
+            "currentPrice": [750.0],
+            "dna_signal": ["BUY"],
+            "simba_stage": [2],
+            "comp_rs": [2.6],
+            "fx_action": ["BUY NOW"],
+            "fx_entry": [750.0],
+            "fx_stop": [660.0],
+        }
+    )
+    board_in = pd.DataFrame({"industry": ["Auto Components"], "group": ["LEADING"], "status": ["UPTREND"], "score": [87.0]})
+    funnel_log.update(df_in, "2026-11-20T15:30:00+05:30", board=board_in, val=pd.DataFrame())
+    df_log, _ = funnel_log.update(df_in, "2026-09-01", board=board_in, val=pd.DataFrame())
+    assert len(df_log) == 2
+
+    # 6. regime_badge.render: partial engine dict {"mode": "BULL"} must not raise KeyError
+    rendered = []
+
+    class _DummySt:
+        def markdown(self, text, **kwargs):
+            rendered.append(text)
+
+        def columns(self, n):
+            return [self] * int(n)
+
+        def caption(self, text, **kwargs):
+            rendered.append(text)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    partial_info = {
+        "nifty": {"regime": "BULL", "price": 25000.0, "ma50": 24500.0, "ma200": 23500.0, "dist_200": 6.4, "dist_52w": -2.0},
+        "breadth": {"regime": "MILD BULL", "pct": 62.0, "total": 500},
+        "engine": {"mode": "BULL"},
+    }
+    regime_badge.render(partial_info, _DummySt())
+    assert len(rendered) >= 1 and "BULL" in rendered[0]
+
+
+def test_unified_funnel_and_stock_compare():
+    from utils import fund_trends, funnel, funnel_view, stock_compare
+
+    opm_map = fund_trends.q_opm_map()
+    assert isinstance(opm_map, dict)
+    if "MINDACORP.NS" in opm_map:
+        opm_val, opm_chg = opm_map["MINDACORP.NS"]
+        assert math.isfinite(opm_val)
+
+    synth_df = pd.DataFrame(
+        {
+            "ticker": ["MINDACORP.NS", "ASKAUTOLTD.NS"],
+            "name": ["Minda Corporation", "ASK Automotive"],
+            "industry": ["Auto Components", "Auto Components"],
+            "price": [749.3, 630.85],
+            "currentPrice": [749.3, 630.85],
+            "dna_signal": ["BUY", "HOLD"],
+            "simba_stage": [2, 2],
+            "simba_mtf": [3, 1],
+            "comp_rs": [2.6, -3.7],
+            "rs_1m": [10.0, 2.2],
+            "rs_3m": [-5.8, -9.6],
+            "dist_52w": [-2.6, -8.3],
+            "fiftyDayAverage": [672.5, 622.3],
+            "twoHundredDayAverage": [607.2, 566.5],
+            "pe": [31.5, 37.6],
+            "fx_action": ["BUY NOW", "BUY ON TRIGGER"],
+            "fx_state": ["GO", "SETUP"],
+            "fx_supply": ["CLEAN AIR", "NEAR OVERHANG"],
+            "fx_signature": ["ABSORPTION", "NEUTRAL"],
+            "fx_shakeout": [False, False],
+            "fx_adx": [38.7, 19.8],
+            "fx_rsi": [66.0, 52.0],
+            "fx_entry": [749.3, 687.1],
+            "fx_stop": [658.9, 594.9],
+            "fx_half_size": [True, True],
+        }
+    )
+    board = pd.DataFrame(
+        {
+            "industry": ["Auto Components"],
+            "group": ["LEADING"],
+            "status": ["UPTREND"],
+            "score": [87.0],
+        }
+    )
+    val = pd.DataFrame(
+        {
+            "status": ["OK", "OK"],
+            "cmp_pct": [36.0, 23.0],
+            "p50": [810.0, 790.0],
+            "rating": ["UNRATED (gate A)", "ACCUMULATE"],
+        },
+        index=["MINDACORP.NS", "ASKAUTOLTD.NS"],
+    )
+
+    T = funnel.table(synth_df, board=board, val=val)
+    for col in ("dist_stop_pct", "dist_ma50", "trigger_gap_pct", "fx_supply", "fx_adx", "simba_mtf", "pe", "opm", "opm_chg"):
+        assert col in T.columns
+
+    assert len(funnel_view._ind_labels(T)) == 2
+    assert "⭐ ABSORPTION" in funnel_view._supply_labels(T)[0]
+    assert "ADX 39" in funnel_view._trend_labels(T)[0]
+
+    cmp_res = stock_compare.build_comparison(["MINDACORP", "ASKAUTOLTD.NS"], synth_df, board=board, val=val)
+    mat = cmp_res["matrix"]
+    assert list(mat.columns) == ["Metric", "MINDACORP", "ASKAUTOLTD", "Advantage"]
+    assert len(mat) == 10
+    adv_by_metric = dict(zip(mat["Metric"], mat["Advantage"]))
+    assert adv_by_metric["Funnel Stages"] == "MINDACORP"
+    assert adv_by_metric["Scanner Momentum"] == "MINDACORP"
+    assert adv_by_metric["Technicals v6 Action"] == "MINDACORP"
+    assert adv_by_metric["Entry & Trigger Gap"] == "MINDACORP"
+    assert adv_by_metric["Trend Strength"] == "MINDACORP"
+    assert adv_by_metric["Trailing P/E"] == "MINDACORP"
+    assert adv_by_metric["Business & Valuation v4.1"] == "ASKAUTOLTD"
+    assert cmp_res["swing_winner"]["bare"] == "MINDACORP"
+    assert cmp_res["garp_winner"]["bare"] == "ASKAUTOLTD"

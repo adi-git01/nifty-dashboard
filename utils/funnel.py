@@ -89,16 +89,31 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     # 2 trend
     x["scanner"] = d["dna_signal"].fillna("").astype(str) if "dna_signal" in d.columns else ""
     x["stage"] = _num(d, "simba_stage")
-    x["comp_rs"], x["rs_3m"], x["dist_52w"] = _num(d, "comp_rs"), _num(d, "rs_3m"), _num(d, "dist_52w")
+    x["simba_mtf"] = _num(d, "simba_mtf")
+    x["comp_rs"], x["rs_1m"], x["rs_3m"], x["dist_52w"] = _num(d, "comp_rs"), _num(d, "rs_1m"), _num(d, "rs_3m"), _num(d, "dist_52w")
+    ma50, ma200 = _num(d, "fiftyDayAverage"), _num(d, "twoHundredDayAverage")
+    x["ma50"], x["ma200"] = ma50, ma200
+    x["dist_ma50"] = ((x.price / ma50 - 1.0) * 100.0).where((x.price > 0) & (ma50 > 0)).fillna(_num(d, "dist_ma50"))
+    x["dist_200dma"] = _num(d, "dist_200dma").fillna(((x.price / ma200 - 1.0) * 100.0).where((x.price > 0) & (ma200 > 0)))
+    x["pe"] = _num(d, "pe")
     x["s_trend"] = x.scanner.eq("BUY") & ~x.stage.isin([3, 4])
 
     # 4 setup
     x["technicals"] = d["fx_action"].fillna("").astype(str) if "fx_action" in d.columns else ""
+    x["fx_state"] = d["fx_state"].fillna("").astype(str) if "fx_state" in d.columns else ""
+    x["fx_supply"] = d["fx_supply"].fillna("").astype(str) if "fx_supply" in d.columns else ""
+    x["fx_signature"] = d["fx_signature"].fillna("").astype(str) if "fx_signature" in d.columns else ""
+    _as_b = lambda v: v is True or str(v).strip().lower() in ("true", "1", "yes")
+    x["fx_shakeout"] = d["fx_shakeout"].map(_as_b) if "fx_shakeout" in d.columns else False
+    x["fx_adx"], x["fx_rsi"] = _num(d, "fx_adx"), _num(d, "fx_rsi")
     m, si = _num(d, "simba_m_since"), _num(d, "simba_si_since")
     x["simba_days"] = pd.concat([m, si], axis=1).min(axis=1)
     x["stop"], x["stop_pct"], x["t1"], x["t2"] = _num(d, "fx_stop"), _num(d, "fx_stop_pct"), _num(d, "fx_t1"), _num(d, "fx_t2")
     x["entry"] = _num(d, "fx_entry").fillna(x.price) if "fx_entry" in d else x.price      # the trigger for BUY ON TRIGGER
+    x["dist_stop_pct"] = ((x.price - x.stop) / x.price * 100.0).where((x.price > 0) & (x.stop > 0))
+    x["trigger_gap_pct"] = ((x.entry / x.price - 1.0) * 100.0).where((x.price > 0) & (x.entry > 0))
     x["risk_pct"] = ((x.entry - x.stop) / x.entry * 100).where((x.stop > 0) & (x.entry > 0) & (x.price > 0) & (x.stop < x.entry) & (x.stop < x.price))
+    x["fx_half_size"] = d["fx_half_size"].map(_as_b) if "fx_half_size" in d.columns else (x["risk_pct"] > 10.0)
     x["t1"] = x["t1"].where(x["t1"] > x.entry).fillna(x.entry + 2 * (x.entry - x.stop)).where(x.risk_pct.notna())
     x["signal"] = x.technicals.isin(["BUY NOW", "BUY ON TRIGGER"]) | ((x.simba_days >= 0) & (x.simba_days <= SETUP_DAYS))
     x["s_setup"] = x.signal & (x.risk_pct <= MAX_RISK_PCT)
@@ -149,10 +164,17 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["s_business"], x["biz_verdict"], x["biz_flags"], x["quarter"] = np.nan, "", "", ""
     x["biz_score"], x["biz_headline"] = np.nan, ""
     x["sales_yoy"], x["np_yoy"], x["roce"] = np.nan, np.nan, np.nan
+    x["opm"], x["opm_chg"] = np.nan, np.nan
     x["s_business"] = x["s_business"].astype(object)
+    try:
+        opm_lookup = fund_trends.q_opm_map() if todo else {}
+    except Exception:
+        opm_lookup = {}
     for i, t in zip(x.index, x.ticker):
         if t not in todo:
             continue
+        if t in opm_lookup:
+            x.at[i, "opm"], x.at[i, "opm_chg"] = opm_lookup[t]
         try:
             b = fund_trends.brief(t)
         except Exception:
@@ -187,21 +209,30 @@ def run(T: pd.DataFrame, on: Iterable[str] = DEFAULT_ON) -> Dict[str, Any]:
 def checklist(row: pd.Series) -> List[Dict[str, Any]]:
     """The funnel as a per-stock checklist (for the stock report)."""
     f = lambda v, fmt="{:.0f}": "—" if pd.isna(v) else fmt.format(v)
+    s_txt = lambda v: "" if v is None or pd.isna(v) or str(v).strip() in ("", "nan", "None") else str(v).strip()
+    ind_g = s_txt(row.get("ind_group")).title()
+    ind_st = s_txt(row.get("ind_status")).title()
+    biz_v = s_txt(row.get("biz_verdict"))
+    biz_h = s_txt(row.get("biz_headline"))
+    biz_f = s_txt(row.get("biz_flags"))
+    qtr = s_txt(row.get("quarter"))
+    scan = s_txt(row.get("scanner"))
+    tech = s_txt(row.get("technicals"))
     out = [
         dict(stage="🏭 Industry", ok=bool(row.s_industry),
-             why=f"{row.industry or 'Unclassified'}: {row.ind_group.title() or '—'}, {row.ind_status.title() or '—'}, score {f(row.ind_score)}"),
+             why=f"{s_txt(row.get('industry')) or 'Unclassified'}: {ind_g or '—'}, {ind_st or '—'}, score {f(row.ind_score)}"),
         dict(stage="🌊 Trend", ok=bool(row.s_trend),
-             why=f"Scanner {row.scanner or '—'}, chart stage {f(row.stage)}, RS {f(row.comp_rs, '{:+.1f}')}, {f(row.dist_52w)}% from 52-week high"),
+             why=f"Scanner {scan or '—'}, chart stage {f(row.stage)}, RS {f(row.comp_rs, '{:+.1f}')}, {f(row.dist_52w)}% from 52-week high"),
         dict(stage="🏢 Business", ok=None if pd.isna(row.s_business) else bool(row.s_business),
-             why=(f"{row.biz_headline or row.biz_verdict.title()}" + (f"; flags: {row.biz_flags}" if row.biz_flags else "")
-                  + (f"; {row.quarter}: sales {f(row.sales_yoy, '{:+.0f}')}%, profit {f(row.np_yoy, '{:+.0f}')}% YoY" if row.quarter else ""))
-             if row.biz_verdict else "Not evaluated"),
+             why=(f"{biz_h or biz_v.title()}" + (f"; flags: {biz_f}" if biz_f else "")
+                  + (f"; {qtr}: sales {f(row.sales_yoy, '{:+.0f}')}%, profit {f(row.np_yoy, '{:+.0f}')}% YoY" if qtr else ""))
+             if biz_v else "Not evaluated"),
         dict(stage="🎯 Setup", ok=bool(row.s_setup),
-             why=f"Technicals {row.technicals or '—'}" + (f"; SIMBA signal {f(row.simba_days)} session(s) ago" if pd.notna(row.simba_days) else "")
+             why=f"Technicals {tech or '—'}" + (f"; SIMBA signal {f(row.simba_days)} session(s) ago" if pd.notna(row.simba_days) else "")
              + (f"; stop {f(row.risk_pct, '{:.1f}')}% away" + (" — too wide" if row.signal and row.risk_pct > MAX_RISK_PCT else "")
                 if pd.notna(row.risk_pct) else "; no valid stop")),
         dict(stage="💰 Value", ok=None if pd.isna(row.val_pct) else bool(row.s_value),
              why="Not valued by the model" if pd.isna(row.val_pct) else
-             f"Price at the {f(row.val_pct)}th percentile of the value range; mid value ₹{f(row.val_p50, '{:,.0f}')} ({f(row.val_upside, '{:+.0f}')}%); {row.val_rating}"),
+             f"Price at the {f(row.val_pct)}th percentile of the value range; mid value ₹{f(row.val_p50, '{:,.0f}')} ({f(row.val_upside, '{:+.0f}')}%); {s_txt(row.get('val_rating'))}"),
     ]
     return out

@@ -37,7 +37,10 @@ def load() -> pd.DataFrame:
 def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] = None, val: Optional[pd.DataFrame] = None,
            save: bool = True):
     """Add today's new passes and near misses, refresh last_seen / active. Returns (log, new rows)."""
-    snap = pd.Timestamp(snap).normalize()
+    snap = pd.Timestamp(snap)
+    if getattr(snap, "tzinfo", None) is not None:
+        snap = snap.tz_localize(None)
+    snap = snap.normalize()
     if board is None:
         board = industry_board.board(df, industry_board.month_ago_snapshot(current_df=df))
     R = funnel.run(funnel.table(df, board, funnel.load_valuation() if val is None else val))
@@ -47,10 +50,12 @@ def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] =
     for r in today.itertuples():
         prior = log[(log.ticker == r.ticker) & (log.kind == r.kind)]
         last_dt = pd.to_datetime(prior.last_seen, errors="coerce") if len(prior) else pd.Series(dtype="datetime64[ns]")
+        first_dt = pd.to_datetime(prior.first_seen, errors="coerce") if len(prior) else pd.Series(dtype="datetime64[ns]")
         if last_dt.notna().any():
             j = last_dt.idxmax()
             last_seen = pd.Timestamp(last_dt.loc[j])
-            if (snap - last_seen).days <= REENTRY_DAYS:
+            first_seen = pd.Timestamp(first_dt.loc[j]) if pd.notna(first_dt.loc[j]) else last_seen
+            if first_seen - pd.Timedelta(days=REENTRY_DAYS) <= snap <= last_seen + pd.Timedelta(days=REENTRY_DAYS):
                 if snap >= last_seen:
                     log.loc[j, "last_seen"] = snap
                     if r.kind == "NEAR":
@@ -63,8 +68,10 @@ def update(df: pd.DataFrame, snap: pd.Timestamp, board: Optional[pd.DataFrame] =
     if len(new):
         log = new if log.empty else pd.concat([log, new], ignore_index=True)
     if len(log):
-        latest_seen = max(snap, pd.to_datetime(log.last_seen, errors="coerce").max())
-        log["active"] = pd.to_datetime(log.last_seen, errors="coerce") >= latest_seen
+        ls_col = pd.to_datetime(log.last_seen, errors="coerce")
+        max_ls = ls_col.max()
+        latest_seen = max(snap, max_ls) if pd.notna(max_ls) else snap
+        log["active"] = ls_col >= latest_seen
         log = log.sort_values(["first_seen", "kind", "ticker"], ascending=[False, False, True]).reset_index(drop=True)
     if save:
         os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
