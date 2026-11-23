@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "backfill = fetch history; compare = NSE vs Yahoo report; both; tradingview = NSE vs TradingView report"
+        description: "backfill = fetch history; compare = NSE vs Yahoo report; both; tradingview = NSE vs TradingView report; context = back-fill FII index-futures positioning"
         type: choice
-        options: [both, backfill, compare, tradingview]
+        options: [both, backfill, compare, tradingview, context]
         default: both
       years:
         description: "Years of history to back-fill"
@@ -54,3 +54,9 @@ jobs:
       - name: Commit the TradingView report
         if: inputs.mode == 'tradingview'
         run: bash scripts/commit_and_push.sh "NSE vs TradingView report" analysis/NSE_VS_TRADINGVIEW.md analysis/nse_vs_tradingview.csv
+      - name: Back-fill FII index-futures positioning
+        if: inputs.mode == 'context'
+        run: python scripts/nse_context_backfill.py --days 760 2>&1 | tee ctx_output.txt
+      - name: Commit the market context
+        if: inputs.mode == 'context'
+        run: bash scripts/commit_and_push.sh "NSE market context back-fill" data/nse/market_context.csv
