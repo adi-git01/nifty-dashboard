@@ -319,6 +319,11 @@ def update_signal_log(today_df: pd.DataFrame, bulk, today_str: str) -> None:
 
     log = (pd.read_csv(LOG_CSV) if os.path.exists(LOG_CSV)
            else pd.DataFrame(columns=_LOG_COLS))
+    # date / text columns that are all blank read back as float64; pandas 3 refuses to put a string into them
+    for c in log.columns:
+        if (c.endswith("_date") or c.endswith("_tier") or c in ("status", "cycle", "name", "sub_industry")) \
+                and log[c].dtype != object:
+            log[c] = log[c].astype(object)
 
     existing = set(log["ticker"].tolist()) if not log.empty else set()
     today_map: dict[str, dict] = (

@@ -40,6 +40,7 @@ DEFAULT_ON = ("industry", "trend", "business", "setup")
 VALUE_MAX_PCT = 70
 SETUP_DAYS = 5
 MAX_RISK_PCT = 15         # a stop further away than this is not a tradable entry (SIMBA hard gate)
+LENDER_INDUSTRIES = {"Banks", "Finance"}  # operating margin from sales is meaningless for lenders
 WHAT = {
     "industry": "Sub-industry is Leading / Improving on the leadership board, or in an Uptrend / Turning up (excluding Weakening groups)",
     "trend": "Trend Scanner BUY (RS > 0, above 50-day, liquid) and not a Stage 3 / 4 chart",
@@ -173,7 +174,7 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     for i, t in zip(x.index, x.ticker):
         if t not in todo:
             continue
-        if t in opm_lookup:
+        if t in opm_lookup and str(x.at[i, "industry"]) not in LENDER_INDUSTRIES:
             x.at[i, "opm"], x.at[i, "opm_chg"] = opm_lookup[t]
         try:
             b = fund_trends.brief(t)

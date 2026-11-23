@@ -250,6 +250,7 @@ def render(df: pd.DataFrame):
             )
             if c_btn.button("⚖️ Open in Compare Stocks", key="fn_cmp_go", use_container_width=True) and len(sel_cmp) >= 2:
                 st.session_state["compare_tickers"] = sel_cmp
+                st.session_state["cmp_multi_tickers"] = list(sel_cmp)   # the Compare page's widget keeps its own state
                 st.session_state["nav_page"] = "⚖️ Compare Stocks"
                 st.rerun()
             if len(sel_cmp) >= 2:

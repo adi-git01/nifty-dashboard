@@ -61,6 +61,16 @@ def _num(v: Any) -> float:
         return np.nan
 
 
+def _ok(v: Any) -> bool:
+    """A stage flag: True only for a real pass (NaN = not evaluated, which bool() would call True)."""
+    if v is None or (isinstance(v, float) and np.isnan(v)):
+        return False
+    try:
+        return bool(pd.notna(v) and v)
+    except Exception:
+        return False
+
+
 def _pick_advantage(bares: List[str], scores: List[float], min_margin: float = 1e-6) -> str:
     """Return the bare ticker with the highest finite score, or 'Tie' / '—'."""
     valid = [(b, s) for b, s in zip(bares, scores) if np.isfinite(s)]
@@ -80,8 +90,7 @@ def _fmt_funnel_stages(r: pd.Series) -> tuple[str, float]:
     passed = 0
     failed_labels: List[str] = []
     for col, label in STAGE_META:
-        ok = r.get(col)
-        if ok is True or (pd.notna(ok) and bool(ok)):
+        if _ok(r.get(col)):
             passed += 1
         else:
             short = label.split(" ", 1)[-1]
@@ -93,7 +102,7 @@ def _fmt_funnel_stages(r: pd.Series) -> tuple[str, float]:
                 failed_labels.append(f"{short}: {tc}")
             else:
                 failed_labels.append(short)
-    core4 = sum(1 for col, _ in STAGE_META[:4] if r.get(col) is True or (pd.notna(r.get(col)) and bool(r.get(col))))
+    core4 = sum(1 for col, _ in STAGE_META[:4] if _ok(r.get(col)))
     if passed == 5:
         cell = "5 / 5 PASS ✅"
     elif core4 == 4:
@@ -102,8 +111,16 @@ def _fmt_funnel_stages(r: pd.Series) -> tuple[str, float]:
         cell = f"{passed} / 5 (Fails {', '.join(failed_labels)})"
     comp_rs = _num(r.get("comp_rs"))
     tie = (comp_rs if np.isfinite(comp_rs) else -99.0) * 1e-3
-    score = passed * 10.0 + core4 * 5.0 + (3.0 if bool(r.get("s_trend")) and bool(r.get("s_setup")) else 0.0) + tie
+    score = passed * 10.0 + core4 * 5.0 + (3.0 if _ok(r.get("s_trend")) and _ok(r.get("s_setup")) else 0.0) + tie
     return cell, score
+
+
+def _swing_stages(r: pd.Series) -> float:
+    """The four momentum stages only: valuation is kept out of the swing sleeve (analysis/SIGNAL_REPLAY.md)."""
+    core4 = sum(1 for col, _ in STAGE_META[:4] if _ok(r.get(col)))
+    comp_rs = _num(r.get("comp_rs"))
+    return core4 * 15.0 + (3.0 if _ok(r.get("s_trend")) and _ok(r.get("s_setup")) else 0.0) + \
+        (comp_rs if np.isfinite(comp_rs) else -99.0) * 1e-3
 
 
 def _fmt_industry(r: pd.Series) -> tuple[str, float]:
@@ -114,7 +131,7 @@ def _fmt_industry(r: pd.Series) -> tuple[str, float]:
     sc_txt = f" {sc:.0f}" if np.isfinite(sc) else ""
     st_txt = f" ({st})" if st else ""
     cell = f"{ind} · {grp}{sc_txt}{st_txt}"
-    score = (sc if np.isfinite(sc) else 0.0) + (5.0 if bool(r.get("s_industry")) else -10.0)
+    score = (sc if np.isfinite(sc) else 0.0) + (5.0 if _ok(r.get("s_industry")) else -10.0)
     return cell, score
 
 
@@ -156,8 +173,11 @@ def _fmt_technicals(r: pd.Series) -> tuple[str, float]:
         bits.append(f"SIMBA {int(sd)}d")
     cell = " · ".join(bits)
     act_pts = {"BUY NOW": 100.0, "BUY ON TRIGGER": 70.0, "HOLD": 35.0, "WAIT": 20.0, "AVOID": 0.0}.get(act.upper(), 15.0)
-    sup_pts = {"CLEAN AIR": 20.0, "NEAR OVERHANG": 5.0, "AT CEILING": -10.0, "OVERHEAD SUPPLY": -15.0}.get(sup.upper(), 0.0)
-    sig_pts = 12.0 if sig == "ABSORPTION" else (-10.0 if sig == "DISTRIBUTION" else 0.0)
+    # the labels utils/forensics.supply_at() actually emits. NEAR OVERHANG drags 1-3 months, then catches up
+    # (analysis/FORENSICS_VERDICT.md); INSIDE shelf = price within a volume shelf ("absorption zone"), not overhead
+    sup_pts = {"CLEAN AIR": 20.0, "FAR OVERHANG": 10.0, "INSIDE SHELF": 5.0, "NEAR OVERHANG": -5.0}.get(sup.upper(), 0.0)
+    # DISTRIBUTION is NOT a warning in the 10-year study (no worse than Gate 1), so it is not penalised
+    sig_pts = 12.0 if sig == "ABSORPTION" else 0.0
     shk_pts = 6.0 if shk else 0.0
     score = act_pts + sup_pts + sig_pts + shk_pts
     return cell, score
@@ -322,7 +342,7 @@ def _compute_winners(T: pd.DataFrame, bares: List[str]) -> tuple[Dict[str, Any],
     garp_scores: List[tuple[str, str, float, str]] = []
     for t, b in zip(T.index, bares):
         r = T.loc[t]
-        _, s_fun = _fmt_funnel_stages(r)
+        s_fun = _swing_stages(r)
         _, s_ind = _fmt_industry(r)
         _, s_scn = _fmt_scanner(r)
         _, s_tec = _fmt_technicals(r)
@@ -361,8 +381,8 @@ def _compute_winners(T: pd.DataFrame, bares: List[str]) -> tuple[Dict[str, Any],
             s_bvl * 1.6
             + max(s_qtr, -50.0) * 0.5
             + pe_pts
-            + (15.0 if bool(r.get("s_business")) else -20.0)
-            + (15.0 if bool(r.get("s_value")) else -10.0)
+            + (15.0 if _ok(r.get("s_business")) else -20.0)
+            + (15.0 if _ok(r.get("s_value")) else -10.0)
             + s_ind * 0.25
         )
         bsc = _num(r.get("biz_score"))
@@ -393,7 +413,7 @@ def build_comparison(
     val: Optional[pd.DataFrame] = None,
 ) -> Dict[str, Any]:
     """
-    Build the 10-row side-by-head Decision Matrix across 2-4 stocks plus Swing & GARP winner cards.
+    Build the 10-row side-by-side Decision Matrix across 2-4 stocks plus Swing & GARP winner cards.
     Uses the same underlying funnel.table() pipeline as Investment Funnel and Stock Report.
     """
     if df is None or df.empty or "ticker" not in df.columns:

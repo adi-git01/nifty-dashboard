@@ -625,3 +625,39 @@ def test_unified_funnel_and_stock_compare():
     assert adv_by_metric["Business & Valuation v4.1"] == "ASKAUTOLTD"
     assert cmp_res["swing_winner"]["bare"] == "MINDACORP"
     assert cmp_res["garp_winner"]["bare"] == "ASKAUTOLTD"
+
+
+def test_compare_scoring_follows_the_evidence():
+    """PR 161 audit: DISTRIBUTION is not penalised, real supply labels are scored, NaN stages are not passes,
+    and the swing score ignores valuation."""
+    import numpy as np
+    import pandas as pd
+    from utils import stock_compare as sc
+    base = dict(technicals="BUY NOW", fx_state="GO", fx_supply="CLEAN AIR", fx_signature="NEUTRAL", fx_shakeout=False)
+    _, neutral = sc._fmt_technicals(pd.Series(base))
+    _, dist = sc._fmt_technicals(pd.Series({**base, "fx_signature": "DISTRIBUTION"}))
+    _, absn = sc._fmt_technicals(pd.Series({**base, "fx_signature": "ABSORPTION"}))
+    assert dist == neutral and absn > neutral
+    pts = {lab: sc._fmt_technicals(pd.Series({**base, "fx_supply": lab}))[1]
+           for lab in ("CLEAN AIR", "FAR OVERHANG", "INSIDE shelf", "NEAR OVERHANG")}
+    assert pts["CLEAN AIR"] > pts["FAR OVERHANG"] > pts["INSIDE shelf"] > pts["NEAR OVERHANG"]
+    assert sc._ok(np.nan) is False and sc._ok(True) is True and sc._ok(False) is False
+    row = dict(s_industry=True, s_trend=True, s_business=True, s_setup=True, comp_rs=5.0)
+    assert sc._swing_stages(pd.Series({**row, "s_value": True})) == sc._swing_stages(pd.Series({**row, "s_value": False}))
+    cell, _ = sc._fmt_funnel_stages(pd.Series({**row, "s_business": np.nan, "s_value": True}))
+    assert cell.startswith("4 / 5")
+
+
+def test_opm_hidden_for_lenders_and_bounded(tmp_path, monkeypatch):
+    import pandas as pd
+    from utils import fund_trends
+    q = pd.DataFrame({"ticker": ["AAA.NS"] * 4 + ["BBB.NS"] * 2,
+                      "field": ["op", "sales", "op", "sales", "op", "sales"],
+                      "period": ["2025-09-30", "2025-09-30", "2026-09-30", "2026-09-30", "2026-09-30", "2026-09-30"],
+                      "value": [10, 100, 15, 100, -500, 1]})
+    q["period"] = pd.to_datetime(q["period"])
+    monkeypatch.setattr(fund_trends, "_data", lambda root=".": ({}, {t: g for t, g in q.groupby("ticker")}))
+    m = fund_trends._q_opm_map("x", 1.0)
+    assert m["AAA.NS"] == (15.0, 5.0) and "BBB.NS" not in m          # -50,000% margin dropped
+    from utils import funnel
+    assert {"Banks", "Finance"} <= funnel.LENDER_INDUSTRIES
