@@ -746,32 +746,31 @@ def brief(ticker: str, root: str = ".") -> Dict[str, Any]:
 def _q_opm_map(root: str, stamp: float) -> Dict[str, tuple[float, float]]:
     """Fast map of ticker -> (latest_opm_pct, yoy_opm_delta_pp) across all quarterly filings."""
     _, Q = _data(root)
+    if not Q:
+        return {}
+    L = pd.concat(Q.values(), ignore_index=True)
+    L = L[L["field"].isin(["op", "sales", "opm"]) & L["period"].dt.month.isin([3, 6, 9, 12])]
+    if L.empty:
+        return {}
+    W = L.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
+    W = W.apply(pd.to_numeric, errors="coerce").sort_index()
+    opm = pd.Series(np.nan, index=W.index)
+    if {"op", "sales"} <= set(W.columns):
+        opm = W["op"] / W["sales"].where(W["sales"] > 0) * 100.0
+    if "opm" in W.columns:                      # older layout: the margin itself
+        opm = opm.fillna(W["opm"])
+    opm = opm[opm.abs() <= 100].dropna()       # beyond ±100% the "margin" is a near-zero-sales artefact
     out: Dict[str, tuple[float, float]] = {}
-    for tk, g in Q.items():
-        w = g.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
-        w = w[w.index.month.isin([3, 6, 9, 12])]
-        if w.empty:
-            continue
-        if "op" in w and "sales" in w:
-            s_op = pd.to_numeric(w["op"], errors="coerce")
-            s_sa = pd.to_numeric(w["sales"], errors="coerce")
-            opm_s = (s_op / s_sa.where(s_sa > 0) * 100.0).dropna()
-        elif "opm" in w:
-            opm_s = pd.to_numeric(w["opm"], errors="coerce").dropna()
-        else:
-            continue
-        if opm_s.empty:
-            continue
-        opm_now = float(opm_s.iloc[-1])
-        dt_now = opm_s.index[-1]
+    for tk, g in opm.groupby(level=0):
+        g = g.droplevel(0)
+        opm_now, dt_now = float(g.iloc[-1]), g.index[-1]
         opm_chg = np.nan
-        if len(opm_s) >= 2:
-            target = dt_now - pd.DateOffset(years=1)
-            prev_idx = opm_s.index[:-1]
-            diffs = np.abs((prev_idx - target).days)
+        if len(g) >= 2:                          # the same quarter a year earlier, within 45 days
+            prev_idx = g.index[:-1]
+            diffs = np.abs((prev_idx - (dt_now - pd.DateOffset(years=1))).days)
             j = int(np.argmin(diffs))
             if diffs[j] <= 45:
-                opm_chg = opm_now - float(opm_s.iloc[j])
+                opm_chg = opm_now - float(g.iloc[j])
         full_tk = tk if str(tk).endswith(".NS") else f"{tk}.NS"
         out[full_tk] = (round(opm_now, 1), round(opm_chg, 1) if np.isfinite(opm_chg) else np.nan)
     return out
