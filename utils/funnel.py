@@ -171,6 +171,23 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
         opm_lookup = fund_trends.q_opm_map() if todo else {}
     except Exception:
         opm_lookup = {}
+    # institutional holding change (FII + DII, quarterly filings): context and a filter, never a stage
+    try:
+        inst = fund_trends.inst_map()
+    except Exception:
+        inst = {}
+    g_inst = lambda t, k: inst.get(t, {}).get(k, np.nan)
+    x["inst_label"] = [inst.get(t, {}).get("label", "") for t in x.ticker]
+    x["inst_q"] = [g_inst(t, "d_inst_q") for t in x.ticker]
+    x["inst_y"] = [g_inst(t, "d_inst_y") for t in x.ticker]
+    x["fii_pct"] = [g_inst(t, "fii") for t in x.ticker]
+    x["dii_pct"] = [g_inst(t, "dii") for t in x.ticker]
+    try:
+        from utils import nse_data
+        deals = nse_data.deal_tally(90)
+    except Exception:
+        deals = {}
+    x["deal_inst_cr"] = [deals[t]["inst"] if t in deals else np.nan for t in x.ticker]
     for i, t in zip(x.index, x.ticker):
         if t not in todo:
             continue

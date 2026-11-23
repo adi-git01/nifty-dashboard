@@ -425,6 +425,13 @@ def build_delivery_20d(n: int = 20, path: str = DELIV_20D) -> pd.DataFrame:
     return piv
 
 
+def _with_old_names(piv: pd.DataFrame) -> pd.DataFrame:
+    """Also serve each renamed stock under its old SYMBOL.NS column (one concat, not hundreds of inserts)."""
+    extra = {f"{o}.NS": piv[f"{n}.NS"] for o, n in _rename_aliases().items()
+             if f"{o}.NS" not in piv.columns and f"{n}.NS" in piv.columns}
+    return pd.concat([piv, pd.DataFrame(extra, index=piv.index)], axis=1) if extra else piv
+
+
 def delivery_panel(n: int = 20) -> pd.DataFrame:
     """Last n sessions of delivery %: index date, columns SYMBOL.NS. Prefers prebuilt delivery_20d.parquet."""
     if n <= 20 and os.path.exists(DELIV_20D):
@@ -435,22 +442,13 @@ def delivery_panel(n: int = 20) -> pd.DataFrame:
             from utils import nse_prices
             last_px = nse_prices.last_date("stocks")
             if len(piv) and (last_px is None or piv.index.max().normalize() >= last_px.normalize()):
-                piv = piv.tail(n).copy()
-                for old_s, new_s in _rename_aliases().items():
-                    ot, nt = f"{old_s}.NS", f"{new_s}.NS"
-                    if ot not in piv.columns and nt in piv.columns:
-                        piv[ot] = piv[nt]
-                return piv
+                return _with_old_names(piv.tail(n).copy())
         except Exception:
             pass
     try:
         piv = _delivery_pivot_from_parquets(n)
         if len(piv):
-            for old_s, new_s in _rename_aliases().items():
-                ot, nt = f"{old_s}.NS", f"{new_s}.NS"
-                if ot not in piv.columns and nt in piv.columns:
-                    piv[ot] = piv[nt]
-            return piv
+            return _with_old_names(piv)
     except Exception:
         pass
     files = sorted(glob.glob(os.path.join(DIR, "eod_*.csv.gz")))[-n:]
@@ -535,6 +533,58 @@ def deals_for(tickers=None, days: int = 5) -> pd.DataFrame:
         d = d[d.ticker.isin(want)]
     d["value_cr"] = d.qty * d.price / 1e7
     return d.sort_values(["date", "value_cr"], ascending=[False, False])
+
+
+# Bulk / block deal client buckets, by name. Order matters: an insurer's or an AMC's name often also says "fund".
+_DEAL_INS = re.compile(r"INSURANCE|ASSURANCE|\bLIC\b|LIFE INS", re.I)
+_DEAL_MF = re.compile(r"MUTUAL FUND|\bMF\b|ASSET MANAGEMENT|\bAMC\b|TRUSTEE", re.I)
+_DEAL_FII = re.compile(
+    r"\bPTE\.?\b|\bLLC\b|\bL\.?P\.?$|\bPLC\b|\bICAV\b|\bSICAV\b|\bINC\.?$|\bS\.?A\.?$|\bGMBH\b|\bN\.?V\.?$|"
+    r"MAURITIUS|SINGAPORE|CAYMAN|LUXEMBOURG|IRELAND|\(UK\)|HONG KONG|\bDIFC\b|"
+    r"MORGAN STANLEY|GOLDMAN SACHS|SOCIETE GENERALE|BNP PARIBAS|CITIGROUP|MERRILL LYNCH|BOFA|JPMORGAN|J\.?P\.? MORGAN|"
+    r"NOMURA|UBS|CLSA|BARCLAYS|HSBC GLOBAL|VANGUARD|ISHARES|BLACKROCK|FIDELITY|GOVERNMENT PENSION|ABU DHABI|"
+    r"GOVERNMENT OF SINGAPORE|MONETARY AUTHORITY|NORGES|ELARA INDIA OPPORTUNITIES|COPTHALL|NEXPACT|ZINNIA|"
+    r"FOREIGN PORTFOLIO|\bFPI\b|\bFII\b", re.I)
+DEAL_KINDS = ("FII", "MF", "Insurance", "Other")
+
+
+def deal_kind(client: str) -> str:
+    """FII / MF / Insurance / Other from the client name on an NSE bulk or block deal (pattern match, best effort)."""
+    c = str(client or "")
+    if _DEAL_INS.search(c):
+        return "Insurance"
+    if _DEAL_MF.search(c):
+        return "MF"
+    if _DEAL_FII.search(c):
+        return "FII"
+    return "Other"
+
+
+def deal_tally(days: int = 90, d: Optional[pd.DataFrame] = None) -> Dict[str, dict]:
+    """Per ticker, net value (buy - sell, Rs cr) of bulk + block deals over the last `days` calendar days, by client bucket.
+
+    Returns {ticker: dict(net, inst, FII, MF, Insurance, Other, n, since, last)}. `inst` = FII + MF + Insurance.
+    The window ends on the newest deal date in the file (a session date, never the wall clock)."""
+    if d is None:
+        d = _read(F["deals"], ["date"])
+    if d is None or d.empty:
+        return {}
+    d = d[d.date >= d.date.max() - pd.Timedelta(days=days)].copy()
+    d["kind_c"] = d.client.map(deal_kind)
+    sign = d.side.astype(str).str.upper().str.strip().map({"BUY": 1.0, "SELL": -1.0}).fillna(0.0)
+    d["v"] = sign * pd.to_numeric(d.qty, errors="coerce").fillna(0) * pd.to_numeric(d.price, errors="coerce").fillna(0) / 1e7
+    d["ticker"] = d.symbol.astype(str).str.strip() + ".NS"   # deals carry the symbol in force on the deal date
+    piv = d.pivot_table(index="ticker", columns="kind_c", values="v", aggfunc="sum", fill_value=0.0)
+    piv = piv.reindex(columns=list(DEAL_KINDS), fill_value=0.0)
+    n = d.groupby("ticker").size()
+    since, last = d.date.min(), d.date.max()
+    out = {}
+    for t, r in piv.iterrows():
+        e = {k: round(float(r[k]), 2) for k in DEAL_KINDS}
+        e.update(net=round(float(r.sum()), 2), inst=round(float(r["FII"] + r["MF"] + r["Insurance"]), 2),
+                 n=int(n.get(t, 0)), since=since, last=last)
+        out[t] = e
+    return out
 
 
 def market_context() -> pd.DataFrame:
