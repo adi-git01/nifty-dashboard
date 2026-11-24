@@ -54,8 +54,11 @@ def nifty_regime(nc: pd.Series) -> dict:
     if len(nc) < 200:
         return {"regime": "UNKNOWN"}
     ma200 = nc.rolling(200, min_periods=150).mean()
-    hi = nc.rolling(252, min_periods=150).max()
-    c, m, h = float(nc.iloc[-1]), float(ma200.iloc[-1]), float(hi.iloc[-1])
+    if isinstance(nc.index, pd.DatetimeIndex):
+        h = float(nc[nc.index > nc.index[-1] - pd.Timedelta(days=365)].max())
+    else:
+        h = float(nc.tail(252).max())
+    c, m = float(nc.iloc[-1]), float(ma200.iloc[-1])
     dd = c / h - 1
     slope = m / float(ma200.iloc[-21]) - 1 if len(ma200.dropna()) > 21 else np.nan
     if dd <= -0.15 and c < m:
@@ -92,6 +95,8 @@ def breadth_regime(df: pd.DataFrame) -> dict:
 
 def engine_mode(nifty_df: pd.DataFrame) -> dict:
     from utils.regime_manager import classify_regime, get_regime_params
+    if nifty_df is None or getattr(nifty_df, "empty", True) or "Close" not in nifty_df.columns or "High" not in nifty_df.columns:
+        return {"mode": "CAUTION", **get_regime_params("CAUTION")}
     try:
         c = nifty_df["Close"]
         mode = classify_regime(float(c.iloc[-1]), float(c.rolling(200).mean().iloc[-1]),

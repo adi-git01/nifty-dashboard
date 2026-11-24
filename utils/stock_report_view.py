@@ -1,6 +1,8 @@
 """📋 Stock Report page: the one-shot report (utils/stock_report.py)."""
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -89,9 +91,15 @@ def _extended_valuation(ticker: str, row: pd.Series, val: pd.DataFrame) -> pd.Da
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def _deal_tally() -> dict:
+def _deal_tally(_mtime: float) -> dict:
     from utils import nse_data
     return nse_data.deal_tally(90)
+
+
+def _deals_90d() -> dict:
+    from utils import nse_data
+    p = nse_data.F["deals"]
+    return _deal_tally(os.path.getmtime(p) if os.path.exists(p) else 0.0)
 
 
 def _chart_analysis(t: str):
@@ -133,7 +141,9 @@ def _chart_analysis(t: str):
             notes.append(f"**Pullback** · {sig.lower()}: down days {_p(r.get('dn_vs_med'), 2)}× median volume"
                          + (" ⭐ best backtested cell with GO" if sig == "ABSORPTION" else ""))
         if r.get("shakeout"):
-            notes.append(f"**🪤 Shakeout** · {pd.Timestamp(r['shakeout_date']):%d %b}: broke ₹{_p(r['shakeout_level'])} intraday, "
+            _sd = pd.to_datetime(r.get("shakeout_date"), errors="coerce")
+            _sd_txt = f"{_sd:%d %b}" if pd.notna(_sd) else "recent"
+            notes.append(f"**🪤 Shakeout** · {_sd_txt}: broke ₹{_p(r['shakeout_level'])} intraday, "
                          f"closed back above on {_p(r['shakeout_volx'], 2)}× volume")
         if np.isfinite(r.get("stop", np.nan)) and 0 < r["stop"] < r["close"]:
             notes.append(f"**Stop** · ₹{r['stop']:,.2f} ({-r['stop_pct']:.1f}%)" + (" · half size" if r.get("half_size") else ""))
@@ -327,7 +337,7 @@ def render(df: pd.DataFrame):
                        "so treat it as context. Only 12 quarters of filings: a tilt, not proof.")
         try:
             from utils import nse_data as _nd
-            dl = _deal_tally().get(t)
+            dl = _deals_90d().get(t)
         except Exception:
             dl = None
         if dl:

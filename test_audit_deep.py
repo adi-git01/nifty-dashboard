@@ -604,7 +604,7 @@ def test_unified_funnel_and_stock_compare():
     )
 
     T = funnel.table(synth_df, board=board, val=val)
-    for col in ("dist_stop_pct", "dist_ma50", "trigger_gap_pct", "fx_supply", "fx_adx", "simba_mtf", "pe", "opm", "opm_chg"):
+    for col in ("dist_stop_pct", "dist_ma50", "trigger_gap_pct", "fx_supply", "fx_adx", "simba_mtf", "pe", "opm", "opm_chg", "liq_cr", "prom_pct", "prom_q"):
         assert col in T.columns
 
     assert len(funnel_view._ind_labels(T)) == 2
@@ -614,8 +614,10 @@ def test_unified_funnel_and_stock_compare():
     cmp_res = stock_compare.build_comparison(["MINDACORP", "ASKAUTOLTD.NS"], synth_df, board=board, val=val)
     mat = cmp_res["matrix"]
     assert list(mat.columns) == ["Metric", "MINDACORP", "ASKAUTOLTD", "Advantage"]
-    assert len(mat) == 10
+    assert len(mat) == 12
     adv_by_metric = dict(zip(mat["Metric"], mat["Advantage"]))
+    assert "Institutions & Deals" in adv_by_metric
+    assert "Liquidity, Delivery & Flags" in adv_by_metric
     assert adv_by_metric["Funnel Stages"] == "MINDACORP"
     assert adv_by_metric["Scanner Momentum"] == "MINDACORP"
     assert adv_by_metric["Technicals v6 Action"] == "MINDACORP"
@@ -773,3 +775,78 @@ def test_52w_high_uses_365_calendar_days():
     assert idx[-251] <= idx[-1] - pd.Timedelta(days=365)
     yr = df[df.index > df.index[-1] - pd.Timedelta(days=365)]
     assert yr["High"].max() == 100.0 and df.iloc[-252:]["High"].max() == 200.0
+
+
+def test_pr162_to_165_audit_fixes(tmp_path, monkeypatch):
+    from utils import daily_brief_view as dbv, fund_trends as ft, nse_data as nd, regime_badge as rb, stock_compare as sc
+
+    # 1. inst_label must NOT label a stock as ACCUMULATING if institutions sold >= 0.5 pp this quarter
+    assert ft.inst_label(-2.0, 4.0) == "NEUTRAL"
+    assert ft.inst_label(0.2, 2.0) == "ACCUMULATING"
+    assert ft.inst_label(-0.5, -2.0) == "DISTRIBUTING"
+
+    # 2. _inst_map keeps single-side FII/DII filings, merges bare + .NS rows, and returns promoter deltas
+    rows = [
+        dict(ticker="ONLYFII", period=pd.Timestamp("2026-06-30"), field="fii", value=36.0),
+        dict(ticker="ONLYFII.NS", period=pd.Timestamp("2026-06-30"), field="promoters", value=52.0),
+        dict(ticker="ONLYFII.NS", period=pd.Timestamp("2026-09-30"), field="fii", value=36.84),
+        dict(ticker="ONLYFII", period=pd.Timestamp("2026-09-30"), field="promoters", value=53.5),
+    ]
+    monkeypatch.setattr(ft, "_data", lambda root=".": ({}, {"q": pd.DataFrame(rows)}))
+    ft._inst_map.cache_clear()
+    im = ft._inst_map("x", 1.0)
+    assert "ONLYFII.NS" in im
+    assert im["ONLYFII.NS"]["fii"] == pytest.approx(36.84)
+    assert pd.isna(im["ONLYFII.NS"]["dii"])
+    assert im["ONLYFII.NS"]["d_inst_q"] == pytest.approx(0.84)
+    assert im["ONLYFII.NS"]["d_prom_q"] == pytest.approx(1.5)
+    ft._inst_map.cache_clear()
+
+    # 3. deals_for & deal_tally: normalize symbols and resolve renames bidirectionally
+    deals_csv = tmp_path / "deals.csv"
+    pd.DataFrame(
+        {
+            "date": ["2026-11-20", "2026-11-20"],
+            "symbol": ["oldsym", "newsym"],
+            "client": ["SBI MUTUAL FUND", "GOLDMAN SACHS (SINGAPORE) PTE"],
+            "side": ["BUY", "BUY"],
+            "qty": [1_000_000, 500_000],
+            "price": [100.0, 100.0],
+            "kind": ["bulk", "block"],
+        }
+    ).to_csv(deals_csv, index=False)
+    monkeypatch.setitem(nd.F, "deals", str(deals_csv))
+    monkeypatch.setattr(nd, "_rename_aliases", lambda: {"OLDSYM": "NEWSYM"})
+    tally = nd.deal_tally(90)
+    assert tally["NEWSYM.NS"]["MF"] == pytest.approx(10.0)
+    assert tally["NEWSYM.NS"]["FII"] == pytest.approx(5.0)
+    assert tally["NEWSYM.NS"]["inst"] == pytest.approx(15.0)
+    assert tally["OLDSYM.NS"]["inst"] == pytest.approx(15.0)
+    assert len(nd.deals_for(["NEWSYM.NS"], days=90)) == 2
+    assert len(nd.deals_for(["OLDSYM.NS"], days=90)) == 2
+
+    # 4. regime_badge.nifty_regime uses 365 calendar days, ignoring stale highs > 365 days ago inside 252 rows
+    b = pd.bdate_range(end="2026-11-20", periods=300)
+    idx = b[[i % 20 != 7 for i in range(len(b))]]  # ~248 sessions/yr
+    nc = pd.Series(100.0, index=idx)
+    nc.iloc[-251] = 130.0  # > 365 days ago, inside last 252 rows
+    rg = rb.nifty_regime(nc)
+    assert rg["dd"] == pytest.approx(0.0)
+    assert rb.engine_mode(pd.DataFrame())["mode"] == "CAUTION"
+
+    # 5. stock_compare: WAIT scores above WATCH; new institutional & execution rows render cleanly
+    _, wait_pts = sc._fmt_technicals(pd.Series(dict(technicals="WAIT", fx_state="WAIT", fx_supply="CLEAN AIR")))
+    _, watch_pts = sc._fmt_technicals(pd.Series(dict(technicals="WATCH", fx_state="VETO", fx_supply="CLEAN AIR")))
+    assert wait_pts > watch_pts
+    inst_txt, inst_sc = sc._fmt_institutions(pd.Series(dict(inst_label="ACCUMULATING", inst_q=1.5, inst_y=3.0, fii_pct=12.0, dii_pct=8.0, deal_inst_cr=5.2)))
+    assert "ACCUMULATING" in inst_txt and "Deals +5.2 cr" in inst_txt and inst_sc > 20.0
+    exec_txt, exec_sc = sc._fmt_exec_risk(pd.Series(dict(liq_cr=25.0, deliv_pct=60.0, deliv_avg20=40.0, nse_flags="⚠️ ASM")))
+    assert "Deliv 60% (1.5×)" in exec_txt and "⚠️ ASM" in exec_txt and exec_sc < 10.0
+
+    # 6. daily_brief_view helpers: multi-year axis labels & last valid coordinate
+    single_yr = pd.DatetimeIndex(["2026-01-05", "2026-11-20"])
+    multi_yr = pd.DatetimeIndex(["2025-12-30", "2026-01-05"])
+    assert dbv._flow_x_labels(single_yr) == ["05 Jan", "20 Nov"]
+    assert dbv._flow_x_labels(multi_yr) == ["30 Dec 25", "05 Jan 26"]
+    assert dbv._last_valid_xy(["05 Jan", "06 Jan", "07 Jan"], pd.Series([10.0, 20.0, np.nan])) == ("06 Jan", 20.0)
+    assert dbv._last_valid_xy(["05 Jan"], pd.Series([np.nan])) is None

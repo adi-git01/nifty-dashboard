@@ -76,7 +76,10 @@ def render_compare_stocks(df: pd.DataFrame) -> None:
     )
     if len(seed) < 2:
         seed = available_tickers[:2]
-    if "cmp_multi_tickers" not in st.session_state:
+    if "cmp_multi_tickers" in st.session_state:
+        cleaned = stock_compare.normalize_tickers(st.session_state["cmp_multi_tickers"], available=available_tickers, max_items=4)
+        st.session_state["cmp_multi_tickers"] = cleaned if len(cleaned) >= 2 else seed
+    else:
         st.session_state["cmp_multi_tickers"] = seed
 
     selected = st.multiselect(
@@ -106,7 +109,7 @@ def render_compare_stocks(df: pd.DataFrame) -> None:
         c_gw.success(f"**🛡️ 2–3y Core / GARP Advantage: `{gw['bare']}`**  \n{gw.get('why', '')}")
 
     st.markdown("### 🧭 Unified 5-Pillar Decision Matrix")
-    st.dataframe(matrix, use_container_width=True, hide_index=True, height=410)
+    st.dataframe(matrix, use_container_width=True, hide_index=True, height=470)
 
     act_c1, act_c2, act_c3 = st.columns([2.2, 1.2, 1.6])
     rpt_t = act_c1.selectbox(
