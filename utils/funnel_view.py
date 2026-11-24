@@ -180,6 +180,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     col_s = lambda c, default=None: P[c] if c in P.columns else pd.Series(default, index=P.index)
     V = pd.DataFrame({
         "Stock": P.ticker.str.replace(".NS", "", regex=False), "Name": P.name, **{c: P[c] for c in extra},
+        "Score": col_s("funnel_score"), "Grade": col_s("funnel_grade", ""),
         "Industry": P.industry, "Ind.": _ind_labels(P), "Price": P.price,
         "vs Stop": col_s("dist_stop_pct"), "vs MA50": col_s("dist_ma50"), "vs 52W High": col_s("dist_52w"),
         "Scanner": col_s("scanner", ""), "RS": P.comp_rs, "RS 3M": col_s("rs_3m"),
@@ -190,15 +191,23 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""),
         "Value pctile": P.val_pct, "To mid value": P.val_upside,
         "Institutions": _inst_labels(P), "Inst deals": col_s("deal_inst_cr"),
-        "Deliv %": _deliv_labels(P), "Liq ₹cr/d": col_s("liq_cr"), "NSE Flags": col_s("nse_flags", "")})
+        "Deliv %": _deliv_labels(P), "Liq ₹cr/d": col_s("liq_cr"), "NSE Flags": col_s("nse_flags", ""),
+        "Score Split": col_s("score_note", "")})
     if view_mode == "⚡ Quick Glance":
         q_cols = [c for c in (
-            "Stock", "Name", *extra, "Industry", "Ind.", "Price", "vs Stop", "vs 52W High",
+            "Stock", "Name", *extra, "Score", "Grade", "Industry", "Ind.", "Price", "vs Stop", "vs 52W High",
             "RS", "Technicals", "Risk %", "Business", "Institutions", "Valuation", "NSE Flags",
         ) if c in V.columns]
         V = V[q_cols]
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
+        "Gap to pass": st.column_config.TextColumn("Gap to pass", help="How close this near miss is to flipping into a full PASS"),
+        "Score": st.column_config.ProgressColumn(
+            "Score", min_value=0, max_value=100, format="%.0f",
+            help="0–100 evidence-weighted rank: Ind(20) · Trend/RS(25) · Setup/Supply(25) · Risk/Exec(15) · Inst+Biz Ctx(15). "
+                 "Valuation excluded; ranking aid (not backtested as a composite)."),
+        "Grade": st.column_config.TextColumn("Grade", width="small", help="A ≥ 75 · B 60–74 · C < 60"),
+        "Score Split": st.column_config.TextColumn("Score Split", help="Points by pillar: Ind(20) · Trd(25) · Set(25) · Rsk(15) · Ctx(15)"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"),
         "vs Stop": st.column_config.NumberColumn(format="%+.1f%%", help="(Price − Stop) / Price %"),
         "vs MA50": st.column_config.NumberColumn(format="%+.1f%%", help="(Price / 50-DMA − 1) %"),
@@ -270,8 +279,9 @@ def render(df: pd.DataFrame):
     for col, (_, r), prev in zip(cc, C.iterrows(), [None] + C.left.tolist()[:-1]):
         col.metric(r.stage, int(r.left), None if prev is None else f"-{int(prev - r.left)}", delta_color="off")
 
-    st.markdown(f"#### ✅ Passing every selected stage ({len(R['picks'])})")
-    st.caption("Sorted by industry score, then RS. Open **Analysis Lab → 📋 Stock Report** for the full report on any of them.")
+    n_a = int(R["picks"]["funnel_grade"].eq("A").sum()) if len(R["picks"]) and "funnel_grade" in R["picks"] else 0
+    st.markdown(f"#### ✅ Passing every selected stage ({len(R['picks'])}" + (f" · {n_a} Grade A" if n_a else "") + ")")
+    st.caption("Sorted by **Funnel Score (0–100)** (ranking aid combining Industry, Trend/RS, Setup/Supply, Risk/Liquidity & Inst/Business context; not backtested as a composite). Open **Analysis Lab → 📋 Stock Report** for full details.")
     _show(R["picks"], "fn_q")
     pk = R["picks"].ticker.tolist()
     if pk:
@@ -283,10 +293,12 @@ def render(df: pd.DataFrame):
             st.session_state["nav_page"] = "📋 Stock Report"
             st.rerun()
     with st.expander(f"🟡 Near misses — fail exactly one stage ({len(R['near'])})"):
-        st.caption("Most are waiting for an entry: put them on RS or price alerts.")
+        st.caption("Sorted by Funnel Score; **Gap to pass** shows how close each name is to flipping into a full PASS.")
         N = R["near"]
         if len(N):
-            _show(N.rename(columns={"missed": "Missed"}), "fn_nq", extra=("Missed",))
+            ren = {"missed": "Missed", "miss_gap": "Gap to pass"}
+            extra_cols = ("Missed", "Gap to pass") if "miss_gap" in N.columns else ("Missed",)
+            _show(N.rename(columns=ren), "fn_nq", extra=extra_cols)
 
     cand_pool = list(dict.fromkeys(pk + R["near"].ticker.tolist() + T.ticker.dropna().tolist()))
     if len(cand_pool) >= 2:
