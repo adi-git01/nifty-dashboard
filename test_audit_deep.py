@@ -899,6 +899,11 @@ def test_funnel_scoring_and_near_miss_gap():
             {**base, "ticker": "EXPENSIVE_VAL.NS", "val_pct": 99.0},
             {**base, "ticker": "DIST_CHK.NS", "fx_signature": "DISTRIBUTION", "inst_label": "DISTRIBUTING"},
             {**base, "ticker": "NEUT_CHK.NS", "fx_signature": "NEUTRAL", "inst_label": "NEUTRAL"},
+            {**base, "ticker": "ABS_ONLY.NS", "fx_signature": "ABSORPTION", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan, "comp_rs": 4.0},
+            {**base, "ticker": "NEUT_ONLY.NS", "fx_signature": "NEUTRAL", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan, "comp_rs": 4.0},
+            {**base, "ticker": "HALF_STOP_OK.NS", "risk_pct": 13.5, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "TIGHT_STOP.NS", "risk_pct": 7.5, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "WEAK_STR.NS", "fx_adx": 15.0, "simba_mtf": 1.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
             {**base, "ticker": "MISS_SETUP_CAP.NS", "risk_pct": 17.5, "s_setup": False},
             {**base, "ticker": "MISS_SETUP_WAIT.NS", "technicals": "WAIT", "simba_days": 99.0, "signal": False, "s_setup": False},
             {**base, "ticker": "MISS_TREND.NS", "comp_rs": -2.4, "scanner": "HOLD", "stage": 2.0, "s_trend": False},
@@ -910,12 +915,16 @@ def test_funnel_scoring_and_near_miss_gap():
     assert ((S["funnel_score"] >= 0.0) & (S["funnel_score"] <= 100.0)).all()
     assert set(S["funnel_grade"]).issubset({"A", "B", "C"})
     for note in S["score_note"]:
-        for tag in ("Ind ", "Trd ", "Set ", "Rsk ", "Ctx "):
+        for tag in ("Mom ", "Set ", "Str ", "Hyg ", "Cat "):
             assert tag in note
 
     by_tk = S.set_index("ticker")
     assert by_tk.loc["TOP.NS", "funnel_grade"] == "A"
     assert float(by_tk.loc["TOP.NS", "funnel_score"]) > float(by_tk.loc["ASM.NS", "funnel_score"])
+    # Absorption adds +13 dedicated catalyst pts; half-size valid stops (<=15%) are unpenalized vs tight stops
+    assert float(by_tk.loc["ABS_ONLY.NS", "funnel_score"]) - float(by_tk.loc["NEUT_ONLY.NS", "funnel_score"]) == pytest.approx(13.0)
+    assert float(by_tk.loc["HALF_STOP_OK.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]))
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) > float(by_tk.loc["WEAK_STR.NS", "funnel_score"])
     # Valuation must not affect funnel_score, and DISTRIBUTION / DISTRIBUTING must not be penalized vs NEUTRAL
     assert float(by_tk.loc["TOP.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["EXPENSIVE_VAL.NS", "funnel_score"]))
     assert float(by_tk.loc["DIST_CHK.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["NEUT_CHK.NS", "funnel_score"]))

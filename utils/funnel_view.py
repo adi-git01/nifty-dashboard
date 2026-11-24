@@ -204,10 +204,11 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Gap to pass": st.column_config.TextColumn("Gap to pass", help="How close this near miss is to flipping into a full PASS"),
         "Score": st.column_config.ProgressColumn(
             "Score", min_value=0, max_value=100, format="%.0f",
-            help="0–100 evidence-weighted rank: Ind(20) · Trend/RS(25) · Setup/Supply(25) · Risk/Exec(15) · Inst+Biz Ctx(15). "
-                 "Valuation excluded; ranking aid (not backtested as a composite)."),
+            help="Base (0–80): Mom(32) · Set(22) · Str ADX+MTF(14) · Hyg(12) + Alpha Catalysts (+0..25: "
+                 "Absorption +13, Shakeout +9, Inst Accum +9, Deals/Deliv). Half-size stops (10–15%) are "
+                 "unpenalized; Valuation excluded; ranking aid (not backtested as a composite)."),
         "Grade": st.column_config.TextColumn("Grade", width="small", help="A ≥ 75 · B 60–74 · C < 60"),
-        "Score Split": st.column_config.TextColumn("Score Split", help="Points by pillar: Ind(20) · Trd(25) · Set(25) · Rsk(15) · Ctx(15)"),
+        "Score Split": st.column_config.TextColumn("Score Split", help="Points by pillar: Mom(32) · Set(22) · Str(14) · Hyg(12) · Cat(+25)"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"),
         "vs Stop": st.column_config.NumberColumn(format="%+.1f%%", help="(Price − Stop) / Price %"),
         "vs MA50": st.column_config.NumberColumn(format="%+.1f%%", help="(Price / 50-DMA − 1) %"),
@@ -281,7 +282,7 @@ def render(df: pd.DataFrame):
 
     n_a = int(R["picks"]["funnel_grade"].eq("A").sum()) if len(R["picks"]) and "funnel_grade" in R["picks"] else 0
     st.markdown(f"#### ✅ Passing every selected stage ({len(R['picks'])}" + (f" · {n_a} Grade A" if n_a else "") + ")")
-    st.caption("Sorted by **Funnel Score (0–100)** (ranking aid combining Industry, Trend/RS, Setup/Supply, Risk/Liquidity & Inst/Business context; not backtested as a composite). Open **Analysis Lab → 📋 Stock Report** for full details.")
+    st.caption("Sorted by **Funnel Score (0–100)** — Base(80): de-duplicated Mom+Ind(32), Setup/Timing(22), ADX+MTF Structure(14), Execution Hygiene(12) + Catalysts(+0..25: Absorption, Shakeout, Inst Accum); ranking aid, not backtested as a composite. Open **Analysis Lab → 📋 Stock Report** for full details.")
     _show(R["picks"], "fn_q")
     pk = R["picks"].ticker.tolist()
     if pk:
