@@ -124,8 +124,11 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["s_setup"] = x.signal & (x.risk_pct <= MAX_RISK_PCT)
 
     # 5 value
-    x["val_pct"], x["val_p50"], x["val_rating"] = np.nan, np.nan, ""
+    x["val_pct"], x["val_p50"], x["val_rating"], x["val_loss"] = np.nan, np.nan, "", False
     if val is not None and not val.empty:
+        if "reason" in val.columns:
+            loss_idx = val.index[val["reason"].fillna("").astype(str).str.contains("not positive|loss|negative", case=False)]
+            x["val_loss"] = x.ticker.isin(loss_idx)
         ok = val[val.get("status") == "OK"] if "status" in val else val
         ok = ok[~ok.index.duplicated(keep="first")]
         x["val_pct"] = x.ticker.map(pd.to_numeric(ok["cmp_pct"], errors="coerce"))
@@ -230,17 +233,22 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
 
 def score_table(T: pd.DataFrame) -> pd.DataFrame:
     """
-    Compute the calibrated v2 0-100 Funnel ranking score (`funnel_score`), letter grade (`funnel_grade`: A/B/C),
-    and breakdown (`score_note` = `Mom · Set · Str · Hyg · Cat`):
+    Compute the calibrated v3 0-100 Funnel ranking score (`funnel_score`), letter grade (`funnel_grade`: A/B/C),
+    and breakdown (`score_note` = `Mom · Set · Str · Qual · Cat`):
       - Base (0-80):
-          * Momentum & Industry (Mom, 0-32): de-duplicated CompRS (16) + Industry Leader (12) + Near 52wH (4)
-          * Setup & Timing (Set, 0-22): Action + recent SIMBA + gap/squeeze/breakout bonus; NEAR OVERHANG (-6)
-          * Trend Structure (Str, 0-14): ADX>=25 & +DI>=-DI (8) + SIMBA MTF (6) kept separate
-          * Execution Hygiene (Hyg, 0-12): valid stop <= 15% (flat 5 — no bias against half-size 10-15% stops)
-            + liquidity (4) + business score (3) - surveillance ⚠️ (-12)
-      - Proven Alpha Catalysts (Cat, +0..25 bonus over Base, total capped at 100):
-          * ABSORPTION (+13), Shakeout (+9), FII+DII ACCUMULATING (+9), net inst deals (+2), high delivery (+2)
-          * DISTRIBUTION and DISTRIBUTING carry zero penalty; Valuation is excluded per 10-yr backtest evidence.
+          * Momentum & Industry (Mom, 0-28): CompRS (14) + Industry Leader (10) + Near 52wH (4)
+          * Setup, Timing & Extension (Set, 0-22): Action + fresh SIMBA lift (capped at 8 for WAIT, 4 for WATCH)
+            + gap/squeeze/breakout bonus (+4 max) - overhead supply (NEAR OVERHANG -6, INSIDE SHELF -2.5)
+            - extended entry trim (vs MA50 / 200DMA)
+          * Trend Structure (Str, 0-12): ADX>=25 & +DI>=-DI (7; 20-25: 3.5) + SIMBA MTF (5/3/1) kept separate
+          * Business, Valuation Tail & Execution Hygiene (Qual, 0-18 base; red flags are un-floored):
+            Business score (0-8) - qtr deterioration (-4.5) + valid stop 3-15% (5; 2-3%: 2; <2% noise stop: -3)
+            + liquidity (3) + clean earnings/valuation floor (+2; REDUCE -2; STRONG SELL/PE>=100 -4; loss-maker -12)
+            - surveillance ⚠️ (-14)
+      - Proven Alpha Catalysts (Cat, +0..22 bonus over Base, total capped at 100):
+          * ABSORPTION (+13), Shakeout (+9), FII+DII ACCUMULATING (+8 with YoY > -2 pp sanity check),
+            net inst deals (+2), high delivery (+2)
+          * DISTRIBUTION and DISTRIBUTING carry zero penalty.
     """
     x = T.copy()
     if x.empty:
@@ -251,59 +259,96 @@ def score_table(T: pd.DataFrame) -> pd.DataFrame:
     num = lambda c, d=np.nan: pd.to_numeric(x[c], errors="coerce").fillna(d) if c in x.columns else pd.Series(d, index=x.index, dtype=float)
     txt = lambda c: x[c].fillna("").astype(str) if c in x.columns else pd.Series("", index=x.index)
 
-    # 1. Momentum & Industry (0-32) — orthogonal blend (avoids double-counting Ind + RS + 52wH)
-    rs_pts = ((num("comp_rs", -5.0) + 5.0) / 25.0).clip(0.0, 1.0) * 16.0
-    ind_pts = (num("ind_score", 0.0).clip(0.0, 100.0) / 100.0) * 10.0 + txt("ind_group").str.upper().map({"LEADING": 2.0, "IMPROVING": 1.0}).fillna(0.0)
+    # 1. Momentum & Industry (0-28)
+    rs_pts = ((num("comp_rs", -5.0) + 5.0) / 25.0).clip(0.0, 1.0) * 14.0
+    ind_pts = (num("ind_score", 0.0).clip(0.0, 100.0) / 100.0) * 8.0 + txt("ind_group").str.upper().map({"LEADING": 2.0, "IMPROVING": 1.0}).fillna(0.0)
     d52_pts = ((num("dist_52w", -20.0) + 20.0) / 20.0).clip(0.0, 1.0) * 4.0
-    p_mom = np.clip(rs_pts + ind_pts + d52_pts, 0.0, 32.0)
+    p_mom = np.clip(rs_pts + ind_pts + d52_pts, 0.0, 28.0)
 
-    # 2. Setup & Timing (0-22) — CLEAN AIR gives 0 extra (= Gate 1); NEAR OVERHANG (-6) & INSIDE SHELF (-1) deducted
+    # 2. Setup, Timing & Extension (0-22) — CLEAN AIR gives 0 extra (= Gate 1); overhang & extension deducted
     act = txt("technicals").str.upper()
     sd = num("simba_days", 99.0)
+    simba_fresh = (sd >= 0.0) & (sd <= SETUP_DAYS)
     act_pts = act.map({"BUY NOW": 18.0, "BUY ON TRIGGER": 12.0, "WAIT": 5.0, "WATCH": 0.0}).fillna(0.0)
-    act_pts = np.where((act_pts < 10.0) & (sd >= 0.0) & (sd <= SETUP_DAYS), 10.0, act_pts)
+    act_pts = np.where(
+        (act == "WAIT") & simba_fresh,
+        8.0,
+        np.where(
+            (act == "WATCH") & simba_fresh,
+            4.0,
+            np.where((act_pts == 0.0) & (act != "WATCH") & simba_fresh, 10.0, act_pts),
+        ),
+    )
     bo_hit = num("hi52_bo_days", 99.0).between(0.0, 10.0) | num("ath_bo_days", 99.0).between(0.0, 10.0)
     gap_s = x["fx_gap"].eq(True) if "fx_gap" in x.columns else pd.Series(False, index=x.index)
     gap_b = np.where(gap_s, 2.0, 0.0)
     sq_b = np.where(num("fx_bbp", 50.0) < 20.0, 2.0, 0.0)
     bo_b = np.where(bo_hit, 2.0, 0.0)
-    ovh_pen = txt("fx_supply").str.upper().map({"NEAR OVERHANG": -6.0, "INSIDE SHELF": -1.0}).fillna(0.0)
-    p_set = np.clip(act_pts + np.minimum(gap_b + sq_b + bo_b, 4.0) + ovh_pen, 0.0, 22.0)
+    ovh_pen = txt("fx_supply").str.upper().map({"NEAR OVERHANG": -6.0, "INSIDE SHELF": -2.5}).fillna(0.0)
+    dma50, dma200 = num("dist_ma50", 0.0), num("dist_200dma", 0.0)
+    ext_pen = (
+        np.where(dma50 > 20.0, -3.0, np.where(dma50 > 16.0, -1.5, 0.0))
+        + np.where(dma200 > 60.0, -5.0, np.where(dma200 > 38.0, -3.0, 0.0))
+    )
+    p_set = np.clip(act_pts + np.minimum(gap_b + sq_b + bo_b, 4.0) + ovh_pen + ext_pen, 0.0, 22.0)
 
-    # 3. Trend Structure — ADX & SIMBA MTF (0-14, separate from Trend & Momentum)
+    # 3. Trend Structure — ADX & SIMBA MTF (0-12, kept separate from Momentum)
     adx = num("fx_adx", 0.0)
     pdi = num("fx_pdi", np.nan)
     ndi = num("fx_ndi", np.nan)
     pdi_ok = pdi.isna() | ndi.isna() | (pdi >= ndi)
-    adx_pts = np.where((adx >= 25.0) & pdi_ok, 8.0, np.where((adx >= 20.0) & pdi_ok, 4.0, 0.0))
-    mtf_pts = num("simba_mtf", 0.0).map({3.0: 6.0, 2.0: 3.5, 1.0: 1.0}).fillna(0.0)
+    adx_pts = np.where((adx >= 25.0) & pdi_ok, 7.0, np.where((adx >= 20.0) & pdi_ok, 3.5, 0.0))
+    mtf_pts = num("simba_mtf", 0.0).map({3.0: 5.0, 2.0: 3.0, 1.0: 1.0}).fillna(0.0)
     p_str = adx_pts + mtf_pts
 
-    # 4. Execution Hygiene & Quality Floor (0-12) — flat for any valid stop <= 15%
-    rk = num("risk_pct", np.nan)
-    rk_pts = np.where(rk.notna() & (rk > 0.0) & (rk <= MAX_RISK_PCT), 5.0, 0.0)
-    liq = num("liq_cr", 0.0)
-    liq_pts = np.where(liq >= 20.0, 4.0, np.where(liq >= 5.0, 2.5, np.where(liq >= 2.0, 1.0, 0.0)))
-    biz_pts = (num("biz_score", 0.0).clip(0.0, 100.0) / 100.0) * 3.0
-    surv = txt("nse_flags").str.contains("⚠️", na=False)
-    p_hyg = np.maximum(rk_pts + liq_pts + biz_pts - np.where(surv, 12.0, 0.0), 0.0)
+    # 4. Business, Valuation Tail & Execution Hygiene (0-18 base; red flags are un-floored to pull total down)
+    biz_pts = ((num("biz_score", 40.0) - 40.0) / 45.0).clip(0.0, 1.0) * 8.0
+    bflg = txt("biz_flags").str.strip().ne("")
+    q_deter = bflg | ((num("sales_yoy", 0.0) < 0.0) & (num("opm_chg", 0.0) <= -1.5))
+    biz_pen = np.where(q_deter, -4.5, 0.0)
 
-    # 5. Proven Alpha Catalysts (+0..25 bonus over Base): Absorption, Shakeout & Inst Accumulation
+    rk = num("risk_pct", np.nan)
+    rk_pts = np.where(
+        rk.notna() & (rk >= 3.0) & (rk <= MAX_RISK_PCT),
+        5.0,
+        np.where(
+            rk.notna() & (rk >= 2.0) & (rk < 3.0),
+            2.0,
+            np.where(rk.notna() & (rk > 0.0) & (rk < 2.0), -3.0, 0.0),
+        ),
+    )
+    liq = num("liq_cr", 0.0)
+    liq_pts = np.where(liq >= 20.0, 3.0, np.where(liq >= 5.0, 2.0, np.where(liq >= 2.0, 1.0, 0.0)))
+
+    pe = num("pe", np.nan)
+    vloss = x["val_loss"].eq(True) if "val_loss" in x.columns else pd.Series(False, index=x.index)
+    is_loss = vloss | (pe <= 0.0) | (pe >= 200.0)
+    vrat = txt("val_rating").str.upper()
+    is_rich_tail = vrat.str.contains("STRONG SELL", na=False) | (pe >= 100.0)
+    is_reduce = vrat.eq("REDUCE")
+    val_pts = np.where(is_loss, -12.0, np.where(is_rich_tail, -4.0, np.where(is_reduce, -2.0, 2.0)))
+
+    surv = txt("nse_flags").str.contains("⚠️", na=False)
+    surv_pen = np.where(surv, -14.0, 0.0)
+    p_qual = biz_pts + biz_pen + rk_pts + liq_pts + val_pts + surv_pen
+
+    # 5. Proven Alpha Catalysts (+0..22 bonus over Base): Absorption, Shakeout & Inst Accumulation
     abs_pts = np.where(txt("fx_signature").str.upper() == "ABSORPTION", 13.0, 0.0)
     shk_s = x["fx_shakeout"].eq(True) if "fx_shakeout" in x.columns else pd.Series(False, index=x.index)
     shk_pts = np.where(shk_s, 9.0, 0.0)
-    inst_acc = np.where(txt("inst_label").str.upper() == "ACCUMULATING", 9.0, 0.0)
+    iy = num("inst_y", np.nan)
+    inst_acc = np.where(txt("inst_label").str.upper().eq("ACCUMULATING") & (iy.isna() | (iy > -2.0)), 8.0, 0.0)
     deal_b = np.where(num("deal_inst_cr", 0.0) > 0.0, 2.0, 0.0)
     dp, da = num("deliv_pct", np.nan), num("deliv_avg20", np.nan)
     deliv_b = np.where((dp > 0.0) & (da > 0.0) & (dp / da >= 1.25), 2.0, 0.0)
-    p_cat = np.minimum(abs_pts + shk_pts + inst_acc + deal_b + deliv_b, 25.0)
+    p_cat = np.minimum(abs_pts + shk_pts + inst_acc + deal_b + deliv_b, 22.0)
 
-    tot = np.clip(p_mom + p_set + p_str + p_hyg + p_cat, 0.0, 100.0).round(1)
+    tot = np.clip(p_mom + p_set + p_str + p_qual + p_cat, 0.0, 100.0).round(1)
     x["funnel_score"] = tot
-    x["funnel_grade"] = np.where(tot >= 75.0, "A", np.where(tot >= 60.0, "B", "C"))
+    x["funnel_grade"] = np.where(tot >= 74.0, "A", np.where(tot >= 60.0, "B", "C"))
     x["score_note"] = [
-        f"Mom {a:.0f} · Set {b:.0f} · Str {c:.0f} · Hyg {d:.0f} · Cat {e:.0f}"
-        for a, b, c, d, e in zip(p_mom, p_set, p_str, p_hyg, p_cat)
+        f"Mom {a:.0f} · Set {b:.0f} · Str {c:.0f} · Qual {d:.0f} · Cat {e:.0f}"
+        for a, b, c, d, e in zip(p_mom, p_set, p_str, p_qual, p_cat)
     ]
     return x
 

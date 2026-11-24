@@ -781,9 +781,13 @@ def test_pr162_to_165_audit_fixes(tmp_path, monkeypatch):
     from utils import daily_brief_view as dbv, fund_trends as ft, nse_data as nd, regime_badge as rb, stock_compare as sc
 
     # 1. inst_label must NOT label a stock as ACCUMULATING if institutions sold >= 0.5 pp this quarter
+    # or if a modest QoQ bounce follows a heavy YoY institutional exit (<= -2.0 pp)
     assert ft.inst_label(-2.0, 4.0) == "NEUTRAL"
     assert ft.inst_label(0.2, 2.0) == "ACCUMULATING"
     assert ft.inst_label(-0.5, -2.0) == "DISTRIBUTING"
+    assert ft.inst_label(1.0, -17.1) == "NEUTRAL"
+    assert ft.inst_label(1.0, -1.0) == "ACCUMULATING"
+    assert ft.inst_label(1.2, np.nan) == "ACCUMULATING"
 
     # 2. _inst_map keeps single-side FII/DII filings, merges bare + .NS rows, and returns promoter deltas
     rows = [
@@ -861,6 +865,8 @@ def test_funnel_scoring_and_near_miss_gap():
         ind_group="LEADING",
         ind_score=87.0,
         price=100.0,
+        dist_ma50=5.0,
+        dist_200dma=12.0,
         comp_rs=12.0,
         dist_52w=-3.0,
         simba_mtf=3.0,
@@ -874,11 +880,17 @@ def test_funnel_scoring_and_near_miss_gap():
         liq_cr=40.0,
         nse_flags="",
         inst_label="ACCUMULATING",
+        inst_y=3.0,
         deal_inst_cr=5.0,
         deliv_pct=60.0,
         deliv_avg20=40.0,
         biz_score=80.0,
+        sales_yoy=20.0,
         np_yoy=35.0,
+        opm_chg=1.0,
+        pe=25.0,
+        val_rating="HOLD",
+        val_loss=False,
         t1=115.0,
         stop=92.5,
         biz_headline="Strong 80/100",
@@ -896,13 +908,21 @@ def test_funnel_scoring_and_near_miss_gap():
         [
             {**base, "ticker": "TOP.NS"},
             {**base, "ticker": "ASM.NS", "risk_pct": 13.5, "liq_cr": 1.0, "nse_flags": "⚠️ ASM", "fx_signature": "DISTRIBUTION", "inst_label": "DISTRIBUTING", "val_pct": 95.0},
-            {**base, "ticker": "EXPENSIVE_VAL.NS", "val_pct": 99.0},
+            {**base, "ticker": "NORMAL_VAL.NS", "val_pct": 85.0},
             {**base, "ticker": "DIST_CHK.NS", "fx_signature": "DISTRIBUTION", "inst_label": "DISTRIBUTING"},
             {**base, "ticker": "NEUT_CHK.NS", "fx_signature": "NEUTRAL", "inst_label": "NEUTRAL"},
             {**base, "ticker": "ABS_ONLY.NS", "fx_signature": "ABSORPTION", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan, "comp_rs": 4.0},
             {**base, "ticker": "NEUT_ONLY.NS", "fx_signature": "NEUTRAL", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan, "comp_rs": 4.0},
             {**base, "ticker": "HALF_STOP_OK.NS", "risk_pct": 13.5, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
             {**base, "ticker": "TIGHT_STOP.NS", "risk_pct": 7.5, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "NOISE_STOP.NS", "risk_pct": 1.5, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "LOSS_MAKER.NS", "pe": -154.0, "val_loss": True, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "LOW_BIZ.NS", "biz_score": 50.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "QTR_DROP.NS", "biz_score": 50.0, "biz_flags": "Sep 2026 profit -32% YoY", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "STRONG_SELL_VAL.NS", "val_rating": "STRONG SELL/AVOID", "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "HIGH_PE_VAL.NS", "pe": 110.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "EXTENDED.NS", "dist_ma50": 25.0, "dist_200dma": 45.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
+            {**base, "ticker": "WATCH_SIMBA.NS", "technicals": "WATCH", "simba_days": 2.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
             {**base, "ticker": "WEAK_STR.NS", "fx_adx": 15.0, "simba_mtf": 1.0, "fx_shakeout": False, "inst_label": "NEUTRAL", "deal_inst_cr": 0.0, "deliv_pct": np.nan},
             {**base, "ticker": "MISS_SETUP_CAP.NS", "risk_pct": 17.5, "s_setup": False},
             {**base, "ticker": "MISS_SETUP_WAIT.NS", "technicals": "WAIT", "simba_days": 99.0, "signal": False, "s_setup": False},
@@ -915,18 +935,27 @@ def test_funnel_scoring_and_near_miss_gap():
     assert ((S["funnel_score"] >= 0.0) & (S["funnel_score"] <= 100.0)).all()
     assert set(S["funnel_grade"]).issubset({"A", "B", "C"})
     for note in S["score_note"]:
-        for tag in ("Mom ", "Set ", "Str ", "Hyg ", "Cat "):
+        for tag in ("Mom ", "Set ", "Str ", "Qual ", "Cat "):
             assert tag in note
 
     by_tk = S.set_index("ticker")
     assert by_tk.loc["TOP.NS", "funnel_grade"] == "A"
     assert float(by_tk.loc["TOP.NS", "funnel_score"]) > float(by_tk.loc["ASM.NS", "funnel_score"])
-    # Absorption adds +13 dedicated catalyst pts; half-size valid stops (<=15%) are unpenalized vs tight stops
+    # Absorption adds +13 dedicated catalyst pts; half-size valid stops (3-15%) are unpenalized vs tight stops
     assert float(by_tk.loc["ABS_ONLY.NS", "funnel_score"]) - float(by_tk.loc["NEUT_ONLY.NS", "funnel_score"]) == pytest.approx(13.0)
     assert float(by_tk.loc["HALF_STOP_OK.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]))
     assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) > float(by_tk.loc["WEAK_STR.NS", "funnel_score"])
-    # Valuation must not affect funnel_score, and DISTRIBUTION / DISTRIBUTING must not be penalized vs NEUTRAL
-    assert float(by_tk.loc["TOP.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["EXPENSIVE_VAL.NS", "funnel_score"]))
+    # Noise stop (<2%), loss-maker, low biz score, qtr drop, valuation tails, extension, and BEAR WATCH+SIMBA checks
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["NOISE_STOP.NS", "funnel_score"]) == pytest.approx(8.0)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["LOSS_MAKER.NS", "funnel_score"]) == pytest.approx(14.0)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["LOW_BIZ.NS", "funnel_score"]) > 4.0
+    assert float(by_tk.loc["LOW_BIZ.NS", "funnel_score"]) - float(by_tk.loc["QTR_DROP.NS", "funnel_score"]) == pytest.approx(4.5)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["STRONG_SELL_VAL.NS", "funnel_score"]) == pytest.approx(6.0)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["HIGH_PE_VAL.NS", "funnel_score"]) == pytest.approx(6.0)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["EXTENDED.NS", "funnel_score"]) == pytest.approx(6.0)
+    assert float(by_tk.loc["TIGHT_STOP.NS", "funnel_score"]) - float(by_tk.loc["WATCH_SIMBA.NS", "funnel_score"]) == pytest.approx(14.0)
+    # Moderate val_pct without tail/REDUCE rating and DISTRIBUTION / DISTRIBUTING must not be penalized
+    assert float(by_tk.loc["TOP.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["NORMAL_VAL.NS", "funnel_score"]))
     assert float(by_tk.loc["DIST_CHK.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["NEUT_CHK.NS", "funnel_score"]))
 
     R = funnel.run(S)
