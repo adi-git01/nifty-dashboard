@@ -355,7 +355,8 @@ def _funnel(df: pd.DataFrame, B: pd.DataFrame, R: dict | None = None):
     col_s = lambda c, default=None: P[c] if c in P.columns else pd.Series(default, index=P.index)
     V = pd.DataFrame({
         "": ["🆕" if t not in old else "" for t in P.ticker], "Stock": P.ticker.str.replace(".NS", "", regex=False),
-        "Name": P.name, "Industry": P.industry, "Price": P.price,
+        "Name": P.name, "Score": col_s("funnel_score"), "Grade": col_s("funnel_grade", ""),
+        "Industry": P.industry, "Price": P.price,
         "vs Stop": col_s("dist_stop_pct"), "vs 52W High": col_s("dist_52w"),
         "RS": P.comp_rs, "Technicals": fv.setup_labels(P),
         "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Business": P.biz_headline,
@@ -363,6 +364,8 @@ def _funnel(df: pd.DataFrame, B: pd.DataFrame, R: dict | None = None):
         "Liq ₹cr/d": col_s("liq_cr"), "NSE": col_s("nse_flags", "")})
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 420), column_config={
         "": st.column_config.TextColumn("", width="small", help="🆕 = did not have both an uptrend and an entry yesterday"),
+        "Score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%.0f", help="0–100 evidence-weighted Funnel rank"),
+        "Grade": st.column_config.TextColumn("Grade", width="small"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"),
         "vs Stop": st.column_config.NumberColumn(format="%+.1f%%"),
         "vs 52W High": st.column_config.NumberColumn(format="%+.1f%%"),
@@ -504,6 +507,7 @@ def _system_pulse(df: pd.DataFrame, B: pd.DataFrame, R: dict) -> None:
     picks = R.get("picks", pd.DataFrame())
     near = R.get("near", pd.DataFrame())
     n_buy_now = int(picks["technicals"].eq("BUY NOW").sum()) if len(picks) and "technicals" in picks else 0
+    n_grade_a = int(picks["funnel_grade"].eq("A").sum()) if len(picks) and "funnel_grade" in picks else 0
     book_lbl, book_sub = "No open book", "Track in Return Tracker"
     try:
         from utils.positions import get_positions_with_pnl
@@ -523,7 +527,7 @@ def _system_pulse(df: pd.DataFrame, B: pd.DataFrame, R: dict) -> None:
     c = st.columns(4)
     c[0].metric("Market Posture", f"{fv.ICON.get(reg['regime'], '⚪')} {reg['regime'].title()}", reg["guidance"], delta_color="off")
     c[1].metric("Sector Breadth", f"{n_lead} Lead · {n_imp} Imp", ", ".join(top_leads) if top_leads else "No leading groups", delta_color="off")
-    c[2].metric("Funnel Today", f"{len(picks)} PASS · {n_buy_now} BUY NOW", f"{len(near)} near misses", delta_color="off")
+    c[2].metric("Funnel Today", f"{len(picks)} PASS · {n_buy_now} BUY NOW", f"{n_grade_a} Grade A · {len(near)} near misses", delta_color="off")
     c[3].metric("Your Book", book_lbl, book_sub, delta_color="off")
 
 

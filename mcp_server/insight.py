@@ -61,8 +61,9 @@ def _breadth(df: pd.DataFrame) -> Dict[str, Any]:
 
 
 def _pick_rows(P: pd.DataFrame, limit: int) -> List[Dict]:
-    cols = ["ticker", "name", "industry", "ind_group", "price", "comp_rs", "technicals", "stop", "risk_pct", "t1", "biz_headline",
-            "biz_flags", "quarter", "np_yoy", "val_pct", "val_upside"] + (["missed"] if "missed" in P.columns else [])
+    cols = ["ticker", "name", "funnel_score", "funnel_grade", "score_note", "industry", "ind_group", "price", "comp_rs",
+            "technicals", "stop", "risk_pct", "t1", "biz_headline", "biz_flags", "quarter", "np_yoy", "val_pct",
+            "val_upside"] + [c for c in ("missed", "miss_gap") if c in P.columns]
     return D._records(P[[c for c in cols if c in P.columns]].round(2), limit)
 
 

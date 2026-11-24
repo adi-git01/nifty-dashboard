@@ -221,14 +221,133 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
         x.at[i, "biz_score"], x.at[i, "biz_headline"] = b.get("score"), b.get("headline", b["verdict"].title())
         x.at[i, "quarter"] = b["quarter"] or ""
         x.at[i, "sales_yoy"], x.at[i, "np_yoy"], x.at[i, "roce"] = b["sales_yoy"], b["np_yoy"], b["roce"]
+    return score_table(x)
+
+
+def score_table(T: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute an evidence-weighted 0-100 ranking score (`funnel_score`), letter grade (`funnel_grade`: A/B/C),
+    and 5-pillar breakdown (`score_note`) for both Funnel passes and near misses:
+      - Industry Leadership (0-20) : Signal Lab scorecard edge
+      - Trend & RS Strength (0-25) : 10-yr regime study
+      - Setup & Supply Quality (0-25) : Forensics 10-yr study (DISTRIBUTION gets 0 penalty)
+      - Risk & Execution Hygiene (0-15) : stop width <= 15%, liquidity, surveillance flags
+      - Institutional & Business Context (0-15) : FII+DII ACCUMULATING (DISTRIBUTING gets 0 penalty), business & qtr NP
+    Valuation is intentionally excluded from this composite (expensive momentum beat cheap in the 10-yr study).
+    """
+    x = T.copy()
+    if x.empty:
+        x["funnel_score"] = np.nan
+        x["funnel_grade"] = ""
+        x["score_note"] = ""
+        return x
+    num = lambda c, d=np.nan: pd.to_numeric(x[c], errors="coerce").fillna(d) if c in x.columns else pd.Series(d, index=x.index, dtype=float)
+    txt = lambda c: x[c].fillna("").astype(str) if c in x.columns else pd.Series("", index=x.index)
+
+    ind_sc = num("ind_score", 0.0).clip(0.0, 100.0) / 100.0 * 16.0
+    ind_grp = txt("ind_group").str.upper().map({"LEADING": 4.0, "IMPROVING": 2.0}).fillna(0.0)
+    p_ind = ind_sc + ind_grp
+
+    rs_pts = ((num("comp_rs", -5.0) + 5.0) / 25.0).clip(0.0, 1.0) * 12.0
+    d52_pts = ((num("dist_52w", -20.0) + 20.0) / 20.0).clip(0.0, 1.0) * 6.0
+    mtf_pts = num("simba_mtf", 0.0).map({3.0: 4.0, 2.0: 2.5, 1.0: 1.0}).fillna(0.0)
+    adx = num("fx_adx", 0.0)
+    adx_pts = np.where(adx >= 25.0, 3.0, np.where(adx >= 20.0, 1.5, 0.0))
+    p_trd = rs_pts + d52_pts + mtf_pts + adx_pts
+
+    act = txt("technicals").str.upper()
+    sd = num("simba_days", 99.0)
+    act_pts = act.map({"BUY NOW": 12.0, "BUY ON TRIGGER": 8.0, "WAIT": 4.0, "WATCH": 1.0}).fillna(0.0)
+    act_pts = np.where((act_pts < 6.0) & (sd >= 0.0) & (sd <= SETUP_DAYS), 6.0, act_pts)
+    sup_pts = txt("fx_supply").str.upper().map({"CLEAN AIR": 7.0, "FAR OVERHANG": 4.0, "INSIDE SHELF": 3.0, "NEAR OVERHANG": 0.0}).fillna(0.0)
+    sig_pts = np.where(txt("fx_signature").str.upper() == "ABSORPTION", 4.0, 0.0)
+    shk_s = x["fx_shakeout"].eq(True) if "fx_shakeout" in x.columns else pd.Series(False, index=x.index)
+    shk_pts = np.where(shk_s, 2.0, 0.0)
+    p_set = act_pts + sup_pts + np.minimum(sig_pts + shk_pts, 6.0)
+
+    rk = num("risk_pct", np.nan)
+    rk_pts = np.where(
+        rk.isna() | (rk <= 0.0) | (rk > MAX_RISK_PCT), 0.0,
+        np.where(rk <= 8.0, 9.0, np.where(rk <= 10.0, 7.5, np.where(rk <= 12.5, 5.0, 3.0))),
+    )
+    liq = num("liq_cr", 0.0)
+    liq_pts = np.where(liq >= 25.0, 6.0, np.where(liq >= 5.0, 4.0, np.where(liq >= 2.0, 2.0, 0.0)))
+    surv = txt("nse_flags").str.contains("⚠️", na=False)
+    p_rsk = np.maximum(rk_pts + liq_pts - np.where(surv, 5.0, 0.0), 0.0)
+
+    inst_acc = np.where(txt("inst_label").str.upper() == "ACCUMULATING", 6.0, 0.0)
+    deal_b = np.where(num("deal_inst_cr", 0.0) > 0.0, 2.0, 0.0)
+    dp, da = num("deliv_pct", np.nan), num("deliv_avg20", np.nan)
+    deliv_b = np.where((dp > 0.0) & (da > 0.0) & (dp / da >= 1.25), 1.0, 0.0)
+    inst_pts = np.minimum(inst_acc + deal_b + deliv_b, 8.0)
+    biz_pts = (num("biz_score", 0.0).clip(0.0, 100.0) / 100.0) * 4.0
+    ny = num("np_yoy", np.nan)
+    qtr_pts = np.where(ny >= 25.0, 3.0, np.where(ny >= 10.0, 1.5, 0.0))
+    p_ctx = inst_pts + biz_pts + qtr_pts
+
+    tot = np.clip(p_ind + p_trd + p_set + p_rsk + p_ctx, 0.0, 100.0).round(1)
+    x["funnel_score"] = tot
+    x["funnel_grade"] = np.where(tot >= 75.0, "A", np.where(tot >= 60.0, "B", "C"))
+    x["score_note"] = [
+        f"Ind {a:.0f} · Trd {b:.0f} · Set {c:.0f} · Rsk {d:.0f} · Ctx {e:.0f}"
+        for a, b, c, d, e in zip(p_ind, p_trd, p_set, p_rsk, p_ctx)
+    ]
     return x
+
+
+def _miss_gap(row: pd.Series, missed_key: str) -> str:
+    """Short human-readable distance to passing the one failed stage for a near miss."""
+    s_txt = lambda k: "" if row.get(k) is None or pd.isna(row.get(k)) or str(row.get(k)).strip() in ("", "nan", "None") else str(row.get(k)).strip()
+    if missed_key == "industry":
+        grp = s_txt("ind_group").upper()
+        sc = row.get("ind_score")
+        if grp == "WEAKENING":
+            return f"Weakening industry ({sc:.0f})" if pd.notna(sc) else "Weakening industry"
+        if pd.notna(sc):
+            gap = max(0.0, 60.0 - float(sc))
+            return f"Ind {float(sc):.0f} ({gap:.0f} pts to Leading)"
+        return "Lagging industry"
+    if missed_key == "trend":
+        stg = row.get("stage")
+        crs = row.get("comp_rs")
+        scan = s_txt("scanner")
+        if pd.notna(stg) and int(float(stg)) in (3, 4):
+            return f"Stage {int(float(stg))} (downtrend)"
+        if pd.notna(crs) and float(crs) < 0:
+            return f"RS {float(crs):+.1f} ({abs(float(crs)):.1f} to BUY)"
+        return f"Scanner {scan or 'HOLD'}"
+    if missed_key == "business":
+        flags = s_txt("biz_flags")
+        bsc = row.get("biz_score")
+        if flags:
+            return f"Flags: {flags}"
+        if pd.notna(bsc):
+            return f"Biz {float(bsc):.0f} ({max(0.0, 45.0 - float(bsc)):.0f} pts to pass)"
+        return "No business score"
+    if missed_key == "setup":
+        tech = s_txt("technicals")
+        rk = row.get("risk_pct")
+        sig = bool(row.get("signal")) if pd.notna(row.get("signal")) else False
+        if sig and pd.notna(rk) and float(rk) > MAX_RISK_PCT:
+            return f"Stop {float(rk):.1f}% (+{float(rk) - MAX_RISK_PCT:.1f}% over {MAX_RISK_PCT}% cap)"
+        if sig:
+            return "No valid stop"
+        if tech.upper() == "WAIT":
+            return f"WAIT · {float(rk):.1f}% stop (needs trigger)" if pd.notna(rk) else "WAIT (needs trigger)"
+        return f"{tech or 'WATCH'} (no setup)"
+    if missed_key == "value":
+        vp = row.get("val_pct")
+        return f"P{float(vp):.0f} (+{float(vp) - VALUE_MAX_PCT:.0f} over P{VALUE_MAX_PCT})" if pd.notna(vp) else "Unvalued"
+    return "—"
 
 
 def run(T: pd.DataFrame, on: Iterable[str] = DEFAULT_ON) -> Dict[str, Any]:
     """Apply the stages in order. Returns counts after each stage, the survivors and near misses."""
     on = [k for k, _ in STAGES if k in set(on)]
     ext = T["extended"].eq(True) if "extended" in T.columns else pd.Series(False, index=T.index)
-    live = T[T.price.notna() & (T.price > 0) & ~ext]
+    live = T[T.price.notna() & (T.price > 0) & ~ext].copy()
+    if "funnel_score" not in live.columns:
+        live = score_table(live)
     counts: List[Dict[str, Any]] = [dict(stage="Universe", left=len(live))]
     mask = pd.Series(True, index=live.index)
     passes = {k: live[f"s_{k}"].eq(True) for k, _ in STAGES}
@@ -238,8 +357,10 @@ def run(T: pd.DataFrame, on: Iterable[str] = DEFAULT_ON) -> Dict[str, Any]:
     fails = sum((~passes[k]).astype(int) for k in on) if on else pd.Series(0, index=live.index)
     near = live[fails == 1].copy()
     if len(near):
-        near["missed"] = [next(dict(STAGES)[k] for k in on if not passes[k].loc[i]) for i in near.index]
-    rank = lambda z: z.sort_values(["ind_score", "comp_rs"], ascending=False)
+        missed_keys = [next(k for k in on if not passes[k].loc[i]) for i in near.index]
+        near["missed"] = [dict(STAGES)[k] for k in missed_keys]
+        near["miss_gap"] = [_miss_gap(live.loc[i], mk) for i, mk in zip(near.index, missed_keys)]
+    rank = lambda z: z.sort_values(["funnel_score", "ind_score", "comp_rs"], ascending=False, na_position="last")
     return dict(counts=pd.DataFrame(counts), picks=rank(live[mask]), near=rank(near), on=on)
 
 

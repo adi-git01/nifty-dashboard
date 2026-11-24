@@ -850,3 +850,82 @@ def test_pr162_to_165_audit_fixes(tmp_path, monkeypatch):
     assert dbv._flow_x_labels(multi_yr) == ["30 Dec 25", "05 Jan 26"]
     assert dbv._last_valid_xy(["05 Jan", "06 Jan", "07 Jan"], pd.Series([10.0, 20.0, np.nan])) == ("06 Jan", 20.0)
     assert dbv._last_valid_xy(["05 Jan"], pd.Series([np.nan])) is None
+
+
+def test_funnel_scoring_and_near_miss_gap():
+    from utils import funnel
+
+    base = dict(
+        name="Alpha Co",
+        industry="Auto Components",
+        ind_group="LEADING",
+        ind_score=87.0,
+        price=100.0,
+        comp_rs=12.0,
+        dist_52w=-3.0,
+        simba_mtf=3.0,
+        fx_adx=32.0,
+        technicals="BUY NOW",
+        fx_supply="CLEAN AIR",
+        fx_signature="ABSORPTION",
+        fx_shakeout=True,
+        simba_days=2.0,
+        risk_pct=7.5,
+        liq_cr=40.0,
+        nse_flags="",
+        inst_label="ACCUMULATING",
+        deal_inst_cr=5.0,
+        deliv_pct=60.0,
+        deliv_avg20=40.0,
+        biz_score=80.0,
+        np_yoy=35.0,
+        t1=115.0,
+        stop=92.5,
+        biz_headline="Strong 80/100",
+        biz_flags="",
+        val_pct=35.0,
+        val_upside=18.0,
+        s_industry=True,
+        s_trend=True,
+        s_business=True,
+        s_setup=True,
+        s_value=True,
+        signal=True,
+    )
+    rows = pd.DataFrame(
+        [
+            {**base, "ticker": "TOP.NS"},
+            {**base, "ticker": "ASM.NS", "risk_pct": 13.5, "liq_cr": 1.0, "nse_flags": "⚠️ ASM", "fx_signature": "DISTRIBUTION", "inst_label": "DISTRIBUTING", "val_pct": 95.0},
+            {**base, "ticker": "EXPENSIVE_VAL.NS", "val_pct": 99.0},
+            {**base, "ticker": "DIST_CHK.NS", "fx_signature": "DISTRIBUTION", "inst_label": "DISTRIBUTING"},
+            {**base, "ticker": "NEUT_CHK.NS", "fx_signature": "NEUTRAL", "inst_label": "NEUTRAL"},
+            {**base, "ticker": "MISS_SETUP_CAP.NS", "risk_pct": 17.5, "s_setup": False},
+            {**base, "ticker": "MISS_SETUP_WAIT.NS", "technicals": "WAIT", "simba_days": 99.0, "signal": False, "s_setup": False},
+            {**base, "ticker": "MISS_TREND.NS", "comp_rs": -2.4, "scanner": "HOLD", "stage": 2.0, "s_trend": False},
+            {**base, "ticker": "MISS_IND.NS", "ind_score": 52.0, "ind_group": "IMPROVING", "s_industry": False},
+            {**base, "ticker": "MISS_BIZ.NS", "biz_score": 39.0, "s_business": False},
+        ]
+    )
+    S = funnel.score_table(rows)
+    assert ((S["funnel_score"] >= 0.0) & (S["funnel_score"] <= 100.0)).all()
+    assert set(S["funnel_grade"]).issubset({"A", "B", "C"})
+    for note in S["score_note"]:
+        for tag in ("Ind ", "Trd ", "Set ", "Rsk ", "Ctx "):
+            assert tag in note
+
+    by_tk = S.set_index("ticker")
+    assert by_tk.loc["TOP.NS", "funnel_grade"] == "A"
+    assert float(by_tk.loc["TOP.NS", "funnel_score"]) > float(by_tk.loc["ASM.NS", "funnel_score"])
+    # Valuation must not affect funnel_score, and DISTRIBUTION / DISTRIBUTING must not be penalized vs NEUTRAL
+    assert float(by_tk.loc["TOP.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["EXPENSIVE_VAL.NS", "funnel_score"]))
+    assert float(by_tk.loc["DIST_CHK.NS", "funnel_score"]) == pytest.approx(float(by_tk.loc["NEUT_CHK.NS", "funnel_score"]))
+
+    R = funnel.run(S)
+    picks_sc = R["picks"]["funnel_score"].tolist()
+    assert picks_sc == sorted(picks_sc, reverse=True)
+    near_by = R["near"].set_index("ticker")
+    assert "+2.5% over 15% cap" in near_by.loc["MISS_SETUP_CAP.NS", "miss_gap"]
+    assert "WAIT" in near_by.loc["MISS_SETUP_WAIT.NS", "miss_gap"]
+    assert "2.4 to BUY" in near_by.loc["MISS_TREND.NS", "miss_gap"]
+    assert "8 pts to Leading" in near_by.loc["MISS_IND.NS", "miss_gap"]
+    assert "6 pts to pass" in near_by.loc["MISS_BIZ.NS", "miss_gap"]
