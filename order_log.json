@@ -1,0 +1,18 @@
+[
+  {
+    "id": "2026-11-20-ENTERO-BUY",
+    "date": "2026-11-20",
+    "ticker": "ENTERO.NS",
+    "side": "BUY",
+    "qty": 6,
+    "limit": 1920.8,
+    "value": 11524.8,
+    "ref": 1901.800048828125,
+    "reason": "Model holding (RS 19)",
+    "note": "",
+    "stop": 1677.05,
+    "status": "SENDING",
+    "ts": "2026-11-24T19:23:26+05:30",
+    "mode": "dhan"
+  }
+]
