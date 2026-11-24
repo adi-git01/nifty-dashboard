@@ -182,12 +182,31 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["inst_y"] = [g_inst(t, "d_inst_y") for t in x.ticker]
     x["fii_pct"] = [g_inst(t, "fii") for t in x.ticker]
     x["dii_pct"] = [g_inst(t, "dii") for t in x.ticker]
+    x["prom_pct"] = [g_inst(t, "promoters") for t in x.ticker]
+    x["prom_q"] = [g_inst(t, "d_prom_q") for t in x.ticker]
+    av = _num(d, "averageVolume")
+    x["liq_cr"] = (av * x.price / 1e7).where((av > 0) & (x.price > 0))
     try:
         from utils import nse_data
         deals = nse_data.deal_tally(90)
     except Exception:
         deals = {}
     x["deal_inst_cr"] = [deals[t]["inst"] if t in deals else np.nan for t in x.ticker]
+    x["deliv_pct"] = _num(d, "deliv_pct") if "deliv_pct" in d else np.nan
+    x["deliv_avg20"] = _num(d, "deliv_avg20") if "deliv_avg20" in d else np.nan
+    x["nse_flags"] = d["nse_flags"].fillna("").astype(str) if "nse_flags" in d else ""
+    if ("deliv_pct" not in d or "nse_flags" not in d) and len(x):
+        try:
+            from utils import nse_data
+            att = nse_data.attach(x[["ticker"]])
+            if "deliv_pct" not in d and "deliv_pct" in att:
+                x["deliv_pct"] = pd.to_numeric(att["deliv_pct"], errors="coerce")
+            if "deliv_avg20" not in d and "deliv_avg20" in att:
+                x["deliv_avg20"] = pd.to_numeric(att["deliv_avg20"], errors="coerce")
+            if "nse_flags" not in d and "nse_flags" in att:
+                x["nse_flags"] = att["nse_flags"].fillna("").astype(str)
+        except Exception:
+            pass
     for i, t in zip(x.index, x.ticker):
         if t not in todo:
             continue

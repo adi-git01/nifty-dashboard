@@ -172,10 +172,10 @@ def _fmt_technicals(r: pd.Series) -> tuple[str, float]:
     if np.isfinite(sd) and 0 <= sd <= funnel.SETUP_DAYS:
         bits.append(f"SIMBA {int(sd)}d")
     cell = " · ".join(bits)
-    act_pts = {"BUY NOW": 100.0, "BUY ON TRIGGER": 70.0, "HOLD": 35.0, "WAIT": 20.0, "AVOID": 0.0}.get(act.upper(), 15.0)
+    act_pts = {"BUY NOW": 100.0, "BUY ON TRIGGER": 70.0, "HOLD": 35.0, "WAIT": 30.0, "WATCH": 15.0, "AVOID": 0.0}.get(act.upper(), 15.0)
     # the labels utils/forensics.supply_at() actually emits. NEAR OVERHANG drags 1-3 months, then catches up
     # (analysis/FORENSICS_VERDICT.md); INSIDE shelf = price within a volume shelf ("absorption zone"), not overhead
-    sup_pts = {"CLEAN AIR": 20.0, "FAR OVERHANG": 10.0, "INSIDE SHELF": 5.0, "NEAR OVERHANG": -5.0}.get(sup.upper(), 0.0)
+    sup_pts = {"CLEAN AIR": 20.0, "FAR OVERHANG": 10.0, "INSIDE SHELF": 5.0, "NEAR OVERHANG": -5.0, "NOT COMPUTED": 0.0}.get(sup.upper(), 0.0)
     # DISTRIBUTION is NOT a warning in the 10-year study (no worse than Gate 1), so it is not penalised
     sig_pts = 12.0 if sig == "ABSORPTION" else 0.0
     shk_pts = 6.0 if shk else 0.0
@@ -323,6 +323,66 @@ def _fmt_biz_val(r: pd.Series) -> tuple[str, float]:
     return cell, score
 
 
+def _fmt_institutions(r: pd.Series) -> tuple[str, float]:
+    lab = _txt(r.get("inst_label")).upper()
+    iq = _num(r.get("inst_q"))
+    iy = _num(r.get("inst_y"))
+    fii = _num(r.get("fii_pct"))
+    dii = _num(r.get("dii_pct"))
+    deal_cr = _num(r.get("deal_inst_cr"))
+
+    icon = {"ACCUMULATING": "🟢", "DISTRIBUTING": "🔴", "NEUTRAL": "⚪"}.get(lab, "")
+    bits: List[str] = []
+    if lab:
+        chg_parts: List[str] = []
+        if np.isfinite(iq):
+            chg_parts.append(f"{iq:+.1f} QoQ")
+        if np.isfinite(iy):
+            chg_parts.append(f"{iy:+.1f} YoY")
+        bits.append(f"{icon} {lab}" + (f" ({', '.join(chg_parts)})" if chg_parts else ""))
+    if np.isfinite(fii) or np.isfinite(dii):
+        own_parts: List[str] = []
+        if np.isfinite(fii):
+            own_parts.append(f"FII {fii:.1f}%")
+        if np.isfinite(dii):
+            own_parts.append(f"DII {dii:.1f}%")
+        bits.append(" / ".join(own_parts))
+    if np.isfinite(deal_cr) and abs(deal_cr) >= 0.05:
+        bits.append(f"Deals {deal_cr:+.1f} cr")
+    if not bits:
+        return "—", np.nan
+
+    # Evidence (fund_trends.py): ACCUMULATING beat median over 6m in 9/9 quarters; DISTRIBUTING was mixed (~0), so not penalized.
+    base_pts = 20.0 + float(np.clip(iy, -10.0, 15.0)) if lab == "ACCUMULATING" and np.isfinite(iy) else (20.0 if lab == "ACCUMULATING" else 0.0)
+    deal_pts = float(np.clip(deal_cr, -20.0, 20.0)) * 0.25 if np.isfinite(deal_cr) else 0.0
+    return " · ".join(bits), base_pts + deal_pts
+
+
+def _fmt_exec_risk(r: pd.Series) -> tuple[str, float]:
+    liq = _num(r.get("liq_cr"))
+    dp = _num(r.get("deliv_pct"))
+    da = _num(r.get("deliv_avg20"))
+    flags = _txt(r.get("nse_flags"))
+
+    bits: List[str] = []
+    if np.isfinite(liq):
+        bits.append(f"₹{liq:.1f} cr/d" if liq < 20 else f"₹{liq:,.0f} cr/d")
+    if np.isfinite(dp):
+        if np.isfinite(da) and da > 0:
+            bits.append(f"Deliv {dp:.0f}% ({dp / da:.1f}×)")
+        else:
+            bits.append(f"Deliv {dp:.0f}%")
+    if flags:
+        bits.append(flags)
+    if not bits:
+        return "—", np.nan
+
+    liq_pts = 20.0 if (np.isfinite(liq) and liq >= 20.0) else (12.0 if (np.isfinite(liq) and liq >= 5.0) else (-15.0 if (np.isfinite(liq) and liq < 2.0) else 0.0))
+    deliv_pts = 5.0 if (np.isfinite(dp) and np.isfinite(da) and da > 0 and dp / da >= 1.2) else 0.0
+    surv_pen = -25.0 if "⚠️" in flags else 0.0
+    return " · ".join(bits), liq_pts + deliv_pts + surv_pen
+
+
 ROW_BUILDERS = (
     ("Funnel Stages", _fmt_funnel_stages),
     ("Industry Leadership", _fmt_industry),
@@ -334,6 +394,8 @@ ROW_BUILDERS = (
     ("Latest Quarter", _fmt_quarter),
     ("Trailing P/E", _fmt_pe),
     ("Business & Valuation v4.1", _fmt_biz_val),
+    ("Institutions & Deals", _fmt_institutions),
+    ("Liquidity, Delivery & Flags", _fmt_exec_risk),
 )
 
 
@@ -352,6 +414,7 @@ def _compute_winners(T: pd.DataFrame, bares: List[str]) -> tuple[Dict[str, Any],
         _, s_qtr = _fmt_quarter(r)
         _, s_pe = _fmt_pe(r)
         _, s_bvl = _fmt_biz_val(r)
+        _, s_inst = _fmt_institutions(r)
 
         swing_total = (
             s_fun * 1.2
@@ -362,6 +425,7 @@ def _compute_winners(T: pd.DataFrame, bares: List[str]) -> tuple[Dict[str, Any],
             + max(s_stp, -50.0) * 0.4
             + s_trd * 0.8
             + max(s_qtr, -50.0) * 0.35
+            + (s_inst * 0.15 if np.isfinite(s_inst) else 0.0)
         )
         act = _txt(r.get("technicals"), "—")
         sup = _txt(r.get("fx_supply"))
@@ -413,7 +477,7 @@ def build_comparison(
     val: Optional[pd.DataFrame] = None,
 ) -> Dict[str, Any]:
     """
-    Build the 10-row side-by-side Decision Matrix across 2-4 stocks plus Swing & GARP winner cards.
+    Build the 12-row side-by-side Decision Matrix across 2-4 stocks plus Swing & GARP winner cards.
     Uses the same underlying funnel.table() pipeline as Investment Funnel and Stock Report.
     """
     if df is None or df.empty or "ticker" not in df.columns:

@@ -521,15 +521,21 @@ def deals_for(tickers=None, days: int = 5) -> pd.DataFrame:
     d = _read(F["deals"], ["date"])
     if d.empty:
         return d
-    d = d[d.date >= d.date.max() - pd.Timedelta(days=days)]
-    d["ticker"] = d.symbol.astype(str) + ".NS"
+    d = d[d.date >= d.date.max() - pd.Timedelta(days=days)].copy()
+    d["ticker"] = d.symbol.astype(str).str.strip().str.upper() + ".NS"
     if tickers is not None:
-        want = set(tickers)
+        want = {str(t).strip().upper() for t in tickers}
+        want = {t if t.endswith(".NS") else f"{t}.NS" for t in want if t}
         aliases = _rename_aliases()
+        rev: Dict[str, list[str]] = {}
+        for old_s, new_s in aliases.items():
+            rev.setdefault(new_s, []).append(old_s)
         for t in list(want):
-            base = str(t).replace(".NS", "")
+            base = t.replace(".NS", "")
             if base in aliases:
                 want.add(f"{aliases[base]}.NS")
+            for old_s in rev.get(base, ()):
+                want.add(f"{old_s}.NS")
         d = d[d.ticker.isin(want)]
     d["value_cr"] = d.qty * d.price / 1e7
     return d.sort_values(["date", "value_cr"], ascending=[False, False])
@@ -573,7 +579,9 @@ def deal_tally(days: int = 90, d: Optional[pd.DataFrame] = None) -> Dict[str, di
     d["kind_c"] = d.client.map(deal_kind)
     sign = d.side.astype(str).str.upper().str.strip().map({"BUY": 1.0, "SELL": -1.0}).fillna(0.0)
     d["v"] = sign * pd.to_numeric(d.qty, errors="coerce").fillna(0) * pd.to_numeric(d.price, errors="coerce").fillna(0) / 1e7
-    d["ticker"] = d.symbol.astype(str).str.strip() + ".NS"   # deals carry the symbol in force on the deal date
+    aliases = _rename_aliases()
+    sym = d.symbol.astype(str).str.strip().str.upper()
+    d["ticker"] = sym.map(lambda s: aliases.get(s, s)) + ".NS"
     piv = d.pivot_table(index="ticker", columns="kind_c", values="v", aggfunc="sum", fill_value=0.0)
     piv = piv.reindex(columns=list(DEAL_KINDS), fill_value=0.0)
     n = d.groupby("ticker").size()
@@ -584,6 +592,10 @@ def deal_tally(days: int = 90, d: Optional[pd.DataFrame] = None) -> Dict[str, di
         e.update(net=round(float(r.sum()), 2), inst=round(float(r["FII"] + r["MF"] + r["Insurance"]), 2),
                  n=int(n.get(t, 0)), since=since, last=last)
         out[t] = e
+    for old_s, new_s in aliases.items():
+        nt, ot = f"{new_s}.NS", f"{old_s}.NS"
+        if nt in out and ot not in out:
+            out[ot] = out[nt]
     return out
 
 

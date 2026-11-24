@@ -66,8 +66,8 @@ def _table(key: str, fund_key: tuple, val_key: float, _df: pd.DataFrame) -> pd.D
 
 
 def get_table(df: pd.DataFrame) -> pd.DataFrame:
-    from utils import fund_paths, fund_trends
-    paths = [fund_paths.resolve(f) for f in fund_trends.FILES + fund_trends.QFILES] + [fund_trends.BRIEF_CACHE]
+    from utils import fund_paths, fund_trends, nse_data as _nd
+    paths = [fund_paths.resolve(f) for f in fund_trends.FILES + fund_trends.QFILES] + [fund_trends.BRIEF_CACHE, _nd.F["deals"]]
     fk = tuple(os.path.getmtime(p) if os.path.exists(p) else 0.0 for p in paths)
     return _table(snap_key(df), fk, os.path.getmtime(VAL_FILE) if os.path.exists(VAL_FILE) else 0.0, df)
 
@@ -147,13 +147,33 @@ def _inst_labels(P: pd.DataFrame) -> list[str]:
     return out
 
 
+def _deliv_labels(P: pd.DataFrame) -> list[str]:
+    out: list[str] = []
+    for r in P.itertuples():
+        dp = getattr(r, "deliv_pct", None)
+        da = getattr(r, "deliv_avg20", None)
+        if pd.isna(dp):
+            out.append("—")
+        elif pd.notna(da) and float(da) > 0:
+            out.append(f"{float(dp):.0f}% ({float(dp) / float(da):.1f}×)")
+        else:
+            out.append(f"{float(dp):.0f}%")
+    return out
+
+
 def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     P = search_box(P, key, cols=("name", "ticker", "industry"))
-    if P is not None and not P.empty and "inst_label" in P.columns and st.toggle(
+    if P is None or P.empty:
+        st.caption("Nothing here.")
+        return
+    c1, c2 = st.columns([1.8, 1.4])
+    if "inst_label" in P.columns and c1.toggle(
             "🏦 Institutions accumulating only", key=f"{key}_inst",
             help="FII + DII holding up ≥ 1 pp last quarter or ≥ 2 pp over a year (quarterly filings). "
                  "Nov 2023 - Nov 2026: beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp). Context, not a gate."):
         P = P[P["inst_label"].eq("ACCUMULATING")]
+    view_mode = c2.radio("Columns", ["⚡ Quick Glance", "🔬 Full (all pillars)"], horizontal=True,
+                         key=f"{key}_cols", label_visibility="collapsed")
     if P is None or P.empty:
         st.caption("Nothing here.")
         return
@@ -167,9 +187,16 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Stop": P.stop, "Risk %": P.risk_pct, "2× risk ref": P.t1, "Trend": _trend_labels(P),
         "Business": P.biz_headline, "Q Sales YoY": col_s("sales_yoy"),
         "Latest qtr profit YoY": P.np_yoy, "OPM Δ": col_s("opm_chg"), "Flags": P.biz_flags,
-        "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""), "Institutions": _inst_labels(P),
-        "Inst deals": col_s("deal_inst_cr"),
-        "Value pctile": P.val_pct, "To mid value": P.val_upside})
+        "P/E": col_s("pe"), "Valuation": col_s("val_rating", ""),
+        "Value pctile": P.val_pct, "To mid value": P.val_upside,
+        "Institutions": _inst_labels(P), "Inst deals": col_s("deal_inst_cr"),
+        "Deliv %": _deliv_labels(P), "Liq ₹cr/d": col_s("liq_cr"), "NSE Flags": col_s("nse_flags", "")})
+    if view_mode == "⚡ Quick Glance":
+        q_cols = [c for c in (
+            "Stock", "Name", *extra, "Industry", "Ind.", "Price", "vs Stop", "vs 52W High",
+            "RS", "Technicals", "Risk %", "Business", "Institutions", "Valuation", "NSE Flags",
+        ) if c in V.columns]
+        V = V[q_cols]
     st.dataframe(V, hide_index=True, use_container_width=True, height=min(len(V) * 35 + 40, 560), column_config={
         "Missed": st.column_config.TextColumn("Missed stage", help="The one stage this stock fails"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"),
@@ -190,12 +217,15 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "OPM Δ": st.column_config.NumberColumn(format="%+.1f pp", help="Latest quarter operating margin YoY change (percentage points)"),
         "P/E": st.column_config.NumberColumn(format="%.1f×", help="Trailing P/E"),
         "Valuation": st.column_config.TextColumn("Val Rating", help="Valuation v4.1 action rating"),
+        "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
+        "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price"),
         "Institutions": st.column_config.TextColumn("FII+DII Δ pp", help="Change in FII + DII holding from quarterly filings. "
-                                                    "🟢 accumulating (≥ +1 pp QoQ or ≥ +2 pp YoY) · 🔴 distributing · ⚪ neutral"),
+                                                    "🟢 accumulating (≥ +1 pp QoQ or ≥ +2 pp YoY without current selling) · 🔴 distributing · ⚪ neutral"),
         "Inst deals": st.column_config.NumberColumn("Inst deals ₹cr", format="%+.1f", help="Net FII + MF + insurer buying in NSE bulk/block "
                                                    "deals over 90 days (₹ crore; blank = no deals). Bucketed from client names."),
-        "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
-        "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price")})
+        "Deliv %": st.column_config.TextColumn("Deliv % (vs 20d)", help="Latest session delivery % and ratio vs 20-day average"),
+        "Liq ₹cr/d": st.column_config.NumberColumn("Liq ₹cr/d", format="₹%.1f", help="Average daily turnover (₹ crore/day)"),
+        "NSE Flags": st.column_config.TextColumn("NSE Flags", help="Surveillance (ASM/GSM) and upcoming corporate events")})
 
 
 def render(df: pd.DataFrame):

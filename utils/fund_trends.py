@@ -798,7 +798,7 @@ def inst_label(d_q: float, d_y: float) -> str:
     Backtest Nov 2023 - Nov 2026 (12 filing quarters, ~10k stock-quarters, entry a month after the filing deadline):
     ACCUMULATING beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp, 56% hit); DISTRIBUTING was
     mixed (median ~0), so it is context, not a warning. Shown, never a funnel gate."""
-    if pd.notna(d_q) and (d_q >= INST_ACC_Q or (pd.notna(d_y) and d_y >= INST_ACC_Y)):
+    if pd.notna(d_q) and (d_q >= INST_ACC_Q or (pd.notna(d_y) and d_y >= INST_ACC_Y and d_q > INST_DIS_Q)):
         return "ACCUMULATING"
     if pd.notna(d_y) and d_y <= INST_DIS_Y and pd.notna(d_q) and d_q <= INST_DIS_Q:
         return "DISTRIBUTING"
@@ -811,19 +811,21 @@ def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
     if not Q:
         return {}
     L = pd.concat(Q.values(), ignore_index=True)
-    L = L[L["field"].isin(["fii", "dii", "promoters"]) & L["period"].dt.month.isin([3, 6, 9, 12])]
+    L = L[L["field"].isin(["fii", "dii", "promoters"]) & L["period"].dt.month.isin([3, 6, 9, 12])].copy()
     if L.empty:
         return {}
+    L["ticker"] = L["ticker"].astype(str).str.strip().str.upper().map(lambda s: s if s.endswith(".NS") else f"{s}.NS")
     W = L.pivot_table(index=["ticker", "period"], columns="field", values="value", aggfunc="last")
     W = W.apply(pd.to_numeric, errors="coerce").reset_index()
-    if "fii" not in W or "dii" not in W:
+    for col in ("fii", "dii", "promoters"):
+        if col not in W:
+            W[col] = np.nan
+    if W["fii"].isna().all() and W["dii"].isna().all():
         return {}
-    if "promoters" not in W:
-        W["promoters"] = np.nan
-    W = W.dropna(subset=["fii", "dii"]).sort_values(["period", "ticker"])
-    W["inst"] = W["fii"] + W["dii"]
+    W = W[W["fii"].notna() | W["dii"].notna()].sort_values(["period", "ticker"]).copy()
+    W["inst"] = W["fii"].fillna(0.0) + W["dii"].fillna(0.0)
     last = W.sort_values("period").groupby("ticker").tail(1)
-    cols = ["ticker", "period", "fii", "dii", "inst"]
+    cols = ["ticker", "period", "fii", "dii", "inst", "promoters"]
     out_df = last.copy()
     for tag, months in (("q", 3), ("y", 12)):           # the filing N months earlier, matched within 45 days
         probe = last[["ticker", "period"]].assign(target=last["period"] - pd.DateOffset(months=months)).sort_values("target")
@@ -831,7 +833,7 @@ def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
         m = pd.merge_asof(probe, prev, left_on="target", right_on="p_prev", by="ticker", direction="nearest",
                           tolerance=pd.Timedelta(days=45))
         m = m[m["p_prev"] < m["period"]].set_index("ticker")
-        for c in ("fii", "dii", "inst"):
+        for c in ("fii", "dii", "inst", "promoters"):
             out_df[f"d_{c}_{tag}"] = out_df["ticker"].map(out_df.set_index("ticker")[c] - m[c])
     out: Dict[str, Dict[str, Any]] = {}
     for r in out_df.itertuples(index=False):
@@ -839,8 +841,8 @@ def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
         full_tk = tk if tk.endswith(".NS") else f"{tk}.NS"
         f = lambda v: float(v) if pd.notna(v) else np.nan
         out[full_tk] = dict(period=pd.Timestamp(r.period).strftime("%b %Y"), fii=f(r.fii), dii=f(r.dii), promoters=f(r.promoters),
-                            d_fii_q=f(r.d_fii_q), d_dii_q=f(r.d_dii_q), d_inst_q=f(r.d_inst_q),
-                            d_fii_y=f(r.d_fii_y), d_dii_y=f(r.d_dii_y), d_inst_y=f(r.d_inst_y),
+                            d_fii_q=f(r.d_fii_q), d_dii_q=f(r.d_dii_q), d_inst_q=f(r.d_inst_q), d_prom_q=f(r.d_promoters_q),
+                            d_fii_y=f(r.d_fii_y), d_dii_y=f(r.d_dii_y), d_inst_y=f(r.d_inst_y), d_prom_y=f(r.d_promoters_y),
                             label=inst_label(f(r.d_inst_q), f(r.d_inst_y)))
     return out
 
