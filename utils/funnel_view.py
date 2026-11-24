@@ -204,11 +204,11 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Gap to pass": st.column_config.TextColumn("Gap to pass", help="How close this near miss is to flipping into a full PASS"),
         "Score": st.column_config.ProgressColumn(
             "Score", min_value=0, max_value=100, format="%.0f",
-            help="Base (0–80): Mom(32) · Set(22) · Str ADX+MTF(14) · Hyg(12) + Alpha Catalysts (+0..25: "
-                 "Absorption +13, Shakeout +9, Inst Accum +9, Deals/Deliv). Half-size stops (10–15%) are "
-                 "unpenalized; Valuation excluded; ranking aid (not backtested as a composite)."),
-        "Grade": st.column_config.TextColumn("Grade", width="small", help="A ≥ 75 · B 60–74 · C < 60"),
-        "Score Split": st.column_config.TextColumn("Score Split", help="Points by pillar: Mom(32) · Set(22) · Str(14) · Hyg(12) · Cat(+25)"),
+            help="Base (0–80): Mom(28) · Set/Extension(22) · Str ADX+MTF(12) · Business/Val-tail/Hygiene(18) + Alpha Catalysts (+0..22: "
+                 "Absorption +13, Shakeout +9, Inst Accum +8, Deals/Deliv). Half-size stops (3–15%) unpenalized; noise stops (<2%), "
+                 "loss-makers, quarterly drops, extreme valuation tails, extension, and ⚠️ surveillance penalized; ranking aid (not backtested as a composite)."),
+        "Grade": st.column_config.TextColumn("Grade", width="small", help="A ≥ 74 · B 60–73 · C < 60"),
+        "Score Split": st.column_config.TextColumn("Score Split", help="Points by pillar: Mom(28) · Set(22) · Str(12) · Qual(18) · Cat(+22)"),
         "Price": st.column_config.NumberColumn(format="₹%.1f"),
         "vs Stop": st.column_config.NumberColumn(format="%+.1f%%", help="(Price − Stop) / Price %"),
         "vs MA50": st.column_config.NumberColumn(format="%+.1f%%", help="(Price / 50-DMA − 1) %"),
@@ -230,7 +230,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Value pctile": st.column_config.NumberColumn(format="%.0f", help="Where the price sits in the valuation range (0 cheap, 100 expensive). Blank = not valued."),
         "To mid value": st.column_config.NumberColumn(format="%+.0f%%", help="Mid (P50) value vs price"),
         "Institutions": st.column_config.TextColumn("FII+DII Δ pp", help="Change in FII + DII holding from quarterly filings. "
-                                                    "🟢 accumulating (≥ +1 pp QoQ or ≥ +2 pp YoY without current selling) · 🔴 distributing · ⚪ neutral"),
+                                                    "🟢 accumulating (≥ +1 pp QoQ without heavy YoY exit, or ≥ +2 pp YoY without current selling) · 🔴 distributing · ⚪ neutral"),
         "Inst deals": st.column_config.NumberColumn("Inst deals ₹cr", format="%+.1f", help="Net FII + MF + insurer buying in NSE bulk/block "
                                                    "deals over 90 days (₹ crore; blank = no deals). Bucketed from client names."),
         "Deliv %": st.column_config.TextColumn("Deliv % (vs 20d)", help="Latest session delivery % and ratio vs 20-day average"),
@@ -282,7 +282,7 @@ def render(df: pd.DataFrame):
 
     n_a = int(R["picks"]["funnel_grade"].eq("A").sum()) if len(R["picks"]) and "funnel_grade" in R["picks"] else 0
     st.markdown(f"#### ✅ Passing every selected stage ({len(R['picks'])}" + (f" · {n_a} Grade A" if n_a else "") + ")")
-    st.caption("Sorted by **Funnel Score (0–100)** — Base(80): de-duplicated Mom+Ind(32), Setup/Timing(22), ADX+MTF Structure(14), Execution Hygiene(12) + Catalysts(+0..25: Absorption, Shakeout, Inst Accum); ranking aid, not backtested as a composite. Open **Analysis Lab → 📋 Stock Report** for full details.")
+    st.caption("Sorted by **Funnel Score (0–100)** — Base(80): Mom+Ind(28), Setup/Extension(22), ADX+MTF Structure(12), Business & Hygiene(18) + Catalysts(+0..22: Absorption, Shakeout, Inst Accum); ranking aid, not backtested as a composite. Open **Analysis Lab → 📋 Stock Report** for full details.")
     _show(R["picks"], "fn_q")
     pk = R["picks"].ticker.tolist()
     if pk:

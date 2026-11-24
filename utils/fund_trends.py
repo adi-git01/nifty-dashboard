@@ -798,7 +798,10 @@ def inst_label(d_q: float, d_y: float) -> str:
     Backtest Nov 2023 - Nov 2026 (12 filing quarters, ~10k stock-quarters, entry a month after the filing deadline):
     ACCUMULATING beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp, 56% hit); DISTRIBUTING was
     mixed (median ~0), so it is context, not a warning. Shown, never a funnel gate."""
-    if pd.notna(d_q) and (d_q >= INST_ACC_Q or (pd.notna(d_y) and d_y >= INST_ACC_Y and d_q > INST_DIS_Q)):
+    if pd.notna(d_q) and (
+        (d_q >= INST_ACC_Q and (pd.isna(d_y) or d_y > INST_DIS_Y))
+        or (pd.notna(d_y) and d_y >= INST_ACC_Y and d_q > INST_DIS_Q)
+    ):
         return "ACCUMULATING"
     if pd.notna(d_y) and d_y <= INST_DIS_Y and pd.notna(d_q) and d_q <= INST_DIS_Q:
         return "DISTRIBUTING"
