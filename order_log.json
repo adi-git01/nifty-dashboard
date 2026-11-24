@@ -11,8 +11,10 @@
     "reason": "Model holding (RS 19)",
     "note": "",
     "stop": 1677.05,
-    "status": "SENDING",
-    "ts": "2026-11-24T19:23:26+05:30",
-    "mode": "dhan"
+    "status": "SENT",
+    "ts": "2026-11-24T19:23:29+05:30",
+    "mode": "dhan",
+    "dhan_order_id": "2352611247129",
+    "broker_status": "TRANSIT"
   }
 ]
