@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from utils import funnel, simba
+from utils import funnel, funnel_ui, simba
 from utils.industry_board_view import get_board
 from utils.ui_search import search_box
 
@@ -161,21 +161,120 @@ def _deliv_labels(P: pd.DataFrame) -> list[str]:
     return out
 
 
+def _show_signal_strip(P: pd.DataFrame, key: str):
+    st.markdown(funnel_ui.css(), unsafe_allow_html=True)
+    items = funnel_ui.annotate_rows(P, setup_labels(P))
+    _, counts = funnel_ui.filter_annotated(items, "ALL")
+    pill_opts = [k for k, _ in funnel_ui.STRIP_FILTERS]
+    pill_labels = {k: f"{lbl} ({counts.get(k, 0)})" for k, lbl in funnel_ui.STRIP_FILTERS}
+    if hasattr(st, "pills"):
+        strip_f = st.pills(
+            "Filter",
+            pill_opts,
+            default="ALL",
+            format_func=lambda k: pill_labels[k],
+            key=f"{key}_strip_f",
+            label_visibility="collapsed",
+        ) or "ALL"
+    else:
+        strip_f = st.radio(
+            "Filter",
+            pill_opts,
+            format_func=lambda k: pill_labels[k],
+            horizontal=True,
+            key=f"{key}_strip_f",
+            label_visibility="collapsed",
+        ) or "ALL"
+    filtered, _ = funnel_ui.filter_annotated(items, strip_f)
+    if not filtered:
+        st.caption("No stocks match this filter.")
+        return
+    st.markdown(funnel_ui.signal_strip_html(filtered), unsafe_allow_html=True)
+
+
+def _show_by_sector(P: pd.DataFrame, key: str):
+    st.markdown(funnel_ui.css(), unsafe_allow_html=True)
+    items = funnel_ui.annotate_rows(P, setup_labels(P))
+    groups = funnel_ui.group_by_sector(items)
+    if not groups:
+        st.caption("Nothing here.")
+        return
+
+    sec_names = [g["sector"] for g in groups]
+    default_sec = next((g["sector"] for g in groups if g["count"] >= 2), groups[0]["sector"])
+    active_sec = st.session_state.get(f"{key}_cmp_sec")
+    if active_sec not in sec_names:
+        active_sec = default_sec
+        st.session_state[f"{key}_cmp_sec"] = active_sec
+
+    for row_start in range(0, len(groups), 2):
+        grid_cols = st.columns(2)
+        for offset in range(2):
+            idx_g = row_start + offset
+            if idx_g >= len(groups):
+                break
+            g = groups[idx_g]
+            is_sel = g["sector"] == active_sec
+            col_box = grid_cols[offset]
+            col_box.markdown(funnel_ui.sector_card_html(g, selected=is_sel), unsafe_allow_html=True)
+            if col_box.button(
+                f"⚖️ Face-Off ({min(3, g['count'])})",
+                key=f"{key}_secbtn_{idx_g}",
+                type="primary" if is_sel else "secondary",
+                use_container_width=True,
+            ):
+                st.session_state[f"{key}_cmp_sec"] = g["sector"]
+                st.rerun()
+
+    active_group = next((g for g in groups if g["sector"] == active_sec), groups[0])
+    st.markdown(funnel_ui.sector_faceoff_html(active_group, max_peers=3), unsafe_allow_html=True)
+    peers = active_group["items"][:3]
+    if peers:
+        n_btns = len(peers) + (1 if len(peers) >= 2 else 0)
+        bcols = st.columns(n_btns)
+        for idx_p, peer in enumerate(peers):
+            if bcols[idx_p].button(f"📋 Report: {peer['bare']}", key=f"{key}_rep_{idx_p}", use_container_width=True):
+                st.session_state["report_ticker"] = peer["ticker"]
+                st.session_state["nav_page"] = "📋 Stock Report"
+                st.rerun()
+        if len(peers) >= 2 and bcols[-1].button(
+            f"⚖️ Open Full Compare ({len(peers)})", key=f"{key}_fullcmp", use_container_width=True
+        ):
+            peer_tickers = [p["ticker"] for p in peers]
+            st.session_state["compare_tickers"] = peer_tickers
+            st.session_state["cmp_multi_tickers"] = list(peer_tickers)
+            st.session_state["nav_page"] = "⚖️ Compare Stocks"
+            st.rerun()
+
+
 def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
     P = search_box(P, key, cols=("name", "ticker", "industry"))
     if P is None or P.empty:
         st.caption("Nothing here.")
         return
-    c1, c2 = st.columns([1.8, 1.4])
+    c1, c2 = st.columns([1.15, 2.35])
     if "inst_label" in P.columns and c1.toggle(
             "🏦 Institutions accumulating only", key=f"{key}_inst",
             help="FII + DII holding up ≥ 1 pp last quarter or ≥ 2 pp over a year (quarterly filings). "
                  "Nov 2023 - Nov 2026: beat the median stock over 6 months in 9 of 9 quarters (median +2.9 pp). Context, not a gate."):
         P = P[P["inst_label"].eq("ACCUMULATING")]
-    view_mode = c2.radio("Columns", ["⚡ Quick Glance", "🔬 Full (all pillars)"], horizontal=True,
-                         key=f"{key}_cols", label_visibility="collapsed")
+    view_opts = ["🏷️ Signal Strip", "🏭 By Sector", "⚡ Quick Table", "🔬 Full Table"]
+    if hasattr(st, "segmented_control"):
+        view_mode = c2.segmented_control(
+            "View", view_opts, default="🏷️ Signal Strip", key=f"{key}_view", label_visibility="collapsed"
+        ) or "🏷️ Signal Strip"
+    else:
+        view_mode = c2.radio(
+            "View", view_opts, horizontal=True, key=f"{key}_view", label_visibility="collapsed"
+        ) or "🏷️ Signal Strip"
     if P is None or P.empty:
         st.caption("Nothing here.")
+        return
+    if view_mode == "🏷️ Signal Strip":
+        _show_signal_strip(P, key)
+        return
+    if view_mode == "🏭 By Sector":
+        _show_by_sector(P, key)
         return
     col_s = lambda c, default=None: P[c] if c in P.columns else pd.Series(default, index=P.index)
     V = pd.DataFrame({
@@ -193,7 +292,7 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "Institutions": _inst_labels(P), "Inst deals": col_s("deal_inst_cr"),
         "Deliv %": _deliv_labels(P), "Liq ₹cr/d": col_s("liq_cr"), "NSE Flags": col_s("nse_flags", ""),
         "Score Split": col_s("score_note", "")})
-    if view_mode == "⚡ Quick Glance":
+    if view_mode == "⚡ Quick Table":
         q_cols = [c for c in (
             "Stock", "Name", *extra, "Score", "Grade", "Industry", "Ind.", "Price", "vs Stop", "vs 52W High",
             "RS", "Technicals", "Risk %", "Business", "Institutions", "Valuation", "NSE Flags",
