@@ -995,8 +995,7 @@ def test_engine_gate_runs_once_in_the_evening_window():
     assert g.decide(at("2026-11-19 10:30"), sch, {})[0]                                   # market hours: would be intraday prices
     assert g.decide(at("2026-11-19 16:05"), sch, {})[0]                                   # before NSE publishes: wait
     assert not g.decide(at("2026-11-19 19:05"), sch, {})[0]                               # NSE files out: run
-    assert g.decide(at("2026-11-20 00:19"), sch, {})[0]                                   # after midnight: Yahoo lacks the day's bar
-    assert g.decide(at("2026-11-21 18:00"), sch, {})[0]                                   # Saturday
+    assert g.decide(at("2026-11-21 18:00"), sch, {})[0]                                   # Saturday afternoon: weekend
     done = {"date": "2026-11-19", "bar_date": "2026-11-19", "tries": 1}
     assert g.decide(at("2026-11-19 19:00"), sch, done)[0]                                  # captured: later firings skip
     stale = {"date": "2026-11-19", "bar_date": "2026-11-18", "tries": 1}
@@ -1004,6 +1003,19 @@ def test_engine_gate_runs_once_in_the_evening_window():
     assert g.decide(at("2026-11-19 21:00"), sch, {**stale, "tries": 2})[0]                 # then stop (holiday)
     assert not g.decide(at("2026-11-19 19:00"), sch, {"date": "2026-11-19"})[0]            # old-style mark from a late run: still runs
     assert not g.decide(at("2026-11-19 11:00"), "workflow_dispatch", done)[0]              # manual run always goes
+
+    # Overnight / pre-market catch-up (00:00-08:59 IST Mon-Sat): recovers delayed runs on NSE bhavcopy
+    assert not g.decide(at("2026-11-20 00:19"), sch, {})[0]                                # Nov 19 missed -> catch up
+    assert g.decide(at("2026-11-20 00:19"), sch, done)[0]                                  # Nov 19 already captured -> skip
+    assert not g.decide(at("2026-11-20 08:45"), sch, {"date": "2026-11-18", "bar_date": "2026-11-18"})[0]
+    assert g.decide(at("2026-11-20 09:05"), sch, {})[0]                                    # 09:00 IST -> market open, skip
+    assert not g.decide(at("2026-11-21 03:30"), sch, {})[0]                                # Sat pre-market catches Friday
+    assert g.decide(at("2026-11-21 03:30"), sch, {"date": "2026-11-20", "bar_date": "2026-11-20"})[0]
+    assert g.decide(at("2026-11-22 03:30"), sch, {})[0]                                    # Sunday always skipped
+    hol = {"date": "2026-11-19", "target": "2026-11-19", "bar_date": "2026-11-18", "tries": 2}
+    assert g.decide(at("2026-11-20 02:30"), sch, hol)[0]                                   # same Nov 19 target, max tries hit
+    assert not g.decide(at("2026-11-20 19:05"), sch, hol)[0]                               # new Nov 20 evening target runs
+    assert g.target_session(at("2026-11-23 04:00")) == "2026-11-20"                        # Mon pre-market targets Fri
 
 
 def test_audit_fixes_split_direction_scores_and_order_ids():
