@@ -52,11 +52,11 @@
     "name": "Aurobindo Pharma Limited",
     "sector": "Unknown",
     "status": "active",
-    "entry_price": 1735.95,
+    "entry_price": 1783.79,
     "entry_date": "2026-11-15",
     "stop_loss": null,
     "target": null,
-    "quantity": 19,
+    "quantity": 34,
     "notes": "",
     "alerts_enabled": true,
     "entry_signal": "N/A",
@@ -65,14 +65,15 @@
     "exit_date": null,
     "created_at": "2026-11-15T15:31:01.117692",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-18",
-    "updated_at": "2026-11-18T11:27:15.974825",
+    "synced_at": "2026-11-25",
+    "updated_at": "2026-11-25T19:35:41.755335+05:30",
     "lots": {
       "Zerodha": {
-        "qty": 19,
-        "avg": 1735.95
+        "qty": 34,
+        "avg": 1783.79
       }
-    }
+    },
+    "price_basis_date": "2026-11-25"
   },
   {
     "id": "a31b48db-3060-4507-bd41-ea57d0016aac",
@@ -191,7 +192,7 @@
     "ticker": "DEEPAKNTR.NS",
     "name": "Deepak Nitrite Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 1571.37,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -201,12 +202,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 1496.542857142857,
+    "exit_date": "2026-11-25",
     "created_at": "2026-11-15T15:31:01.150606",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.360577",
+    "updated_at": "2026-11-25T19:35:41.766909+05:30",
     "lots": {
       "Zerodha": {
         "qty": 14,
@@ -247,7 +248,7 @@
     "ticker": "GARFIBRES.NS",
     "name": "Garware Technical Fibres Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 786.66,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -257,12 +258,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 707.7545454545453,
+    "exit_date": "2026-11-25",
     "created_at": "2026-11-15T15:31:01.164070",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.367349",
+    "updated_at": "2026-11-25T19:35:41.772178+05:30",
     "lots": {
       "Zerodha": {
         "qty": 44,
@@ -303,7 +304,7 @@
     "ticker": "KAYNES.NS",
     "name": "Kaynes Technology India Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 3568.63,
     "entry_date": "2026-11-15",
     "stop_loss": null,
@@ -313,12 +314,12 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 2715.9,
+    "exit_date": "2026-11-25",
     "created_at": "2026-11-15T15:31:01.179603",
     "source": "Zerodha sync",
     "synced_at": "2026-11-16",
-    "updated_at": "2026-11-16T13:50:40.376132",
+    "updated_at": "2026-11-25T19:35:41.777699+05:30",
     "lots": {
       "Zerodha": {
         "qty": 22,
@@ -746,11 +747,11 @@
     "name": "ICICI Bank Limited",
     "sector": "Unknown",
     "status": "active",
-    "entry_price": 1603.2,
+    "entry_price": 1612.73,
     "entry_date": "2026-11-18",
     "stop_loss": null,
     "target": null,
-    "quantity": 10,
+    "quantity": 15,
     "notes": "",
     "alerts_enabled": true,
     "entry_signal": "N/A",
@@ -759,21 +760,22 @@
     "exit_date": null,
     "created_at": "2026-11-18T11:27:15.965933",
     "source": "Zerodha sync",
-    "synced_at": "2026-11-18",
+    "synced_at": "2026-11-25",
     "lots": {
       "Zerodha": {
-        "qty": 10,
-        "avg": 1603.2
+        "qty": 15,
+        "avg": 1612.73
       }
     },
-    "updated_at": "2026-11-18T11:27:15.969831"
+    "updated_at": "2026-11-25T19:35:41.761049+05:30",
+    "price_basis_date": "2026-11-25"
   },
   {
     "id": "0829595b-1414-47ac-8199-dd64f8b4131c",
     "ticker": "AUTOAXLES.NS",
     "name": "Automotive Axles Limited",
     "sector": "Unknown",
-    "status": "active",
+    "status": "closed",
     "entry_price": 1791.4,
     "entry_date": "2026-11-20",
     "stop_loss": null,
@@ -783,8 +785,8 @@
     "alerts_enabled": true,
     "entry_signal": "N/A",
     "entry_score": 0,
-    "exit_price": null,
-    "exit_date": null,
+    "exit_price": 1740.15,
+    "exit_date": "2026-11-25",
     "created_at": "2026-11-20T14:59:47.195024",
     "source": "Zerodha sync",
     "synced_at": "2026-11-20",
@@ -794,6 +796,93 @@
         "avg": 1791.4
       }
     },
-    "updated_at": "2026-11-20T14:59:47.199019"
+    "updated_at": "2026-11-25T19:35:41.783010+05:30"
+  },
+  {
+    "id": "3733883d-1f76-430f-8b8d-d51a3d22877c",
+    "ticker": "AARTIDRUGS.NS",
+    "name": "Aarti Drugs Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 487.87,
+    "entry_date": "2026-11-25",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 92,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-25T19:35:41.722184+05:30",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-25",
+    "price_basis_date": "2026-11-25",
+    "lots": {
+      "Zerodha": {
+        "qty": 92,
+        "avg": 487.87
+      }
+    },
+    "updated_at": "2026-11-25T19:35:41.726324+05:30"
+  },
+  {
+    "id": "bf7a28a0-dd8d-441e-b88c-89f0346a0d1d",
+    "ticker": "MANKIND.NS",
+    "name": "Mankind Pharma Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 2671.0,
+    "entry_date": "2026-11-25",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 11,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-25T19:35:41.732931+05:30",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-25",
+    "price_basis_date": "2026-11-25",
+    "lots": {
+      "Zerodha": {
+        "qty": 11,
+        "avg": 2671.0
+      }
+    },
+    "updated_at": "2026-11-25T19:35:41.738374+05:30"
+  },
+  {
+    "id": "2eb3e5ab-0732-449e-8436-31296fc82519",
+    "ticker": "MEDANTA.NS",
+    "name": "Global Health Limited",
+    "sector": "Unknown",
+    "status": "active",
+    "entry_price": 1518.69,
+    "entry_date": "2026-11-25",
+    "stop_loss": null,
+    "target": null,
+    "quantity": 19,
+    "notes": "",
+    "alerts_enabled": true,
+    "entry_signal": "N/A",
+    "entry_score": 0,
+    "exit_price": null,
+    "exit_date": null,
+    "created_at": "2026-11-25T19:35:41.743331+05:30",
+    "source": "Zerodha sync",
+    "synced_at": "2026-11-25",
+    "price_basis_date": "2026-11-25",
+    "lots": {
+      "Zerodha": {
+        "qty": 19,
+        "avg": 1518.69
+      }
+    },
+    "updated_at": "2026-11-25T19:35:41.749131+05:30"
   }
 ]
