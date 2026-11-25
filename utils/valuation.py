@@ -1253,7 +1253,15 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         v = "INDETERMINATE (multiple)"
     if not gates_ok:
         failed = [k for k in "ABCEF" if not gates[k]["ok"]] + ([] if out["sanity_1f"]["ok"] else ["1F"])
-        out["rating"] = f"UNRATED (gate {', '.join(failed)})"
+        shape_only = set(failed) <= {"A", "B"} and not indeterminate
+        cf_val = gates["D"].get("counterfactual")
+        below_bear = bool(np.isfinite(bl["bear"]) and price <= bl["bear"])
+        below_cf = bool(cf_val is not None and np.isfinite(cf_val) and price <= cf_val)
+        if shape_only and v in ("BUY", "ACCUMULATE") and (below_bear or below_cf):
+            tag = "<Bear · " if below_bear else "provisional · "
+            out["rating"] = f"{v}* ({tag}gate {', '.join(failed)})"
+        else:
+            out["rating"] = f"UNRATED (gate {', '.join(failed)})"
         out["provisional"] = f"({v}) gate {', '.join(failed)}"
     else:
         out["rating"] = v + (" · INDICATIVE" if ident == "COMMODITY" else "")
@@ -1438,7 +1446,11 @@ def summary_row(res: dict) -> dict:
     if res.get("status") != "OK":
         return row
     d, m = res["dist"], res["multiple"]
-    row.update(rating=res["rating"], provisional=res.get("provisional", ""), cmp_pct=round(d["cmp_pct"], 1), price=res["snapshot"]["price"],
+    bl = res.get("blends") or {}
+    row.update(rating=res["rating"], verdict_raw=res.get("verdict_raw", ""), provisional=res.get("provisional", ""),
+               cmp_pct=round(d["cmp_pct"], 1), price=res["snapshot"]["price"],
+               bear_blend=round(float(bl["bear"]), 2) if np.isfinite(bl.get("bear", np.nan)) else np.nan,
+               base_blend=round(float(bl["base"]), 2) if np.isfinite(bl.get("base", np.nan)) else np.nan,
                p10=d["P10"], p50=d["P50"], p90=d["P90"], confidence=res["confidence"],
                gates_ok=res["gates_ok"], derating=res["gates"]["D"]["triggered"],
                knob_dependent=res.get("knob_dependent", False), cagr_bear=res["cagr"]["bear"],
@@ -1470,11 +1482,20 @@ def band_from_grid(grid, price, k_lo=1.0, k_hi=1.0):
     return min(p, at(price / max(k_hi, 1.0))), p, max(p, at(price / min(k_lo, 1.0)))
 
 
-def rating_from_grid(grid, price, gates_ok, confidence, identity, label_if_unrated=None):
+def rating_from_grid(grid, price, gates_ok, confidence, identity, label_if_unrated=None, bear_blend=None):
     """Re-percentile a stored distribution at today's price (the table uses this)."""
     g = np.asarray(grid, float)
     pct = float(np.interp(price, g, np.arange(1, 100), left=0.5, right=99.5))
     if label_if_unrated:
+        if (not gates_ok) and bear_blend is not None and np.isfinite(bear_blend) and price <= float(bear_blend):
+            s = str(label_if_unrated)
+            if "gate " in s:
+                gate_part = s.split("gate ", 1)[1].rstrip(")")
+                gate_tokens = {tok.strip() for tok in gate_part.split(",") if tok.strip()}
+                if gate_tokens and gate_tokens <= {"A", "B"}:
+                    vb = val_bucket(pct)
+                    if vb in ("BUY", "ACCUMULATE"):
+                        return pct, f"{vb}* (<Bear · gate {gate_part})"
         return pct, label_if_unrated
     v = _verdict(pct, confidence, gates_ok)
     return pct, v + (" · INDICATIVE" if identity == "COMMODITY" else "")

@@ -139,11 +139,18 @@ def _inst_labels(P: pd.DataFrame) -> list[str]:
     for r in P.itertuples():
         lab = str(getattr(r, "inst_label", "") or "")
         q, y = getattr(r, "inst_q", None), getattr(r, "inst_y", None)
+        dq, fq = getattr(r, "dii_q", None), getattr(r, "fii_q", None)
         if not lab:
             out.append("—")
             continue
         bits = [f"{float(q):+.1f} QoQ" if pd.notna(q) else "", f"{float(y):+.1f} YoY" if pd.notna(y) else ""]
-        out.append(f"{icon.get(lab, '')} " + " · ".join(b for b in bits if b))
+        base = f"{icon.get(lab, '')} " + " · ".join(b for b in bits if b)
+        # Expose FII vs DII divergence when one leg moves strongly beneath a flat net headline
+        if pd.notna(dq) and pd.notna(fq) and (
+            (float(dq) >= 0.75 and float(fq) <= -0.5) or (float(fq) >= 0.75 and float(dq) <= -0.5)
+        ):
+            base += f" (DII {float(dq):+.1f} / FII {float(fq):+.1f})"
+        out.append(base)
     return out
 
 
@@ -152,12 +159,20 @@ def _deliv_labels(P: pd.DataFrame) -> list[str]:
     for r in P.itertuples():
         dp = getattr(r, "deliv_pct", None)
         da = getattr(r, "deliv_avg20", None)
+        abs_d = getattr(r, "abs_deliv_cr", None)
+        if pd.isna(abs_d):
+            liq = getattr(r, "liq_cr", None)
+            if pd.notna(liq) and pd.notna(dp) and float(liq) > 0 and float(dp) > 0:
+                abs_d = float(liq) * float(dp) / 100.0
         if pd.isna(dp):
             out.append("—")
-        elif pd.notna(da) and float(da) > 0:
-            out.append(f"{float(dp):.0f}% ({float(dp) / float(da):.1f}×)")
-        else:
-            out.append(f"{float(dp):.0f}%")
+            continue
+        base = (f"{float(dp):.0f}% ({float(dp) / float(da):.1f}×)"
+                if pd.notna(da) and float(da) > 0 else f"{float(dp):.0f}%")
+        if pd.notna(abs_d) and float(abs_d) > 0:
+            v = float(abs_d)
+            base += f" · ₹{v:.0f}cr" if v >= 10 else f" · ₹{v:.1f}cr"
+        out.append(base)
     return out
 
 

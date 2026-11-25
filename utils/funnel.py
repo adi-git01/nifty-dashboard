@@ -154,7 +154,11 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
                     if not g:
                         continue
                     if has_meta and len(g) == 99:
-                        pct, rat = V.rating_from_grid(g, float(px), bool(r["gates_ok"]), str(r["confidence"]), str(r["identity"]))
+                        g_ok = bool(r["gates_ok"])
+                        lbl_unr = str(r["rating"]) if (not g_ok and "rating" in r and pd.notna(r["rating"])) else None
+                        bear_b = r.get("bear_blend") if "bear_blend" in r else None
+                        pct, rat = V.rating_from_grid(g, float(px), g_ok, str(r["confidence"]), str(r["identity"]),
+                                                      label_if_unrated=lbl_unr, bear_blend=bear_b)
                         x.at[i, "val_rating"] = rat
                     else:
                         ga = np.asarray(g, float)
@@ -189,6 +193,10 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["inst_y"] = [g_inst(t, "d_inst_y") for t in x.ticker]
     x["fii_pct"] = [g_inst(t, "fii") for t in x.ticker]
     x["dii_pct"] = [g_inst(t, "dii") for t in x.ticker]
+    x["fii_q"] = [g_inst(t, "d_fii_q") for t in x.ticker]
+    x["dii_q"] = [g_inst(t, "d_dii_q") for t in x.ticker]
+    x["fii_y"] = [g_inst(t, "d_fii_y") for t in x.ticker]
+    x["dii_y"] = [g_inst(t, "d_dii_y") for t in x.ticker]
     x["prom_pct"] = [g_inst(t, "promoters") for t in x.ticker]
     x["prom_q"] = [g_inst(t, "d_prom_q") for t in x.ticker]
     av = _num(d, "averageVolume")
@@ -214,6 +222,7 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
                 x["nse_flags"] = att["nse_flags"].fillna("").astype(str)
         except Exception:
             pass
+    x["abs_deliv_cr"] = (x["liq_cr"] * x["deliv_pct"] / 100.0).where((x["liq_cr"] > 0) & (x["deliv_pct"] > 0))
     for i, t in zip(x.index, x.ticker):
         if t not in todo:
             continue

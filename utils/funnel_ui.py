@@ -113,6 +113,10 @@ def build_signal_chips(row: Any, pillars: Optional[Dict[str, int]] = None) -> Di
     inst_lab = _txt(row, "inst_label").upper()
     inst_q = _num(row, "inst_q")
     inst_y = _num(row, "inst_y")
+    dii_q = _num(row, "dii_q")
+    dii_y = _num(row, "dii_y")
+    fii_q = _num(row, "fii_q")
+    fii_y = _num(row, "fii_y")
     if inst_lab == "ACCUMULATING" and (inst_y is None or inst_y > -2.0):
         if inst_q is not None and inst_y is not None:
             txt = f"🟢 Inst {inst_q:+.1f}q/{inst_y:+.1f}y (+8)"
@@ -122,6 +126,18 @@ def build_signal_chips(row: Any, pillars: Optional[Dict[str, int]] = None) -> Di
             txt = "🟢 Inst Accum (+8)"
         pros.append({"text": txt, "kind": "ok"})
         has_catalyst = True
+    else:
+        # Surface strong single-leg domestic/foreign accumulation even when netted FII+DII is NEUTRAL
+        if (dii_q is not None and dii_q >= 0.75) or (dii_y is not None and dii_y >= 2.0 and (dii_q is None or dii_q > 0)):
+            d_txt = f"🏦 DII {dii_q:+.1f}q" if dii_q is not None else f"🏦 DII {dii_y:+.1f}y"
+            if dii_q is not None and dii_y is not None:
+                d_txt += f"/{dii_y:+.1f}y"
+            pros.append({"text": d_txt, "kind": "info"})
+        elif (fii_q is not None and fii_q >= 0.75) or (fii_y is not None and fii_y >= 2.0 and (fii_q is None or fii_q > 0)):
+            f_txt = f"🌍 FII {fii_q:+.1f}q" if fii_q is not None else f"🌍 FII {fii_y:+.1f}y"
+            if fii_q is not None and fii_y is not None:
+                f_txt += f"/{fii_y:+.1f}y"
+            pros.append({"text": f_txt, "kind": "info"})
 
     deal_cr = _num(row, "deal_inst_cr")
     if deal_cr is not None and deal_cr > 0.0:
@@ -130,9 +146,17 @@ def build_signal_chips(row: Any, pillars: Optional[Dict[str, int]] = None) -> Di
 
     dp = _num(row, "deliv_pct")
     da = _num(row, "deliv_avg20")
+    abs_d = _num(row, "abs_deliv_cr")
+    if abs_d is None:
+        _liq = _num(row, "liq_cr")
+        if _liq is not None and dp is not None and _liq > 0.0 and dp > 0.0:
+            abs_d = _liq * dp / 100.0
     if dp is not None and da is not None and dp > 0.0 and da > 0.0 and (dp / da) >= 1.25:
-        pros.append({"text": f"📦 Deliv {dp:.0f}% ({dp / da:.1f}×)", "kind": "ok"})
+        d_sfx = f" · ₹{abs_d:.0f}cr" if abs_d is not None and abs_d >= 25.0 else ""
+        pros.append({"text": f"📦 Deliv {dp:.0f}% ({dp / da:.1f}×){d_sfx}", "kind": "ok"})
         has_catalyst = True
+    elif abs_d is not None and abs_d >= 100.0 and dp is not None and dp > 0.0:
+        pros.append({"text": f"📦 ₹{abs_d:.0f}cr/d Deliv ({dp:.0f}%)", "kind": "info"})
 
     if pil.get("Cat", 0) > 0:
         has_catalyst = True
@@ -182,6 +206,10 @@ def build_signal_chips(row: Any, pillars: Optional[Dict[str, int]] = None) -> Di
     vp_sfx = f" (P{vpct:.0f})" if vpct is not None else ""
     if vrat in ("STRONG BUY", "BUY", "ACCUMULATE"):
         pros.append({"text": f"💰 Val {vrat}{vp_sfx}", "kind": "ok"})
+    elif vrat.startswith("BUY*") or vrat.startswith("ACCUMULATE*"):
+        base_r = vrat.split(" (", 1)[0]
+        floor_tag = " <Bear" if "<BEAR" in vrat else ""
+        pros.append({"text": f"💰 Val {base_r}{floor_tag}{vp_sfx}", "kind": "ok"})
 
     pe = _num(row, "pe")
     if pe is not None and 0.0 < pe <= 22.0:

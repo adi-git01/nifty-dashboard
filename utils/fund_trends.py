@@ -242,8 +242,16 @@ def _annual(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     return out
 
 
+SHP_LAG_DAYS = 21   # SEBI LODR Reg 31: quarterly shareholding pattern due within 21 days of quarter-end
+PL_LAG_DAYS = 45    # SEBI LODR Reg 33: quarterly financials due within 45 days of quarter-end
+SHP_FIELDS = ("promoters", "fii", "dii", "public", "holders")
+
+
 def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
-    """Cached and shared: treat the result as read-only."""
+    """Cached and shared: treat the result as read-only.
+    When `as_of` is provided, applies split point-in-time SEBI filing lags:
+    21 days for shareholding fields (Reg 31) and 45 days for P&L fields (Reg 33).
+    """
     a_files, q_files = _resolved_paths(root)
     return _quarterly(ticker, root, None if as_of is None else str(as_of), _mtime(a_files + q_files))
 
@@ -252,9 +260,21 @@ def quarterly(ticker: str, root: str = ".", as_of=None) -> pd.DataFrame:
 def _quarterly(ticker: str, root: str, as_of, stamp: float) -> pd.DataFrame:
     _, Q = _data(root)
     k = _key(ticker, Q)
-    if k is None or as_of is not None:        # quarterly history is too short for point-in-time tests
+    if k is None:
         return pd.DataFrame()
-    w = Q[k].pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
+    sub = Q[k]
+    if as_of is not None:
+        dt = pd.Timestamp(as_of)
+        is_shp = sub["field"].isin(SHP_FIELDS)
+        keep = np.where(
+            is_shp,
+            sub["period"] + pd.Timedelta(days=SHP_LAG_DAYS) <= dt,
+            sub["period"] + pd.Timedelta(days=PL_LAG_DAYS) <= dt,
+        )
+        sub = sub[keep]
+        if sub.empty:
+            return pd.DataFrame()
+    w = sub.pivot_table(index="period", columns="field", values="value", aggfunc="last").sort_index()
     w = w[w.index.month.isin([3, 6, 9, 12])]
     g = lambda c: w[c] if c in w else pd.Series(np.nan, index=w.index)
 
@@ -808,13 +828,15 @@ def inst_label(d_q: float, d_y: float) -> str:
     return "NEUTRAL" if pd.notna(d_q) else ""
 
 
-@lru_cache(maxsize=4)
-def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
+@lru_cache(maxsize=16)
+def _inst_map(root: str, stamp: float, as_of: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
     _, Q = _data(root)
     if not Q:
         return {}
     L = pd.concat(Q.values(), ignore_index=True)
     L = L[L["field"].isin(["fii", "dii", "promoters"]) & L["period"].dt.month.isin([3, 6, 9, 12])].copy()
+    if as_of is not None:
+        L = L[L["period"] + pd.Timedelta(days=SHP_LAG_DAYS) <= pd.Timestamp(as_of)]
     if L.empty:
         return {}
     L["ticker"] = L["ticker"].astype(str).str.strip().str.upper().map(lambda s: s if s.endswith(".NS") else f"{s}.NS")
@@ -850,7 +872,8 @@ def _inst_map(root: str, stamp: float) -> Dict[str, Dict[str, Any]]:
     return out
 
 
-def inst_map(root: str = ".") -> Dict[str, Dict[str, Any]]:
-    """Cached `.NS` ticker -> latest FII / DII % and their quarter-on-quarter and year-on-year change (pp)."""
+def inst_map(root: str = ".", as_of=None) -> Dict[str, Dict[str, Any]]:
+    """Cached `.NS` ticker -> latest FII / DII % and their quarter-on-quarter and year-on-year change (pp).
+    Optional `as_of` applies the 21-day SEBI Reg 31 shareholding filing lag."""
     _, q_files = _resolved_paths(root)
-    return _inst_map(root, _mtime(q_files))
+    return _inst_map(root, _mtime(q_files), None if as_of is None else str(as_of))

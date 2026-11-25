@@ -75,10 +75,25 @@ def indicators(close, high, low):
 # Gate 2
 # ----------------------------------------------------------------------------
 MIN_TURNOVER = {"INR": 5e7, "USD": 6e5}      # Rs 5 cr; about the same in dollars for a US stock (the rule was tested on NSE only)
+LARGE_CAP_TURNOVER = {"INR": 1.5e9, "USD": 1.8e7}  # Rs 150 cr / $18M 20d median turnover: 3x volume is rare on liquid large-caps
+LARGE_CAP_VOLX = 1.8
+LARGE_CAP_CLV = 0.65
+CLUSTER_GAP = 10                             # max sessions between consecutive unvetoed bull anchors in one breakout cluster
+EXT_ATR_MAX = 3.5                            # block BUY NOW when extended > 3.5 ATR above breakout anchor close
 
 
-def qualifying(c, v, vmed, min_turnover: float = 5e7):
-    return np.isfinite(vmed) & (vmed > 0) & (v >= 3 * vmed) & (c * v >= min_turnover) & np.isfinite(c) & (c > 0)
+def qualifying(c, v, vmed, min_turnover: float = 5e7, clv=None, turn_med=None,
+               large_cap_turnover: float | None = None):
+    valid = np.isfinite(vmed) & (vmed > 0) & np.isfinite(c) & (c > 0) & (c * v >= min_turnover)
+    base = valid & (v >= 3 * vmed)
+    if clv is None or turn_med is None:
+        return base
+    lct = LARGE_CAP_TURNOVER["INR"] if large_cap_turnover is None else float(large_cap_turnover)
+    pc = np.r_[np.nan, c[:-1]]
+    up_close = np.isfinite(pc) & (c > pc)
+    lc_qual = (valid & np.isfinite(turn_med) & (turn_med >= lct)
+               & (v >= LARGE_CAP_VOLX * vmed) & (clv >= LARGE_CAP_CLV) & up_close)
+    return base | lc_qual
 
 
 def _clv_arr(c: np.ndarray, h: np.ndarray, l: np.ndarray) -> np.ndarray:
@@ -87,14 +102,48 @@ def _clv_arr(c: np.ndarray, h: np.ndarray, l: np.ndarray) -> np.ndarray:
     return np.where(h > l, (c - l) / np.where(h > l, h - l, 1.0), locked)
 
 
-def pick_anchors(qual, v, i, look: int = LOOK):
-    """(v6 anchor, v5 anchor) indices for day i, or (None, None)."""
+def pick_anchors(qual, v, i, look: int = LOOK, clv=None, c=None, l=None, cluster_gap: int = CLUSTER_GAP):
+    """(v6 anchor, v5 anchor) indices for day i, or (None, None).
+
+    When `clv` is provided, bullish anchors (CLV >= 0.5) are preferred over higher-volume
+    MIXED/BEAR bars so a rebalance/selloff spike does not hijack a valid breakout. When
+    `c` and `l` are also provided, unvetoed bullish anchors take priority and an escalating-volume
+    breakout cluster (consecutive unvetoed bull anchors <= `cluster_gap` sessions apart) keeps
+    its earliest ignition bar instead of resetting the 5-day WAIT (running) lock.
+    """
     lo = max(2, i - look + 1)
     q = qual[lo:i + 1]
     if not q.any():
         return None, None
-    a6 = lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
     a5 = lo + int(np.where(q)[0][-1])
+    if clv is None:
+        a6 = lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
+        return a6, a5
+
+    bull_offs = np.where(q & (clv[lo:i + 1] >= 0.5))[0]
+    if len(bull_offs):
+        bull_idx = [lo + int(off) for off in bull_offs]
+        if c is not None and l is not None:
+            def _unvetoed(k: int) -> bool:
+                post = c[k + 1:i + 1]
+                valid_post = post[~np.isnan(post)]
+                return not bool((valid_post < l[k]).any())
+
+            live_bull = [k for k in bull_idx if _unvetoed(k)]
+        else:
+            live_bull = []
+        pool = live_bull if live_bull else bull_idx
+        a6 = max(pool, key=lambda k: (float(v[k]), k))
+        if live_bull and cluster_gap > 0:
+            # Walk back through contiguous unvetoed bullish anchors in the same breakout cluster
+            while True:
+                prev = [k for k in live_bull if k < a6 and (a6 - k) <= cluster_gap]
+                if not prev:
+                    break
+                a6 = max(prev)
+        return a6, a5
+
+    a6 = lo + int(np.argmax(np.where(q, v[lo:i + 1], -1.0)))
     return a6, a5
 
 
@@ -261,10 +310,12 @@ def drop_provisional(df: pd.DataFrame) -> tuple[pd.DataFrame, bool]:
     return df, False
 
 
-def action_for(gate1: bool, state: str, supply: str) -> str:
+def action_for(gate1: bool, state: str, supply: str, entry_weak: bool = False) -> str:
     if not gate1:
         return "WATCH"
     if state == "GO":
+        if entry_weak:
+            return "WAIT"
         return "BUY ON TRIGGER" if supply == "NEAR OVERHANG" else "BUY NOW"
     if state.startswith("WAIT"):
         return "WAIT"
@@ -289,14 +340,17 @@ def analyse(df: pd.DataFrame) -> dict:
     ma200 = d.Close.rolling(200).mean().values
     atr, rsi, adx, pdi, ndi, bbp = (x.values for x in indicators(d.Close, d.High, d.Low))
     vmed = d.Volume.rolling(50, min_periods=30).median().shift(1).values
+    turn_med = (d.Close * d.Volume).rolling(20, min_periods=10).median().shift(1).values
     clv = _clv_arr(c, h, l)
     hi = np.nanmax(c[-252:])
     r = dict(close=c[i], date=d.index[i], ma50=ma50[i], ma200=ma200[i], atr=atr[i], hi252=hi,
              dist_ma50=(c[i] / ma50[i] - 1) * 100, dist_hi=(c[i] / hi - 1) * 100,
              rsi=rsi[i], adx=adx[i], pdi=pdi[i], ndi=ndi[i], bbp=bbp[i], sessions=len(c))
     r["gate1"] = bool(c[i] > ma50[i] and not np.isnan(ma200[i]) and c[i] > ma200[i] and c[i] >= 0.85 * hi)
-    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(df.attrs.get("currency", "INR"), 5e7))
-    a6, _ = pick_anchors(qual, v, i)
+    cur = df.attrs.get("currency", "INR")
+    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(cur, 5e7), clv=clv, turn_med=turn_med,
+                      large_cap_turnover=LARGE_CAP_TURNOVER.get(cur, 1.5e9))
+    a6, _ = pick_anchors(qual, v, i, clv=clv, c=c, l=l)
     ma_stop_i = float(ma50[i] - 0.5 * atr[i]) if (np.isfinite(ma50[i]) and np.isfinite(atr[i])) else np.nan
     stop = ma_stop_i
     if a6 is None:
@@ -347,7 +401,33 @@ def analyse(df: pd.DataFrame) -> dict:
     else:
         r["t2"] = runs[0]["low"] if runs else np.nan
         r["t2_kind"] = "nearest shelf"
-    r["action"] = action_for(r["gate1"], r["state"], r["supply"])
+    # Guard against firing BUY NOW into an active liquidation down-day or a parabolic blow-off.
+    # Backtest evidence (FORENSICS_VERDICT.md + 11-multibagger march):
+    # - Permanent blocking on sticky 60d `signature == "DISTRIBUTION"` or tiny quiet CLV < 0.35 days choked
+    #   90-100% of BUY NOW days on trending multibaggers; only block active selling bars (red + CLV < 0.35 +
+    #   >=2% drop, >=1.5x vol, or DISTRIBUTION context).
+    # - Extension > 3.5 ATR must hold vs BOTH MA50 AND anchor_close so a stock pausing near its 50DMA after an
+    #   older anchor (or just breaking out on a fresh anchor) is not falsely blocked.
+    ext_anc = (float((c[i] - c[a6]) / atr[i])
+               if (a6 is not None and np.isfinite(atr[i]) and atr[i] > 0) else np.nan)
+    ext_ma50 = (float((c[i] - ma50[i]) / atr[i])
+                if (np.isfinite(ma50[i]) and np.isfinite(atr[i]) and atr[i] > 0) else np.nan)
+    r["ext_atr"] = ext_anc
+    r["ext_ma50_atr"] = ext_ma50
+    guards: list[str] = []
+    if i > 0 and np.isfinite(c[i - 1]) and c[i - 1] > 0:
+        day_ret = c[i] / c[i - 1] - 1.0
+        hi_vol_dn = bool(np.isfinite(vmed[i]) and vmed[i] > 0 and v[i] >= 1.5 * vmed[i])
+        if c[i] < c[i - 1] and np.isfinite(clv[i]) and clv[i] < 0.35 and (
+            day_ret <= -0.02 or hi_vol_dn or r.get("signature") == "DISTRIBUTION"
+        ):
+            guards.append(f"CLV {clv[i]:.2f} selloff ({day_ret * 100:+.1f}%)")
+    if np.isfinite(ext_anc) and np.isfinite(ext_ma50) and ext_anc > EXT_ATR_MAX and ext_ma50 > EXT_ATR_MAX:
+        guards.append(f"+{ext_anc:.1f} ATR / +{ext_ma50:.1f} vs MA50 > {EXT_ATR_MAX:.1f}")
+    entry_weak = bool(guards)
+    r["entry_weak"] = entry_weak
+    r["entry_guard"] = "; ".join(guards)
+    r["action"] = action_for(r["gate1"], r["state"], r["supply"], entry_weak=entry_weak)
     # exit-rule context (prompt: 2 closes < MA50 or close < 0.85 x running peak)
     r["closes_below_ma50"] = int((c[-2:] < ma50[-2:]).sum())
     return r
@@ -406,11 +486,14 @@ def events(df: pd.DataFrame, look: int = LOOK) -> pd.DataFrame:
     ma50 = d.Close.rolling(50).mean().values
     atr = indicators(d.Close, d.High, d.Low)[0].values
     vmed = d.Volume.rolling(50, min_periods=30).median().shift(1).values
+    turn_med = (d.Close * d.Volume).rolling(20, min_periods=10).median().shift(1).values
     clv = _clv_arr(c, h, l)
-    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(df.attrs.get("currency", "INR"), 5e7))
+    cur = df.attrs.get("currency", "INR")
+    qual = qualifying(c, v, vmed, MIN_TURNOVER.get(cur, 5e7), clv=clv, turn_med=turn_med,
+                      large_cap_turnover=LARGE_CAP_TURNOVER.get(cur, 1.5e9))
     lo = max(2, i - look + 1)
     idx = [k for k in range(lo, i + 1) if qual[k]]
-    a6 = pick_anchors(qual, v, i, look=look)[0]
+    a6 = pick_anchors(qual, v, i, look=look, clv=clv, c=c, l=l)[0]
     rows = []
     for k in idx:
         g, _ = grade(c, h, l, v, vmed, ma50, atr, clv, k, i)
