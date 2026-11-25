@@ -235,8 +235,13 @@ def render(df: pd.DataFrame):
     h[4].metric("Business", f"{tr['verdict'].title()} {tr['score']}" if tr.get("score") is not None else "—",
                 tr["direction"].lower() + (" · investing" if tr.get("investing") else "") if tr.get("direction") else None, delta_color="off")
     getattr(st, R["verdict"]["tone"])(f"**{R['verdict']['tag']}** — {R['verdict']['why']}")
-    st.download_button("⬇️ Download this report (Markdown)", sr.markdown(R), file_name=f"{t.replace('.NS', '')}_report.md",
-                       mime="text/markdown", key="sr_dl")
+    _sr_b1, _sr_b2, _ = st.columns([1.4, 1.3, 2.3])
+    _sr_b1.download_button("⬇️ Download this report (Markdown)", sr.markdown(R), file_name=f"{t.replace('.NS', '')}_report.md",
+                           mime="text/markdown", key="sr_dl", use_container_width=True)
+    if _sr_b2.button("🏛️ Convene Expert Council", key="sr_to_ec", use_container_width=True):
+        st.session_state["council_ticker"] = t
+        st.session_state["nav_page"] = "🏛️ Expert Council"
+        st.rerun()
 
     st.markdown("#### 1 · Funnel checklist")
     icon = {True: "✅", False: "❌", None: "➖"}

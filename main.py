@@ -647,7 +647,7 @@ _NAV = {
                                              "📊 Sector Pulse", "🧪 Signal Lab", "🔍 Market Explorer", "🖥️ AI Capex",
                                              "🇺🇸 US AI Play", "🇺🇸 US Scanner"]),
     "📋 Portfolio Manager": ("page_portfolio", ["📊 Return Tracker", "📝 Notes"]),
-    "⚖️ Analysis Lab": ("page_analysis", ["📋 Stock Report", "⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
+    "⚖️ Analysis Lab": ("page_analysis", ["📋 Stock Report", "🏛️ Expert Council", "⚖️ Compare Stocks", "📉 Deep Dive", "⏳ Time Trends"]),
     # Replaced by Daily Brief + Signal Lab (analysis/PAGE_AUDIT_2026_11.md); kept, unchanged, for reference.
     "🗄️ Archive": ("page_archive", ["☀️ Morning Pulse", "🚀 Live Trading Desk", "🎯 Turnaround Radar"]),
 }
@@ -759,6 +759,11 @@ elif page == "📋 Stock Report":
     st.markdown(page_header("📋 Stock Report", "One-shot report: funnel checklist, industry, trend, entry plan, business trends and valuation"), unsafe_allow_html=True)
     from utils import stock_report_view
     stock_report_view.render(df)
+
+elif page == "🏛️ Expert Council":
+    st.markdown(page_header("🏛️ Expert Council", "3-member adversarial investment committee (Momentum · GARP · Macro-Hybrid PM): 2-round debate, vote shifts, contra cases & split playbooks"), unsafe_allow_html=True)
+    from utils import expert_council_view
+    expert_council_view.render(df)
 
 elif page == "📉 Deep Dive":
     from views.deep_dive_and_misc import render_deep_dive
