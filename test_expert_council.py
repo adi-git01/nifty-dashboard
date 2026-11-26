@@ -260,9 +260,10 @@ def test_multi_round_llm_debate_and_additional_round_tracking():
         assert res2["round2_final_vote"] == "2–1 WAIT FOR TRIGGER"
         assert res2["vote_flipped"] is True
         assert len(res2["evolution_rows"]) == 6  # 2 rounds x 3 members
-        # Every call shared the exact same x-opencode-session id
-        sids = {c["session_id"] for c in calls}
-        assert len(sids) == 1 and next(iter(sids)).startswith("council-manorama")
+        # Each expert gets its own sticky session suffix across rounds (true parallel within a round, cached across rounds!)
+        sids_r12 = {c["session_id"] for c in calls}
+        assert len(sids_r12) == 3
+        assert all(s.startswith(res2["session_id"] + "-") for s in sids_r12)
 
         # 2. User asks for an additional Round 3 with custom stress-test prompt (+3 calls = 9 total)
         res3 = ec.run_additional_round(
@@ -275,6 +276,7 @@ def test_multi_round_llm_debate_and_additional_round_tracking():
         assert len(calls) == 9
         assert res3["num_rounds"] == 3
         assert res3["session_id"] == res2["session_id"]
+        assert {c["session_id"] for c in calls} == sids_r12  # Round 3 reused the exact same 3 per-expert sticky sessions!
         assert res3["round2_final_vote"] == "3–0 WAIT FOR TRIGGER"
         assert "R1: 2–1 STAGED BUY / ACCUMULATE → R2: 2–1 WAIT FOR TRIGGER → R3: 3–0 WAIT FOR TRIGGER" == res3["vote_trajectory"]
         assert len(res3["evolution_rows"]) == 9  # 3 rounds x 3 members

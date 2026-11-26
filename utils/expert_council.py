@@ -1552,6 +1552,29 @@ def _opencode_headers(cfg: Dict[str, str], session_id: Optional[str] = None) -> 
     }
 
 
+def _compact_dossier_for_llm(dossier: Dict[str, Any]) -> str:
+    """Trim redundant verbose keys to keep prompt tokens tight and LLM latency low (~35% smaller)."""
+    d = {
+        "ticker": dossier.get("ticker"),
+        "name": dossier.get("name"),
+        "as_of": dossier.get("as_of"),
+        "market_regime": dossier.get("market_regime"),
+        "price_and_trend": dossier.get("price_and_trend"),
+        "forensics_v6": {
+            k: v for k, v in (dossier.get("forensics_v6") or {}).items()
+            if k != "recent_anchors_60d"
+        },
+        "recent_anchors_60d": (dossier.get("forensics_v6") or {}).get("recent_anchors_60d", [])[-5:],
+        "industry_and_funnel": dossier.get("industry_and_funnel"),
+        "fundamentals_and_flows": {
+            k: v for k, v in (dossier.get("fundamentals_and_flows") or {}).items()
+            if k not in ("deals_90d_recent",)
+        },
+        "valuation_v41": dossier.get("valuation_v41"),
+    }
+    return json.dumps(d, separators=(",", ":"), default=str)
+
+
 def _call_llm_json(
     prompt: str,
     system: str,
@@ -1564,8 +1587,8 @@ def _call_llm_json(
         genai.configure(api_key=cfg["api_key"])
         m = genai.GenerativeModel(
             model_name=cfg["model"],
-            system_instruction=system + "\nReturn strictly valid JSON only (no markdown fences).",
-            generation_config={"temperature": 0.2, "response_mime_type": "application/json"},
+            system_instruction=system + "\nReturn strictly valid compact JSON only (no markdown fences, 1-2 sentences per field).",
+            generation_config={"temperature": 0.2, "max_output_tokens": 1400, "response_mime_type": "application/json"},
         )
         raw = (m.generate_content(prompt).text or "").strip()
         return json.loads(_strip_fences(raw))
@@ -1576,19 +1599,30 @@ def _call_llm_json(
     client = OpenAI(
         base_url=cfg["base_url"],
         api_key=(cfg["api_key"] or "not-needed"),
-        timeout=180,
+        timeout=90,
+        max_retries=1,
         default_headers=headers or None,
     )
-    sys_msg = system + "\n\nReturn a single strictly valid JSON object only. No prose, no markdown fences."
+    sys_msg = (
+        system
+        + "\n\nReturn a single strictly valid JSON object only. No prose, no markdown fences. "
+          "Be sharp and concise (max 1-2 sentences per text field, max 3 short bullets per list)."
+    )
     msgs = [{"role": "system", "content": sys_msg}, {"role": "user", "content": prompt}]
 
-    is_reasoner = "reasoner" in cfg["model"].lower() or cfg["model"].lower().startswith("o1") or cfg["model"].lower().startswith("o3")
-    formats = [None] if is_reasoner else [{"type": "json_object"}, None]
+    mdl_lo = cfg["model"].lower()
+    # Skip response_format=json_object on OpenCode Go & thinking/reasoning models (glm-5, kimi-k2, reasoner, o1/o3)
+    # to avoid a wasted 20-40s failed first call before falling back to plain JSON extraction.
+    skip_json_fmt = (
+        prov == "opencode_go"
+        or any(tok in mdl_lo for tok in ("reasoner", "glm-5", "kimi-k", "o1", "o3"))
+    )
+    formats = [None] if skip_json_fmt else [{"type": "json_object"}, None]
     last_exc: Optional[Exception] = None
     for fmt in formats:
         try:
-            kw: Dict[str, Any] = {"model": cfg["model"], "messages": msgs}
-            if not is_reasoner:
+            kw: Dict[str, Any] = {"model": cfg["model"], "messages": msgs, "max_tokens": 1600}
+            if "reasoner" not in mdl_lo and not mdl_lo.startswith(("o1", "o3")):
                 kw["temperature"] = 0.2
             if fmt is not None:
                 kw["response_format"] = fmt
@@ -1597,8 +1631,6 @@ def _call_llm_json(
             return json.loads(_strip_fences(raw))
         except Exception as exc:
             last_exc = exc
-            if fmt is not None and any(s in str(exc).lower() for s in ("response_format", "json_object", "unsupported", "not supported", "invalid")):
-                continue
             if fmt is not None:
                 continue
     raise RuntimeError(f"{cfg['label']} ({cfg['model']}) call failed: {last_exc}")
@@ -1793,10 +1825,16 @@ def _run_cross_exam_round(
         if (user_prompt and user_prompt.strip()) else ""
     )
 
+    import time as _time
+    t_r0 = _time.perf_counter()
     r_out: Dict[str, Dict[str, Any]] = {}
+    call_secs: Dict[str, float] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futs = {}
         for m, sys_p in _ROLE_SYSTEMS.items():
+            # Give each expert its own sticky x-opencode-session (avoids backend serialization across 3 concurrent calls
+            # while still keeping prompt caching warm for that expert across Round 1 -> Round 2 -> Round N!)
+            m_sid = f"{session_id}-{m}"
             p_next = (
                 f"Dossier:\n{compact_dossier}\n\n"
                 f"Prior Council Rounds (1 to {round_num - 1}):\n{hist_json}{focus_clause}\n\n"
@@ -1807,14 +1845,22 @@ def _run_cross_exam_round(
                 "final_conviction_0_10 (int), final_weight_now_pct (float), final_max_weight_pct (float), "
                 "revised_plan_delta (str), what_flips_my_call (str)."
             )
-            futs[m] = pool.submit(_call_llm_json, p_next, sys_p, cfg, session_id)
+            def _timed(p_arg=p_next, s_arg=sys_p, sid_arg=m_sid):
+                ts = _time.perf_counter()
+                o = _call_llm_json(p_arg, s_arg, cfg, sid_arg)
+                return o, round(_time.perf_counter() - ts, 2)
+            futs[m] = pool.submit(_timed)
         for m, f in futs.items():
-            obj = f.result()
+            obj, sec = f.result()
             obj["member"] = m
             r_out[m] = obj
+            call_secs[m] = sec
 
     lbl = f"Round {round_num} · Follow-Up Debate" if (user_prompt and user_prompt.strip()) else f"Round {round_num} · Cross-Examination"
-    return _build_round_record(round_num, lbl, r_out, user_prompt=user_prompt)
+    rec = _build_round_record(round_num, lbl, r_out, user_prompt=user_prompt)
+    rec["elapsed_sec"] = round(_time.perf_counter() - t_r0, 2)
+    rec["member_secs"] = call_secs
+    return rec
 
 
 def _finalize_llm_result(
@@ -1890,8 +1936,11 @@ def run_llm_council(
     model: Optional[str] = None,
     base_url: Optional[str] = None,
     gemini_key: Optional[str] = None,
+    on_round_complete: Any = None,
 ) -> Dict[str, Any]:
     """Run live multi-round parallel LLM debate (default 2 rounds, configurable 1–5)."""
+    import time as _time
+    t_all = _time.perf_counter()
     n_rounds = max(1, min(5, int(rounds or 2)))
     backend, desc = llm_backend_status(
         gemini_key=gemini_key, provider=provider, api_key=api_key, model=model, base_url=base_url
@@ -1900,11 +1949,12 @@ def run_llm_council(
         raise RuntimeError(desc)
     cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
 
-    compact = json.dumps(dossier, default=str)
+    compact = _compact_dossier_for_llm(dossier)
     sym_slug = re.sub(r"[^a-z0-9]+", "-", str(dossier.get("ticker", "stock")).lower()).strip("-")
     session_id = f"council-{sym_slug}-{uuid.uuid4().hex[:10]}"
 
-    # Round 1 (3 parallel independent stances)
+    # Round 1 (3 parallel independent stances — each expert gets its own sticky session suffix to avoid gateway queueing)
+    t_r1 = _time.perf_counter()
     r1_prompt = (
         f"Dossier JSON (strictly grounded, as of {dossier['as_of']}):\n{compact}\n\n"
         "Return JSON with keys: member, verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
@@ -1913,21 +1963,40 @@ def run_llm_council(
         "preemptive_challenge_to_peers (str), diligence_questions (list[str])."
     )
     r1_raw: Dict[str, Dict[str, Any]] = {}
+    r1_secs: Dict[str, float] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, cfg, session_id) for m, sys_p in _ROLE_SYSTEMS.items()}
+        futs = {}
+        for m, sys_p in _ROLE_SYSTEMS.items():
+            m_sid = f"{session_id}-{m}"
+            def _timed_r1(s_arg=sys_p, sid_arg=m_sid):
+                ts = _time.perf_counter()
+                o = _call_llm_json(r1_prompt, s_arg, cfg, sid_arg)
+                return o, round(_time.perf_counter() - ts, 2)
+            futs[m] = pool.submit(_timed_r1)
         for m, f in futs.items():
-            obj = f.result()
+            obj, sec = f.result()
             obj["member"] = m
             r1_raw[m] = obj
+            r1_secs[m] = sec
 
-    rounds_list: List[Dict[str, Any]] = [_build_round_record(1, "Round 1 · Independent Stances", r1_raw)]
+    r1_rec = _build_round_record(1, "Round 1 · Independent Stances", r1_raw)
+    r1_rec["elapsed_sec"] = round(_time.perf_counter() - t_r1, 2)
+    r1_rec["member_secs"] = r1_secs
+    rounds_list: List[Dict[str, Any]] = [r1_rec]
+    if callable(on_round_complete):
+        on_round_complete(1, n_rounds, r1_rec)
 
     # Rounds 2..n_rounds (each round cross-examines all prior rounds)
     for r_num in range(2, n_rounds + 1):
-        rounds_list.append(_run_cross_exam_round(compact, rounds_list, cfg, session_id, r_num))
+        rec_n = _run_cross_exam_round(compact, rounds_list, cfg, session_id, r_num)
+        rounds_list.append(rec_n)
+        if callable(on_round_complete):
+            on_round_complete(r_num, n_rounds, rec_n)
 
     base = run_quant_council(dossier)
-    return _finalize_llm_result(base, rounds_list, desc, session_id)
+    out = _finalize_llm_result(base, rounds_list, desc, session_id)
+    out["total_elapsed_sec"] = round(_time.perf_counter() - t_all, 2)
+    return out
 
 
 def run_additional_round(
@@ -1949,7 +2018,7 @@ def run_additional_round(
     cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
 
     dossier = prev_res["dossier"]
-    compact = json.dumps(dossier, default=str)
+    compact = _compact_dossier_for_llm(dossier)
     sym_slug = re.sub(r"[^a-z0-9]+", "-", str(dossier.get("ticker", "stock")).lower()).strip("-")
     session_id = prev_res.get("session_id") or f"council-{sym_slug}-{uuid.uuid4().hex[:10]}"
 

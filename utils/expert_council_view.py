@@ -166,19 +166,32 @@ def render(df: pd.DataFrame) -> None:
             use_container_width=True,
             key="ec_run_llm",
         ):
-            with st.spinner(
-                f"Convening 3 Council Members for {n_init_rounds} round(s) via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…"
-            ):
+            with st.status(
+                f"Convening 3 Council Members for {n_init_rounds} round(s) via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…",
+                expanded=True,
+            ) as _st_box:
+                def _on_rc(r_i: int, r_tot: int, rec: dict):
+                    ms = rec.get("member_secs") or {}
+                    per_m = " · ".join(f"{k.split('_')[0]} {v}s" for k, v in ms.items())
+                    _st_box.write(f"✅ **Round {r_i}/{r_tot}** complete in **{rec.get('elapsed_sec', '?')}s** (`{rec['tally']}`)" + (f" — {per_m}" if per_m else ""))
                 try:
-                    st.session_state[cache_key] = ec.run_llm_council(
+                    _out = ec.run_llm_council(
                         dossier,
                         rounds=n_init_rounds,
                         provider=llm_provider,
                         api_key=llm_api_key,
                         model=llm_model,
                         base_url=llm_base_url,
+                        on_round_complete=_on_rc,
+                    )
+                    st.session_state[cache_key] = _out
+                    _st_box.update(
+                        label=f"✅ {n_init_rounds}-Round Live Debate finished in {_out.get('total_elapsed_sec', '?')}s ({llm_model})",
+                        state="complete",
+                        expanded=False,
                     )
                 except Exception as exc:
+                    _st_box.update(label=f"❌ Live LLM debate failed: {exc}", state="error", expanded=True)
                     st.error(f"Live LLM debate failed ({exc}). Falling back to Quant Council below.")
                     st.session_state.pop(cache_key, None)
         res = st.session_state.get(cache_key)
