@@ -219,6 +219,74 @@ def test_poisoned_universe_anti_trap_guardrails():
     assert r_st3["round1"]["hybrid_pm"]["max_weight_on_trigger_pct"] <= 10.0
 
 
+def test_multi_round_llm_debate_and_additional_round_tracking():
+    """Verify live LLM council executes Round 1 -> Round 2 (default 2 rounds), supports additional Round 3
+    with user challenge prompt, preserves session_id, and tracks exact verdict/weight/conviction shifts."""
+    d = ec.build_dossier("MANORAMA", repo=REPO)
+    calls = []
+
+    def _fake_call(prompt: str, system: str, cfg: dict, session_id: str | None = None):
+        calls.append({"prompt": prompt, "system": system, "session_id": session_id})
+        is_mom = "Member 1" in system
+        is_garp = "Member 2" in system
+        if "entering Round 3" in prompt:
+            assert "OPM dropping to 23%" in prompt
+            if is_mom:
+                return {"final_verdict": "WAIT FOR TRIGGER (WATCHLIST)", "final_conviction_0_10": 9, "final_weight_now_pct": 0.0, "final_max_weight_pct": 3.0, "revised_plan_delta": "Conviction raised on OPM risk", "strongest_contra_statement": "OPM compression breaks multiple", "what_flips_my_call": ">1985 reclaim"}
+            if is_garp:
+                return {"final_verdict": "WAIT FOR TRIGGER (WATCHLIST)", "final_conviction_0_10": 7, "final_weight_now_pct": 0.0, "final_max_weight_pct": 4.0, "revised_plan_delta": "FLIPPED to WAIT on 23% OPM stress test", "strongest_contra_statement": "Margin compression destroys PEG", "what_flips_my_call": "OPM holds >=26%"}
+            return {"final_verdict": "WAIT FOR TRIGGER (WATCHLIST)", "final_conviction_0_10": 8, "final_weight_now_pct": 0.0, "final_max_weight_pct": 4.0, "revised_plan_delta": "Held WAIT, tightened Bear bid", "strongest_contra_statement": "Double hit from VIX + OPM", "what_flips_my_call": "VIX<15 + OPM>=26%"}
+        if "entering Round 2" in prompt:
+            if is_mom:
+                return {"final_verdict": "WAIT FOR TRIGGER (WATCHLIST)", "final_conviction_0_10": 8, "final_weight_now_pct": 0.0, "final_max_weight_pct": 4.0, "revised_plan_delta": "Split trigger >1910 / >1985", "strongest_contra_statement": "Nov liquidation overhead", "what_flips_my_call": ">1910"}
+            if is_garp:
+                return {"final_verdict": "STAGED BUY / ACCUMULATE", "final_conviction_0_10": 6, "final_weight_now_pct": 1.0, "final_max_weight_pct": 6.0, "revised_plan_delta": "Halved starter 2%->1%", "strongest_contra_statement": "Single-year CFO proof", "what_flips_my_call": "H1 CFO/PAT>=0.8"}
+            return {"final_verdict": "WAIT FOR TRIGGER (WATCHLIST)", "final_conviction_0_10": 7, "final_weight_now_pct": 0.0, "final_max_weight_pct": 6.0, "revised_plan_delta": "FLIPPED STAGED BUY -> WAIT", "strongest_contra_statement": "Midcap liquidity squeeze", "what_flips_my_call": ">1910 or 1677"}
+        # Round 1
+        if is_mom:
+            return {"verdict": "WAIT FOR TRIGGER (WATCHLIST)", "conviction_0_10": 8, "target_weight_now_pct": 0.0, "max_weight_on_trigger_pct": 4.0, "action_now": "Wait >1985", "preemptive_challenge_to_peers": "Post-SHP dump"}
+        if is_garp:
+            return {"verdict": "STAGED BUY / ACCUMULATE", "conviction_0_10": 7, "target_weight_now_pct": 2.0, "max_weight_on_trigger_pct": 6.0, "action_now": "Buy 2% starter", "preemptive_challenge_to_peers": "Counterfactual R:R"}
+        return {"verdict": "STAGED BUY / ACCUMULATE", "conviction_0_10": 6, "target_weight_now_pct": 2.5, "max_weight_on_trigger_pct": 7.5, "action_now": "Pilot 2.5%", "preemptive_challenge_to_peers": "Coiled flows"}
+
+    orig_call = ec._call_llm_json
+    try:
+        ec._call_llm_json = _fake_call
+        # 1. Default 2-round live debate (3 calls R1 + 3 calls R2 = 6 calls)
+        res2 = ec.run_llm_council(d, rounds=2, provider="opencode_go", api_key="oc_test_key", model="glm-5.3")
+        assert len(calls) == 6
+        assert res2["num_rounds"] == 2
+        assert res2["round1_vote"] == "2–1 STAGED BUY / ACCUMULATE"
+        assert res2["round2_final_vote"] == "2–1 WAIT FOR TRIGGER"
+        assert res2["vote_flipped"] is True
+        assert len(res2["evolution_rows"]) == 6  # 2 rounds x 3 members
+        # Every call shared the exact same x-opencode-session id
+        sids = {c["session_id"] for c in calls}
+        assert len(sids) == 1 and next(iter(sids)).startswith("council-manorama")
+
+        # 2. User asks for an additional Round 3 with custom stress-test prompt (+3 calls = 9 total)
+        res3 = ec.run_additional_round(
+            res2,
+            user_prompt="Stress-test OPM dropping to 23%",
+            provider="opencode_go",
+            api_key="oc_test_key",
+            model="glm-5.3",
+        )
+        assert len(calls) == 9
+        assert res3["num_rounds"] == 3
+        assert res3["session_id"] == res2["session_id"]
+        assert res3["round2_final_vote"] == "3–0 WAIT FOR TRIGGER"
+        assert "R1: 2–1 STAGED BUY / ACCUMULATE → R2: 2–1 WAIT FOR TRIGGER → R3: 3–0 WAIT FOR TRIGGER" == res3["vote_trajectory"]
+        assert len(res3["evolution_rows"]) == 9  # 3 rounds x 3 members
+        garp_r3 = [r for r in res3["evolution_rows"] if r["round"] == 3 and r["member_key"] == "garp_investor"][0]
+        assert "FLIP" in garp_r3["change"]
+        md3 = ec.to_markdown(res3)
+        assert "Round-by-Round Belief & Sizing Evolution" in md3
+        assert "R3: 3–0 WAIT FOR TRIGGER" in md3
+    finally:
+        ec._call_llm_json = orig_call
+
+
 def test_ui_modules_compile_cleanly():
     for rel in ("main.py", "utils/llm_client.py", "utils/ai_report_engine.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py", "views/deep_dive_and_misc.py"):
         py_compile.compile(os.path.join(REPO, rel), doraise=True)

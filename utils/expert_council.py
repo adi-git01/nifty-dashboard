@@ -1258,13 +1258,20 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
     if not diligence:
         diligence.append("Verify next quarterly earnings trajectory, order book / capacity utilization, and whether institutional accumulation persists.")
 
-    return {
+    quant_rounds = [
+        _build_round_record(1, "Round 1 · Independent Stances", {"mom_trader": mom_r1, "garp_investor": garp_r1, "hybrid_pm": hyb_r1}),
+        _build_round_record(2, "Round 2 · Cross-Examination", {"mom_trader": mom_r2, "garp_investor": garp_r2, "hybrid_pm": hyb_r2}),
+    ]
+    res_obj = {
         "mode": "quant_deterministic",
         "ticker": dossier["ticker"],
         "name": dossier["name"],
         "as_of": dossier["as_of"],
+        "session_id": None,
+        "num_rounds": 2,
         "round1_vote": r1_tally,
         "round2_final_vote": r2_tally,
+        "vote_trajectory": f"R1: {r1_tally} → R2: {r2_tally}",
         "vote_flipped": vote_flipped,
         "chair_verdict": chair_verdict,
         "chair_headline": (
@@ -1272,6 +1279,7 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
             if vote_flipped else
             f"Council consensus held at {r2_tally} (CMP {_fmt_inr(px, 1)}, Stage {stage}, Forensics {fx_state}, Valuation {val_rating})."
         ),
+        "rounds": quant_rounds,
         "round1": {"mom_trader": mom_r1, "garp_investor": garp_r1, "hybrid_pm": hyb_r1},
         "round2": {"mom_trader": mom_r2, "garp_investor": garp_r2, "hybrid_pm": hyb_r2},
         "bear_contra_statement": bear_contra,
@@ -1280,6 +1288,8 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         "diligence_questions": diligence,
         "dossier": dossier,
     }
+    res_obj["evolution_rows"] = build_evolution_rows(res_obj)
+    return res_obj
 
 
 # ---------------------------------------------------------------------------
@@ -1618,16 +1628,271 @@ _ROLE_SYSTEMS = {
 }
 
 
+_MEMBER_ORDER = ("mom_trader", "garp_investor", "hybrid_pm")
+_MEMBER_LABELS = {
+    "mom_trader": "Momentum Trader",
+    "garp_investor": "GARP Investor",
+    "hybrid_pm": "Macro-Hybrid PM",
+}
+
+
+def _norm_verdict(raw: Any) -> str:
+    s = str(raw or "").strip().upper()
+    if "BUY NOW" in s:
+        return "BUY NOW"
+    if "STAGED" in s or "ACCUMULATE" in s:
+        return "STAGED BUY / ACCUMULATE"
+    if "AVOID" in s or "SELL" in s:
+        return "AVOID / SELL"
+    if "WAIT" in s or "WATCH" in s or "HOLD" in s:
+        return "WAIT FOR TRIGGER (WATCHLIST)"
+    return "WAIT FOR TRIGGER (WATCHLIST)"
+
+
+def _norm_float(raw: Any, default: float = 0.0) -> float:
+    if raw is None:
+        return default
+    if isinstance(raw, (int, float, np.floating, np.integer)):
+        return round(float(raw), 1) if np.isfinite(float(raw)) else default
+    m = re.search(r"-?\d+(?:\.\d+)?", str(raw))
+    return round(float(m.group(0)), 1) if m else default
+
+
+def _norm_int(raw: Any, default: int = 5) -> int:
+    return int(round(_norm_float(raw, float(default))))
+
+
+def _member_view(obj: Dict[str, Any], is_r1: bool) -> Dict[str, Any]:
+    """Extract normalized verdict / conviction / weights / delta from any Round 1 or Round N object."""
+    v = _norm_verdict(obj.get("verdict") if is_r1 else (obj.get("final_verdict") or obj.get("verdict")))
+    conv = _norm_int(obj.get("conviction_0_10") if is_r1 else (obj.get("final_conviction_0_10") if obj.get("final_conviction_0_10") is not None else obj.get("conviction_0_10")), 5)
+    w_now = _norm_float(obj.get("target_weight_now_pct") if is_r1 else (obj.get("final_weight_now_pct") if obj.get("final_weight_now_pct") is not None else obj.get("target_weight_now_pct")), 0.0)
+    w_max = _norm_float(obj.get("max_weight_on_trigger_pct") if is_r1 else (obj.get("final_max_weight_pct") if obj.get("final_max_weight_pct") is not None else obj.get("max_weight_on_trigger_pct")), 0.0)
+    delta = str(obj.get("action_now") if is_r1 else (obj.get("revised_plan_delta") or obj.get("action_now") or "")).strip()
+    return {
+        "verdict": v,
+        "conviction": max(0, min(10, conv)),
+        "weight_now": max(0.0, w_now),
+        "max_weight": max(0.0, w_max),
+        "delta": delta,
+    }
+
+
+def _build_round_record(
+    round_num: int,
+    label: str,
+    members_dict: Dict[str, Dict[str, Any]],
+    user_prompt: Optional[str] = None,
+) -> Dict[str, Any]:
+    is_r1 = round_num == 1
+    norm_members: Dict[str, Dict[str, Any]] = {}
+    verdicts: List[str] = []
+    for m in _MEMBER_ORDER:
+        raw = dict(members_dict.get(m) or {})
+        mv = _member_view(raw, is_r1=is_r1)
+        raw["member"] = m
+        if is_r1:
+            raw["verdict"] = mv["verdict"]
+            raw["conviction_0_10"] = mv["conviction"]
+            raw["target_weight_now_pct"] = mv["weight_now"]
+            raw["max_weight_on_trigger_pct"] = mv["max_weight"]
+        else:
+            raw["final_verdict"] = mv["verdict"]
+            raw["final_conviction_0_10"] = mv["conviction"]
+            raw["final_weight_now_pct"] = mv["weight_now"]
+            raw["final_max_weight_pct"] = mv["max_weight"]
+        raw["_norm"] = mv
+        norm_members[m] = raw
+        verdicts.append(mv["verdict"])
+    chair_v, tally = _vote_summary(verdicts)
+    return {
+        "round": round_num,
+        "label": label,
+        "user_prompt": (user_prompt or "").strip(),
+        "chair_verdict": chair_v,
+        "tally": tally,
+        "members": norm_members,
+    }
+
+
+def build_evolution_rows(res: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Build round-by-round belief, conviction, and weight evolution rows across all rounds."""
+    rounds = res.get("rounds") or []
+    rows: List[Dict[str, Any]] = []
+    prev_by_m: Dict[str, Dict[str, Any]] = {}
+    for rec in rounds:
+        r_num = rec["round"]
+        for m in _MEMBER_ORDER:
+            raw = (rec.get("members") or {}).get(m) or {}
+            mv = raw.get("_norm") or _member_view(raw, is_r1=(r_num == 1))
+            prev = prev_by_m.get(m)
+            if prev is None:
+                shift = "Initial"
+            elif mv["verdict"] != prev["verdict"]:
+                shift = f"🔀 FLIP ({prev['verdict'].split(' ')[0]} → {mv['verdict'].split(' ')[0]})"
+            elif mv["weight_now"] < prev["weight_now"]:
+                shift = f"↘ Weight Cut ({prev['weight_now']:.1f}% → {mv['weight_now']:.1f}%)"
+            elif mv["weight_now"] > prev["weight_now"]:
+                shift = f"↗ Weight Up ({prev['weight_now']:.1f}% → {mv['weight_now']:.1f}%)"
+            elif mv["conviction"] != prev["conviction"]:
+                arrow = "↗" if mv["conviction"] > prev["conviction"] else "↘"
+                shift = f"{arrow} Conviction ({prev['conviction']} → {mv['conviction']})"
+            else:
+                shift = "= Held"
+            rows.append({
+                "round": r_num,
+                "round_label": f"R{r_num}",
+                "member_key": m,
+                "member": _MEMBER_LABELS[m],
+                "verdict": mv["verdict"],
+                "conviction": mv["conviction"],
+                "weight_now_pct": mv["weight_now"],
+                "max_weight_pct": mv["max_weight"],
+                "change": shift,
+                "summary": mv["delta"],
+                "user_prompt": rec.get("user_prompt", ""),
+            })
+            prev_by_m[m] = mv
+    return rows
+
+
+def _run_cross_exam_round(
+    compact_dossier: str,
+    prior_rounds: List[Dict[str, Any]],
+    cfg: Dict[str, str],
+    session_id: str,
+    round_num: int,
+    user_prompt: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Execute Round N (N >= 2) across all 3 experts in parallel given full prior-round history."""
+    hist_summary = []
+    for rec in prior_rounds:
+        m_sum = {}
+        for m in _MEMBER_ORDER:
+            raw = rec["members"][m]
+            mv = raw["_norm"]
+            m_sum[m] = {
+                "verdict": mv["verdict"],
+                "conviction": mv["conviction"],
+                "weight_now": mv["weight_now"],
+                "max_weight": mv["max_weight"],
+                "delta_or_action": mv["delta"],
+                "challenge_or_contra": raw.get("strongest_contra_statement") or raw.get("preemptive_challenge_to_peers") or "",
+                "what_flips": raw.get("what_flips_my_call") or "",
+            }
+        hist_summary.append({
+            "round": rec["round"],
+            "tally": rec["tally"],
+            "user_focus": rec.get("user_prompt") or "",
+            "members": m_sum,
+        })
+
+    hist_json = json.dumps(hist_summary, default=str)
+    focus_clause = (
+        f"\n\nUSER FOLLOW-UP CHALLENGE FOR ROUND {round_num} (MUST ADDRESS DIRECTLY): {user_prompt.strip()}"
+        if (user_prompt and user_prompt.strip()) else ""
+    )
+
+    r_out: Dict[str, Dict[str, Any]] = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+        futs = {}
+        for m, sys_p in _ROLE_SYSTEMS.items():
+            p_next = (
+                f"Dossier:\n{compact_dossier}\n\n"
+                f"Prior Council Rounds (1 to {round_num - 1}):\n{hist_json}{focus_clause}\n\n"
+                f"You are {m} entering Round {round_num}. Directly cross-examine your two peers' latest arguments, "
+                "explicitly state whether you HELD or CHANGED your verdict, conviction, or sizing from the previous round (and why), "
+                "and sharpen your Contra Statement. Return JSON with keys: member, rebuttal_to_peer_1 (str), rebuttal_to_peer_2 (str), "
+                "strongest_contra_statement (str), final_verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
+                "final_conviction_0_10 (int), final_weight_now_pct (float), final_max_weight_pct (float), "
+                "revised_plan_delta (str), what_flips_my_call (str)."
+            )
+            futs[m] = pool.submit(_call_llm_json, p_next, sys_p, cfg, session_id)
+        for m, f in futs.items():
+            obj = f.result()
+            obj["member"] = m
+            r_out[m] = obj
+
+    lbl = f"Round {round_num} · Follow-Up Debate" if (user_prompt and user_prompt.strip()) else f"Round {round_num} · Cross-Examination"
+    return _build_round_record(round_num, lbl, r_out, user_prompt=user_prompt)
+
+
+def _finalize_llm_result(
+    base: Dict[str, Any],
+    rounds_list: List[Dict[str, Any]],
+    desc: str,
+    session_id: str,
+) -> Dict[str, Any]:
+    r1_rec = rounds_list[0]
+    last_rec = rounds_list[-1]
+    r1_tally = r1_rec["tally"]
+    last_tally = last_rec["tally"]
+    chair_verdict = last_rec["chair_verdict"]
+    tallies = [r["tally"] for r in rounds_list]
+    vote_flipped = len(set(tallies)) > 1
+    traj = " → ".join(f"R{r['round']}: {r['tally']}" for r in rounds_list)
+
+    diligence: List[str] = []
+    for m in _MEMBER_ORDER:
+        for q in (r1_rec["members"][m].get("diligence_questions") or []):
+            if q and str(q) not in diligence:
+                diligence.append(str(q))
+
+    # Keep quant playbooks triggers/stops as grounded scaffold, reflect live LLM final verdicts/weights
+    pb_map = {"Swing / Active Momentum": "mom_trader", "Contrarian Macro-Hybrid Sniper": "hybrid_pm", "Core GARP Compounder": "garp_investor"}
+    playbooks = []
+    for pb in base["playbooks"]:
+        pb2 = dict(pb)
+        mk = pb_map.get(pb["mandate"])
+        if mk:
+            mv = last_rec["members"][mk]["_norm"]
+            pb2["action_today"] = f"{mv['weight_now']:.1f}% ({mv['verdict']})"
+        playbooks.append(pb2)
+
+    contras = [
+        f"[{_MEMBER_LABELS[m]}] {last_rec['members'][m].get('strongest_contra_statement', '')}"
+        for m in _MEMBER_ORDER
+        if last_rec["members"][m].get("strongest_contra_statement")
+    ]
+    n_r = len(rounds_list)
+    out = dict(base)
+    out.update({
+        "mode": f"live_llm ({desc})",
+        "session_id": session_id,
+        "num_rounds": n_r,
+        "round1_vote": r1_tally,
+        "round2_final_vote": last_tally,
+        "vote_trajectory": traj,
+        "vote_flipped": vote_flipped,
+        "chair_verdict": chair_verdict,
+        "chair_headline": (
+            f"Live {n_r}-Round LLM Council shifted: {traj}."
+            if vote_flipped else
+            f"Live {n_r}-Round LLM Council consensus held across {n_r} round(s): {last_tally}."
+        ),
+        "rounds": rounds_list,
+        "round1": r1_rec["members"],
+        "round2": last_rec["members"],
+        "bear_contra_statement": " | ".join(contras) if contras else base["bear_contra_statement"],
+        "playbooks": playbooks,
+        "diligence_questions": diligence[:5] or base["diligence_questions"],
+    })
+    out["evolution_rows"] = build_evolution_rows(out)
+    return out
+
+
 def run_llm_council(
     dossier: Dict[str, Any],
     *,
+    rounds: int = 2,
     provider: Optional[str] = None,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
     base_url: Optional[str] = None,
     gemini_key: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Run live 2-round parallel LLM debate across all 3 experts (OpenCode, DeepSeek, Gemini, or Custom)."""
+    """Run live multi-round parallel LLM debate (default 2 rounds, configurable 1–5)."""
+    n_rounds = max(1, min(5, int(rounds or 2)))
     backend, desc = llm_backend_status(
         gemini_key=gemini_key, provider=provider, api_key=api_key, model=model, base_url=base_url
     )
@@ -1636,11 +1901,10 @@ def run_llm_council(
     cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
 
     compact = json.dumps(dossier, default=str)
-    # Single stable session ID across Round 1 + Round 2 so OpenCode Go can cache the shared dossier prefix
     sym_slug = re.sub(r"[^a-z0-9]+", "-", str(dossier.get("ticker", "stock")).lower()).strip("-")
     session_id = f"council-{sym_slug}-{uuid.uuid4().hex[:10]}"
 
-    # Round 1 (3 parallel calls)
+    # Round 1 (3 parallel independent stances)
     r1_prompt = (
         f"Dossier JSON (strictly grounded, as of {dossier['as_of']}):\n{compact}\n\n"
         "Return JSON with keys: member, verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
@@ -1648,74 +1912,59 @@ def run_llm_council(
         "entry_or_trigger_plan (str), stop_and_invalidation (str), key_evidence (list[str]), key_red_flags (list[str]), "
         "preemptive_challenge_to_peers (str), diligence_questions (list[str])."
     )
-    r1: Dict[str, Dict[str, Any]] = {}
+    r1_raw: Dict[str, Dict[str, Any]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, cfg, session_id) for m, sys_p in _ROLE_SYSTEMS.items()}
         for m, f in futs.items():
             obj = f.result()
             obj["member"] = m
-            r1[m] = obj
+            r1_raw[m] = obj
 
-    # Round 2 (3 parallel cross-examination calls)
-    r1_summary = json.dumps({
-        m: {
-            "verdict": o.get("verdict"), "conviction": o.get("conviction_0_10"),
-            "weight_now": o.get("target_weight_now_pct"), "max_weight": o.get("max_weight_on_trigger_pct"),
-            "action_now": o.get("action_now"), "entry_or_trigger_plan": o.get("entry_or_trigger_plan"),
-            "stop_and_invalidation": o.get("stop_and_invalidation"),
-            "challenge": o.get("preemptive_challenge_to_peers"),
-        } for m, o in r1.items()
-    }, default=str)
+    rounds_list: List[Dict[str, Any]] = [_build_round_record(1, "Round 1 · Independent Stances", r1_raw)]
 
-    r2: Dict[str, Dict[str, Any]] = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        futs = {}
-        for m, sys_p in _ROLE_SYSTEMS.items():
-            p2 = (
-                f"Dossier:\n{compact}\n\nRound 1 stances of all 3 Council members:\n{r1_summary}\n\n"
-                f"You are {m}. Cross-examine your two peers directly, adapt your verdict/sizing if a peer exposed a real flaw, "
-                "and write your sharpest Contra Statement. Return JSON with keys: member, rebuttal_to_peer_1 (str), rebuttal_to_peer_2 (str), "
-                "strongest_contra_statement (str), final_verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
-                "final_conviction_0_10 (int), final_weight_now_pct (float), final_max_weight_pct (float), revised_plan_delta (str), what_flips_my_call (str)."
-            )
-            futs[m] = pool.submit(_call_llm_json, p2, sys_p, cfg, session_id)
-        for m, f in futs.items():
-            obj = f.result()
-            obj["member"] = m
-            r2[m] = obj
+    # Rounds 2..n_rounds (each round cross-examines all prior rounds)
+    for r_num in range(2, n_rounds + 1):
+        rounds_list.append(_run_cross_exam_round(compact, rounds_list, cfg, session_id, r_num))
 
-    # Use quant scaffold for clean playbooks/structure, overlay live LLM debate outputs
     base = run_quant_council(dossier)
-    r1_verdicts = [str(r1[m].get("verdict", "WAIT FOR TRIGGER (WATCHLIST)")) for m in ("mom_trader", "garp_investor", "hybrid_pm")]
-    r2_verdicts = [str(r2[m].get("final_verdict", r1_verdicts[i])) for i, m in enumerate(("mom_trader", "garp_investor", "hybrid_pm"))]
-    _, r1_tally = _vote_summary(r1_verdicts)
-    chair_verdict, r2_tally = _vote_summary(r2_verdicts)
+    return _finalize_llm_result(base, rounds_list, desc, session_id)
 
-    diligence = []
-    for m in ("mom_trader", "garp_investor", "hybrid_pm"):
-        for q in (r1[m].get("diligence_questions") or []):
-            if q and q not in diligence:
-                diligence.append(str(q))
 
-    base.update({
-        "mode": f"live_llm ({desc})",
-        "round1_vote": r1_tally,
-        "round2_final_vote": r2_tally,
-        "vote_flipped": r1_tally != r2_tally,
-        "chair_verdict": chair_verdict,
-        "chair_headline": (
-            f"Live 2-Round LLM Council shifted {r1_tally} → {r2_tally}."
-            if r1_tally != r2_tally else
-            f"Live 2-Round LLM Council consensus: {r2_tally}."
-        ),
-        "round1": r1,
-        "round2": r2,
-        "bear_contra_statement": " | ".join(
-            str(r2[m].get("strongest_contra_statement", "")) for m in ("mom_trader", "garp_investor", "hybrid_pm") if r2[m].get("strongest_contra_statement")
-        ),
-        "diligence_questions": diligence[:5] or base["diligence_questions"],
-    })
-    return base
+def run_additional_round(
+    prev_res: Dict[str, Any],
+    *,
+    user_prompt: Optional[str] = None,
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+    base_url: Optional[str] = None,
+    gemini_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Append Round N+1 live LLM cross-examination onto an existing Council result and track all changes."""
+    backend, desc = llm_backend_status(
+        gemini_key=gemini_key, provider=provider, api_key=api_key, model=model, base_url=base_url
+    )
+    if backend == "none":
+        raise RuntimeError(desc)
+    cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
+
+    dossier = prev_res["dossier"]
+    compact = json.dumps(dossier, default=str)
+    sym_slug = re.sub(r"[^a-z0-9]+", "-", str(dossier.get("ticker", "stock")).lower()).strip("-")
+    session_id = prev_res.get("session_id") or f"council-{sym_slug}-{uuid.uuid4().hex[:10]}"
+
+    prior_rounds = list(prev_res.get("rounds") or [])
+    if not prior_rounds:
+        prior_rounds = [
+            _build_round_record(1, "Round 1 · Independent Stances", prev_res["round1"]),
+            _build_round_record(2, "Round 2 · Cross-Examination", prev_res["round2"]),
+        ]
+    next_num = len(prior_rounds) + 1
+    new_rec = _run_cross_exam_round(compact, prior_rounds, cfg, session_id, next_num, user_prompt=user_prompt)
+    rounds_list = prior_rounds + [new_rec]
+
+    base = run_quant_council(dossier)
+    return _finalize_llm_result(base, rounds_list, desc, session_id)
 
 
 # ---------------------------------------------------------------------------
@@ -1729,25 +1978,41 @@ def to_markdown(res: Dict[str, Any]) -> str:
         "garp_investor": "Member 2: GARP & Valuation-Ladder",
         "hybrid_pm": "Member 3: Macro-Regime Hybrid PM",
     }
+    n_r = int(res.get("num_rounds") or len(res.get("rounds") or []) or 2)
     lines = [
         f"# 🏛️ Expert Council Verdict: {res['name']} (`{res['ticker']}`)",
-        f"**As of:** `{res['as_of']}` · **Mode:** `{res['mode']}`",
+        f"**As of:** `{res['as_of']}` · **Mode:** `{res['mode']}` · **Rounds:** `{n_r}`",
         "",
         f"## Chair Verdict: `{res['chair_verdict']}` ({res['round2_final_vote']})",
-        f"- **Vote Shift:** `{res['round1_vote']}` → `{res['round2_final_vote']}`" + (" **(FLIP!)**" if res["vote_flipped"] else ""),
+        f"- **Vote Trajectory:** `{res.get('vote_trajectory') or (res['round1_vote'] + ' → ' + res['round2_final_vote'])}`" + (" **(FLIP!)**" if res["vote_flipped"] else ""),
         f"- **Summary:** {res['chair_headline']}",
         "",
-        "## Council Scorecard",
-        "| Member | Round 1 (Wt) | Round 2 Final (Wt) | Max Wt | Conviction | Adaptation |",
+        f"## Council Scorecard (Round 1 → Round {n_r})",
+        f"| Member | Round 1 (Wt) | Round {n_r} Final (Wt) | Max Wt | Conviction | Adaptation |",
         "|---|---|---|---:|---:|---|",
     ]
     for m in ("mom_trader", "garp_investor", "hybrid_pm"):
         o1, o2 = res["round1"][m], res["round2"][m]
+        mv1 = o1.get("_norm") or _member_view(o1, is_r1=True)
+        mv2 = o2.get("_norm") or _member_view(o2, is_r1=(n_r == 1))
         lines.append(
-            f"| **{names[m]}** | {o1.get('verdict')} ({o1.get('target_weight_now_pct')}%) | "
-            f"**{o2.get('final_verdict')}** ({o2.get('final_weight_now_pct')}%) | {o2.get('final_max_weight_pct')}% | "
-            f"{o1.get('conviction_0_10')} → {o2.get('final_conviction_0_10')} | {o2.get('revised_plan_delta')} |"
+            f"| **{names[m]}** | {mv1['verdict']} ({mv1['weight_now']}%) | "
+            f"**{mv2['verdict']}** ({mv2['weight_now']}%) | {mv2['max_weight']}% | "
+            f"{mv1['conviction']} → {mv2['conviction']} | {mv2['delta']} |"
         )
+    evo_rows = res.get("evolution_rows") or build_evolution_rows(res)
+    if evo_rows:
+        lines += [
+            "",
+            "## Round-by-Round Belief & Sizing Evolution",
+            "| Round | Member | Verdict | Change | Conviction | Weight Now | Max Wt | Summary |",
+            "|---|---|---|---|---:|---:|---:|---|",
+        ]
+        for er in evo_rows:
+            lines.append(
+                f"| {er['round_label']} | {er['member']} | {er['verdict']} | {er['change']} | "
+                f"{er['conviction']}/10 | {er['weight_now_pct']:.1f}% | {er['max_weight_pct']:.1f}% | {er['summary']} |"
+            )
     lines += [
         "",
         "## Key Telemetry Snapshot",

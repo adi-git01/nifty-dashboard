@@ -148,20 +148,31 @@ def render(df: pd.DataFrame) -> None:
         st.error(f"Could not assemble telemetry dossier for `{t}`: {exc}")
         return
 
-    # Run Council (Quant instant or Live LLM on click / cached in session state)
+    # Run Council (Quant instant or Live Multi-Round LLM on click / cached in session state)
     if mode_opt.startswith("🧠"):
         cache_key = f"ec_llm_res_{dossier['ticker']}_{dossier['as_of']}_{llm_provider}_{llm_model}"
-        run_col, _ = st.columns([1.6, 2.8])
-        if run_col.button(
-            f"🏛️ Run Live 2-Round Debate ({ec.LLM_PROVIDERS[llm_provider]['label']} · {llm_model})",
+        r_col1, r_col2, _ = st.columns([0.9, 1.9, 1.6])
+        n_init_rounds = int(r_col1.selectbox(
+            "Debate Rounds",
+            [1, 2, 3, 4, 5],
+            index=1,  # default = 2 rounds (Round 1 stances + Round 2 cross-examination)
+            key="ec_init_rounds",
+            help="Default is 2 rounds (Round 1 independent stances + Round 2 peer cross-examination). You can also add extra follow-up rounds afterwards.",
+        ))
+        r_col2.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        if r_col2.button(
+            f"🏛️ Run Live {n_init_rounds}-Round Debate ({ec.LLM_PROVIDERS[llm_provider]['label']} · {llm_model})",
             type="primary",
             use_container_width=True,
             key="ec_run_llm",
         ):
-            with st.spinner(f"Convening 3 Council Members via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…"):
+            with st.spinner(
+                f"Convening 3 Council Members for {n_init_rounds} round(s) via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…"
+            ):
                 try:
                     st.session_state[cache_key] = ec.run_llm_council(
                         dossier,
+                        rounds=n_init_rounds,
                         provider=llm_provider,
                         api_key=llm_api_key,
                         model=llm_model,
@@ -172,8 +183,37 @@ def render(df: pd.DataFrame) -> None:
                     st.session_state.pop(cache_key, None)
         res = st.session_state.get(cache_key)
         if res is None:
-            st.info("Click **🏛️ Run Live 2-Round Debate** above to run live LLM agents — showing the instant **Quant Council** baseline below in the meantime.")
+            st.info(f"Click **🏛️ Run Live {n_init_rounds}-Round Debate** above to run live LLM agents — showing the instant **Quant Council** baseline below in the meantime.")
             res = ec.run_quant_council(dossier)
+        else:
+            # Allow user to request additional follow-up rounds (Round N+1) with optional stress-test question
+            cur_n = int(res.get("num_rounds") or len(res.get("rounds") or []) or 2)
+            with st.container(border=True):
+                ac1, ac2 = st.columns([3.0, 1.4])
+                extra_focus = ac1.text_input(
+                    f"Add Round {cur_n + 1} · Optional challenge / scenario for the Council",
+                    key=f"ec_extra_q_{cache_key}_{cur_n}",
+                    placeholder="e.g. Stress-test OPM dropping 300 bps or Nifty falling 10% — do any members flip?",
+                )
+                ac2.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                if ac2.button(
+                    f"➕ Run Round {cur_n + 1}",
+                    key=f"ec_add_round_{cache_key}_{cur_n}",
+                    use_container_width=True,
+                ):
+                    with st.spinner(f"Running Round {cur_n + 1} cross-examination via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…"):
+                        try:
+                            st.session_state[cache_key] = ec.run_additional_round(
+                                res,
+                                user_prompt=(extra_focus or None),
+                                provider=llm_provider,
+                                api_key=llm_api_key,
+                                model=llm_model,
+                                base_url=llm_base_url,
+                            )
+                            st.rerun()
+                        except Exception as exc:
+                            st.error(f"Round {cur_n + 1} failed: {exc}")
     else:
         res = ec.run_quant_council(dossier)
 
@@ -193,8 +233,10 @@ def render(df: pd.DataFrame) -> None:
     h[4].metric("Regime", str(mr.get("engine_mode") or "—"),
                 f"VIX {vix.get('close')} (P{vix.get('pctile_252'):.0f})" if vix.get("close") and vix.get("pctile_252") is not None else None, delta_color="off")
 
-    # Chair Verdict Banner + Vote Shift
-    flip_badge = f" · 🔀 **VOTE FLIP!** (`{res['round1_vote']}` → `{res['round2_final_vote']}`)" if res["vote_flipped"] else f" · Vote held: `{res['round2_final_vote']}`"
+    # Chair Verdict Banner + Multi-Round Vote Trajectory
+    num_rounds = int(res.get("num_rounds") or len(res.get("rounds") or []) or 2)
+    traj_txt = res.get("vote_trajectory") or f"R1: {res['round1_vote']} → R{num_rounds}: {res['round2_final_vote']}"
+    flip_badge = f" · 🔀 **VOTE SHIFT!** (`{traj_txt}`)" if res["vote_flipped"] else f" · Vote held ({num_rounds} rounds): `{traj_txt}`"
     getattr(st, _tone(res["chair_verdict"]))(
         f"**🏛️ CHAIR VERDICT: {res['chair_verdict']}**{flip_badge}\n\n{res['chair_headline']}"
     )
@@ -215,22 +257,24 @@ def render(df: pd.DataFrame) -> None:
         st.rerun()
 
     # 3-Member Council Scorecard
-    st.markdown("#### 1 · Three-Expert Council Scorecard (Round 1 → Round 2)")
+    st.markdown(f"#### 1 · Three-Expert Council Scorecard (Round 1 → Round {num_rounds})")
     cols = st.columns(3)
     for col, (m_key, title, subtitle) in zip(cols, _MEMBER_META):
-        o1, o2 = res["round1"][m_key], res["round2"][m_key]
-        v1, v2 = o1.get("verdict", "—"), o2.get("final_verdict", o1.get("verdict", "—"))
+        o1, o_last = res["round1"][m_key], res["round2"][m_key]
+        mv1 = o1.get("_norm") or ec._member_view(o1, is_r1=True)
+        mv_last = o_last.get("_norm") or ec._member_view(o_last, is_r1=(num_rounds == 1))
+        v1, v2 = mv1["verdict"], mv_last["verdict"]
         changed = v1 != v2
         with col.container(border=True):
             st.markdown(f"**{title}**")
             st.caption(subtitle)
-            st.markdown(f"**Final:** `{v2}`" + (f" *(flipped from `{v1}`)*" if changed else ""))
+            st.markdown(f"**Final (R{num_rounds}):** `{v2}`" + (f" *(flipped from R1 `{v1}`)*" if changed else ""))
             m_a, m_b = st.columns(2)
-            m_a.metric("Conviction", f"{o2.get('final_conviction_0_10', '—')}/10",
-                       f"R1: {o1.get('conviction_0_10', '—')}", delta_color="off")
-            m_b.metric("Weight Now", f"{o2.get('final_weight_now_pct', 0)}%",
-                       f"Max {o2.get('final_max_weight_pct', 0)}%", delta_color="off")
-            st.caption(f"**Adaptation:** {o2.get('revised_plan_delta', '')}")
+            m_a.metric("Conviction", f"{mv_last['conviction']}/10",
+                       f"R1: {mv1['conviction']}/10", delta_color="off")
+            m_b.metric("Weight Now", f"{mv_last['weight_now']:.1f}%",
+                       f"R1: {mv1['weight_now']:.1f}% · Max {mv_last['max_weight']:.1f}%", delta_color="off")
+            st.caption(f"**Latest Adaptation:** {mv_last['delta']}")
 
     # Explicit Contra Statements (Bear vs Bull)
     st.markdown("#### 2 · Explicit Contra Statements (What Breaks Both Sides)")
@@ -249,31 +293,87 @@ def render(df: pd.DataFrame) -> None:
     })
     st.dataframe(pb_df, hide_index=True, use_container_width=True)
 
-    # Deep-Dive Tabs
-    t_debate, t_telem, t_dil = st.tabs([
-        "💬 Round 1 → Round 2 Debate Transcript",
+    # Deep-Dive Tabs (with Round-by-Round Evolution Tracker!)
+    t_evo, t_debate, t_telem, t_dil = st.tabs([
+        f"📈 Round-by-Round Evolution ({num_rounds} Rounds)",
+        f"💬 Full Debate Transcript (R1 → R{num_rounds})",
         "📊 Telemetry, Cash-Flow & Anchor Audit",
         "🔎 External Diligence Checklist",
     ])
 
+    with t_evo:
+        rounds_list = res.get("rounds") or []
+        if rounds_list:
+            st.markdown("**Chair Vote Progression:** " + " &nbsp;→&nbsp; ".join(
+                f"`R{r['round']}: {r['tally']}`" + (f" *(focus: {r['user_prompt']})*" if r.get("user_prompt") else "")
+                for r in rounds_list
+            ))
+        evo_rows = res.get("evolution_rows") or ec.build_evolution_rows(res)
+        if evo_rows:
+            evo_df = pd.DataFrame(evo_rows)[
+                ["round_label", "member", "verdict", "change", "conviction", "weight_now_pct", "max_weight_pct", "summary"]
+            ].rename(columns={
+                "round_label": "Round",
+                "member": "Council Member",
+                "verdict": "Verdict",
+                "change": "Shift vs Prior Round",
+                "conviction": "Conviction /10",
+                "weight_now_pct": "Weight Now %",
+                "max_weight_pct": "Max Weight %",
+                "summary": "Key Reasoning / Adaptation",
+            })
+            st.dataframe(evo_df, hide_index=True, use_container_width=True)
+
+            # Compact trajectory chart for Conviction & Weight Now across rounds
+            try:
+                import plotly.graph_objects as go
+                from plotly.subplots import make_subplots
+                fig = make_subplots(rows=1, cols=2, subplot_titles=("Conviction (/10) by Round", "Target Weight Now (%) by Round"))
+                edf = pd.DataFrame(evo_rows)
+                colors = {"Momentum Trader": "#3B82F6", "GARP Investor": "#10B981", "Macro-Hybrid PM": "#F59E0B"}
+                for m_lbl in ("Momentum Trader", "GARP Investor", "Macro-Hybrid PM"):
+                    sub = edf[edf["member"] == m_lbl]
+                    if sub.empty:
+                        continue
+                    c_hex = colors[m_lbl]
+                    fig.add_trace(go.Scatter(x=sub["round_label"], y=sub["conviction"], name=m_lbl, mode="lines+markers", line=dict(color=c_hex, width=2.5), legendgroup=m_lbl), row=1, col=1)
+                    fig.add_trace(go.Scatter(x=sub["round_label"], y=sub["weight_now_pct"], name=m_lbl, mode="lines+markers", line=dict(color=c_hex, width=2.5, dash="dot"), legendgroup=m_lbl, showlegend=False), row=1, col=2)
+                fig.update_yaxes(range=[0, 10.5], row=1, col=1)
+                fig.update_layout(height=270, margin=dict(l=10, r=10, t=35, b=10), legend=dict(orientation="h", y=-0.22),
+                                  template="plotly_white", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+                st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+            except Exception:
+                pass
+
     with t_debate:
-        for m_key, title, _ in _MEMBER_META:
-            o1, o2 = res["round1"][m_key], res["round2"][m_key]
-            with st.expander(f"{title} — Round 1 (`{o1.get('verdict')}`) → Round 2 (`{o2.get('final_verdict')}`)", expanded=False):
-                st.markdown(f"**Round 1 Action:** {o1.get('action_now', '')}")
-                st.markdown(f"**Entry / Trigger Plan:** {o1.get('entry_or_trigger_plan', '')}")
-                st.markdown(f"**Stop / Invalidation:** {o1.get('stop_and_invalidation', '')}")
-                if o1.get("key_evidence"):
-                    st.markdown("**Key Evidence:**\n" + "\n".join(f"- {x}" for x in o1["key_evidence"]))
-                if o1.get("key_red_flags"):
-                    st.markdown("**Key Red Flags:**\n" + "\n".join(f"- {x}" for x in o1["key_red_flags"]))
-                st.markdown("---")
-                st.markdown("**Round 2 Peer Rebuttals:**")
-                for k in ("rebuttal_to_mom", "rebuttal_to_garp", "rebuttal_to_hybrid", "rebuttal_to_peer_1", "rebuttal_to_peer_2"):
-                    if o2.get(k):
-                        st.markdown(f"- *{k.replace('_', ' ').title()}:* {o2[k]}")
-                st.markdown(f"**Sharpest Contra Statement:** {o2.get('strongest_contra_statement', '')}")
-                st.markdown(f"**What Flips My Call:** {o2.get('what_flips_my_call', '')}")
+        rounds_list = res.get("rounds") or []
+        for rec in rounds_list:
+            r_num = rec["round"]
+            hdr = f"**{rec['label']}** — Tally: `{rec['tally']}`" + (f" · *User challenge:* _{rec['user_prompt']}_" if rec.get("user_prompt") else "")
+            st.markdown(hdr)
+            for m_key, title, _ in _MEMBER_META:
+                om = rec["members"][m_key]
+                mv = om.get("_norm") or ec._member_view(om, is_r1=(r_num == 1))
+                with st.expander(f"R{r_num} · {title} — `{mv['verdict']}` ({mv['conviction']}/10, {mv['weight_now']:.1f}% now)", expanded=False):
+                    if r_num == 1:
+                        st.markdown(f"**Action Now:** {om.get('action_now', '')}")
+                        st.markdown(f"**Entry / Trigger Plan:** {om.get('entry_or_trigger_plan', '')}")
+                        st.markdown(f"**Stop / Invalidation:** {om.get('stop_and_invalidation', '')}")
+                        if om.get("key_evidence"):
+                            st.markdown("**Key Evidence:**\n" + "\n".join(f"- {x}" for x in om["key_evidence"]))
+                        if om.get("key_red_flags"):
+                            st.markdown("**Key Red Flags:**\n" + "\n".join(f"- {x}" for x in om["key_red_flags"]))
+                        if om.get("preemptive_challenge_to_peers"):
+                            st.markdown(f"**Challenge to Peers:** {om['preemptive_challenge_to_peers']}")
+                    else:
+                        st.markdown(f"**Adaptation / Delta:** {om.get('revised_plan_delta', '')}")
+                        for k in ("rebuttal_to_mom", "rebuttal_to_garp", "rebuttal_to_hybrid", "rebuttal_to_peer_1", "rebuttal_to_peer_2"):
+                            if om.get(k):
+                                st.markdown(f"- *{k.replace('_', ' ').title()}:* {om[k]}")
+                        if om.get("strongest_contra_statement"):
+                            st.markdown(f"**Sharpest Contra Statement:** {om['strongest_contra_statement']}")
+                        if om.get("what_flips_my_call"):
+                            st.markdown(f"**What Flips My Call:** {om['what_flips_my_call']}")
 
     with t_telem:
         ff = dossier["fundamentals_and_flows"]
