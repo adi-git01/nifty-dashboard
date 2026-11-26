@@ -76,19 +76,53 @@ def render(df: pd.DataFrame) -> None:
         ["⚡ Quant Council (Instant)", "🧠 Live LLM Debate"],
         horizontal=False,
         key="ec_mode",
-        help="Quant Council runs the empirical 2-round adversarial rules instantly with zero API key. Live LLM Debate runs 6 parallel LLM calls (Round 1 + Round 2) via Gemini or OpenAI-compatible client.",
+        help="Quant Council runs the empirical 2-round adversarial rules instantly with zero API key. Live LLM Debate runs 6 parallel calls (Round 1 + Round 2) via OpenCode, DeepSeek, Gemini, or any OpenAI-compatible endpoint.",
     )
 
-    gemini_override = None
+    llm_provider = None
+    llm_api_key = None
+    llm_model = None
+    llm_base_url = None
     if mode_opt.startswith("🧠"):
-        backend, status_txt = ec.llm_backend_status()
-        with st.expander(f"LLM Backend: {status_txt}", expanded=(backend == "none")):
-            gemini_override = st.text_input(
-                "Optional session Gemini API Key (overrides env/secrets)",
+        auto_prov, _ = ec.llm_backend_status()
+        prov_keys = ["opencode", "deepseek", "gemini", "custom"]
+        default_idx = prov_keys.index(auto_prov) if auto_prov in prov_keys else 0
+        if "ec_llm_prov" not in st.session_state:
+            st.session_state["ec_llm_prov"] = prov_keys[default_idx]
+
+        p_sel = st.session_state["ec_llm_prov"]
+        active_code, status_txt = ec.llm_backend_status(provider=p_sel)
+        with st.expander(f"LLM Backend · {status_txt}", expanded=(active_code == "none")):
+            lc1, lc2, lc3 = st.columns([1.3, 1.4, 1.8])
+            llm_provider = lc1.selectbox(
+                "Provider",
+                prov_keys,
+                key="ec_llm_prov",
+                format_func=lambda k: ec.LLM_PROVIDERS[k]["label"],
+            )
+            pspec = ec.LLM_PROVIDERS[llm_provider]
+            model_opts = list(pspec["models"]) + ["Custom model…"]
+            picked_m = lc2.selectbox("Model", model_opts, key=f"ec_model_{llm_provider}")
+            if picked_m == "Custom model…":
+                llm_model = lc2.text_input("Custom model ID", value=pspec["default_model"], key=f"ec_custom_m_{llm_provider}").strip()
+            else:
+                llm_model = picked_m
+
+            llm_api_key = lc3.text_input(
+                f"{pspec['label']} API Key (optional if in secrets/env)",
                 type="password",
-                key="ec_gemini_key",
-                help="Stored only in this browser session. Leave blank if GEMINI_API_KEY or [llm] is already configured in Streamlit secrets.",
+                key=f"ec_key_{llm_provider}",
+                placeholder=f"Or set {pspec['env_key']} in Streamlit secrets",
+                help="Stored only in this browser session. Leave blank if already set in Streamlit secrets or environment variables.",
             ).strip() or None
+
+            if llm_provider in ("opencode", "deepseek", "custom"):
+                llm_base_url = st.text_input(
+                    "Base URL (OpenAI-compatible /v1)",
+                    value=ec.resolve_llm_config(provider=llm_provider).get("base_url") or pspec["base_url"],
+                    key=f"ec_url_{llm_provider}",
+                    help="OpenCode Zen cloud: https://opencode.ai/zen/v1 · Local `opencode serve`: http://localhost:4096/v1 · DeepSeek: https://api.deepseek.com/v1",
+                ).strip() or None
 
     # Build strictly grounded dossier
     try:
@@ -100,18 +134,29 @@ def render(df: pd.DataFrame) -> None:
 
     # Run Council (Quant instant or Live LLM on click / cached in session state)
     if mode_opt.startswith("🧠"):
-        cache_key = f"ec_llm_res_{dossier['ticker']}_{dossier['as_of']}"
-        run_col, _ = st.columns([1.4, 3])
-        if run_col.button("🏛️ Run Live 2-Round LLM Debate", type="primary", use_container_width=True, key="ec_run_llm"):
-            with st.spinner("Convening 3 Council Members for Round 1 stances + Round 2 cross-examination…"):
+        cache_key = f"ec_llm_res_{dossier['ticker']}_{dossier['as_of']}_{llm_provider}_{llm_model}"
+        run_col, _ = st.columns([1.6, 2.8])
+        if run_col.button(
+            f"🏛️ Run Live 2-Round Debate ({ec.LLM_PROVIDERS[llm_provider]['label']} · {llm_model})",
+            type="primary",
+            use_container_width=True,
+            key="ec_run_llm",
+        ):
+            with st.spinner(f"Convening 3 Council Members via {ec.LLM_PROVIDERS[llm_provider]['label']} ({llm_model})…"):
                 try:
-                    st.session_state[cache_key] = ec.run_llm_council(dossier, gemini_key=gemini_override)
+                    st.session_state[cache_key] = ec.run_llm_council(
+                        dossier,
+                        provider=llm_provider,
+                        api_key=llm_api_key,
+                        model=llm_model,
+                        base_url=llm_base_url,
+                    )
                 except Exception as exc:
                     st.error(f"Live LLM debate failed ({exc}). Falling back to Quant Council below.")
                     st.session_state.pop(cache_key, None)
         res = st.session_state.get(cache_key)
         if res is None:
-            st.info("Click **🏛️ Run Live 2-Round LLM Debate** above to run live LLM agents — showing the instant **Quant Council** baseline below in the meantime.")
+            st.info("Click **🏛️ Run Live 2-Round Debate** above to run live LLM agents — showing the instant **Quant Council** baseline below in the meantime.")
             res = ec.run_quant_council(dossier)
     else:
         res = ec.run_quant_council(dossier)

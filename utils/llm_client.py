@@ -46,7 +46,23 @@ DEFAULT_ROLES = {
     "research": {"provider": "opencode", "model": "deepseek-v4-flash"},
     "judgment": {"provider": "opencode", "model": "gpt-5.6-luna"},
 }
-DEFAULT_BASE_URLS = {"opencode": "http://localhost:4096/v1"}
+DEFAULT_BASE_URLS = {
+    "opencode": "http://localhost:4096/v1",
+    "opencode_zen": "https://opencode.ai/zen/v1",
+    "deepseek": "https://api.deepseek.com/v1",
+}
+
+_PROVIDER_KEY_ENVS = {
+    "opencode": ("OPENCODE_API_KEY",),
+    "opencode_zen": ("OPENCODE_API_KEY",),
+    "deepseek": ("DEEPSEEK_API_KEY",),
+}
+
+_PROVIDER_URL_ENVS = {
+    "opencode": ("OPENCODE_BASE_URL",),
+    "opencode_zen": ("OPENCODE_BASE_URL",),
+    "deepseek": ("DEEPSEEK_BASE_URL",),
+}
 
 
 class LLMNotConfigured(RuntimeError):
@@ -76,6 +92,24 @@ class Endpoint:
     api_key: str
 
 
+def _top_secret(name: str) -> str:
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and name in st.secrets:
+            return str(st.secrets[name]).strip()
+    except Exception:
+        pass
+    return ""
+
+
+def _resolve_provider_key(prov: str, pcfg: Dict) -> str:
+    for env_k in _PROVIDER_KEY_ENVS.get(prov, ()):
+        val = (os.environ.get(env_k) or _top_secret(env_k) or "").strip()
+        if val:
+            return val
+    return (os.environ.get("LLM_API_KEY") or str(pcfg.get("api_key") or "")).strip()
+
+
 def resolve(role: str = "judgment", model: Optional[str] = None,
             provider: Optional[str] = None) -> Endpoint:
     """Role -> concrete endpoint, with env overriding config overriding defaults."""
@@ -96,11 +130,16 @@ def resolve(role: str = "judgment", model: Optional[str] = None,
 
     providers = cfg.get("providers") or {}
     pcfg = dict(providers.get(prov) or {})
-    base_url = (os.environ.get("LLM_BASE_URL") or pcfg.get("base_url")
-                or DEFAULT_BASE_URLS.get(prov, ""))
-    api_key = (os.environ.get("LLM_API_KEY") or pcfg.get("api_key")
-               # local servers frequently ignore the key but the SDK demands one
-               or "not-needed")
+    explicit_key = _resolve_provider_key(prov, pcfg)
+    url_env = next((os.environ.get(k) for k in _PROVIDER_URL_ENVS.get(prov, ()) if os.environ.get(k)), "")
+    default_url = DEFAULT_BASE_URLS.get(prov, "")
+    # If OPENCODE_API_KEY is supplied without an explicit local base_url, target OpenCode Zen cloud API
+    if prov == "opencode" and explicit_key and explicit_key != "not-needed" and not (os.environ.get("LLM_BASE_URL") or url_env or pcfg.get("base_url")):
+        default_url = DEFAULT_BASE_URLS["opencode_zen"]
+
+    base_url = (os.environ.get("LLM_BASE_URL") or url_env or pcfg.get("base_url")
+                or default_url)
+    api_key = explicit_key or "not-needed"  # local servers frequently ignore the key but the SDK demands one
 
     if not base_url:
         raise LLMNotConfigured(
@@ -165,8 +204,9 @@ def complete(prompt: str, role: str = "judgment", *, system: Optional[str] = Non
 
 
 def _extract_json(text: str) -> str:
-    """Models wrap JSON in prose or fences more often than they should."""
-    t = text.strip()
+    """Models wrap JSON in <think> blocks, prose or fences more often than they should."""
+    import re
+    t = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE).strip()
     if t.startswith("```"):
         t = t.split("```")[1]
         if t.lstrip().lower().startswith("json"):

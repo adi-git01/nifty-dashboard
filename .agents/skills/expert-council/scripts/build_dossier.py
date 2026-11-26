@@ -34,7 +34,10 @@ def main() -> None:
     ap.add_argument("--repo", default=None, help="Path to Nifty Dashboard repository")
     ap.add_argument("--out", default=None, help="Optional path to save dossier JSON")
     ap.add_argument("--quant", action="store_true", help="Also run deterministic 2-round Quant Council")
-    ap.add_argument("--md-out", default=None, help="Optional path to save Markdown brief (implies --quant)")
+    ap.add_argument("--live", action="store_true", help="Run live 2-round LLM Council (OpenCode, DeepSeek, or Gemini)")
+    ap.add_argument("--provider", default=None, help="LLM provider: opencode, deepseek, gemini, custom")
+    ap.add_argument("--model", default=None, help="Optional model override (e.g. gpt-5.6-luna, deepseek-chat, deepseek-reasoner)")
+    ap.add_argument("--md-out", default=None, help="Optional path to save Markdown brief")
     args = ap.parse_args()
 
     repo = _find_repo(args.repo)
@@ -50,7 +53,15 @@ def main() -> None:
         with open(args.out, "w", encoding="utf-8") as f:
             json.dump(dossier, f, indent=2, default=str)
 
-    if args.quant or args.md_out:
+    if args.live:
+        res = ec.run_llm_council(dossier, provider=args.provider, model=args.model)
+        md = ec.to_markdown(res)
+        if args.md_out:
+            os.makedirs(os.path.dirname(os.path.abspath(args.md_out)), exist_ok=True)
+            with open(args.md_out, "w", encoding="utf-8") as f:
+                f.write(md)
+        print(md)
+    elif args.quant or args.md_out:
         res = ec.run_quant_council(dossier)
         md = ec.to_markdown(res)
         if args.md_out:

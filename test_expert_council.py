@@ -109,8 +109,57 @@ def test_edge_case_clean_stage2_buy_now():
     assert r["vote_flipped"] is False
 
 
+def test_opencode_and_deepseek_provider_resolution():
+    from utils import llm_client
+
+    saved = {k: os.environ.pop(k, None) for k in (
+        "OPENCODE_API_KEY", "OPENCODE_BASE_URL", "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL",
+        "GEMINI_API_KEY", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL_JUDGMENT",
+    )}
+    try:
+        # 1. OpenCode Zen API key auto-detected with highest priority
+        os.environ["OPENCODE_API_KEY"] = "sk-opencode-test"
+        os.environ["DEEPSEEK_API_KEY"] = "sk-deepseek-test"
+        cfg = ec.resolve_llm_config()
+        assert cfg["provider"] == "opencode"
+        assert cfg["base_url"] == "https://opencode.ai/zen/v1"
+        assert cfg["api_key"] == "sk-opencode-test"
+        code, desc = ec.llm_backend_status()
+        assert code == "opencode" and "OpenCode" in desc
+
+        ep_oc = llm_client.resolve("judgment", provider="opencode")
+        assert ep_oc.base_url == "https://opencode.ai/zen/v1"
+        assert ep_oc.api_key == "sk-opencode-test"
+
+        # 2. Explicit DeepSeek provider selection & auto-fallback when OpenCode absent
+        cfg_ds = ec.resolve_llm_config(provider="deepseek", model="deepseek-reasoner")
+        assert cfg_ds["provider"] == "deepseek"
+        assert cfg_ds["base_url"] == "https://api.deepseek.com/v1"
+        assert cfg_ds["model"] == "deepseek-reasoner"
+        assert cfg_ds["api_key"] == "sk-deepseek-test"
+
+        ep_ds = llm_client.resolve("judgment", provider="deepseek", model="deepseek-chat")
+        assert ep_ds.base_url == "https://api.deepseek.com/v1"
+        assert ep_ds.api_key == "sk-deepseek-test"
+
+        os.environ.pop("OPENCODE_API_KEY", None)
+        cfg_auto_ds = ec.resolve_llm_config()
+        assert cfg_auto_ds["provider"] == "deepseek"
+
+        # 3. Reasoning <think> tag stripping for deepseek-reasoner
+        raw_think = '<think>Checking CFO/PAT and Bear Blend...</think>\n```json\n{"verdict": "BUY NOW", "conviction_0_10": 8}\n```'
+        assert '"verdict": "BUY NOW"' in ec._strip_fences(raw_think)
+        assert '"verdict": "BUY NOW"' in llm_client._extract_json(raw_think)
+    finally:
+        for k, v in saved.items():
+            if v is not None:
+                os.environ[k] = v
+            else:
+                os.environ.pop(k, None)
+
+
 def test_ui_modules_compile_cleanly():
-    for rel in ("main.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py"):
+    for rel in ("main.py", "utils/llm_client.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py"):
         py_compile.compile(os.path.join(REPO, rel), doraise=True)
 
 

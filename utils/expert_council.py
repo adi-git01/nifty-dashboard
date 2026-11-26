@@ -1250,55 +1250,149 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# 3. Live Multi-Round LLM Council (Optional Upgrade via llm_client or Gemini)
+# 3. Live Multi-Round LLM Council (OpenCode, DeepSeek, Gemini, or Custom /v1)
 # ---------------------------------------------------------------------------
-def llm_backend_status(gemini_key: Optional[str] = None) -> Tuple[str, str]:
-    """Detect whether Gemini or OpenAI-compatible llm_client is available."""
-    gkey = (gemini_key or os.environ.get("GEMINI_API_KEY") or "").strip()
-    if not gkey:
-        try:
-            import streamlit as st
-            if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
-                gkey = str(st.secrets["GEMINI_API_KEY"]).strip()
-        except Exception:
-            pass
-    if gkey:
-        return "gemini", "Gemini API key detected"
+LLM_PROVIDERS: Dict[str, Dict[str, Any]] = {
+    "opencode": {
+        "label": "OpenCode (Zen API)",
+        "base_url": "https://opencode.ai/zen/v1",
+        "default_model": "gpt-5.6-luna",
+        "models": ["gpt-5.6-luna", "deepseek-v4-flash", "deepseek-v4-flash-free", "kimi-k3"],
+        "env_key": "OPENCODE_API_KEY",
+    },
+    "deepseek": {
+        "label": "DeepSeek API",
+        "base_url": "https://api.deepseek.com/v1",
+        "default_model": "deepseek-chat",
+        "models": ["deepseek-chat", "deepseek-reasoner"],
+        "env_key": "DEEPSEEK_API_KEY",
+    },
+    "gemini": {
+        "label": "Gemini API",
+        "base_url": "",
+        "default_model": "gemini-2.5-flash",
+        "models": ["gemini-2.5-flash", "gemini-2.5-pro"],
+        "env_key": "GEMINI_API_KEY",
+    },
+    "custom": {
+        "label": "Custom / Local OpenCode",
+        "base_url": "http://localhost:4096/v1",
+        "default_model": "deepseek-v4-flash",
+        "models": ["deepseek-v4-flash", "gpt-5.6-luna", "deepseek-chat"],
+        "env_key": "LLM_API_KEY",
+    },
+}
 
+
+def _read_secret_or_env(key_name: str, provider_section: Optional[str] = None, field: str = "api_key") -> str:
+    val = (os.environ.get(key_name) or "").strip()
+    if val:
+        return val
     try:
-        from utils import llm_client
-        ep = llm_client.resolve("judgment")
-        # Require either explicit non-localhost URL or explicit LLM_API_KEY/LLM_BASE_URL
-        if os.environ.get("LLM_BASE_URL") or os.environ.get("LLM_API_KEY") or ("localhost" not in ep.base_url):
-            return "llm_client", f"{ep.model} via {ep.provider} ({ep.base_url})"
+        import streamlit as st
+        if hasattr(st, "secrets"):
+            if key_name in st.secrets and str(st.secrets[key_name]).strip():
+                return str(st.secrets[key_name]).strip()
+            if provider_section and "llm" in st.secrets:
+                provs = st.secrets["llm"].get("providers") or {}
+                psec = provs.get(provider_section) or {}
+                if psec.get(field):
+                    return str(psec[field]).strip()
     except Exception:
         pass
-    return "none", "No LLM API key configured (using instant Deterministic Quant Council)"
+    return ""
 
 
-def _call_llm_json(prompt: str, system: str, backend: str, gemini_key: Optional[str] = None) -> Dict[str, Any]:
-    if backend == "gemini":
-        import google.generativeai as genai
-        gkey = (gemini_key or os.environ.get("GEMINI_API_KEY") or "").strip()
-        if not gkey:
-            import streamlit as st
-            gkey = str(st.secrets["GEMINI_API_KEY"]).strip()
-        genai.configure(api_key=gkey)
-        model_name = os.environ.get("COUNCIL_GEMINI_MODEL", "gemini-2.5-flash")
-        m = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=system + "\nReturn strictly valid JSON only (no markdown fences).",
-            generation_config={"temperature": 0.2, "response_mime_type": "application/json"},
+def resolve_llm_config(
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+    base_url: Optional[str] = None,
+    gemini_key: Optional[str] = None,
+) -> Dict[str, str]:
+    """Resolve provider -> concrete {provider, api_key, model, base_url, label}.
+
+    Auto-detection priority when `provider` is None:
+      1. OpenCode (`OPENCODE_API_KEY` or `[llm.providers.opencode]`)
+      2. DeepSeek (`DEEPSEEK_API_KEY` or `[llm.providers.deepseek]`)
+      3. Gemini (`GEMINI_API_KEY` or `gemini_key`)
+      4. Generic `LLM_API_KEY` / `LLM_BASE_URL`
+    """
+    if gemini_key and not api_key and not provider:
+        provider = "gemini"
+        api_key = gemini_key
+
+    # Auto-select configured provider when none explicitly requested
+    if not provider:
+        if _read_secret_or_env("OPENCODE_API_KEY", "opencode", "api_key") not in ("", "not-needed"):
+            provider = "opencode"
+        elif _read_secret_or_env("DEEPSEEK_API_KEY", "deepseek", "api_key"):
+            provider = "deepseek"
+        elif _read_secret_or_env("GEMINI_API_KEY"):
+            provider = "gemini"
+        elif os.environ.get("LLM_BASE_URL") or os.environ.get("LLM_API_KEY"):
+            provider = "custom"
+        else:
+            return {"provider": "none", "api_key": "", "model": "", "base_url": "", "label": "Not configured"}
+
+    prov = provider.lower().strip()
+    spec = LLM_PROVIDERS.get(prov) or LLM_PROVIDERS["custom"]
+
+    key = (api_key or "").strip()
+    if not key:
+        key = _read_secret_or_env(spec["env_key"], prov if prov in ("opencode", "deepseek") else None, "api_key")
+        if not key and prov in ("opencode", "custom"):
+            key = (os.environ.get("LLM_API_KEY") or "").strip()
+
+    url = (base_url or "").strip()
+    if not url and prov != "gemini":
+        env_url_name = {"opencode": "OPENCODE_BASE_URL", "deepseek": "DEEPSEEK_BASE_URL"}.get(prov, "LLM_BASE_URL")
+        url = (
+            _read_secret_or_env(env_url_name, prov if prov in ("opencode", "deepseek") else None, "base_url")
+            or (os.environ.get("LLM_BASE_URL") or "").strip()
+            or spec["base_url"]
         )
-        raw = (m.generate_content(prompt).text or "").strip()
-        return json.loads(_strip_fences(raw))
 
-    from utils import llm_client
-    return llm_client.complete_json(prompt, schema={"type": "object"}, role="judgment", system=system, temperature=0.2)
+    mdl = (model or "").strip()
+    if not mdl:
+        if prov == "gemini":
+            mdl = os.environ.get("COUNCIL_GEMINI_MODEL", spec["default_model"])
+        else:
+            mdl = os.environ.get(f"COUNCIL_{prov.upper()}_MODEL") or os.environ.get("LLM_MODEL_JUDGMENT") or spec["default_model"]
+
+    return {
+        "provider": prov,
+        "api_key": key,
+        "model": mdl,
+        "base_url": url.rstrip("/"),
+        "label": spec["label"],
+    }
+
+
+def llm_backend_status(
+    gemini_key: Optional[str] = None,
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+    base_url: Optional[str] = None,
+) -> Tuple[str, str]:
+    """Return `(provider_id, human_status)` for the active/selected LLM backend."""
+    cfg = resolve_llm_config(provider=provider, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
+    p = cfg["provider"]
+    if p == "none":
+        return "none", "No LLM API key configured (supports OpenCode, DeepSeek, Gemini — using instant Quant Council)"
+    if p == "custom" and cfg["base_url"] and "localhost" in cfg["base_url"]:
+        return p, f"{cfg['label']}: {cfg['model']} ({cfg['base_url']})"
+    if not cfg["api_key"] or cfg["api_key"] == "not-needed":
+        if p == "opencode" and "localhost" in cfg["base_url"]:
+            return p, f"OpenCode Local: {cfg['model']} ({cfg['base_url']})"
+        return "none", f"{cfg['label']} selected — paste API key or set {LLM_PROVIDERS[p]['env_key']} in secrets/env"
+    via = f" @ {cfg['base_url']}" if cfg["base_url"] else ""
+    return p, f"{cfg['label']}: {cfg['model']}{via}"
 
 
 def _strip_fences(raw: str) -> str:
-    t = raw.strip()
+    t = re.sub(r"<think>.*?</think>", "", raw or "", flags=re.DOTALL | re.IGNORECASE).strip()
     if t.startswith("```"):
         parts = t.split("```")
         t = parts[1] if len(parts) > 1 else t
@@ -1306,6 +1400,47 @@ def _strip_fences(raw: str) -> str:
             t = t.lstrip()[4:]
     i, j = t.find("{"), t.rfind("}")
     return t[i:j + 1] if (i != -1 and j > i) else t
+
+
+def _call_llm_json(prompt: str, system: str, cfg: Dict[str, str]) -> Dict[str, Any]:
+    prov = cfg["provider"]
+    if prov == "gemini":
+        import google.generativeai as genai
+        genai.configure(api_key=cfg["api_key"])
+        m = genai.GenerativeModel(
+            model_name=cfg["model"],
+            system_instruction=system + "\nReturn strictly valid JSON only (no markdown fences).",
+            generation_config={"temperature": 0.2, "response_mime_type": "application/json"},
+        )
+        raw = (m.generate_content(prompt).text or "").strip()
+        return json.loads(_strip_fences(raw))
+
+    # OpenAI-compatible path: OpenCode Zen, DeepSeek Official API, Custom / Local OpenCode
+    from openai import OpenAI
+    client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=180)
+    sys_msg = system + "\n\nReturn a single strictly valid JSON object only. No prose, no markdown fences."
+    msgs = [{"role": "system", "content": sys_msg}, {"role": "user", "content": prompt}]
+
+    is_reasoner = "reasoner" in cfg["model"].lower() or cfg["model"].lower().startswith("o1") or cfg["model"].lower().startswith("o3")
+    formats = [None] if is_reasoner else [{"type": "json_object"}, None]
+    last_exc: Optional[Exception] = None
+    for fmt in formats:
+        try:
+            kw: Dict[str, Any] = {"model": cfg["model"], "messages": msgs}
+            if not is_reasoner:
+                kw["temperature"] = 0.2
+            if fmt is not None:
+                kw["response_format"] = fmt
+            resp = client.chat.completions.create(**kw)
+            raw = (resp.choices[0].message.content or "").strip()
+            return json.loads(_strip_fences(raw))
+        except Exception as exc:
+            last_exc = exc
+            if fmt is not None and any(s in str(exc).lower() for s in ("response_format", "json_object", "unsupported", "not supported", "invalid")):
+                continue
+            if fmt is not None:
+                continue
+    raise RuntimeError(f"{cfg['label']} ({cfg['model']}) call failed: {last_exc}")
 
 
 _ROLE_SYSTEMS = {
@@ -1329,13 +1464,23 @@ _ROLE_SYSTEMS = {
 }
 
 
-def run_llm_council(dossier: Dict[str, Any], gemini_key: Optional[str] = None) -> Dict[str, Any]:
-    """Run live 2-round parallel LLM debate across all 3 experts, merged with quant scaffold."""
-    backend, desc = llm_backend_status(gemini_key)
+def run_llm_council(
+    dossier: Dict[str, Any],
+    *,
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model: Optional[str] = None,
+    base_url: Optional[str] = None,
+    gemini_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Run live 2-round parallel LLM debate across all 3 experts (OpenCode, DeepSeek, Gemini, or Custom)."""
+    backend, desc = llm_backend_status(
+        gemini_key=gemini_key, provider=provider, api_key=api_key, model=model, base_url=base_url
+    )
     if backend == "none":
-        raise RuntimeError("No LLM backend configured. Set GEMINI_API_KEY or [llm] secrets, or use Quant Council mode.")
+        raise RuntimeError(desc)
+    cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
 
-    # Compact dossier JSON for prompt efficiency
     compact = json.dumps(dossier, default=str)
 
     # Round 1 (3 parallel calls)
@@ -1348,7 +1493,7 @@ def run_llm_council(dossier: Dict[str, Any], gemini_key: Optional[str] = None) -
     )
     r1: Dict[str, Dict[str, Any]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, backend, gemini_key) for m, sys_p in _ROLE_SYSTEMS.items()}
+        futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, cfg) for m, sys_p in _ROLE_SYSTEMS.items()}
         for m, f in futs.items():
             obj = f.result()
             obj["member"] = m
@@ -1376,7 +1521,7 @@ def run_llm_council(dossier: Dict[str, Any], gemini_key: Optional[str] = None) -
                 "strongest_contra_statement (str), final_verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
                 "final_conviction_0_10 (int), final_weight_now_pct (float), final_max_weight_pct (float), revised_plan_delta (str), what_flips_my_call (str)."
             )
-            futs[m] = pool.submit(_call_llm_json, p2, sys_p, backend, gemini_key)
+            futs[m] = pool.submit(_call_llm_json, p2, sys_p, cfg)
         for m, f in futs.items():
             obj = f.result()
             obj["member"] = m
