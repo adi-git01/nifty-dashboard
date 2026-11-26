@@ -141,6 +141,12 @@ def test_opencode_and_deepseek_provider_resolution():
         assert llm_client.DEFAULT_ROLES["judgment"]["provider"] == "opencode_go"
         assert llm_client.is_configured("judgment") is True
 
+        # Verify documented x-opencode-session routing header + honest User-Agent
+        hdrs = ec._opencode_headers(cfg, session_id="council-manorama-abc123")
+        assert hdrs["x-opencode-session"] == "council-manorama-abc123"
+        assert hdrs["User-Agent"] == "nifty-dashboard/1.0"
+        assert ec._opencode_headers({"provider": "deepseek", "base_url": "https://api.deepseek.com/v1"}) == {}
+
         # 1b. OpenCode Zen explicit pay-as-you-go route
         cfg_zen = ec.resolve_llm_config(provider="opencode")
         assert cfg_zen["base_url"] == "https://opencode.ai/zen/v1"

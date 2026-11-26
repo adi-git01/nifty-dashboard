@@ -180,7 +180,14 @@ def _client(ep: Endpoint):
         raise LLMNotConfigured(
             "the `openai` package is required for the OpenAI-compatible "
             "transport — add it to requirements.txt") from exc
-    return OpenAI(base_url=ep.base_url, api_key=ep.api_key, timeout=DEFAULT_TIMEOUT)
+    headers = None
+    if "opencode" in ep.provider.lower() or "opencode.ai" in ep.base_url.lower():
+        import uuid
+        headers = {
+            "x-opencode-session": f"nifty-dashboard-{uuid.uuid4().hex[:12]}",
+            "User-Agent": "nifty-dashboard/1.0",
+        }
+    return OpenAI(base_url=ep.base_url, api_key=ep.api_key, timeout=DEFAULT_TIMEOUT, default_headers=headers)
 
 
 # ---------------------------------------------------------------------------

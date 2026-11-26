@@ -21,6 +21,7 @@ import glob
 import json
 import os
 import re
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -1452,7 +1453,8 @@ def list_provider_models(
     if cfg["provider"] in ("none", "gemini") or not cfg["base_url"]:
         return list((LLM_PROVIDERS.get(provider) or {}).get("models") or [])
     from openai import OpenAI
-    client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=20)
+    headers = _opencode_headers(cfg)
+    client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=20, default_headers=headers or None)
     resp = client.models.list()
     ids = [str(m.id) for m in getattr(resp, "data", []) if getattr(m, "id", None)]
     # Prioritize GLM 5.x and Kimi K2.x/K3 models at the top for fast picking
@@ -1503,7 +1505,23 @@ def _strip_fences(raw: str) -> str:
     return t[i:j + 1] if (i != -1 and j > i) else t
 
 
-def _call_llm_json(prompt: str, system: str, cfg: Dict[str, str]) -> Dict[str, Any]:
+def _opencode_headers(cfg: Dict[str, str], session_id: Optional[str] = None) -> Dict[str, str]:
+    """Build documented OpenCode Go / Zen routing headers with an honest client User-Agent."""
+    if "opencode" not in cfg.get("provider", "").lower() and "opencode.ai" not in cfg.get("base_url", "").lower():
+        return {}
+    sid = (session_id or f"nifty-dashboard-{uuid.uuid4().hex[:12]}").strip()
+    return {
+        "x-opencode-session": sid,
+        "User-Agent": "nifty-dashboard/1.0",
+    }
+
+
+def _call_llm_json(
+    prompt: str,
+    system: str,
+    cfg: Dict[str, str],
+    session_id: Optional[str] = None,
+) -> Dict[str, Any]:
     prov = cfg["provider"]
     if prov == "gemini":
         import google.generativeai as genai
@@ -1516,9 +1534,15 @@ def _call_llm_json(prompt: str, system: str, cfg: Dict[str, str]) -> Dict[str, A
         raw = (m.generate_content(prompt).text or "").strip()
         return json.loads(_strip_fences(raw))
 
-    # OpenAI-compatible path: OpenCode Zen, DeepSeek Official API, Custom / Local OpenCode
+    # OpenAI-compatible path: OpenCode Go, OpenCode Zen, DeepSeek Official API, Custom / Local OpenCode
     from openai import OpenAI
-    client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=180)
+    headers = _opencode_headers(cfg, session_id=session_id)
+    client = OpenAI(
+        base_url=cfg["base_url"],
+        api_key=(cfg["api_key"] or "not-needed"),
+        timeout=180,
+        default_headers=headers or None,
+    )
     sys_msg = system + "\n\nReturn a single strictly valid JSON object only. No prose, no markdown fences."
     msgs = [{"role": "system", "content": sys_msg}, {"role": "user", "content": prompt}]
 
@@ -1586,6 +1610,9 @@ def run_llm_council(
     cfg = resolve_llm_config(provider=backend, api_key=api_key, model=model, base_url=base_url, gemini_key=gemini_key)
 
     compact = json.dumps(dossier, default=str)
+    # Single stable session ID across Round 1 + Round 2 so OpenCode Go can cache the shared dossier prefix
+    sym_slug = re.sub(r"[^a-z0-9]+", "-", str(dossier.get("ticker", "stock")).lower()).strip("-")
+    session_id = f"council-{sym_slug}-{uuid.uuid4().hex[:10]}"
 
     # Round 1 (3 parallel calls)
     r1_prompt = (
@@ -1597,7 +1624,7 @@ def run_llm_council(
     )
     r1: Dict[str, Dict[str, Any]] = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, cfg) for m, sys_p in _ROLE_SYSTEMS.items()}
+        futs = {m: pool.submit(_call_llm_json, r1_prompt, sys_p, cfg, session_id) for m, sys_p in _ROLE_SYSTEMS.items()}
         for m, f in futs.items():
             obj = f.result()
             obj["member"] = m
@@ -1625,7 +1652,7 @@ def run_llm_council(
                 "strongest_contra_statement (str), final_verdict (one of 'BUY NOW', 'STAGED BUY / ACCUMULATE', 'WAIT FOR TRIGGER (WATCHLIST)', 'AVOID / SELL'), "
                 "final_conviction_0_10 (int), final_weight_now_pct (float), final_max_weight_pct (float), revised_plan_delta (str), what_flips_my_call (str)."
             )
-            futs[m] = pool.submit(_call_llm_json, p2, sys_p, cfg)
+            futs[m] = pool.submit(_call_llm_json, p2, sys_p, cfg, session_id)
         for m, f in futs.items():
             obj = f.result()
             obj["member"] = m

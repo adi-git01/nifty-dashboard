@@ -189,7 +189,13 @@ DATA PAYLOAD:
         (cfg["api_key"] and cfg["api_key"] != "not-needed") or ("localhost" in cfg["base_url"])
     ):
         from openai import OpenAI
-        client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=180)
+        headers = ec._opencode_headers(cfg)
+        client = OpenAI(
+            base_url=cfg["base_url"],
+            api_key=(cfg["api_key"] or "not-needed"),
+            timeout=180,
+            default_headers=headers or None,
+        )
         is_reasoner = "reasoner" in cfg["model"].lower()
         kw = {"model": cfg["model"], "messages": [{"role": "user", "content": prompt}]}
         if not is_reasoner:
