@@ -48,18 +48,21 @@ DEFAULT_ROLES = {
 }
 DEFAULT_BASE_URLS = {
     "opencode": "http://localhost:4096/v1",
+    "opencode_go": "https://opencode.ai/zen/go/v1",
     "opencode_zen": "https://opencode.ai/zen/v1",
     "deepseek": "https://api.deepseek.com/v1",
 }
 
 _PROVIDER_KEY_ENVS = {
     "opencode": ("OPENCODE_API_KEY",),
+    "opencode_go": ("OPENCODE_GO_API_KEY", "OPENCODE_API_KEY"),
     "opencode_zen": ("OPENCODE_API_KEY",),
     "deepseek": ("DEEPSEEK_API_KEY",),
 }
 
 _PROVIDER_URL_ENVS = {
     "opencode": ("OPENCODE_BASE_URL",),
+    "opencode_go": ("OPENCODE_GO_BASE_URL", "OPENCODE_BASE_URL"),
     "opencode_zen": ("OPENCODE_BASE_URL",),
     "deepseek": ("DEEPSEEK_BASE_URL",),
 }

@@ -1285,11 +1285,35 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
 # 3. Live Multi-Round LLM Council (OpenCode, DeepSeek, Gemini, or Custom /v1)
 # ---------------------------------------------------------------------------
 LLM_PROVIDERS: Dict[str, Dict[str, Any]] = {
+    "opencode_go": {
+        "label": "OpenCode Go (Subscription)",
+        "base_url": "https://opencode.ai/zen/go/v1",
+        "default_model": "glm-5.3",
+        "models": [
+            "glm-5.3",
+            "kimi-k2.6",
+            "glm-5.3-flash",
+            "kimi-k2.7-code",
+            "kimi-k3",
+            "deepseek-v4.1-flash",
+            "deepseek-v4-pro",
+            "glm-5.2",
+            "kimi-k2.5",
+        ],
+        "env_key": "OPENCODE_API_KEY",
+    },
     "opencode": {
-        "label": "OpenCode (Zen API)",
+        "label": "OpenCode Zen (Pay-As-You-Go)",
         "base_url": "https://opencode.ai/zen/v1",
-        "default_model": "gpt-5.6-luna",
-        "models": ["gpt-5.6-luna", "deepseek-v4-flash", "deepseek-v4-flash-free", "kimi-k3"],
+        "default_model": "glm-5.3",
+        "models": [
+            "glm-5.3",
+            "kimi-k2.6",
+            "gpt-5.6-luna",
+            "deepseek-v4-flash",
+            "deepseek-v4-flash-free",
+            "kimi-k3",
+        ],
         "env_key": "OPENCODE_API_KEY",
     },
     "deepseek": {
@@ -1309,8 +1333,8 @@ LLM_PROVIDERS: Dict[str, Dict[str, Any]] = {
     "custom": {
         "label": "Custom / Local OpenCode",
         "base_url": "http://localhost:4096/v1",
-        "default_model": "deepseek-v4-flash",
-        "models": ["deepseek-v4-flash", "gpt-5.6-luna", "deepseek-chat"],
+        "default_model": "glm-5.3",
+        "models": ["glm-5.3", "kimi-k2.6", "deepseek-v4-flash", "deepseek-chat"],
         "env_key": "LLM_API_KEY",
     },
 }
@@ -1356,8 +1380,11 @@ def resolve_llm_config(
 
     # Auto-select configured provider when none explicitly requested
     if not provider:
-        if _read_secret_or_env("OPENCODE_API_KEY", "opencode", "api_key") not in ("", "not-needed"):
-            provider = "opencode"
+        if _read_secret_or_env("OPENCODE_GO_API_KEY", "opencode_go", "api_key") not in ("", "not-needed"):
+            provider = "opencode_go"
+        elif _read_secret_or_env("OPENCODE_API_KEY", "opencode", "api_key") not in ("", "not-needed"):
+            explicit_oc_url = (os.environ.get("OPENCODE_BASE_URL") or "").strip().lower()
+            provider = "opencode" if (explicit_oc_url and "/go/" not in explicit_oc_url) else "opencode_go"
         elif _read_secret_or_env("DEEPSEEK_API_KEY", "deepseek", "api_key"):
             provider = "deepseek"
         elif _read_secret_or_env("GEMINI_API_KEY"):
@@ -1368,22 +1395,36 @@ def resolve_llm_config(
             return {"provider": "none", "api_key": "", "model": "", "base_url": "", "label": "Not configured"}
 
     prov = provider.lower().strip()
+    if prov in ("opencode-go", "go"):
+        prov = "opencode_go"
     spec = LLM_PROVIDERS.get(prov) or LLM_PROVIDERS["custom"]
 
     key = (api_key or "").strip()
     if not key:
-        key = _read_secret_or_env(spec["env_key"], prov if prov in ("opencode", "deepseek") else None, "api_key")
-        if not key and prov in ("opencode", "custom"):
+        if prov == "opencode_go":
+            key = (
+                _read_secret_or_env("OPENCODE_GO_API_KEY", "opencode_go", "api_key")
+                or _read_secret_or_env("OPENCODE_API_KEY", "opencode", "api_key")
+            )
+        else:
+            key = _read_secret_or_env(spec["env_key"], prov if prov in ("opencode", "deepseek") else None, "api_key")
+        if not key and prov in ("opencode_go", "opencode", "custom"):
             key = (os.environ.get("LLM_API_KEY") or "").strip()
 
     url = (base_url or "").strip()
     if not url and prov != "gemini":
-        env_url_name = {"opencode": "OPENCODE_BASE_URL", "deepseek": "DEEPSEEK_BASE_URL"}.get(prov, "LLM_BASE_URL")
-        url = (
-            _read_secret_or_env(env_url_name, prov if prov in ("opencode", "deepseek") else None, "base_url")
-            or (os.environ.get("LLM_BASE_URL") or "").strip()
-            or spec["base_url"]
-        )
+        if prov == "opencode_go":
+            url = (
+                _read_secret_or_env("OPENCODE_GO_BASE_URL", "opencode_go", "base_url")
+                or spec["base_url"]
+            )
+        else:
+            env_url_name = {"opencode": "OPENCODE_BASE_URL", "deepseek": "DEEPSEEK_BASE_URL"}.get(prov, "LLM_BASE_URL")
+            url = (
+                _read_secret_or_env(env_url_name, prov if prov in ("opencode", "deepseek") else None, "base_url")
+                or (os.environ.get("LLM_BASE_URL") or "").strip()
+                or spec["base_url"]
+            )
 
     mdl = (model or "").strip()
     if not mdl:
@@ -1399,6 +1440,34 @@ def resolve_llm_config(
         "base_url": url.rstrip("/"),
         "label": spec["label"],
     }
+
+
+def list_provider_models(
+    provider: str,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+) -> List[str]:
+    """Query GET /models on an OpenAI-compatible provider (e.g. OpenCode Go) for live model IDs."""
+    cfg = resolve_llm_config(provider=provider, api_key=api_key, base_url=base_url)
+    if cfg["provider"] in ("none", "gemini") or not cfg["base_url"]:
+        return list((LLM_PROVIDERS.get(provider) or {}).get("models") or [])
+    from openai import OpenAI
+    client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=20)
+    resp = client.models.list()
+    ids = [str(m.id) for m in getattr(resp, "data", []) if getattr(m, "id", None)]
+    # Prioritize GLM 5.x and Kimi K2.x/K3 models at the top for fast picking
+    def _rank(mid: str) -> Tuple[int, str]:
+        lo = mid.lower()
+        if "glm-5.3" in lo:
+            return (0, lo)
+        if "kimi-k2.6" in lo:
+            return (1, lo)
+        if "glm-5" in lo or "kimi-k" in lo:
+            return (2, lo)
+        if "deepseek" in lo:
+            return (3, lo)
+        return (4, lo)
+    return sorted(dict.fromkeys(ids), key=_rank)
 
 
 def llm_backend_status(

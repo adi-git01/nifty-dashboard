@@ -85,15 +85,15 @@ def render(df: pd.DataFrame) -> None:
     llm_base_url = None
     if mode_opt.startswith("🧠"):
         auto_prov, _ = ec.llm_backend_status()
-        prov_keys = ["opencode", "deepseek", "gemini", "custom"]
+        prov_keys = ["opencode_go", "opencode", "deepseek", "gemini", "custom"]
         default_idx = prov_keys.index(auto_prov) if auto_prov in prov_keys else 0
-        if "ec_llm_prov" not in st.session_state:
+        if "ec_llm_prov" not in st.session_state or st.session_state["ec_llm_prov"] not in prov_keys:
             st.session_state["ec_llm_prov"] = prov_keys[default_idx]
 
         p_sel = st.session_state["ec_llm_prov"]
         active_code, status_txt = ec.llm_backend_status(provider=p_sel)
         with st.expander(f"LLM Backend · {status_txt}", expanded=(active_code == "none")):
-            lc1, lc2, lc3 = st.columns([1.3, 1.4, 1.8])
+            lc1, lc2, lc3 = st.columns([1.4, 1.5, 1.7])
             llm_provider = lc1.selectbox(
                 "Provider",
                 prov_keys,
@@ -101,7 +101,9 @@ def render(df: pd.DataFrame) -> None:
                 format_func=lambda k: ec.LLM_PROVIDERS[k]["label"],
             )
             pspec = ec.LLM_PROVIDERS[llm_provider]
-            model_opts = list(pspec["models"]) + ["Custom model…"]
+            live_cache_k = f"ec_live_models_{llm_provider}"
+            merged_models = list(dict.fromkeys(list(pspec["models"]) + list(st.session_state.get(live_cache_k) or [])))
+            model_opts = merged_models + ["Custom model…"]
             picked_m = lc2.selectbox("Model", model_opts, key=f"ec_model_{llm_provider}")
             if picked_m == "Custom model…":
                 llm_model = lc2.text_input("Custom model ID", value=pspec["default_model"], key=f"ec_custom_m_{llm_provider}").strip()
@@ -116,13 +118,26 @@ def render(df: pd.DataFrame) -> None:
                 help="Stored only in this browser session. Leave blank if already set in Streamlit secrets or environment variables.",
             ).strip() or None
 
-            if llm_provider in ("opencode", "deepseek", "custom"):
-                llm_base_url = st.text_input(
+            if llm_provider in ("opencode_go", "opencode", "deepseek", "custom"):
+                u1, u2 = st.columns([3.2, 1.4])
+                llm_base_url = u1.text_input(
                     "Base URL (OpenAI-compatible /v1)",
                     value=ec.resolve_llm_config(provider=llm_provider).get("base_url") or pspec["base_url"],
                     key=f"ec_url_{llm_provider}",
-                    help="OpenCode Zen cloud: https://opencode.ai/zen/v1 · Local `opencode serve`: http://localhost:4096/v1 · DeepSeek: https://api.deepseek.com/v1",
+                    help="OpenCode Go: https://opencode.ai/zen/go/v1 · OpenCode Zen: https://opencode.ai/zen/v1 · DeepSeek: https://api.deepseek.com/v1 · Local: http://localhost:4096/v1",
                 ).strip() or None
+                u2.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                if u2.button("🔄 Fetch Live Models", key=f"ec_fetch_m_{llm_provider}", use_container_width=True):
+                    try:
+                        live_ids = ec.list_provider_models(llm_provider, api_key=llm_api_key, base_url=llm_base_url)
+                        if live_ids:
+                            st.session_state[live_cache_k] = live_ids
+                            st.toast(f"Loaded {len(live_ids)} live models from {pspec['label']}", icon="✅")
+                            st.rerun()
+                        else:
+                            st.warning("Endpoint returned an empty model list.")
+                    except Exception as exc:
+                        st.warning(f"Could not fetch live models: {exc}")
 
     # Build strictly grounded dossier
     try:

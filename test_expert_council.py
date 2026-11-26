@@ -113,20 +113,34 @@ def test_opencode_and_deepseek_provider_resolution():
     from utils import llm_client
 
     saved = {k: os.environ.pop(k, None) for k in (
-        "OPENCODE_API_KEY", "OPENCODE_BASE_URL", "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL",
-        "GEMINI_API_KEY", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL_JUDGMENT",
+        "OPENCODE_API_KEY", "OPENCODE_BASE_URL", "OPENCODE_GO_API_KEY", "OPENCODE_GO_BASE_URL",
+        "DEEPSEEK_API_KEY", "DEEPSEEK_BASE_URL", "GEMINI_API_KEY", "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL_JUDGMENT",
     )}
     try:
-        # 1. OpenCode Zen API key auto-detected with highest priority
+        # 1. OpenCode Go subscription auto-detected #1 with glm-5.3 & kimi-k2.6 presets
         os.environ["OPENCODE_API_KEY"] = "sk-opencode-test"
         os.environ["DEEPSEEK_API_KEY"] = "sk-deepseek-test"
         cfg = ec.resolve_llm_config()
-        assert cfg["provider"] == "opencode"
-        assert cfg["base_url"] == "https://opencode.ai/zen/v1"
+        assert cfg["provider"] == "opencode_go"
+        assert cfg["base_url"] == "https://opencode.ai/zen/go/v1"
+        assert cfg["model"] == "glm-5.3"
         assert cfg["api_key"] == "sk-opencode-test"
+        assert "glm-5.3" in ec.LLM_PROVIDERS["opencode_go"]["models"]
+        assert "kimi-k2.6" in ec.LLM_PROVIDERS["opencode_go"]["models"]
         code, desc = ec.llm_backend_status()
-        assert code == "opencode" and "OpenCode" in desc
+        assert code == "opencode_go" and "OpenCode Go" in desc
 
+        cfg_kimi = ec.resolve_llm_config(provider="opencode-go", model="kimi-k2.6")
+        assert cfg_kimi["provider"] == "opencode_go"
+        assert cfg_kimi["model"] == "kimi-k2.6"
+
+        ep_go = llm_client.resolve("judgment", provider="opencode_go", model="glm-5.3")
+        assert ep_go.base_url == "https://opencode.ai/zen/go/v1"
+        assert ep_go.api_key == "sk-opencode-test"
+
+        # 1b. OpenCode Zen explicit pay-as-you-go route
+        cfg_zen = ec.resolve_llm_config(provider="opencode")
+        assert cfg_zen["base_url"] == "https://opencode.ai/zen/v1"
         ep_oc = llm_client.resolve("judgment", provider="opencode")
         assert ep_oc.base_url == "https://opencode.ai/zen/v1"
         assert ep_oc.api_key == "sk-opencode-test"
