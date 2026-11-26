@@ -110,12 +110,13 @@ def render(df: pd.DataFrame) -> None:
             else:
                 llm_model = picked_m
 
+            _has_saved_key = ec.llm_backend_status(provider=llm_provider)[0] != "none"
             llm_api_key = lc3.text_input(
-                f"{pspec['label']} API Key (optional if in secrets/env)",
+                f"{pspec['label']} API Key ({'✅ loaded from secrets' if _has_saved_key else 'optional if in secrets/env'})",
                 type="password",
                 key=f"ec_key_{llm_provider}",
-                placeholder=f"Or set {pspec['env_key']} in Streamlit secrets",
-                help="Stored only in this browser session. Leave blank if already set in Streamlit secrets or environment variables.",
+                placeholder=("Loaded from Streamlit secrets — leave blank" if _has_saved_key else f"Paste key or add {pspec['env_key']} in Secrets"),
+                help="Stored only in this browser session. Leave blank when already configured in Streamlit secrets or environment variables.",
             ).strip() or None
 
             if llm_provider in ("opencode_go", "opencode", "deepseek", "custom"):

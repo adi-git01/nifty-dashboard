@@ -147,6 +147,11 @@ def test_opencode_and_deepseek_provider_resolution():
         assert hdrs["User-Agent"] == "nifty-dashboard/1.0"
         assert ec._opencode_headers({"provider": "deepseek", "base_url": "https://api.deepseek.com/v1"}) == {}
 
+        # Verify recursive nested secrets lookup (e.g. OPENCODE_API_KEY pasted under [github] with trailing space)
+        fake_secrets = {"github": {"token": "ghp_123", "OPENCODE_API_KEY": "oc_nested_key "}, "llm": {"providers": {"opencode": {"api_key": "not-needed"}}}}
+        assert ec._walk_secrets_for_key(fake_secrets, "opencode_api_key") == "oc_nested_key"
+        assert llm_client._walk_secrets(fake_secrets, "opencode_api_key") == "oc_nested_key"
+
         # 1b. OpenCode Zen explicit pay-as-you-go route
         cfg_zen = ec.resolve_llm_config(provider="opencode")
         assert cfg_zen["base_url"] == "https://opencode.ai/zen/v1"

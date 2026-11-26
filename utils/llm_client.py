@@ -95,11 +95,31 @@ class Endpoint:
     api_key: str
 
 
+def _walk_secrets(mapping: Any, target_lower: str) -> str:
+    try:
+        items = mapping.items()
+    except Exception:
+        return ""
+    nested = []
+    for k, v in items:
+        if str(k).strip().lower() == target_lower and not hasattr(v, "items"):
+            sv = str(v).strip()
+            if sv and sv.lower() != "not-needed":
+                return sv
+        elif hasattr(v, "items"):
+            nested.append(v)
+    for sub in nested:
+        hit = _walk_secrets(sub, target_lower)
+        if hit:
+            return hit
+    return ""
+
+
 def _top_secret(name: str) -> str:
     try:
         import streamlit as st
-        if hasattr(st, "secrets") and name in st.secrets:
-            return str(st.secrets[name]).strip()
+        if hasattr(st, "secrets"):
+            return _walk_secrets(st.secrets, name.lower())
     except Exception:
         pass
     return ""

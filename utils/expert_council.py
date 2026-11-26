@@ -1341,20 +1341,46 @@ LLM_PROVIDERS: Dict[str, Dict[str, Any]] = {
 }
 
 
+def _walk_secrets_for_key(mapping: Any, target_lower: str) -> str:
+    """Recursively search a Streamlit secrets mapping for `target_lower` (handles keys pasted below a [section])."""
+    try:
+        items = mapping.items()
+    except Exception:
+        return ""
+    nested = []
+    for k, v in items:
+        kl = str(k).strip().lower()
+        if kl == target_lower and not hasattr(v, "items"):
+            sv = str(v).strip()
+            if sv and sv.lower() != "not-needed":
+                return sv
+        elif hasattr(v, "items"):
+            nested.append(v)
+    for sub in nested:
+        hit = _walk_secrets_for_key(sub, target_lower)
+        if hit:
+            return hit
+    return ""
+
+
 def _read_secret_or_env(key_name: str, provider_section: Optional[str] = None, field: str = "api_key") -> str:
-    val = (os.environ.get(key_name) or "").strip()
-    if val:
+    val = (os.environ.get(key_name) or os.environ.get(key_name.lower()) or "").strip()
+    if val and val.lower() != "not-needed":
         return val
     try:
         import streamlit as st
         if hasattr(st, "secrets"):
-            if key_name in st.secrets and str(st.secrets[key_name]).strip():
-                return str(st.secrets[key_name]).strip()
+            # 1. Exact or nested match anywhere in st.secrets (handles keys pasted under [email]/[github]/etc.)
+            hit = _walk_secrets_for_key(st.secrets, key_name.lower())
+            if hit:
+                return hit
+            # 2. Structured [llm.providers.<section>].<field>
             if provider_section and "llm" in st.secrets:
                 provs = st.secrets["llm"].get("providers") or {}
                 psec = provs.get(provider_section) or {}
-                if psec.get(field):
-                    return str(psec[field]).strip()
+                sv = str(psec.get(field) or "").strip()
+                if sv and sv.lower() != "not-needed":
+                    return sv
     except Exception:
         pass
     return ""
