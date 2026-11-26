@@ -158,6 +158,39 @@ def test_opencode_and_deepseek_provider_resolution():
                 os.environ.pop(k, None)
 
 
+def test_poisoned_universe_anti_trap_guardrails():
+    d = ec.build_dossier("MANORAMA", repo=REPO)
+
+    # Guardrail 1: Shrinking-earnings value trap (HAPPSTMNDS pattern: <Bear + CFO>=0.8, but Q_NP_YoY <= 0%)
+    d_shrink = copy.deepcopy(d)
+    d_shrink["valuation_v41"]["cmp_vs_bear_pct"] = -8.0
+    d_shrink["fundamentals_and_flows"]["quarterly_history"][-1]["np_yoy"] = -20.0
+    r_shrink = ec.run_quant_council(d_shrink)
+    assert r_shrink["round1"]["garp_investor"]["verdict"] == "WAIT FOR TRIGGER (WATCHLIST)"
+    assert r_shrink["round1"]["garp_investor"]["target_weight_now_pct"] == 0.0
+    assert r_shrink["round1"]["hybrid_pm"]["target_weight_now_pct"] == 0.0
+    assert "earnings-growth floor" in r_shrink["round1"]["garp_investor"]["action_now"].lower()
+
+    # Guardrail 2: Stage-4 falling-knife value trap (LATENTVIEW pattern: <Bear + CFO>=0.8 + Q_NP_YoY>0, Stage 4)
+    d_st4 = copy.deepcopy(d)
+    d_st4["price_and_trend"]["stage"] = 4
+    d_st4["valuation_v41"]["cmp_vs_bear_pct"] = -12.0
+    d_st4["fundamentals_and_flows"]["quarterly_history"][-1]["np_yoy"] = 18.6
+    r_st4 = ec.run_quant_council(d_st4)
+    assert r_st4["round1"]["garp_investor"]["verdict"] == "WAIT FOR TRIGGER (WATCHLIST)"
+    assert r_st4["round1"]["garp_investor"]["target_weight_now_pct"] == 0.0
+    assert r_st4["round1"]["hybrid_pm"]["target_weight_now_pct"] == 0.0
+    assert "60-day" in r_st4["round1"]["garp_investor"]["stop_and_invalidation"]
+
+    # Guardrail 3: Unconfirmed Stage-3/4 cap <= 10% preserved on clean Stage-3 <Bear entry
+    d_st3 = copy.deepcopy(d)
+    d_st3["price_and_trend"]["stage"] = 3
+    d_st3["valuation_v41"]["cmp_vs_bear_pct"] = -5.0
+    r_st3 = ec.run_quant_council(d_st3)
+    assert r_st3["round1"]["garp_investor"]["max_weight_on_trigger_pct"] <= 10.0
+    assert r_st3["round1"]["hybrid_pm"]["max_weight_on_trigger_pct"] <= 10.0
+
+
 def test_ui_modules_compile_cleanly():
     for rel in ("main.py", "utils/llm_client.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py"):
         py_compile.compile(os.path.join(REPO, rel), doraise=True)

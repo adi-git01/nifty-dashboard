@@ -783,7 +783,10 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
     is_val_buy = val_ok and ("BUY" in val_rating.upper() or "BUY" in val_raw.upper())
     near_bear = cmp_vs_bear is not None and cmp_vs_bear <= 15.0
     below_bear = cmp_vs_bear is not None and cmp_vs_bear <= 0.0
-    strong_growth = (q_np_yoy is not None and q_np_yoy >= 25.0) or ((biz_score or 0) >= 70)
+    earnings_shrinking = q_np_yoy is not None and q_np_yoy <= 0.0
+    strong_growth = (not earnings_shrinking) and ((q_np_yoy is not None and q_np_yoy >= 25.0) or ((biz_score or 0) >= 70))
+    is_stage4_knife = stage == 4
+    unconfirmed_cap_pct = 10.0
     cf_upside = round((cf_px / px - 1.0) * 100.0, 1) if (cf_px and px > 0) else None
     cf_upside_from_bear = round((cf_px / bear_blend - 1.0) * 100.0, 1) if (cf_px and bear_blend and bear_blend > 0) else None
 
@@ -794,26 +797,13 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         garp_r1_max = 3.0
         garp_r1_action = f"Hold 0%; Valuation v4.1 coverage unavailable ({val.get('reason') or val.get('status')})—cannot establish Bear-Blend margin of safety."
         garp_r1_trig = "Wait for Valuation v4.1 coverage or manual intrinsic floor verification with CFO/PAT >= 0.80."
-    elif below_bear and cash["passes_primary_gate"] and strong_growth:
-        garp_r1_verdict = "BUY NOW"
-        garp_r1_conv = 9 if cash["proven_multi_year"] else 8
-        garp_r1_w = 4.0 if cash["proven_multi_year"] else 3.0
-        garp_r1_max = 8.0
-        garp_r1_action = f"Deploy {garp_r1_w:.1f}% immediately below Bear Blend ({_fmt_inr(bear_blend, 1)}) with verified {cash['latest_fy']} CFO/PAT {cash['latest_cfo_pat']:.2f}×."
-        garp_r1_trig = f"Tranche 1: {garp_r1_w:.1f}% at CMP {_fmt_inr(px, 1)} (<Bear Blend); scale to {garp_r1_max:.1f}% on any -8% panic dip with intact earnings."
-    elif is_val_buy and near_bear and cash["passes_primary_gate"] and strong_growth:
-        garp_r1_verdict = "STAGED BUY / ACCUMULATE"
-        garp_r1_conv = 8 if cash["proven_multi_year"] else 7
-        garp_r1_w = 2.0
-        garp_r1_max = 6.0
-        garp_r1_action = (
-            f"Initiate {garp_r1_w:.1f}% starter at CMP {_fmt_inr(px, 1)} (P{cmp_pct:.0f}, +{cmp_vs_bear:.1f}% vs Bear Blend) "
-            f"and stage +4.0% across P10 {_fmt_inr(p10, 0)} and Bear Blend {_fmt_inr(bear_blend, 0)}."
-        )
-        garp_r1_trig = (
-            f"3-tranche Valuation Ladder: 2.0% CMP {_fmt_inr(px, 1)} + 2.0% limit at P10 {_fmt_inr(p10, 0)} + "
-            f"2.0% limit at Bear Blend {_fmt_inr(bear_blend, 0)}. Do not chase above zero-rerating Counterfactual {_fmt_inr(cf_px, 0)}."
-        )
+    elif is_val_buy and earnings_shrinking:
+        garp_r1_verdict = "WAIT FOR TRIGGER (WATCHLIST)"
+        garp_r1_conv = 7
+        garp_r1_w = 0.0
+        garp_r1_max = 4.0
+        garp_r1_action = f"Hold 0%; blocked by GARP earnings-growth floor (latest Q NP YoY = {q_np_yoy:+.1f}% <= 0% — value-trap guardrail)."
+        garp_r1_trig = f"Wait for quarterly PAT YoY to turn positive (> 0%) while holding CFO/PAT >= 0.80 before bidding near Bear Blend {_fmt_inr(bear_blend, 0)}."
     elif is_val_buy and not cash["passes_primary_gate"] and cash["has_data"]:
         garp_r1_verdict = "AVOID / SELL" if (cash["latest_cfo_pat"] is not None and cash["latest_cfo_pat"] < 0) else "WAIT FOR TRIGGER (WATCHLIST)"
         garp_r1_conv = 7
@@ -821,6 +811,38 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         garp_r1_max = 4.0 if garp_r1_verdict != "AVOID / SELL" else 0.0
         garp_r1_action = f"Hold 0%; fails primary GARP cash-flow gate ({cash['latest_fy']} CFO/PAT = {cash['latest_cfo_pat']} < 0.80 — HFCL rule)."
         garp_r1_trig = f"Require verified CFO/PAT >= 0.80 and price <= Bear Blend {_fmt_inr(bear_blend, 0)} before initiating."
+    elif below_bear and cash["passes_primary_gate"] and strong_growth and is_stage4_knife:
+        garp_r1_verdict = "WAIT FOR TRIGGER (WATCHLIST)"
+        garp_r1_conv = 6
+        garp_r1_w = 0.0
+        garp_r1_max = min(6.0, unconfirmed_cap_pct)
+        garp_r1_action = (
+            f"Hold 0% today despite CMP < Bear Blend ({_fmt_inr(bear_blend, 1)}): Stage-4 falling-knife guardrail blocks blind averaging below MA50 & MA200."
+        )
+        garp_r1_trig = (
+            f"Require Stage-1 base stabilization (close > MA20 {_fmt_inr(ma20, 0)} or high-CLV absorption bar) before entering max 1 pilot tranche (<= 3.0%, total Stage-3/4 cap <= 10%); "
+            "enforce 60-day cooldown after any -25% stop-out."
+        )
+    elif below_bear and cash["passes_primary_gate"] and strong_growth:
+        garp_r1_verdict = "BUY NOW"
+        garp_r1_conv = 9 if cash["proven_multi_year"] else 8
+        garp_r1_w = 4.0 if cash["proven_multi_year"] else 3.0
+        garp_r1_max = min(8.0, unconfirmed_cap_pct)
+        garp_r1_action = f"Deploy {garp_r1_w:.1f}% immediately below Bear Blend ({_fmt_inr(bear_blend, 1)}) with verified {cash['latest_fy']} CFO/PAT {cash['latest_cfo_pat']:.2f}× and positive PAT growth."
+        garp_r1_trig = f"Tranche 1: {garp_r1_w:.1f}% at CMP {_fmt_inr(px, 1)} (<Bear Blend); max 1 add tranche on intact earnings (total Stage-3/4 cap <= 10%, 60-day post-stop cooldown)."
+    elif is_val_buy and near_bear and cash["passes_primary_gate"] and strong_growth and not is_stage4_knife:
+        garp_r1_verdict = "STAGED BUY / ACCUMULATE"
+        garp_r1_conv = 8 if cash["proven_multi_year"] else 7
+        garp_r1_w = 2.0
+        garp_r1_max = 6.0
+        garp_r1_action = (
+            f"Initiate {garp_r1_w:.1f}% starter at CMP {_fmt_inr(px, 1)} (P{cmp_pct:.0f}, +{cmp_vs_bear:.1f}% vs Bear Blend) "
+            f"and stage +4.0% across P10 {_fmt_inr(p10, 0)} and Bear Blend {_fmt_inr(bear_blend, 0)} (Stage-3/4 cap <= 10%)."
+        )
+        garp_r1_trig = (
+            f"3-tranche Valuation Ladder: 2.0% CMP {_fmt_inr(px, 1)} + 2.0% limit at P10 {_fmt_inr(p10, 0)} + "
+            f"2.0% limit at Bear Blend {_fmt_inr(bear_blend, 0)}. Pause adds if stock enters Stage-4 breakdown; do not chase above Counterfactual {_fmt_inr(cf_px, 0)}."
+        )
     elif val_ok and ("SELL" in val_rating.upper() or "OVERVALUED" in val_rating.upper() or (cmp_pct is not None and cmp_pct >= 75)):
         garp_r1_verdict = "AVOID / SELL"
         garp_r1_conv = 8
@@ -833,8 +855,8 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         garp_r1_conv = 6
         garp_r1_w = 0.0
         garp_r1_max = 5.0
-        garp_r1_action = f"Hold 0% at CMP {_fmt_inr(px, 1)}; wait for Valuation-Ladder pullback toward P10 {_fmt_inr(p10, 0)} / Bear Blend {_fmt_inr(bear_blend, 0)}."
-        garp_r1_trig = f"Stage 2.5% at P10 {_fmt_inr(p10, 0)} and +2.5% at Bear Blend {_fmt_inr(bear_blend, 0)} while CFO/PAT remains >= 0.80."
+        garp_r1_action = f"Hold 0% at CMP {_fmt_inr(px, 1)}; wait for Valuation-Ladder pullback toward P10 {_fmt_inr(p10, 0)} / Bear Blend {_fmt_inr(bear_blend, 0)} with Stage-1/2 base."
+        garp_r1_trig = f"Stage 2.5% at P10 {_fmt_inr(p10, 0)} and +2.5% at Bear Blend {_fmt_inr(bear_blend, 0)} while CFO/PAT >= 0.80 and Q_NP_YoY > 0%."
 
     if cash["has_data"]:
         if cash["inflection_only_1y"]:
@@ -873,6 +895,10 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         garp_rf.append(
             f"Valuation Quality '{q_grade}': '{q_note}' (spot {spot_mult}× vs base {base_mult}× / peer {peer_mult}×)—strip out re-rating and anchor on Counterfactual {_fmt_inr(cf_px, 0)}."
         )
+    if earnings_shrinking:
+        garp_rf.append(f"Shrinking-earnings value trap blocked: latest Q NP YoY is {q_np_yoy:+.1f}% (<= 0% floor — Poisoned-29 HAPPSTMNDS rule).")
+    if is_stage4_knife:
+        garp_rf.append("Stage-4 falling-knife guardrail active: no repeated averaging below MA50 & MA200; enforce 60-day post-stop cooldown (Poisoned-29 LATENTVIEW rule).")
     if d_prom_q is not None and d_prom_q <= -1.0:
         garp_rf.append(f"Promoter stake trim: {d_prom_q:+.2f}pp QoQ in {shp.get('period')} (to {shp.get('promoters')}%); verify block rationale.")
     if opm_dip_bps >= 80:
@@ -889,8 +915,8 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         "action_now": garp_r1_action,
         "entry_or_trigger_plan": garp_r1_trig,
         "stop_and_invalidation": (
-            f"No tight technical stop; -25% catastrophe circuit breaker (~{_fmt_inr(px * 0.75, 0)}). "
-            "Fundamental exit (HFCL rule): CFO/PAT < 0.80, D/E > 0.80, 2Q OPM erosion > 300 bps, or unabsorbed promoter selling."
+            f"No tight technical stop; -25% catastrophe circuit breaker (~{_fmt_inr(px * 0.75, 0)}) with mandatory 60-day post-stop cooldown & max <=10% Stage-3/4 cap. "
+            "Fundamental exit (HFCL rule): CFO/PAT < 0.80, Q_NP_YoY <= 0%, D/E > 0.80, 2Q OPM erosion > 300 bps, or unabsorbed promoter selling."
         ),
         "key_evidence": garp_ev,
         "key_red_flags": garp_rf,
@@ -916,28 +942,34 @@ def run_quant_council(dossier: Dict[str, Any]) -> Dict[str, Any]:
         hyb_r1_stop = round(max(_num(fx.get("stop"), px - 2.0 * atr) or (px - 2.0 * atr), px * 0.88), 1)
         hyb_r1_action = f"Deploy {hyb_r1_w:.1f}% Core+Tactical entry at {_fmt_inr(px, 1)} (Stage-2 + fundamentals aligned) with {engine_mode} stop at {_fmt_inr(hyb_r1_stop, 1)}."
         hyb_r1_trig = f"Scale to {hyb_r1_max:.1f}% on confirmation above {_fmt_inr(px * 1.04, 1)} or VIX cooling < 15."
-    elif (is_val_buy and near_bear and cash["passes_primary_gate"] and coiled_macro) or (is_val_buy and below_bear and cash["passes_primary_gate"]):
+    elif (
+        not earnings_shrinking
+        and not is_stage4_knife
+        and ((is_val_buy and near_bear and cash["passes_primary_gate"] and coiled_macro) or (is_val_buy and below_bear and cash["passes_primary_gate"]))
+    ):
         hyb_r1_verdict = "STAGED BUY / ACCUMULATE"
         hyb_r1_conv = 6
         hyb_r1_w = 2.5
-        hyb_r1_max = 7.5
+        hyb_r1_max = 7.5  # <= 10% cap on unconfirmed Stage-3/4 value entries
         hyb_r1_stop = round(ma200, 1) if (ma200 and ma200 < px) else round(px * 0.88, 1)
         hyb_r1_action = (
             f"Deploy regime-capped {hyb_r1_w:.1f}% pilot at {_fmt_inr(px, 1)} into coiled macro flows (FII+DII {inst_cash_cr:+,.0f} Cr), "
-            f"holding 5.0% dry powder for Bear-Blend flush ({_fmt_inr(bear_blend, 0)}) or MA50/bear-supply reclaim."
+            f"holding 5.0% dry powder for Bear-Blend flush ({_fmt_inr(bear_blend, 0)}) or MA50/bear-supply reclaim (Stage-3/4 cap <= 10%, 20% profit trail)."
         )
         hyb_r1_trig = (
             f"Path A: +2.5% on flush to {_fmt_inr(bear_blend, 0)}–{_fmt_inr(px - 2 * atr, 0)} above MA200 ({_fmt_inr(ma200, 0)}). "
             f"Path B: scale to 7.5% on close > {_fmt_inr(bear_clear_px, 0)} with Gate-1=True & VIX < 15 / RECOVERY."
         )
-    elif (not is_val_buy and not gate1) or (stage == 4 and not below_bear):
-        hyb_r1_verdict = "AVOID / SELL" if (stage == 4 and not is_val_buy) else "WAIT FOR TRIGGER (WATCHLIST)"
+    elif (not is_val_buy and not gate1) or is_stage4_knife or (is_val_buy and earnings_shrinking and not gate1):
+        hyb_r1_verdict = "AVOID / SELL" if (is_stage4_knife and (not is_val_buy or earnings_shrinking)) else "WAIT FOR TRIGGER (WATCHLIST)"
         hyb_r1_conv = 7
         hyb_r1_w = 0.0
         hyb_r1_max = 0.0 if hyb_r1_verdict == "AVOID / SELL" else 5.0
         hyb_r1_stop = round(px * 0.88, 1)
-        hyb_r1_action = f"Hold 0% ({hyb_r1_verdict}); neither macro-technical reclaim nor Bear-Blend valuation floor is present."
-        hyb_r1_trig = f"Wait for Stage-2 reclaim > {_fmt_inr(ma50_reclaim_px, 1)} OR deep valuation flush near {_fmt_inr(bear_blend, 0)}."
+        hyb_r1_action = (
+            f"Hold 0% ({hyb_r1_verdict}); blocked by anti-trap guardrails (Stage {stage}, Q_NP_YoY {q_np_yoy}%, Gate-1={gate1})—no blind Stage-4 value knife-catching."
+        )
+        hyb_r1_trig = f"Wait for Stage-2 reclaim > {_fmt_inr(ma50_reclaim_px, 1)} (with RS > +5 if BBP < 20) OR Stage-1 stabilization with Q_NP_YoY > 0%."
     else:
         hyb_r1_verdict = "WAIT FOR TRIGGER (WATCHLIST)"
         hyb_r1_conv = 6
@@ -1446,19 +1478,22 @@ def _call_llm_json(prompt: str, system: str, cfg: Dict[str, str]) -> Dict[str, A
 _ROLE_SYSTEMS = {
     "mom_trader": (
         "You are Council Member 1: Momentum & Microstructure Trader on the Nifty Dashboard Expert Council. "
-        "Enforce Forensics v6+P0/P1 rules: Stage-2 (Close>MA50>MA200), Gate-1=True, clean bull anchors (CLV>=0.50), "
+        "Enforce validated Forensics v6 Dual-ATR rules (do not relax entries beyond Dual-ATR): Stage-2 (Close>MA50>MA200), Gate-1=True, CompRS>0, clean bull anchors (CLV>=0.50), "
         "post-SHP heavy BEAR liquidation bars (CLV<0.35), ATR-scaled gap guard max(5%,1.5*ATR%), and rotating CAUTION cash into Stage-2 RS leaders. "
         "Stay 100% grounded in the provided dossier JSON; never invent external facts."
     ),
     "garp_investor": (
         "You are Council Member 2: GARP & Valuation-Ladder Investor on the Nifty Dashboard Expert Council. "
-        "Enforce empirical rules: primary CFO/PAT>=0.80 gate (audit multi-year vs single-year inflection), Valuation v4.1 Bear Blend & P10 ladder, "
-        "strip out multiple-expansion optimism using zero-rerating Counterfactual price when Quality=Caution, audit Promoter vs DII/FII SHP, and use -25% catastrophe breaker + HFCL fundamental exit. "
+        "Enforce Poisoned-Universe validated rules: primary CFO/PAT>=0.80 gate (audit multi-year vs single-year inflection), MANDATORY earnings-growth floor (Q_NP_YoY > 0% — block shrinking-earnings value traps), "
+        "NO repeated averaging into Stage-4 falling knives (require Stage-1/2 base stabilization, cap unconfirmed Stage-3/4 positions <= 10%, enforce 60-day post-stop cooldown after any -25% catastrophe stop-out), "
+        "strip out multiple-expansion optimism using zero-rerating Counterfactual price when Quality=Caution, and exit on HFCL cash-flow break (CFO/PAT < 0.80). "
         "Stay 100% grounded in the provided dossier JSON; never invent external facts."
     ),
     "hybrid_pm": (
         "You are Council Member 3: Macro-Regime & Hybrid Contrarian PM on the Nifty Dashboard Expert Council. "
         "Synthesize India VIX percentile, Breadth, RECOVERY detector, FII/DII cash & FII Long%, sector rank, delivery, and Valuation Bear Blend into non-overlapping Core+Tactical triggers (>=2xATR stop buffer). "
+        "Enforce Poisoned-Universe anti-trap guardrails: (1) BBP<20 squeezes ONLY in Stage-2 with CompRS>+5 (0% trap rate), (2) GARP/Bear-Blend leg requires CFO/PAT>=0.80 AND Q_NP_YoY>0% with NO Stage-4 knife-catching, "
+        "(3) cap unconfirmed Stage-3/4 value positions <= 10% and pair with a 20% trailing stop once profitable. "
         "Stay 100% grounded in the provided dossier JSON; never invent external facts."
     ),
 }
