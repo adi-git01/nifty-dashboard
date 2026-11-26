@@ -137,6 +137,9 @@ def test_opencode_and_deepseek_provider_resolution():
         ep_go = llm_client.resolve("judgment", provider="opencode_go", model="glm-5.3")
         assert ep_go.base_url == "https://opencode.ai/zen/go/v1"
         assert ep_go.api_key == "sk-opencode-test"
+        assert llm_client.DEFAULT_ROLES["research"]["provider"] == "opencode_go"
+        assert llm_client.DEFAULT_ROLES["judgment"]["provider"] == "opencode_go"
+        assert llm_client.is_configured("judgment") is True
 
         # 1b. OpenCode Zen explicit pay-as-you-go route
         cfg_zen = ec.resolve_llm_config(provider="opencode")
@@ -206,7 +209,7 @@ def test_poisoned_universe_anti_trap_guardrails():
 
 
 def test_ui_modules_compile_cleanly():
-    for rel in ("main.py", "utils/llm_client.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py"):
+    for rel in ("main.py", "utils/llm_client.py", "utils/ai_report_engine.py", "utils/expert_council.py", "utils/expert_council_view.py", "utils/stock_report_view.py", "views/deep_dive_and_misc.py"):
         py_compile.compile(os.path.join(REPO, rel), doraise=True)
 
 

@@ -43,8 +43,8 @@ DEFAULT_RETRIES = 3
 
 # Sensible fallbacks; override in config. Roles, not hard-coded models.
 DEFAULT_ROLES = {
-    "research": {"provider": "opencode", "model": "deepseek-v4-flash"},
-    "judgment": {"provider": "opencode", "model": "gpt-5.6-luna"},
+    "research": {"provider": "opencode_go", "model": "glm-5.3"},
+    "judgment": {"provider": "opencode_go", "model": "kimi-k2.6"},
 }
 DEFAULT_BASE_URLS = {
     "opencode": "http://localhost:4096/v1",
@@ -155,8 +155,12 @@ def resolve(role: str = "judgment", model: Optional[str] = None,
 
 def is_configured(role: str = "judgment") -> bool:
     try:
-        resolve(role)
-        return True
+        ep = resolve(role)
+        if ep.api_key and ep.api_key != "not-needed":
+            return True
+        if "localhost" in ep.base_url and (os.environ.get("LLM_BASE_URL") or "providers" in _secrets()):
+            return True
+        return False
     except LLMNotConfigured:
         return False
 

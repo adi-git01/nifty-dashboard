@@ -153,16 +153,21 @@ def configure_llm(api_key: str):
             pass
 
 
-def generate_ai_report_markdown(api_key: str = "", data_payload: dict | None = None) -> str:
+def generate_ai_report_markdown(
+    api_key: str = "",
+    data_payload: dict | None = None,
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+    base_url: str | None = None,
+) -> str:
     """
     Master prompt + payload -> markdown report.
 
-    Routes through utils.llm_client (OpenAI-compatible) when an LLM endpoint is
-    configured, and only falls back to Gemini if a key was typed into the
-    sidebar and google-generativeai is installed.
+    Supports OpenCode Go (glm-5.3, kimi-k2.6), OpenCode Zen, DeepSeek API,
+    Gemini API, or any OpenAI-compatible endpoint via utils.expert_council / llm_client.
     """
-    payload_str = json.dumps(data_payload or {}, indent=2)
-    
+    payload_str = json.dumps(data_payload or {}, indent=2, default=str)
     prompt = f"""
 {MASTER_PROMPT_V2_1}
 
@@ -170,19 +175,39 @@ def generate_ai_report_markdown(api_key: str = "", data_payload: dict | None = N
 DATA PAYLOAD:
 {payload_str}
     """
-    
-    from utils import llm_client
+
+    from utils import expert_council as ec, llm_client
+
+    cfg = ec.resolve_llm_config(
+        provider=provider,
+        api_key=(api_key or None) if provider != "gemini" else None,
+        model=model,
+        base_url=base_url,
+        gemini_key=(api_key or None) if (provider in (None, "gemini")) else None,
+    )
+    if cfg["provider"] in ("opencode_go", "opencode", "deepseek", "custom") and (
+        (cfg["api_key"] and cfg["api_key"] != "not-needed") or ("localhost" in cfg["base_url"])
+    ):
+        from openai import OpenAI
+        client = OpenAI(base_url=cfg["base_url"], api_key=(cfg["api_key"] or "not-needed"), timeout=180)
+        is_reasoner = "reasoner" in cfg["model"].lower()
+        kw = {"model": cfg["model"], "messages": [{"role": "user", "content": prompt}]}
+        if not is_reasoner:
+            kw["temperature"] = 0.2
+        resp = client.chat.completions.create(**kw)
+        return (resp.choices[0].message.content or "").strip()
 
     if llm_client.is_configured("judgment"):
         return llm_client.complete(prompt, role="judgment", temperature=0.2)
 
-    if api_key and genai is not None:
-        configure_llm(api_key)
+    gkey = (api_key or cfg.get("api_key") or "").strip()
+    if gkey and genai is not None:
+        configure_llm(gkey)
         last_err = None
-        for model_name in ("gemini-2.5-flash", "gemini-1.5-pro"):
+        for model_name in ((model,) if model else ("gemini-2.5-flash", "gemini-1.5-pro")):
             try:
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(prompt)
+                m = genai.GenerativeModel(model_name)
+                response = m.generate_content(prompt)
                 if response and response.text:
                     return response.text
             except Exception as e:
@@ -190,9 +215,10 @@ DATA PAYLOAD:
         raise RuntimeError(f"Failed to generate content from Gemini fallback: {last_err}")
 
     raise RuntimeError(
-        "No LLM configured. Set [llm] in Streamlit secrets (or LLM_BASE_URL / "
-        "LLM_MODEL_JUDGMENT in the environment), or enter a Gemini key in the "
-        "sidebar for the legacy path. " + llm_client.status("judgment"))
+        "No LLM configured. Select OpenCode Go / DeepSeek / Gemini in the sidebar, "
+        "or set OPENCODE_API_KEY / DEEPSEEK_API_KEY in Streamlit secrets. "
+        + llm_client.status("judgment")
+    )
 
 
 class PDFReport(FPDF):

@@ -251,9 +251,26 @@ def render_deep_dive() -> None:
         is_custom = False
 
     st.sidebar.markdown("---")
-    gemini_api_key = st.sidebar.text_input("Gemini API Key (For AI Reports)", type="password")
-    if not gemini_api_key:
-        st.sidebar.caption("🔑 Enter API key to unlock the 🧠 Generate AI Report feature.")
+    from utils import expert_council as _ec_dd
+    _dd_provs = ["opencode_go", "opencode", "deepseek", "gemini", "custom"]
+    _dd_auto, _ = _ec_dd.llm_backend_status()
+    _dd_idx = _dd_provs.index(_dd_auto) if _dd_auto in _dd_provs else 0
+    ai_provider = st.sidebar.selectbox(
+        "AI Report Provider",
+        _dd_provs,
+        index=_dd_idx,
+        key="dd_ai_prov",
+        format_func=lambda k: _ec_dd.LLM_PROVIDERS[k]["label"],
+    )
+    _dd_spec = _ec_dd.LLM_PROVIDERS[ai_provider]
+    ai_model = st.sidebar.selectbox("AI Report Model", _dd_spec["models"], key=f"dd_ai_model_{ai_provider}")
+    ai_api_key = st.sidebar.text_input(
+        f"{_dd_spec['label']} Key (optional if in secrets)",
+        type="password",
+        key=f"dd_ai_key_{ai_provider}",
+    )
+    _dd_code, _dd_st = _ec_dd.llm_backend_status(provider=ai_provider, api_key=(ai_api_key or None), model=ai_model)
+    st.sidebar.caption(f"{'🟢' if _dd_code != 'none' else '🔑'} {_dd_st}")
 
     # Main Content
     if target_ticker:
@@ -357,13 +374,15 @@ def render_deep_dive() -> None:
                             st.session_state['ai_current_ticker'] = target_ticker
                         
                         if st.button("🧠 Generate AI PDF Report", type="primary", use_container_width=True):
-                            if 'gemini_api_key' not in locals() or not gemini_api_key:
-                                st.error("Please enter a Gemini API Key in the sidebar.")
+                            if _dd_code == "none":
+                                st.error(f"Please enter your {_dd_spec['label']} API key in the sidebar (or add {_dd_spec['env_key']} to Streamlit secrets).")
                             else:
-                                with st.spinner("🤖 AI Analyst is writing your report... This takes ~15 seconds."):
+                                with st.spinner(f"🤖 AI Analyst ({_dd_spec['label']} · {ai_model}) is writing your report..."):
                                     try:
                                         payload = build_data_payload(target_ticker, info, scores, news_items, hist)
-                                        md_report = generate_ai_report_markdown(gemini_api_key, payload)
+                                        md_report = generate_ai_report_markdown(
+                                            ai_api_key, payload, provider=ai_provider, model=ai_model
+                                        )
                                     
                                         # Save PDF
                                         os.makedirs("analysis_2026/reports", exist_ok=True)
