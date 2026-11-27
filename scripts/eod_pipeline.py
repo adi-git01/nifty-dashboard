@@ -24,6 +24,7 @@ if ROOT not in sys.path:
 STEPS: Tuple[str, ...] = (
     "repair_logs",
     "nse_daily",
+    "sync_liquid_universe",
     "trading_engine",
     "dna3_portfolio",
     "heartbeat",
@@ -85,6 +86,13 @@ def _run_step(name: str, keep_snapshots: int = 30, retry_sleep: int = 180) -> bo
         with _argv(["scripts/nse_daily.py"]):
             from scripts import nse_daily
             return nse_daily.main() == 0
+
+    if name == "sync_liquid_universe":
+        with _argv(["utils/liquid_universe.py"]):
+            from utils import liquid_universe as _lu, nifty1000_list as _nl
+            _lu.sync_liquid_universe(root=".", write=True)
+            _nl.reload()
+            return True
 
     if name == "trading_engine":
         import trading_engine

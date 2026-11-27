@@ -156,6 +156,24 @@ preset = st.sidebar.selectbox(
 )
 st.session_state['preset'] = preset
 
+# === UNIVERSE & QUALITY FILTER (keeps scanners clean & non-noisy across >=2Cr equities) ===
+from utils import liquid_universe as _lu
+st.sidebar.markdown("### 💧 Universe & Quality")
+_liq_tier = st.sidebar.selectbox(
+    "Liquidity Tier",
+    list(_lu.LIQUIDITY_TIERS),
+    index=0,
+    key="liq_tier",
+    help="Filters discovery scanners & Funnel by median daily turnover without affecting your Positions, Alerts, Stock Report, or Expert Council.",
+)
+_hide_noisy = st.sidebar.checkbox(
+    "🛡️ Hide ASM/GSM & BE",
+    value=True,
+    key="hide_noisy_stocks",
+    help="Hides NSE surveillance (ASM/GSM) and trade-to-trade (BE) names from scanners & Funnel.",
+)
+_screen_caption_slot = st.sidebar.empty()
+
 # === WATCHLIST (Persistent via positions.json) ===
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ⭐ Watchlist")
@@ -452,6 +470,14 @@ try:
 except Exception as _e:
     print(f"[nse] columns skipped: {_e}", flush=True)
 
+# Apply sidebar Liquidity Tier & ASM/BE hygiene filter for discovery/scanner views.
+# Full `df` remains untouched for Regime Badge, Positions, Alerts, Stock Report, Expert Council, and Compare.
+df_screen = _lu.apply_screen_filter(df, tier=_liq_tier, hide_noisy=bool(_hide_noisy))
+try:
+    _screen_caption_slot.caption(_lu.filter_summary(df, df_screen, _liq_tier, bool(_hide_noisy)))
+except Exception:
+    pass
+
 # --- Auto-refresh heartbeat (placed here, AFTER the data-load block) ---
 # A Streamlit script only reruns on user interaction, not on a timer, so a
 # tab left open and just watched never refreshes — data could sit hours
@@ -713,11 +739,11 @@ elif page == "🚀 Live Trading Desk":
 
 elif page == "🌊 Trend Scanner":
     from views.trend_scanner import render as _render_trend_scanner
-    _render_trend_scanner(df, yf_download_cached=_yf_download_cached, nifty_recent=_nifty_recent)
+    _render_trend_scanner(df_screen, yf_download_cached=_yf_download_cached, nifty_recent=_nifty_recent)
 
 elif page == "🔬 Technicals":
     from utils.technicals_view import render as _render_technicals
-    _render_technicals(df)
+    _render_technicals(df_screen)
 
 elif page == "📊 Return Tracker":
     from views.return_tracker import render as _render_return_tracker
@@ -730,7 +756,7 @@ elif page == "📊 Return Tracker":
 
 elif page == "☀️ Morning Pulse":
     from views.pulse_and_trends import render_morning_pulse
-    render_morning_pulse(df)
+    render_morning_pulse(df_screen)
 
 elif page == "📊 Sector Pulse":
     from views.sector_pulse import render as _render_sector_pulse
@@ -743,17 +769,17 @@ elif page == "⏳ Time Trends":
 elif page == "☀️ Daily Brief":
     st.markdown(page_header("☀️ Daily Brief", "Market, leading industries, today's funnel picks, your positions and the model portfolio — the one page to read each day"), unsafe_allow_html=True)
     from utils import daily_brief_view
-    daily_brief_view.render(df)
+    daily_brief_view.render(df, screen_df=df_screen)
 
 elif page == "🧪 Signal Lab":
     st.markdown(page_header("🧪 Signal Lab", "Every scanner's signals in one place, with a scorecard of how each has done against the market"), unsafe_allow_html=True)
     from utils import signal_lab_view
-    signal_lab_view.render(df)
+    signal_lab_view.render(df_screen)
 
 elif page == "🧭 Investment Funnel":
     st.markdown(page_header("🧭 Investment Funnel", "Market → Industry → Trend → Business → Setup → Value → Plan: one path from the universe to a short list"), unsafe_allow_html=True)
     from utils import funnel_view
-    funnel_view.render(df)
+    funnel_view.render(df_screen, board_df=df)
 
 elif page == "📋 Stock Report":
     st.markdown(page_header("📋 Stock Report", "One-shot report: funnel checklist, industry, trend, entry plan, business trends and valuation"), unsafe_allow_html=True)
@@ -775,7 +801,7 @@ elif page == "📝 Notes":
 
 elif page == "\U0001f3af Turnaround Radar":
     from views.turnaround_radar import render as _render_turnaround_radar
-    _render_turnaround_radar(df)
+    _render_turnaround_radar(df_screen)
 
 elif page == "🖥️ AI Capex":
     from views.deep_dive_and_misc import render_ai_capex

@@ -19,7 +19,7 @@ def render(df: pd.DataFrame, *, yf_download_cached, nifty_recent) -> None:
     df = df[df['extended'] != True].copy() if (df is not None and not df.empty and 'extended' in df.columns) else (df.copy() if df is not None else pd.DataFrame())
 
     # === HERO SECTION ===
-    st.markdown(page_header("🌊 Alpha Trend Scanner", "Real-time momentum intelligence for Nifty 500 | Powered by AI"), unsafe_allow_html=True)
+    st.markdown(page_header("🌊 Alpha Trend Scanner", "Real-time momentum intelligence for Liquid NSE Equities (≥ ₹2 Cr/d) | Powered by AI"), unsafe_allow_html=True)
 
     # SIMBA sits beside the scanner; key + on_change keeps the chosen tab across reruns, and
     # .open lets the hidden tab skip its work (the scanner body is heavy).

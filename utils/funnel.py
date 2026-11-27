@@ -199,8 +199,8 @@ def table(df: pd.DataFrame, board: Optional[pd.DataFrame] = None, val: Optional[
     x["dii_y"] = [g_inst(t, "d_dii_y") for t in x.ticker]
     x["prom_pct"] = [g_inst(t, "promoters") for t in x.ticker]
     x["prom_q"] = [g_inst(t, "d_prom_q") for t in x.ticker]
-    av = _num(d, "averageVolume")
-    x["liq_cr"] = (av * x.price / 1e7).where((av > 0) & (x.price > 0))
+    from utils.liquid_universe import effective_liquidity_cr as _eff_liq
+    x["liq_cr"] = _eff_liq(d).values
     try:
         from utils import nse_data
         deals = nse_data.deal_tally(90)

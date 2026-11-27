@@ -91,9 +91,33 @@ def breadth_regime(df: pd.DataFrame) -> dict:
     ok = px.notna() & (px > 0) & m2.notna() & (m2 > 0)
     if ok.sum() < 50:
         return {"regime": "UNKNOWN"}
-    pct = float((px[ok] > m2[ok]).mean() * 100)
+
+    broad_pct = float((px[ok] > m2[ok]).mean() * 100)
+    broad_n = int(ok.sum())
+
+    # Guardrail: anchor canonical regime breadth to Nifty 500 when present in a live snapshot,
+    # so expanding the universe with small-caps/IPOs never shifts historical BULL/BEAR cutoffs.
+    anchor_label = "Universe"
+    pct, n_anchor = broad_pct, broad_n
+    if "ticker" in d.columns:
+        try:
+            from utils.liquid_universe import nifty500_tickers
+            n500 = nifty500_tickers()
+            if n500:
+                is_n500 = d["ticker"].astype(str).isin(n500) & ok
+                if int(is_n500.sum()) >= 200:
+                    pct = float((px[is_n500] > m2[is_n500]).mean() * 100)
+                    n_anchor = int(is_n500.sum())
+                    anchor_label = "Nifty 500"
+        except Exception:
+            pass
+
     r = "BEAR" if pct < 30 else "MILD BEAR" if pct < 40 else "CHOPPY" if pct < 50 else "MILD BULL" if pct < 60 else "BULL"
-    return {"regime": r, "pct": pct, "n": int(ok.sum())}
+    out = {"regime": r, "pct": pct, "n": n_anchor, "anchor": anchor_label}
+    if anchor_label == "Nifty 500" and broad_n > n_anchor:
+        out["broad_pct"] = broad_pct
+        out["broad_n"] = broad_n
+    return out
 
 
 def engine_mode(nifty_df: pd.DataFrame, recovery: dict | bool | None = None, root: str = ".") -> dict:
@@ -244,7 +268,10 @@ def render(info: dict, st, compact: bool = False) -> None:
         detail = (f"Nifty {float(n['vs_ma200']):+.1f}% vs its 200-day average, {float(n['dd']):.1f}% from its 52-week high, "
                   f"200-day average {'rising' if n.get('ma200_rising') else 'falling'}")
     b_n = b.get("n", b.get("total", 0))
-    br = (f"{float(b.get('pct', 0)):.0f}% of {b_n} stocks above their 200-day average → {ICONS.get(b['regime'], '')} {b['regime']}"
+    anchor_lbl = f"{b['anchor']} ({b_n})" if b.get("anchor") == "Nifty 500" else f"{b_n} stocks"
+    broad_suffix = (f" · Broad {float(b['broad_pct']):.0f}% ({int(b['broad_n'])})"
+                    if b.get("broad_pct") is not None and b.get("broad_n") else "")
+    br = (f"{float(b.get('pct', 0)):.0f}% of {anchor_lbl} above their 200-day average → {ICONS.get(b['regime'], '')} {b['regime']}{broad_suffix}"
           if b.get("regime", "UNKNOWN") != "UNKNOWN" and b.get("pct") is not None else "n/a")
     split = ""
     if rg != "UNKNOWN" and b.get("regime", "UNKNOWN") != "UNKNOWN" and b["regime"] != rg:

@@ -73,8 +73,9 @@ def _market(df: pd.DataFrame):
     fig.update_layout(height=220, margin=dict(l=10, r=10, t=10, b=10), legend=dict(orientation="h", y=1.15),
                       paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", yaxis=dict(range=[0, 100]))
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Breadth is the share of the ~1,170 stocks above their own averages. Falling breadth while the index holds "
-               "means fewer stocks are carrying the market: be pickier.")
+    _n_univ = int(df["extended"].ne(True).sum()) if (df is not None and "extended" in df.columns) else (len(df) if df is not None else 0)
+    st.caption(f"Breadth tracks the share of the {_n_univ:,}-stock active universe above their own averages (regime badge anchored to Nifty 500). "
+               "Falling breadth while the index holds means fewer stocks are carrying the market: be pickier.")
     _nse_context()
 
 
@@ -531,9 +532,14 @@ def _system_pulse(df: pd.DataFrame, B: pd.DataFrame, R: dict) -> None:
     c[3].metric("Your Book", book_lbl, book_sub, delta_color="off")
 
 
-def render(df: pd.DataFrame):
+def render(df: pd.DataFrame, screen_df: pd.DataFrame | None = None):
     B = get_board(df)
-    R = funnel.run(fv.get_table(df))
+    T = fv.get_table(df)
+    if screen_df is not None and "ticker" in screen_df.columns:
+        T_scr = T[T["ticker"].isin(set(screen_df["ticker"].dropna()))].reset_index(drop=True)
+    else:
+        T_scr = T
+    R = funnel.run(T_scr)
     _system_pulse(df, B, R)
     _market(df)
     _industries(B)

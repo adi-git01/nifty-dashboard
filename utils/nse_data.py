@@ -670,6 +670,18 @@ def attach(df: pd.DataFrame) -> pd.DataFrame:
         out["next_event"] = out["ticker"].map(ev).fillna("")
         out["nse_flags"] = [" · ".join(x for x in (f"⚠️ {s}" if s else "", f"📅 {e}" if e else "") if x)
                             for s, e in zip(out["surveillance"], out["next_event"])]
+        try:
+            if os.path.exists("EQUITY_L.csv"):
+                _eql = _read_cached("EQUITY_L.csv", os.path.getmtime("EQUITY_L.csv"), ())
+                _cols = {c.strip().upper(): c for c in _eql.columns}
+                if "SYMBOL" in _cols and "SERIES" in _cols:
+                    _smap = dict(zip(
+                        _eql[_cols["SYMBOL"]].astype(str).str.strip().str.upper() + ".NS",
+                        _eql[_cols["SERIES"]].astype(str).str.strip().str.upper(),
+                    ))
+                    out["nse_series"] = out["ticker"].map(_smap).fillna("")
+        except Exception:
+            pass
         return out
     except Exception as e:
         print(f"[nse] attach skipped: {e}", flush=True)

@@ -50,7 +50,13 @@ def check(today: str | None = None) -> tuple[list, list]:
     else:
         warns.append("snapshot has no bar_date: cannot tell which session its prices are from")
     try:
-        universe = len(pd.read_csv("data/nifty1000_list.csv"))
+        core_df = pd.read_csv("data/nifty1000_list.csv")
+        core_set = set(core_df["Ticker"].dropna().astype(str)) if "Ticker" in core_df.columns else set(range(len(core_df)))
+        if os.path.exists("data/liquid_universe.csv"):
+            ldf = pd.read_csv("data/liquid_universe.csv")
+            if "Ticker" in ldf.columns:
+                core_set |= set(ldf["Ticker"].dropna().astype(str))
+        universe = len(core_set)
     except Exception:
         universe = 0
     if universe and len(df) < 0.8 * universe:

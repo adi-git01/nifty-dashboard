@@ -1,0 +1,400 @@
+Ticker,Company_Name,Sub_Industry,med_turn_60d_cr,med_turn_20d_cr,mcap_cr,last_close,series,surveillance,status,added_date,as_of
+JPL.NS,Jio Platforms Limited,Telecom - Services,946.09,932.41,1277477.0,1385.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+MONEYVIEW.NS,Moneyview Limited,Financial Technology (Fintech),448.41,402.05,9996.0,54.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+MEESHO.NS,Meesho Limited,Retailing,339.94,357.52,120388.0,251.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+LENSKART.NS,Lenskart Solutions Limited,Retailing,294.64,290.58,129500.0,716.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+KANOHAR.NS,Kanohar Electricals Limited,Electrical Equipment,291.77,148.88,8189.0,992.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+TMCV.NS,Tata Motors Limited,"Agricultural, Commercial & Construction Vehicles",276.97,305.74,168213.0,431.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+TONBO.NS,Tonbo Imaging India Limited,Aerospace & Defense,261.27,228.48,8347.0,1379.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+PINELABS.NS,Pine Labs Limited,Financial Technology (Fintech),249.51,165.96,18447.0,163.77,EQ,,VERIFIED,2026-11-26,2026-11-26
+VAML.NS,Vedanta Aluminium Metal Limited,Non - Ferrous Metals,237.13,203.78,142944.0,353.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+HEROMOTORS.NS,Hero Motors Limited,Auto Components,183.74,54.17,5488.0,114.51,EQ,,VERIFIED,2026-11-26,2026-11-26
+TFCILTD.NS,Tourism Finance Corporation of India Limited,Finance,159.87,161.59,7956.0,174.94,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+LTM.NS,LTM Limited,IT - Software,149.91,104.84,123593.0,4406.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDOMIM.NS,INDO-MIM Limited,Industrial Manufacturing,148.98,109.69,62463.0,1297.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+RATNAVEER.NS,Ratnaveer Precision Engineering Limited,Industrial Products,135.04,82.64,3107.0,405.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+LALITHAA.NS,Lalithaa Jewellery Mart Limited,Consumer Durables,134.73,77.68,17723.0,286.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+MVELECTRO.NS,MV Electrosystems Limited,Industrial Manufacturing,125.98,55.27,2186.0,764.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+DHOOTTRANS.NS,Dhoot Transmission Limited,Auto Components,123.89,78.17,32683.0,1582.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+ZETWERK.NS,Zetwerk Manufacturing Businesses Limited,Industrial Manufacturing,114.58,92.89,28909.0,187.58,EQ,,VERIFIED,2026-11-26,2026-11-26
+PFOCUS.NS,Prime Focus Limited,Entertainment,114.08,111.81,19680.0,236.55,EQ,,VERIFIED,2026-11-26,2026-11-26
+SSRETAIL.NS,SS Retail Limited,Unknown,112.23,28.52,,655.15,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+MOLBIO.NS,Molbio Diagnostics Limited,Healthcare Equipment & Supplies,108.5,70.26,17234.0,1523.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+RAYMOND.NS,Raymond Limited,Industrial Manufacturing,107.39,59.81,7999.0,1183.2,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+SHADOWFAX.NS,Shadowfax Technologies Limited,Unknown,98.51,115.54,,306.75,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+ESDS.NS,ESDS Software Solution Limited,IT - Services,96.11,66.14,13242.0,1107.2,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+BONFIG.NS,Bonfiglioli Transmissions Limited,Industrial Manufacturing,94.58,83.22,15058.0,803.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+PWL.NS,Physicswallah Limited,Other Consumer Services,83.92,61.72,39753.0,136.38,EQ,,VERIFIED,2026-11-26,2026-11-26
+URBANCO.NS,Urban Company Limited,Retailing,82.46,83.7,26055.0,170.72,EQ,,VERIFIED,2026-11-26,2026-11-26
+SBC.NS,SBC Exports Limited,Textiles & Apparels,80.96,84.18,3267.0,68.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+SYMBIOTEC.NS,Symbiotec Pharmalab Limited,Pharmaceuticals & Biotechnology,77.89,48.8,10272.0,1522.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHREEJISPG.NS,Shreeji Shipping Global Limited,Transport Services,73.57,61.94,14887.0,910.65,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+LGEINDIA.NS,LG Electronics India Limited,Consumer Durables,69.87,97.29,118154.0,1758.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+ICICILIFE.NS,ICICI Life Insurance Limited,Insurance,69.13,73.81,67049.0,468.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+RENTOMOJO.NS,Rentomojo Limited,Unknown,67.9,30.28,,560.3,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+PAISALO.NS,Paisalo Digital Limited,Finance,66.0,23.43,6906.0,74.34,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+TEMPSENS.NS,Tempsens Instruments (India) Limited,Industrial Manufacturing,65.41,29.67,4306.0,488.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+E2E.NS,E2E Networks Limited,IT - Services,62.64,84.03,9791.0,475.9,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+MANIPALHOS.NS,Manipal Health Enterprises Limited,Healthcare Services,62.47,77.04,92366.0,709.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHANTIGOLD.NS,Shanti Gold International Limited,Consumer Durables,62.12,31.39,1744.0,221.35,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+PIRAMALFIN.NS,Piramal Finance Limited,Finance,61.58,59.54,47868.0,1971.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+AUGMONT.NS,Augmont Enterprises Limited,Non - Ferrous Metals,58.59,33.11,8240.0,897.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+VOGL.NS,Vedanta Oil and Gas Limited,Oil,54.55,33.65,11414.0,29.12,EQ,,VERIFIED,2026-11-26,2026-11-26
+TECHNOCRAF.NS,Technocraft Ventures Limited,Other Utilities,54.49,71.39,1949.0,500.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+SBIFUNDS.NS,SBI Funds Management Limited,Unknown,54.09,62.38,,533.9,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+IOLCP.NS,IOL Chemicals and Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,49.91,31.9,5404.0,174.89,EQ,,VERIFIED,2026-11-26,2026-11-26
+GLASSWALL.NS,Glass Wall Systems (India) Limited,Other Construction Materials,49.76,32.47,2440.0,244.91,EQ,,VERIFIED,2026-11-26,2026-11-26
+QPOWER.NS,Quality Power Electrical Equipments Limited,Electrical Equipment,49.46,50.83,11923.0,1472.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SSWL.NS,Steel Strips Wheels Limited,Auto Components,47.85,29.89,8253.0,474.25,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+VISL.NS,Vedanta Iron and Steel Limited,Ferrous Metals,47.41,27.46,9338.0,23.81,EQ,,VERIFIED,2026-11-26,2026-11-26
+DEEPA.NS,Deepa Jewellers Limited,Consumer Durables,47.37,20.42,1843.0,182.92,EQ,,VERIFIED,2026-11-26,2026-11-26
+TATACAP.NS,Tata Capital Limited,Finance,44.82,46.99,146554.0,350.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+MANINDS.NS,Man Industries (India) Limited,Industrial Products,44.81,37.61,5439.0,701.4,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+PARAGMILK.NS,Parag Milk Foods Limited,Food Products,43.22,43.22,4536.0,315.44,EQ,,VERIFIED,2026-11-26,2026-11-26
+VEDPOWER.NS,Vedanta Power Limited,Power,42.37,60.62,13569.0,34.12,EQ,,VERIFIED,2026-11-26,2026-11-26
+SMT.NS,Sahajanand Medical Technologies Limited,Unknown,42.3,35.86,,553.3,EQ,ASM short-term Stage I,IPO_UNVERIFIED,2026-11-26,2026-11-26
+IBULLSLTD.NS,Indiabulls Limited,Commercial Services & Supplies,41.86,32.24,6738.0,28.23,EQ,,VERIFIED,2026-11-26,2026-11-26
+LUMINO.NS,Lumino Industries Limited,Industrial Products,41.66,23.64,2800.0,86.76,EQ,,VERIFIED,2026-11-26,2026-11-26
+MARINE.NS,Marine Electricals (India) Limited,Industrial Manufacturing,40.43,33.11,5668.0,419.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+STEAMHOUSE.NS,Steamhouse India Limited,Unknown,39.89,26.71,,167.08,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+PARASHLTH.NS,Paras Healthcare Limited,Healthcare Services,38.94,35.76,9139.0,873.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHIPROCKET.NS,Shiprocket Limited,Unknown,38.27,28.91,,110.57,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+RAYMONDREL.NS,Raymond Realty Limited,Realty,37.79,22.2,4150.0,619.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+MARSONS.NS,Marsons Limited,Electrical Equipment,37.46,60.27,2626.0,153.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+KWIL.NS,Kwality Wall's (India) Limited,Food Products,35.22,34.73,10240.0,41.17,EQ,,VERIFIED,2026-11-26,2026-11-26
+STYLEBAAZA.NS,Baazar Style Retail Limited,Retailing,34.43,96.65,3857.0,514.8,EQ,ASM short-term Stage I,VERIFIED,2026-11-26,2026-11-26
+KARAMTARA.NS,Karamtara Engineering Limited,Electrical Equipment,33.95,15.73,11542.0,345.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+KISSHT.NS,OnEMI Technology Solutions Limited,Finance,33.45,27.43,6914.0,333.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SMLMAH.NS,SML Mahindra Limited,"Agricultural, Commercial & Construction Vehicles",33.05,23.29,9283.0,4603.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+TENNIND.NS,Tenneco Clean Air India Limited,Auto Components,31.87,43.16,18362.0,444.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+SAMBHV.NS,Sambhv Steel Tubes Limited,Industrial Products,31.29,23.81,4658.0,174.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+STLNETWORK.NS,STL Networks Limited,Telecom - Services,31.17,32.31,2001.0,41.29,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+KMEW.NS,Knowledge Marine & Engineering Works Limited,Engineering Services,31.11,35.31,9089.0,693.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+RUBICON.NS,Rubicon Research Limited,Unknown,31.06,27.85,,1851.7,EQ,ASM long-term Stage I,IPO_UNVERIFIED,2026-11-26,2026-11-26
+SEDEMAC.NS,SEDEMAC Mechatronics Limited,Unknown,30.72,21.34,,3284.9,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+VENUSPIPES.NS,Venus Pipes & Tubes Limited,Industrial Products,29.86,19.86,3927.0,1734.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+SGMART.NS,SG Mart Limited,Metals & Minerals Trading,28.88,45.61,13831.0,881.05,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+CLEANMAX.NS,Clean Max Enviro Energy Solutions Limited,Power,28.85,18.31,14439.0,1254.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+GUJENERGY.NS,GUJARAT ENERGY LIMITED,Gas,28.64,24.0,21237.0,238.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+HEGAM.NS,HEG Advanced Materials Limited,Industrial Products,28.13,41.73,8489.0,280.99,EQ,,VERIFIED,2026-11-26,2026-11-26
+SETL.NS,Standard Engineering Technology Limited,Industrial Manufacturing,27.57,20.47,7132.0,342.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHANKESH.NS,Shankesh Jewellers Limited,Unknown,27.53,10.94,,73.1,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+WHEELS.NS,Wheels India Limited,Auto Components,27.43,19.66,5806.0,2108.5,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+KIRIINDUS.NS,Kiri Industries Limited,Chemicals & Petrochemicals,27.16,13.27,3168.0,480.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+JSLL.NS,Jeena Sikho Lifecare Limited,Leisure Services,26.77,30.38,3732.0,307.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+SENORES.NS,Senores Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,26.76,25.53,5024.0,1087.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+KROSS.NS,Kross Limited,Auto Components,26.54,28.67,1837.0,272.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+GCSL.NS,Gretex Corporate Services Limited,Capital Markets,25.87,19.79,2121.0,850.55,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+JAYNECOIND.NS,Jayaswal Neco Industries Limited,Industrial Products,24.96,14.81,8676.0,87.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+SUDEEPPHRM.NS,Sudeep Pharma Limited,Unknown,24.88,20.43,,1302.6,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+MOBIKWIK.NS,One Mobikwik Systems Limited,Financial Technology (Fintech),24.85,24.85,1675.0,209.48,EQ,,VERIFIED,2026-11-26,2026-11-26
+VIKRAMSOLR.NS,Vikram Solar Limited,Electrical Equipment,24.82,29.18,4955.0,141.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+ROLEXRINGS.NS,Rolex Rings Limited,Auto Components,24.74,33.36,5084.0,191.02,EQ,,VERIFIED,2026-11-26,2026-11-26
+TIMEX.NS,Timex Group India Limited,Consumer Durables,24.17,24.42,6966.0,726.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+BLEL.NS,Behari Lal Engineering Limited,Industrial Products,23.72,6.98,1727.0,371.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+SYNCOMF.NS,Syncom Formulations (India) Limited,Pharmaceuticals & Biotechnology,23.45,17.83,2059.0,23.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+SJS.NS,S.J.S. Enterprises Limited,Auto Components,23.37,24.81,7191.0,2089.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+RPTECH.NS,Rashi Peripherals Limited,IT - Hardware,23.3,27.04,4318.0,635.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+KERNEX.NS,Kernex Microsystems (India) Limited,Transport Services,22.95,13.53,2759.0,1597.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+KSHINTL.NS,KSH International Limited,Industrial Products,22.15,16.44,6842.0,1007.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+ORIENTCABL.NS,Orient Cables (India) Limited,Telecom - Equipment & Accessories,22.14,13.49,4377.0,380.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+SBCL.NS,Shivalik Bimetal Controls Limited,Industrial Products,21.51,15.5,5406.0,1002.5,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+SCHNEIDER.NS,Schneider Electric Infrastructure Limited,Electrical Equipment,21.47,15.6,29080.0,1028.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+NORTHARC.NS,Northern Arc Capital Limited,Finance,21.31,14.83,4513.0,270.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+SKYWAYS.NS,Skyways Air Services Limited,Unknown,21.18,10.39,,114.67,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+JAINREC.NS,Jain Resource Recycling Limited,Diversified Metals,20.93,18.45,9942.0,279.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+SUNSHINE.NS,Sunshine Pictures Limited,Unknown,20.61,12.88,,525.8,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+PROTEAN.NS,Protean eGov Technologies Limited,IT - Services,20.51,26.6,2877.0,693.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+LEAPIND.NS,LEAP India Limited,Commercial Services & Supplies,20.24,19.0,5746.0,126.98,EQ,,VERIFIED,2026-11-26,2026-11-26
+ROSSTECH.NS,Rossell Techsys Limited,Aerospace & Defense,20.11,12.49,6156.0,1454.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+ELEVATE.NS,Elevate Campuses Limited,Commercial Services & Supplies,20.03,10.25,5169.0,314.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+GSPLTRANS.NS,GSPL Transmission Limited,Gas,20.02,18.7,3347.0,104.79,EQ,,VERIFIED,2026-11-26,2026-11-26
+JTLIND.NS,JTL INDUSTRIES LIMITED,Industrial Products,19.76,15.6,2846.0,72.66,EQ,,VERIFIED,2026-11-26,2026-11-26
+MOSCHIP.NS,Moschip Technologies Limited,IT - Hardware,19.54,12.09,3150.0,159.66,EQ,,VERIFIED,2026-11-26,2026-11-26
+WSTCSTPAPR.NS,West Coast Paper Mills Limited,"Paper, Forest & Jute Products",19.28,16.22,4080.0,651.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+CMPDI.NS,Central Mine Planning & Design Institute Limited,Construction,19.25,13.0,12863.0,184.24,EQ,,VERIFIED,2026-11-26,2026-11-26
+LOTUSDEV.NS,Sri Lotus Developers and Realty Limited,Realty,19.17,24.42,11508.0,219.98,EQ,,VERIFIED,2026-11-26,2026-11-26
+LCL.NS,Lohia Corp Limited,Industrial Manufacturing,18.88,15.38,4867.0,445.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+AONESTEELS.NS,A-One Steels India Limited,Industrial Products,18.78,21.73,3691.0,461.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+DECNGOLD.NS,Deccan Gold Mines Limited,Non - Ferrous Metals,18.6,12.04,3667.0,163.18,EQ,,VERIFIED,2026-11-26,2026-11-26
+SMSPHARMA.NS,SMS Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,18.57,18.31,4432.0,485.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+PRECWIRE.NS,Precision Wires India Limited,Industrial Products,18.48,12.28,6962.0,373.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDSWFTLAB.NS,Ind-Swift Laboratories Limited,Pharmaceuticals & Biotechnology,18.25,14.6,2757.0,311.95,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+VINCOFE.NS,Vintage Coffee And Beverages Limited,Agricultural Food & other Products,18.21,12.95,2200.0,148.34,EQ,,VERIFIED,2026-11-26,2026-11-26
+SOLARA.NS,Solara Active Pharma Sciences Limited,Pharmaceuticals & Biotechnology,18.11,8.25,3050.0,619.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+XTRANET.NS,Xtranet Technologies Limited,IT - Services,17.92,6.83,1370.0,255.4,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+MPIMANIPAL.NS,Manipal Payment and Identity Solutions Limited,Financial Technology (Fintech),17.65,7.73,7483.0,309.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+KRISHANA.NS,Krishana Phoschem Limited,Fertilizers & Agrochemicals,17.23,26.76,7610.0,243.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+HDFIRE.NS,HD Fire Protect Limited,Industrial Manufacturing,16.83,13.31,5047.0,282.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+SGFIN.NS,SG Finserve Limited,Finance,16.67,28.67,5410.0,622.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+IDEAFORGE.NS,Ideaforge Technology Limited,Aerospace & Defense,16.61,16.53,3472.0,731.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+ONEPOINT.NS,One Point One Solutions Limited,Commercial Services & Supplies,16.26,13.96,1859.0,68.77,EQ,,VERIFIED,2026-11-26,2026-11-26
+JGCHEM.NS,J.G.Chemicals Limited,Chemicals & Petrochemicals,16.1,7.99,2120.0,498.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+HORIZONIND.NS,Horizon Industrial Parks Limited,Realty,16.07,14.4,14095.0,49.72,EQ,,VERIFIED,2026-11-26,2026-11-26
+VINDHYATEL.NS,Vindhya Telelinks Limited,Construction,15.99,9.49,2947.0,2435.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+SMCGLOBAL.NS,SMC Global Securities Limited,Capital Markets,15.66,10.84,1792.0,80.23,EQ,,VERIFIED,2026-11-26,2026-11-26
+RPEL.NS,Raghav Productivity Enhancers Limited,Industrial Products,15.47,15.97,8515.0,1903.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+CMLL.NS,Caliber Mining and Logistics Limited,Consumable Fuels,15.2,12.53,3532.0,529.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+DEEDEV.NS,DEE Development Engineers Limited,Industrial Manufacturing,15.2,15.56,3871.0,439.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+NRBBEARING.NS,NRB Bearing Limited,Auto Components,15.1,10.21,4143.0,429.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+QUADFUTURE.NS,Quadrant Future Tek Limited,Industrial Products,14.95,5.96,1574.0,393.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHRINGARMS.NS,Shringar House of Mangalsutra Limited,Consumer Durables,14.47,18.95,2278.0,241.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+POCL.NS,Pondy Oxides & Chemicals Limited,Diversified Metals,14.3,11.88,2834.0,353.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+MBAPL.NS,Madhya Bharat Agro Products Limited,Fertilizers & Agrochemicals,14.26,18.53,8954.0,191.97,EQ,,VERIFIED,2026-11-26,2026-11-26
+ARCIL.NS,Asset Reconstruction Company (India) Limited,Finance,14.13,8.21,4024.0,121.21,EQ,,VERIFIED,2026-11-26,2026-11-26
+PRASOLCHEM.NS,Prasol Chemicals Limited,Chemicals & Petrochemicals,14.05,5.12,4631.0,748.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+PARKHOSPS.NS,Park Medi World Limited,Healthcare Services,13.94,12.05,10282.0,235.46,EQ,,VERIFIED,2026-11-26,2026-11-26
+AEROPLANE.NS,Amir Chand Jagdish Kumar (Exports) Limited,Agricultural Food & other Products,13.84,11.35,2513.0,233.64,EQ,,VERIFIED,2026-11-26,2026-11-26
+UNIVCABLES.NS,Universal Cables Limited,Industrial Products,13.84,11.0,3821.0,1080.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+SOTL.NS,Savita Oil Technologies Limited,Petroleum Products,13.8,8.58,4044.0,553.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+ARMEE.NS,ArMee Infotech Limited,Unknown,13.45,12.53,,285.55,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+PRANAV.NS,Pranav Constructions Limited,Unknown,13.02,3.35,,83.38,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+FEDDERSHOL.NS,Fedders Holding Limited,Finance,12.93,9.65,1098.0,54.59,EQ,,VERIFIED,2026-11-26,2026-11-26
+GERMAN.NS,German Green Steel and Power Limited,Unknown,12.71,6.61,,109.78,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+LASERPOWER.NS,Laser Power & Infra Limited,Industrial Products,12.7,8.4,2667.0,184.26,EQ,,VERIFIED,2026-11-26,2026-11-26
+BIRLACABLE.NS,Birla Cable Limited,Telecom - Equipment & Accessories,12.45,8.25,987.0,288.95,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+NELCO.NS,NELCO Limited,IT - Hardware,12.44,6.98,1770.0,742.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+JNPR.NS,Juniper Green Energy Limited,Power,12.28,4.64,14144.0,237.52,EQ,,VERIFIED,2026-11-26,2026-11-26
+TMB.NS,Tamilnad Mercantile Bank Limited,Banks,12.17,12.06,13941.0,850.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SANGHVIMOV.NS,Sanghvi Movers Limited,Commercial Services & Supplies,12.0,9.83,3215.0,396.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+KNACK.NS,Knack Packaging Limited,Industrial Products,11.94,8.28,2443.0,204.68,EQ,,VERIFIED,2026-11-26,2026-11-26
+SUVEN.NS,Suven Life Sciences Limited,Healthcare Services,11.93,8.84,7612.0,266.55,EQ,,VERIFIED,2026-11-26,2026-11-26
+GSPCROP.NS,GSP Crop Science Limited,Fertilizers & Agrochemicals,11.85,10.83,1900.0,447.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+HTEL.NS,Hy-Tech Engineers Limited,Unknown,11.78,3.36,,67.93,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+KOPRAN.NS,Kopran Limited,Pharmaceuticals & Biotechnology,11.73,6.25,1272.0,281.16,EQ,,VERIFIED,2026-11-26,2026-11-26
+KPL.NS,Kwality Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,11.72,14.97,4284.0,4089.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+PREMEXPLN.NS,Premier Explosives Limited,Chemicals & Petrochemicals,11.65,7.07,2949.0,566.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+KUSUMGAR.NS,Kusumgar Limited,Textiles & Apparels,11.5,5.05,5591.0,537.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+BHARATCOAL.NS,Bharat Coking Coal Limited,Consumable Fuels,11.48,8.28,14185.0,31.69,EQ,,VERIFIED,2026-11-26,2026-11-26
+EMBDL.NS,Embassy Developments Limited,Realty,11.48,10.44,7119.0,49.74,EQ,,VERIFIED,2026-11-26,2026-11-26
+RISHABH.NS,Rishabh Instruments Limited,Electrical Equipment,11.28,6.45,2369.0,604.55,EQ,,VERIFIED,2026-11-26,2026-11-26
+YASHO.NS,Yasho Industries Limited,Chemicals & Petrochemicals,11.24,7.89,4224.0,3410.4,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+SAKAR.NS,Sakar Healthcare Limited,Pharmaceuticals & Biotechnology,11.08,7.81,2277.0,971.1,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+VARMORA.NS,Varmora Granito Limited,Consumer Durables,10.96,5.91,2948.0,126.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+PARACABLES.NS,Paramount Communications Limited,Industrial Products,10.62,13.04,1943.0,57.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+PNGSREVA.NS,PNGS Reva Diamond Jewellery Limited,Consumer Durables,10.57,9.33,1710.0,507.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+CORDELIA.NS,Waterways Leisure Tourism Limited,Leisure Services,10.48,3.41,6212.0,81.22,EQ,,VERIFIED,2026-11-26,2026-11-26
+WALCHANNAG.NS,Walchandnagar Industries Limited,Industrial Manufacturing,10.32,10.44,1245.0,175.82,EQ,,VERIFIED,2026-11-26,2026-11-26
+KENNAMET.NS,Kennametal India Limited,Industrial Manufacturing,9.96,7.28,8029.0,3449.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+UTLSOLAR.NS,Fujiyama Power Systems Limited,Electrical Equipment,9.93,8.45,9176.0,272.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+PACEDIGITK.NS,Pace Digitek Limited,Telecom - Services,9.9,10.75,3569.0,163.58,EQ,,VERIFIED,2026-11-26,2026-11-26
+NEPHROPLUS.NS,Nephrocare Health Services Limited,Healthcare Services,9.87,5.84,6617.0,659.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+TATVA.NS,Tatva Chintan Pharma Chem Limited,Chemicals & Petrochemicals,9.71,7.18,3747.0,1584.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+MUFIN.NS,Mufin Green Finance Limited,Finance,9.69,10.38,2713.0,133.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+NOCIL.NS,NOCIL Limited,Chemicals & Petrochemicals,9.62,5.5,2281.0,135.26,EQ,,VERIFIED,2026-11-26,2026-11-26
+GVPIL.NS,GE Power India Limited,Electrical Equipment,9.59,7.1,3684.0,555.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+YATRA.NS,Yatra Online Limited,Leisure Services,9.58,15.6,1397.0,87.86,EQ,,VERIFIED,2026-11-26,2026-11-26
+MACPOWER.NS,Macpower CNC Machines Limited,Industrial Manufacturing,9.57,11.38,2081.0,2023.9,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+KDDL.NS,KDDL Limited,Consumer Durables,9.55,16.99,5683.0,4511.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+FUSIONCX.NS,Fusion CX Limited,Commercial Services & Supplies,9.37,5.77,4023.0,270.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+TNPETRO.NS,Tamilnadu PetroProducts Limited,Chemicals & Petrochemicals,9.28,4.19,1136.0,110.67,EQ,,VERIFIED,2026-11-26,2026-11-26
+MANALIPETC.NS,Manali Petrochemicals Limited,Chemicals & Petrochemicals,9.24,5.2,1303.0,71.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+ARDEE.NS,Ardee Industries Limited,Diversified Metals,9.2,6.89,1243.0,38.08,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPLPETRO.NS,Supreme Petrochem Limited,Chemicals & Petrochemicals,9.2,5.39,13135.0,699.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+UTTAMSUGAR.NS,Uttam Sugar Mills Limited,Agricultural Food & other Products,8.99,7.97,1357.0,381.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+SRIT.NS,SRIT India Limited,Unknown,8.92,8.32,,129.19,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+FREDUN.NS,Fredun Pharmaceuticals Limited,Pharmaceuticals & Biotechnology,8.88,10.97,2901.0,1741.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+ORIENTHOT.NS,Oriental Hotels Limited,Leisure Services,8.69,8.69,3214.0,177.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+UNIPARTS.NS,Uniparts India Limited,Auto Components,8.68,5.08,3182.0,715.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+VIDYAWIRES.NS,Vidya Wires Limited,Industrial Products,8.63,6.36,1570.0,72.51,EQ,,VERIFIED,2026-11-26,2026-11-26
+AVADHSUGAR.NS,Avadh Sugar & Energy Limited,Agricultural Food & other Products,8.52,5.18,1704.0,869.95,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+STYLAMIND.NS,Stylam Industries Limited,Consumer Durables,8.51,8.0,5512.0,3298.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+TIIL.NS,Technocraft Industries (India) Limited,Industrial Products,8.35,4.68,6426.0,2753.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+JASH.NS,Jash Engineering Limited,Industrial Manufacturing,8.27,5.08,3382.0,509.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+KRISHNADEF.NS,Krishna Defence And Allied Industries Limited,Aerospace & Defense,8.24,13.55,1813.0,1198.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+JAYKAY.NS,Jaykay Enterprises Limited,Aerospace & Defense,8.12,3.95,2679.0,175.62,EQ,,VERIFIED,2026-11-26,2026-11-26
+SKFINDUS.NS,SKF India (Industrial) Limited,Unknown,8.12,4.04,,2449.7,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+RIR.NS,RIR Power Electronics Limited,Unknown,8.11,3.32,,137.92,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+RICOAUTO.NS,Rico Auto Industries Limited,Auto Components,8.0,5.88,1298.0,91.58,EQ,,VERIFIED,2026-11-26,2026-11-26
+ADROITIND.NS,Adroit Industries (India) Limited,Unknown,7.94,7.07,,174.79,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+SIRCA.NS,Sirca Paints India Limited,Consumer Durables,7.94,10.2,2285.0,402.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+RAMRAT.NS,Ram Ratna Wires Limited,Electrical Equipment,7.88,3.41,4804.0,504.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+PANAMAPET.NS,Panama Petrochem Limited,Petroleum Products,7.81,5.38,2462.0,419.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+PICCADIL.NS,Piccadily Agro Industries Limited,Beverages,7.7,6.97,5302.0,517.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+JSWDULUX.NS,JSW Dulux Limited,Consumer Durables,7.45,8.7,12360.0,272.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+JINDRILL.NS,Jindal Drilling And Industries Limited,Oil,7.4,4.95,1463.0,488.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+UFLEX.NS,UFLEX Limited,Industrial Products,7.36,4.77,4449.0,585.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+PITTIENG.NS,Pitti Engineering Limited,Industrial Manufacturing,7.34,4.08,3313.0,902.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+IZMO.NS,IZMO Limited,IT - Services,7.23,6.12,1114.0,718.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+WEWORK.NS,WeWork India Management Limited,Commercial Services & Supplies,7.22,5.24,9520.0,678.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+HUBTOWN.NS,Hubtown Limited,Realty,7.17,13.56,2426.0,215.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+ARTEMISMED.NS,Artemis Medicare Services Limited,Healthcare Services,6.97,4.81,5395.0,318.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+WINDLAS.NS,Windlas Biotech Limited,Pharmaceuticals & Biotechnology,6.97,3.66,1984.0,931.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+VENKEYS.NS,Venky's (India) Limited,Food Products,6.88,6.35,1966.0,1348.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+STOVEKRAFT.NS,Stove Kraft Limited,Consumer Durables,6.87,5.06,2510.0,739.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+RGL.NS,Renaissance Global Limited,Consumer Durables,6.83,4.68,1513.0,143.63,EQ,,VERIFIED,2026-11-26,2026-11-26
+TRUALT.NS,TruAlt Bioenergy Limited,Agricultural Food & other Products,6.76,4.47,2798.0,315.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+ONIXSOLAR.NS,Onix Solar Energy Limited,Unknown,6.71,2.65,,278.65,EQ,ASM long-term Stage I,IPO_UNVERIFIED,2026-11-26,2026-11-26
+INTERARCH.NS,Interarch Building Solutions Limited,Construction,6.65,5.9,2715.0,1541.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+POWERICA.NS,Powerica Limited,Electrical Equipment,6.64,5.06,6103.0,479.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+KLBRENG-B.NS,Kilburn Engineering Limited,Industrial Manufacturing,6.62,3.39,2225.0,377.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDORAMA.NS,Indo Rama Synthetics (India) Limited,Textiles & Apparels,6.57,2.09,1957.0,74.14,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+RSYSTEMS.NS,R Systems International Limited,IT - Services,6.55,5.48,2859.0,240.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+MAHLOG.NS,Mahindra Logistics Limited,Transport Services,6.52,8.5,3785.0,364.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+TVSSCS.NS,TVS Supply Chain Solutions Limited,Transport Services,6.42,8.21,5917.0,126.23,EQ,,VERIFIED,2026-11-26,2026-11-26
+MOMSBELIEF.NS,Rays of Belief Limited,Unknown,6.36,8.24,,270.33,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+XPROINDIA.NS,Xpro India Limited,Industrial Products,6.35,5.9,2864.0,1184.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+NITINSPIN.NS,Nitin Spinners Limited,Textiles & Apparels,6.3,6.81,3962.0,676.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+PENIND.NS,Pennar Industries Limited,Industrial Manufacturing,6.26,4.55,2239.0,164.89,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPORTKING.NS,Sportking India Limited,Textiles & Apparels,6.26,10.19,2812.0,230.78,EQ,,VERIFIED,2026-11-26,2026-11-26
+KPEL.NS,K.P. Energy Limited,Power,6.24,5.09,1167.0,164.27,EQ,,VERIFIED,2026-11-26,2026-11-26
+VIMTALABS.NS,Vimta Labs Limited,Healthcare Services,6.16,2.97,2090.0,490.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+SEAMECLTD.NS,Seamec Limited,Transport Services,6.15,4.9,3909.0,1464.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+TVSHLTD.NS,TVS Holdings Limited,Finance,6.11,3.95,27295.0,13493.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+MEDIASSIST.NS,Medi Assist Healthcare Services Limited,Insurance,6.05,17.71,2008.0,276.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+CMRGREEN.NS,CMR Green Technologies Limited,Industrial Products,6.02,3.1,4631.0,197.62,EQ,,VERIFIED,2026-11-26,2026-11-26
+SANDHAR.NS,Sandhar Technologies Limited,Auto Components,6.01,7.46,3351.0,485.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+MANGLMCEM.NS,Mangalam Cement Limited,Cement & Cement Products,5.96,6.32,2448.0,894.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+BHAGERIA.NS,Bhageria Industries Limited,Chemicals & Petrochemicals,5.93,4.59,1502.0,338.15,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+MAYURUNIQ.NS,Mayur Uniquoters Ltd,Consumer Durables,5.87,5.6,3071.0,642.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+ZOTA.NS,Zota Health Care LImited,Pharmaceuticals & Biotechnology,5.82,3.66,4461.0,1314.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHILCTECH.NS,Shilchar Technologies Limited,Unknown,5.75,5.48,,3060.5,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+STALLION.NS,Stallion India Fluorochemicals Limited,Chemicals & Petrochemicals,5.75,6.05,2109.0,170.43,EQ,,VERIFIED,2026-11-26,2026-11-26
+NIBE.NS,NIBE Limited,Aerospace & Defense,5.73,4.96,1708.0,1048.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+RUNWALENTR.NS,Runwal Enterprises Limited,Unknown,5.73,2.78,,255.43,EQ,,IPO_UNVERIFIED,2026-11-26,2026-11-26
+KINGFA.NS,Kingfa Science & Technology (India) Limited,Industrial Products,5.72,2.73,8367.0,6206.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+TRIVENIPT.NS,Triveni Power Transmission Limited,Power,5.72,5.72,4763.0,489.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+MANAKCOAT.NS,Manaksia Coated Metals & Industries Limited,Industrial Products,5.69,11.47,1869.0,160.46,EQ,,VERIFIED,2026-11-26,2026-11-26
+TALBROAUTO.NS,Talbros Automotive Components Limited,Auto Components,5.66,4.36,2485.0,387.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+NPST.NS,Network People Services Technologies Limited,Financial Technology (Fintech),5.61,2.78,3611.0,1766.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+MVGJL.NS,Manoj Vaibhav Gems N Jewellers Limited,Consumer Durables,5.54,2.08,1171.0,151.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+TEMBO.NS,Tembo Global Industries Limited,Industrial Products,5.44,3.62,1060.0,50.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+SIGACHI.NS,Sigachi Industries Limited,Pharmaceuticals & Biotechnology,5.4,4.42,1168.0,30.16,EQ,,VERIFIED,2026-11-26,2026-11-26
+POKARNA.NS,Pokarna Limited,Consumer Durables,5.34,5.76,2183.0,636.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+SASKEN.NS,Sasken Technologies Limited,IT - Services,5.33,6.42,2801.0,1915.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDRAMEDCO.NS,Indraprastha Medical Corporation Limited,Healthcare Services,5.32,3.59,3324.0,350.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+SALSTEEL.NS,S.A.L. Steel Limited,Unknown,5.29,4.48,,83.47,EQ,ASM long-term Stage I,IPO_UNVERIFIED,2026-11-26,2026-11-26
+VADILALIND.NS,Vadilal Industries Limited,Food Products,5.25,3.56,5017.0,6927.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+MMFL.NS,MM Forgings Limited,Auto Components,5.24,9.67,3129.0,602.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+CORONA.NS,CORONA Remedies Limited,Pharmaceuticals & Biotechnology,5.19,9.23,13842.0,2309.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+VISHNU.NS,Vishnu Chemicals Limited,Chemicals & Petrochemicals,5.12,4.62,3442.0,516.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+TURTLEMINT.NS,Turtlemint Fintech Solutions Limited,Financial Technology (Fintech),5.11,2.11,1914.0,69.72,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+PRAKASH.NS,Prakash Industries Limited,Ferrous Metals,5.09,4.86,1979.0,107.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPECTRUM.NS,Spectrum Electrical Industries Limited,Unknown,5.05,6.32,,3878.6,EQ,ASM long-term Stage I,IPO_UNVERIFIED,2026-11-26,2026-11-26
+MIIL.NS,Meghna Infracon Infrastructure Limited,Realty,5.04,5.09,1410.0,633.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+LUMAXIND.NS,Lumax Industries Limited,Auto Components,4.99,3.3,5220.0,5495.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+SOMANYCERA.NS,Somany Ceramics Limited,Consumer Durables,4.96,5.56,2263.0,557.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+VRLLOG.NS,VRL Logistics Limited,Transport Services,4.96,24.82,5660.0,314.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+NACLIND.NS,NACL Industries Limited,Fertilizers & Agrochemicals,4.9,3.93,2749.0,115.74,EQ,,VERIFIED,2026-11-26,2026-11-26
+VIKRAN.NS,Vikran Engineering Limited,Construction,4.88,3.58,1359.0,49.17,EQ,,VERIFIED,2026-11-26,2026-11-26
+KMCSHIL.NS,K M C Speciality Hospitals (India) Limited,Healthcare Services,4.86,5.94,3324.0,187.76,EQ,,VERIFIED,2026-11-26,2026-11-26
+JAYBARMARU.NS,Jay Bharat Maruti Limited,Auto Components,4.85,12.48,1401.0,127.57,EQ,,VERIFIED,2026-11-26,2026-11-26
+NILKAMAL.NS,Nilkamal Limited,Consumer Durables,4.84,7.46,3137.0,1946.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+SATIN.NS,Satin Creditcare Network Limited,Finance,4.82,5.9,2830.0,255.19,EQ,,VERIFIED,2026-11-26,2026-11-26
+RACLGEAR.NS,RACL Geartech Limited,Auto Components,4.8,4.04,1809.0,1608.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+PGHL.NS,Procter & Gamble Health Limited,Pharmaceuticals & Biotechnology,4.65,5.41,9278.0,5653.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+SANATHAN.NS,Sanathan Textiles Limited,Textiles & Apparels,4.44,4.4,4827.0,547.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+RML.NS,Rane (Madras) Limited,Auto Components,4.39,3.32,3212.0,1104.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+WENDT.NS,Wendt (India) Limited,Industrial Products,4.37,2.33,1410.0,6927.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDOTECH.NS,Indo Tech Transformers Limited,Electrical Equipment,4.3,3.57,2490.0,2312.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+ITDC.NS,India Tourism Development Corporation Limited,Leisure Services,4.26,3.86,5641.0,655.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+KIRLFER.NS,Kirloskar Ferrous Industries Limited,Ferrous Metals,4.25,3.2,6571.0,390.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+MUTHOOTMF.NS,Muthoot Microfin Limited,Finance,4.25,6.17,2820.0,164.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+INA.NS,Insolation Energy Limited,Power,4.24,2.61,1500.0,69.26,EQ,,VERIFIED,2026-11-26,2026-11-26
+JARO.NS,Jaro Institute of Technology Management and Research Limited,Other Consumer Services,4.23,2.03,914.0,389.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+RPGLIFE.NS,RPG Life Sciences Limited,Pharmaceuticals & Biotechnology,4.2,1.68,4202.0,2534.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+GAJA.NS,Gaja Alternative Asset Management Limited,Capital Markets,4.17,2.6,1794.0,123.02,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDNIPPON.NS,India Nippon Electricals Limited,Auto Components,4.1,2.02,2642.0,1142.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+RIIL.NS,Reliance Industrial Infrastructure Limited,Transport Services,4.09,5.06,1036.0,693.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+SILVERTUC.NS,Silver Touch Technologies Limited,IT - Software,3.99,3.09,1607.0,124.12,EQ,,VERIFIED,2026-11-26,2026-11-26
+TIRUMALCHM.NS,Thirumalai Chemicals Limited,Chemicals & Petrochemicals,3.98,2.73,1452.0,118.12,EQ,,VERIFIED,2026-11-26,2026-11-26
+RESPONIND.NS,Responsive Industries Limited,Consumer Durables,3.92,3.09,3662.0,137.12,EQ,,VERIFIED,2026-11-26,2026-11-26
+PSPPROJECT.NS,PSP Projects Limited,Construction,3.88,3.15,3096.0,779.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+SMARTWORKS.NS,Smartworks Coworking Spaces Limited,Commercial Services & Supplies,3.85,4.54,5951.0,518.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+PVP.NS,PVP Ventures Limited,Realty,3.82,2.32,1163.0,44.47,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+MENONBE.NS,Menon Bearings Limited,Auto Components,3.8,11.05,1721.0,300.6,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+VSSL.NS,Vardhman Special Steels Limited,Industrial Products,3.75,2.92,3681.0,370.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+SKMEGGPROD.NS,SKM Egg Products Export (India) Limited,Food Products,3.71,3.38,1131.0,212.69,EQ,,VERIFIED,2026-11-26,2026-11-26
+JNKINDIA.NS,JNK India Limited,Industrial Manufacturing,3.69,3.4,1850.0,343.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+ORIENTELEC.NS,Orient Electric Limited,Consumer Durables,3.67,4.29,4287.0,188.31,EQ,,VERIFIED,2026-11-26,2026-11-26
+FERMENTA.NS,Fermenta Biotech Limited,Pharmaceuticals & Biotechnology,3.63,2.11,1313.0,423.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDOCO.NS,Indoco Remedies Limited,Pharmaceuticals & Biotechnology,3.63,2.44,2143.0,235.62,EQ,,VERIFIED,2026-11-26,2026-11-26
+KALAMANDIR.NS,Sai Silks (Kalamandir) Limited,Retailing,3.61,8.02,1355.0,96.72,EQ,,VERIFIED,2026-11-26,2026-11-26
+IGPL.NS,IG Petrochemicals Limited,Chemicals & Petrochemicals,3.57,3.87,1605.0,504.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+MBEL.NS,M & B Engineering Limited,Construction,3.57,3.57,1663.0,274.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SDBL.NS,Som Distilleries & Breweries Limited,Beverages,3.57,3.53,1564.0,74.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+LANDMARK.NS,Landmark Cars Limited,Automobiles,3.55,3.09,1945.0,465.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+TCPLPACK.NS,TCPL Packaging Limited,Industrial Products,3.52,4.26,3993.0,4333.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+TRAVELFOOD.NS,Travel Food Services Limited,Leisure Services,3.49,3.08,15010.0,1109.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+PDSL.NS,PDS Limited,Textiles & Apparels,3.47,9.71,5777.0,411.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+MOL.NS,Meghmani Organics Limited,Fertilizers & Agrochemicals,3.46,1.85,1346.0,51.65,EQ,,VERIFIED,2026-11-26,2026-11-26
+LGBBROSLTD.NS,LG Balakrishnan & Bros Limited,Auto Components,3.45,2.15,5171.0,1550.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+MARATHON.NS,Marathon Nextgen Realty Limited,Realty,3.43,3.43,2992.0,437.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+PNBGILTS.NS,PNB Gilts Limited,Finance,3.34,4.08,1493.0,82.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SUPRAJIT.NS,Suprajit Engineering Limited,Auto Components,3.34,3.22,6180.0,458.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+NITCO.NS,Nitco Limited,Consumer Durables,3.29,2.43,2038.0,79.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+TINNARUBR.NS,Tinna Rubber and Infrastructure Limited,Industrial Products,3.28,2.57,1700.0,883.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+VOEPL.NS,Virtuoso Optoelectronics Limited,Consumer Durables,3.21,2.06,1708.0,483.25,EQ,,VERIFIED,2026-11-26,2026-11-26
+SAKSOFT.NS,Saksoft Limited,IT - Software,3.19,2.57,1653.0,118.26,EQ,,VERIFIED,2026-11-26,2026-11-26
+UDS.NS,Updater Services Limited,Commercial Services & Supplies,3.19,2.39,1433.0,210.64,EQ,,VERIFIED,2026-11-26,2026-11-26
+KAMDHENU.NS,Kamdhenu Limited,Industrial Products,3.18,2.76,1058.0,36.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+ORIENTTECH.NS,Orient Technologies Limited,IT - Services,3.17,3.12,1031.0,198.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+MAITHANALL.NS,Maithan Alloys Limited,Ferrous Metals,3.15,1.62,2367.0,818.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+BONDADA.NS,Bondada Engineering Limited,Telecom - Services,3.13,3.13,2857.0,269.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+MCLOUD.NS,Magellanic Cloud Limited,IT - Software,3.11,3.01,1354.0,23.23,EQ,,VERIFIED,2026-11-26,2026-11-26
+MASFIN.NS,MAS Financial Services Limited,Finance,3.08,2.08,4652.0,256.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+SIMPLEXINF.NS,Simplex Infrastructures Limited,Construction,3.08,6.32,2371.0,296.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+MOLDTKPAC.NS,Mold-Tek Packaging Limited,Industrial Products,3.07,4.44,2334.0,330.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+RAMCOSYS.NS,Ramco Systems Limited,IT - Software,3.06,2.41,2017.0,575.15,EQ,,VERIFIED,2026-11-26,2026-11-26
+IKIO.NS,IKIO Technologies Limited,Consumer Durables,3.05,2.74,1489.0,189.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+MMP.NS,MMP Industries Limited,Non - Ferrous Metals,3.02,1.89,1170.0,449.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+MPSLTD.NS,MPS Limited,Printing & Publication,3.0,2.62,3668.0,2063.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+VSTTILLERS.NS,V.S.T Tillers Tractors Limited,"Agricultural, Commercial & Construction Vehicles",3.0,3.05,3071.0,3353.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+JAICORPLTD.NS,Jai Corp Limited,Industrial Products,2.99,3.97,1539.0,87.11,EQ,,VERIFIED,2026-11-26,2026-11-26
+STEELCAS.NS,Steelcast Limited,Industrial Products,2.98,3.13,3745.0,354.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+JSWHL.NS,JSW Holdings Limited,Finance,2.96,4.62,11800.0,10269.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+INFOBEAN.NS,InfoBeans Technologies Limited,IT - Software,2.94,2.78,1553.0,150.45,EQ,,VERIFIED,2026-11-26,2026-11-26
+JLHL.NS,Jupiter Life Line Hospitals Limited,Healthcare Services,2.91,2.53,10405.0,298.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+DBOL.NS,Dhampur Bio Organics Limited,Agricultural Food & other Products,2.89,2.89,876.0,145.49,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHK.NS,S H Kelkar and Company Limited,Chemicals & Petrochemicals,2.89,2.53,1762.0,124.56,EQ,,VERIFIED,2026-11-26,2026-11-26
+TARSONS.NS,Tarsons Products Limited,Healthcare Equipment & Supplies,2.88,1.53,1614.0,294.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+VALIANTORG.NS,Valiant Organics Limited,Chemicals & Petrochemicals,2.88,2.39,1305.0,333.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDOBORAX.NS,Indo Borax & Chemicals Limited,Chemicals & Petrochemicals,2.87,2.13,1154.0,332.6,EQ,,VERIFIED,2026-11-26,2026-11-26
+RAJRATAN.NS,Rajratan Global Wire Limited,Auto Components,2.86,2.05,2107.0,397.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPAL.NS,S. P. Apparels Limited,Textiles & Apparels,2.85,3.33,2334.0,910.55,EQ,,VERIFIED,2026-11-26,2026-11-26
+WANBURY.NS,Wanbury Limited,Pharmaceuticals & Biotechnology,2.77,2.48,645.0,186.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+MUNJALAU.NS,Munjal Auto Industries Limited,Auto Components,2.75,2.18,1013.0,91.83,EQ,,VERIFIED,2026-11-26,2026-11-26
+SOLARWORLD.NS,Solarworld Energy Solutions Limited,Construction,2.75,3.32,1061.0,101.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+SHREEPUSHK.NS,Shree Pushkar Chemicals & Fertilisers Limited,Chemicals & Petrochemicals,2.74,3.11,1646.0,516.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+KOLTEPATIL.NS,Kolte - Patil Developers Limited,Realty,2.72,2.46,3887.0,436.8,EQ,,VERIFIED,2026-11-26,2026-11-26
+UNICHEMLAB.NS,Unichem Laboratories Limited,Pharmaceuticals & Biotechnology,2.72,1.7,3302.0,483.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+TEXINFRA.NS,Texmaco Infrastructure & Holdings Limited,Commercial Services & Supplies,2.71,2.91,1535.0,122.26,EQ,,VERIFIED,2026-11-26,2026-11-26
+SWARAJENG.NS,Swaraj Engines Limited,Industrial Products,2.7,1.99,4190.0,3434.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+METROBRAND.NS,Metro Brands Limited,Consumer Durables,2.69,1.59,22725.0,816.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+ORKLAINDIA.NS,Orkla India Limited,Food Products,2.69,1.82,7472.0,537.7,EQ,,VERIFIED,2026-11-26,2026-11-26
+COCKERILL.NS,John Cockerill India Limited,Industrial Manufacturing,2.68,1.66,3339.0,6767.0,EQ,,VERIFIED,2026-11-26,2026-11-26
+IVALUE.NS,Ivalue Infosolutions Limited,IT - Services,2.67,2.65,1290.0,228.54,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPANDANA.NS,Spandana Sphoorty Financial Limited,Finance,2.62,6.17,1578.0,174.99,EQ,,VERIFIED,2026-11-26,2026-11-26
+ROSSARI.NS,Rossari Biotech Limited,Chemicals & Petrochemicals,2.61,1.94,2332.0,416.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+TCI.NS,Transport Corporation of India Limited,Transport Services,2.6,2.77,6024.0,750.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+REPCOHOME.NS,Repco Home Finance Limited,Finance,2.57,3.16,2360.0,374.85,EQ,,VERIFIED,2026-11-26,2026-11-26
+TGVSL.NS,TGV Sraac Limited,Chemicals & Petrochemicals,2.57,2.29,1333.0,123.4,EQ,,VERIFIED,2026-11-26,2026-11-26
+TNPL.NS,Tamil Nadu Newsprint & Papers Limited,"Paper, Forest & Jute Products",2.57,1.78,956.0,135.05,EQ,,VERIFIED,2026-11-26,2026-11-26
+TVSSRICHAK.NS,TVS Srichakra Limited,Auto Components,2.57,2.43,3553.0,4557.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+GYFTR.NS,Gyftr Limited,Finance,2.56,5.87,1704.0,219.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+KRSNAA.NS,Krsnaa Diagnostics Limited,Healthcare Services,2.56,2.94,1684.0,495.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+PSB.NS,Punjab & Sind Bank,Banks,2.52,4.02,15908.0,21.1,EQ,,VERIFIED,2026-11-26,2026-11-26
+TTKPRESTIG.NS,TTK Prestige Limited,Consumer Durables,2.52,5.43,7395.0,521.3,EQ,,VERIFIED,2026-11-26,2026-11-26
+LOKESHMACH.NS,Lokesh Machines Limited,Industrial Manufacturing,2.47,1.74,871.0,357.9,EQ,,VERIFIED,2026-11-26,2026-11-26
+SULA.NS,Sula Vineyards Limited,Beverages,2.47,2.27,1176.0,135.21,EQ,,VERIFIED,2026-11-26,2026-11-26
+SURYODAY.NS,Suryoday Small Finance Bank Limited,Banks,2.47,2.23,1599.0,145.67,EQ,,VERIFIED,2026-11-26,2026-11-26
+MUKANDLTD.NS,Mukand Limited,Industrial Products,2.46,2.18,1950.0,137.18,EQ,,VERIFIED,2026-11-26,2026-11-26
+KOVAI.NS,Kovai Medical Center & Hospital Limited,Healthcare Services,2.45,3.05,7200.0,6638.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+MASTERTR.NS,Master Trust Limited,Capital Markets,2.43,2.5,1067.0,90.06,EQ,,VERIFIED,2026-11-26,2026-11-26
+RAMCOIND.NS,Ramco Industries Limited,Other Construction Materials,2.42,1.66,2678.0,316.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+KAPSTON.NS,Kapston Services Limited,Commercial Services & Supplies,2.37,1.92,1647.0,534.85,EQ,ASM long-term Stage I,VERIFIED,2026-11-26,2026-11-26
+MONARCH.NS,Monarch Networth Capital Limited,Capital Markets,2.35,2.37,2697.0,332.35,EQ,,VERIFIED,2026-11-26,2026-11-26
+SERVOTECH.NS,Servotech Renewable Power System Limited,Electrical Equipment,2.34,1.71,1442.0,62.21,EQ,,VERIFIED,2026-11-26,2026-11-26
+REGAAL.NS,Regaal Resources Limited,Agricultural Food & other Products,2.32,3.47,904.0,98.52,EQ,,VERIFIED,2026-11-26,2026-11-26
+SPMLINFRA.NS,SPML Infra Limited,Construction,2.32,2.93,1168.0,137.2,EQ,,VERIFIED,2026-11-26,2026-11-26
+REDTAPE.NS,Redtape Limited,Consumer Durables,2.31,1.58,5741.0,102.67,EQ,,VERIFIED,2026-11-26,2026-11-26
+PANACEABIO.NS,Panacea Biotec Limited,Pharmaceuticals & Biotechnology,2.28,1.8,2058.0,350.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+NELCAST.NS,Nelcast Limited,Industrial Products,2.27,4.43,1273.0,144.04,EQ,,VERIFIED,2026-11-26,2026-11-26
+INDOSTAR.NS,IndoStar Capital Finance Limited,Finance,2.26,1.84,2987.0,176.27,EQ,,VERIFIED,2026-11-26,2026-11-26
+MTNL.NS,Mahanagar Telephone Nigam Limited,Telecom - Services,2.26,3.77,1528.0,24.47,EQ,,VERIFIED,2026-11-26,2026-11-26
+WONDERLA.NS,Wonderla Holidays Limited,Leisure Services,2.24,2.13,3174.0,480.55,EQ,,VERIFIED,2026-11-26,2026-11-26
+SRM.NS,SRM Contractors Limited,Construction,2.2,2.32,880.0,437.75,EQ,,VERIFIED,2026-11-26,2026-11-26
+SURAKSHA.NS,Suraksha Diagnostic Limited,Healthcare Services,2.19,2.14,1622.0,311.95,EQ,,VERIFIED,2026-11-26,2026-11-26
+TASTYBITE.NS,Tasty Bite Eatables Limited,Food Products,2.1,4.87,2672.0,9980.5,EQ,,VERIFIED,2026-11-26,2026-11-26
+MHRIL.NS,Mahindra Holidays & Resorts India Limited,Leisure Services,2.08,1.9,3975.0,196.06,EQ,,VERIFIED,2026-11-26,2026-11-26
+PROSTARM.NS,Prostarm Info Systems Limited,Electrical Equipment,2.05,1.89,760.0,130.5,EQ,,VERIFIED,2026-11-26,2026-11-26

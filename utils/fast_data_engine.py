@@ -260,18 +260,25 @@ def load_base_fundamentals(live_mode=False):
         except Exception as e:
             print(f"Error loading CSV: {e}")
 
-    # Fallback: bare ticker list
-    from utils.nifty1000_list import TICKERS_1000, SUB_INDUSTRY_MAP
+    # Fallback: bare ticker list (reloaded fresh so EOD sync_liquid_universe updates take effect immediately)
+    from utils.nifty1000_list import load_nifty1000_tickers, get_sub_industry_mapping
     from utils.sector_mapping import consolidate_sector
-    df = pd.DataFrame({'ticker': TICKERS_1000})
+    _tickers = load_nifty1000_tickers()
+    _sub_map = get_sub_industry_mapping()
+    df = pd.DataFrame({'ticker': _tickers})
     # sector_granular keeps the raw Playbook-58 label (used by the rotation
     # matrix); 'sector' must go through consolidate_sector() to land in one
     # of the ~25 broad buckets — skipping that step is what fragmented the
     # "Sector Rotation" panel into single-stock groups like "Automobiles"
     # sitting alongside the properly-consolidated "Auto" bucket.
-    df['sector_granular'] = df['ticker'].map(SUB_INDUSTRY_MAP).fillna("Unknown")
+    df['sector_granular'] = df['ticker'].map(_sub_map).fillna("Unknown")
     df['sector'] = df['sector_granular'].map(consolidate_sector)
-    df['name'] = df['ticker']
+    try:
+        from utils import extended as _ext_names
+        _eq_names = _ext_names.eq_symbols()
+        df['name'] = df['ticker'].map(_eq_names).fillna(df['ticker'])
+    except Exception:
+        df['name'] = df['ticker']
     return _merge_fundamentals_cache(df)
 
 def fetch_missing_fundamentals(df):
@@ -621,9 +628,14 @@ def fetch_and_process_market_data(tickers, fundamental_df, live_mode=False, upda
                 base_data['volume_signal_text'] = vol_sig['combined_signal']
                 base_data['volume_score'] = vol_sig['combined_score'] # Alias for sorting
                 
-                # Avg Volume
+                # Avg Volume & robust rolling MEDIAN daily turnover (Rs Cr) — immune to single-day spike bias
                 _v50 = pd.to_numeric(df['Volume'].iloc[-50:], errors='coerce').dropna()
                 base_data['averageVolume'] = int(_v50.mean()) if len(_v50) else 0
+                _turn_cr = (
+                    pd.to_numeric(df['Close'], errors='coerce') * pd.to_numeric(df['Volume'], errors='coerce') / 1e7
+                ).dropna()
+                base_data['med_turn_20d_cr'] = round(float(_turn_cr.iloc[-20:].median()), 2) if len(_turn_cr) >= 5 else np.nan
+                base_data['med_turn_60d_cr'] = round(float(_turn_cr.iloc[-60:].median()), 2) if len(_turn_cr) >= 5 else np.nan
 
                 # Up/Down Volume Ratio (50 Days)
                 if len(df) >= 50:

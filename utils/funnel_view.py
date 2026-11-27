@@ -352,9 +352,10 @@ def _show(P: pd.DataFrame, key: str, extra: tuple = ()):
         "NSE Flags": st.column_config.TextColumn("NSE Flags", help="Surveillance (ASM/GSM) and upcoming corporate events")})
 
 
-def render(df: pd.DataFrame):
+def render(df: pd.DataFrame, board_df: pd.DataFrame | None = None):
     from utils import regime_badge as rb
-    reg = regime(df)
+    full_df = board_df if board_df is not None else df
+    reg = regime(full_df)
     c = st.columns([1.2, 1.2, 1.4, 2.0])
     c[0].metric("0 · Nifty regime", f"{ICON.get(reg['regime'], '⚪')} {reg['regime'].title()}")
     c[1].metric("Breadth regime", f"{ICON.get(reg['breadth_regime'], '⚪')} {reg['breadth_regime'].title()}",
@@ -383,7 +384,10 @@ def render(df: pd.DataFrame):
             "(`data/funnel_log.csv`) and scored against the market on **Signal Lab → Scorecard**, so this will be answered "
             "with evidence over the coming months.")
 
-    T = get_table(df)
+    T = get_table(full_df)
+    if board_df is not None and df is not None and "ticker" in df.columns:
+        keep_syms = set(df["ticker"].dropna())
+        T = T[T["ticker"].isin(keep_syms)].reset_index(drop=True)
     st.markdown("#### Stages")
     cols = st.columns(len(funnel.STAGES))
     on = [k for (k, lab), col in zip(funnel.STAGES, cols)

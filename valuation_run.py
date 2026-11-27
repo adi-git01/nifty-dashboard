@@ -42,24 +42,58 @@ def main():
     if not snap.empty and "extended" in snap.columns:
         snap = snap[snap["extended"] != True]
     px = snap.drop_duplicates(subset=["ticker"], keep="last").set_index("ticker") if not snap.empty else pd.DataFrame()
-    tickers = sorted(set(ctx.annual.ticker) & set(px.index)) if not px.empty else sorted(set(ctx.annual.ticker))
-    rows, t0 = [], time.time()
-    for k, t in enumerate(tickers):
-        price = None
-        if t in px.index:
-            for _pcol in ("price", "currentPrice"):
-                if _pcol in px.columns and pd.notna(px.at[t, _pcol]):
-                    price = float(px.at[t, _pcol])
-                    break
-        hi = float(px.at[t, "fiftyTwoWeekHigh"]) if t in px.index and "fiftyTwoWeekHigh" in px and pd.notna(px.at[t, "fiftyTwoWeekHigh"]) else None
-        lo = float(px.at[t, "fiftyTwoWeekLow"]) if t in px.index and "fiftyTwoWeekLow" in px and pd.notna(px.at[t, "fiftyTwoWeekLow"]) else None
-        try:
-            res = value_stock(t, ctx, price=price, knobs=True, hi52=hi, lo52=lo)
-        except Exception as e:                       # one bad stock must not stop the run
-            res = {"ticker": t.replace(".NS", ""), "status": "ERROR", "reason": str(e)[:120]}
-        rows.append(summary_row(res))
-        if (k + 1) % 200 == 0:
-            print(f"[valuation] {k + 1}/{len(tickers)} ({time.time() - t0:.0f}s)", flush=True)
+    core_annual_syms = set(ctx.annual.ticker)
+    tickers = sorted(core_annual_syms & set(px.index)) if not px.empty else sorted(core_annual_syms)
+    # Also value newly promoted liquid >=2Cr equities whose Screener fundamentals live in
+    # fundamentals_ext_annual / fundamentals_annual_extra WITHOUT modifying core peer sets.
+    extra_tickers: list[str] = []
+    liq_last_px: dict[str, float] = {}
+    ctx_ext = None
+    try:
+        from utils import liquid_universe as _lu
+        ldf = _lu.load_liquid_df()
+        if not ldf.empty and "Ticker" in ldf.columns and "last_close" in ldf.columns:
+            liq_last_px = {
+                str(r.Ticker).strip(): float(r.last_close)
+                for r in ldf.itertuples()
+                if pd.notna(r.last_close) and float(r.last_close) > 0
+            }
+        liq_want = set(liq_last_px) | (set(ldf["Ticker"].dropna().astype(str)) if not ldf.empty and "Ticker" in ldf.columns else set())
+        cand_extra = (liq_want | (set(px.index) if not px.empty else set())) - core_annual_syms
+        if cand_extra:
+            ctx_ext = load_context(extended=True)
+            ext_have = set(ctx_ext.annual.ticker) if not ctx_ext.annual.empty else set()
+            extra_tickers = sorted(cand_extra & ext_have)
+    except Exception as e:
+        print(f"[valuation] extended liquid context skipped: {e}")
+
+    def _run_batch(batch_tickers, batch_ctx):
+        batch_rows = []
+        for k, t in enumerate(batch_tickers):
+            price = None
+            if t in px.index:
+                for _pcol in ("price", "currentPrice"):
+                    if _pcol in px.columns and pd.notna(px.at[t, _pcol]):
+                        price = float(px.at[t, _pcol])
+                        break
+            if price is None and t in liq_last_px:
+                price = liq_last_px[t]
+            hi = float(px.at[t, "fiftyTwoWeekHigh"]) if t in px.index and "fiftyTwoWeekHigh" in px and pd.notna(px.at[t, "fiftyTwoWeekHigh"]) else None
+            lo = float(px.at[t, "fiftyTwoWeekLow"]) if t in px.index and "fiftyTwoWeekLow" in px and pd.notna(px.at[t, "fiftyTwoWeekLow"]) else None
+            try:
+                res = value_stock(t, batch_ctx, price=price, knobs=True, hi52=hi, lo52=lo)
+            except Exception as e:                       # one bad stock must not stop the run
+                res = {"ticker": t.replace(".NS", ""), "status": "ERROR", "reason": str(e)[:120]}
+            batch_rows.append(summary_row(res))
+            if (k + 1) % 200 == 0:
+                print(f"[valuation] {k + 1}/{len(batch_tickers)} ({time.time() - t0:.0f}s)", flush=True)
+        return batch_rows
+
+    t0 = time.time()
+    rows = _run_batch(tickers, ctx)
+    if extra_tickers and ctx_ext is not None:
+        print(f"[valuation] valuing {len(extra_tickers)} liquid expansion stocks via extended Screener context...", flush=True)
+        rows.extend(_run_batch(extra_tickers, ctx_ext))
     T = pd.DataFrame(rows)
     try:
         from utils.snapshots import bar_date as _snap_bar_date

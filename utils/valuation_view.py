@@ -228,6 +228,12 @@ def render_stock(ticker: str, price: float, hi52: float | None = None, lo52: flo
                     "script = fundamentals (about 40 minutes), then reload.")
             return
         res = value_stock(ticker, c, price=price, hi52=hi52, lo52=lo52)
+        if not us and not extended and res.get("status") in ("NO DATA", "OUT OF SCOPE"):
+            _norm_t = ticker if str(ticker).endswith(".NS") else f"{ticker}.NS"
+            if _norm_t not in set(c.annual["ticker"]):
+                c_ext = ctx(extended=True)
+                if not c_ext.annual.empty and _norm_t in set(c_ext.annual["ticker"]):
+                    res = value_stock(ticker, c_ext, price=price, hi52=hi52, lo52=lo52)
     if res.get("status") != "OK":
         st.warning(f"**{res.get('status')}** — {res.get('reason', '')}. Being out of scope is a property of the "
                    "business, not a criticism of it.")
