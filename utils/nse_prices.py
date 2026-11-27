@@ -40,6 +40,14 @@ SYMCHG = os.path.join(ROOT, "symbol_changes.csv")
 SERIES = ["EQ", "BE", "BZ", "SM", "ST"]               # preferred order when one symbol trades in two on a day
 INDEX_SYMBOLS = {"^NSEI": "Nifty 50", "^CRSLDX": "Nifty 500", "^NSEBANK": "Nifty Bank", "^CNXIT": "Nifty IT",
                  "^NSEMDCP50": "Nifty Midcap 50", "^CNXSC": "Nifty Smallcap 100"}
+_INDEX_ALIASES = {
+    "^NSEI": ("nifty 50", "cnx nifty"),
+    "^CRSLDX": ("nifty 500", "cnx 500"),
+    "^NSEBANK": ("nifty bank", "cnx bank"),
+    "^CNXIT": ("nifty it", "cnx it"),
+    "^NSEMDCP50": ("nifty midcap 50", "cnx midcap"),
+    "^CNXSC": ("nifty smallcap 100", "cnx smallcap"),
+}
 ADJ_TOL = 0.004                                       # PREV_CLOSE vs close: rounding is 0.05 at most; actions move it far more
 PUBLISH = (18, 30)                                    # NSE's day files are normally out by ~18:00-19:00 IST
 
@@ -454,10 +462,14 @@ def _factors_split_aware(g: pd.DataFrame, acts: Optional[list] = None) -> Tuple[
                 px_only[k] = px_only.get(k, 1.0) * (terp / c[k - 1])
                 used.add(k)
         elif kind == "demerger":
-            # a demerger's value goes at the special pre-open session: accept downward opening carve-outs only (< 0.96)
+            # a demerger's value goes at the special pre-open session: accept downward opening carve-outs (0.01..0.96);
+            # for small carve-outs (>= 0.96, e.g. HINDUNILVR Kwality Wall's), accept a verified explicit factor matching the gap.
             gap = qo_all[k] if np.isfinite(qo_all[k]) and qo_all[k] > 0 else q[k]
-            if np.isfinite(gap) and 0.05 < gap < 0.96:
+            if np.isfinite(gap) and 0.01 < gap < 0.96:
                 px_only[k] = px_only.get(k, 1.0) * gap
+                used.add(k)
+            elif np.isfinite(fac) and 0.90 <= fac < 0.995 and np.isfinite(gap) and abs(gap - fac) <= 0.03:
+                px_only[k] = px_only.get(k, 1.0) * fac
                 used.add(k)
         elif kind == "rights" and np.isfinite(q[k]) and abs(np.log(q[k])) > np.log(1.08):
             gap = qo_all[k] if np.isfinite(qo_all[k]) and qo_all[k] > 0 else q[k]
@@ -587,8 +599,10 @@ def history(tickers: Iterable[str], start=None, end=None) -> Dict[str, pd.DataFr
     if ix:
         X = raw("indices")
         if len(X):
+            idx_lower = X["index"].str.lower()
             for t in ix:
-                g = X[X["index"].str.lower() == INDEX_SYMBOLS[t].lower()].sort_values("date")
+                aliases = _INDEX_ALIASES.get(t, (INDEX_SYMBOLS[t].lower(),))
+                g = X[idx_lower.isin(aliases)].sort_values("date").drop_duplicates("date", keep="last")
                 if g.empty:
                     continue
                 a = pd.DataFrame({"Open": g.open.values, "High": g.high.values, "Low": g.low.values, "Close": g.close.values,

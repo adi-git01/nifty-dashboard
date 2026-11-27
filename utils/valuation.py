@@ -651,12 +651,23 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     if ident == "OUT" or gran in OUT_GRAN or "REIT" in gran or any(k in name.upper() for k in (" REIT", "INVIT", " TRUST")):
         why = OUT_GRAN.get(gran, "REIT/InvIT/trust")
         return {**out, "status": "OUT OF SCOPE", "reason": f"{why} -- outside the framework's identities"}
-    q_np, q_sales = _series(ctx.quarterly, t, "np"), _series(ctx.quarterly, t, "sales")
+    pit_cutoff = pd.Timestamp(as_of).tz_localize(None).normalize() if as_of is not None else None
+
+    def _q_pit(fld: str, *, shareholding: bool = False) -> pd.Series:
+        s = _series(ctx.quarterly, t, fld)
+        if pit_cutoff is None or s.empty:
+            return s
+        if shareholding:
+            return s[s.index + pd.Timedelta(days=21) <= pit_cutoff]
+        lag = pd.to_timedelta(np.where(s.index.month == 3, 60, 45), unit="D")
+        return s[s.index + lag <= pit_cutoff]
+
+    q_np, q_sales = _q_pit("np"), _q_pit("sales")
     q_np = q_np[q_np.index.month.isin([3, 6, 9, 12])]
     q_sales = q_sales[q_sales.index.month.isin([3, 6, 9, 12])]
     if len(q_np) < 4:
         return {**out, "status": "OUT OF SCOPE", "reason": "fewer than 4 reported quarters"}
-    ref_day = pd.Timestamp(as_of).tz_localize(None).normalize() if as_of is not None else pd.Timestamp.today()
+    ref_day = pit_cutoff if pit_cutoff is not None else pd.Timestamp.today()
     if q_np.index.max() < ref_day - pd.Timedelta(days=270):
         return {**out, "status": "NO DATA", "reason": f"latest reported quarter is {q_np.index.max():%b %Y} -- stale"}
     q_np_idx = q_np.index[-4:]
@@ -680,7 +691,11 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
         shares = mcap / 1e7 / price                              # fallback: cache market cap / live price
         note("share count from the cached market cap and today's price (Screener headline missing) -- "
              "off by the price move since the cache date")
-    A = lambda fld: _fy(_series(ctx.annual, t, fld))
+    def A(fld: str) -> pd.Series:
+        s = _fy(_series(ctx.annual, t, fld))
+        if pit_cutoff is None or s.empty:
+            return s
+        return s[s.index + pd.Timedelta(days=60) <= pit_cutoff]
     # Attributable share of consolidated profit: Screener's consolidated "Net Profit" includes minority
     # interests; reported EPS does not. attr = latest FY EPS x shares / FY net profit (a split or bonus
     # since the FY pushes it above 1 -> ignored). < 60% = holding company -> out of scope (SOTP problem).
@@ -725,6 +740,8 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     # ---- Phase 0 snapshot ------------------------------------------------------
     if hi52 is None or lo52 is None or not (np.isfinite(hi52) and np.isfinite(lo52)):
         mp = ctx.monthly[t].dropna() if t in getattr(ctx.monthly, "columns", []) else pd.Series(dtype=float)
+        if pit_cutoff is not None and len(mp):
+            mp = mp[mp.index <= pit_cutoff]
         mp = mp[mp.index >= mp.index.max() - pd.DateOffset(months=12)] if len(mp) else mp
         hi52 = float(max(mp.max(), price)) if len(mp) else np.nan
         lo52 = float(min(mp.min(), price)) if len(mp) else np.nan
@@ -757,7 +774,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     a_sh = A("shares_cr")
     if t in getattr(ctx.monthly, "columns", []) and years:
         px = ctx.monthly[t].dropna()
-        px = px[px.index >= px.index.max() - pd.DateOffset(years=5)]
+        if pit_cutoff is not None and len(px):
+            px = px[px.index <= pit_cutoff]
+        px = px[px.index >= px.index.max() - pd.DateOffset(years=5)] if len(px) else px
         if ident == "BFSI":
             src = a_book
         elif ident == "COMMODITY" and len(margins) >= 3:
@@ -809,11 +828,11 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
 
     # ---- 1C probability scorecard (numeric rows only) -------------------------------
     sc = {}
-    pro = _series(ctx.quarterly, t, "promoters")
+    pro = _q_pit("promoters", shareholding=True)
     if len(pro) >= 5:
         d = pro.iloc[-1] - pro.iloc[-5]
         sc["Promoter trend (4Q)"] = (1 if d >= 1 else -1 if d <= -2 else 0, f"{d:+.1f} pp")
-    inst = _series(ctx.quarterly, t, "fii").add(_series(ctx.quarterly, t, "dii"), fill_value=0)
+    inst = _q_pit("fii", shareholding=True).add(_q_pit("dii", shareholding=True), fill_value=0)
     if len(inst) >= 5:
         d = inst.iloc[-1] - inst.iloc[-5]
         sc["FII+DII trend (4Q)"] = (1 if d >= 2 else -1 if d <= -2 else 0, f"{d:+.1f} pp")
@@ -839,9 +858,9 @@ def value_stock(ticker: str, ctx: Context, price: float | None = None, n: int = 
     if ident != "BFSI" and np.isfinite(de):
         sc["Balance sheet D/E"] = (1 if de <= 0.5 else -1 if de > 1.5 else 0, f"D/E {de:.2f}")
     if ident == "BFSI":
-        q_nnpa = _series(ctx.quarterly, t, "nnpa")
-        q_gnpa = _series(ctx.quarterly, t, "gnpa")
-        q_cet1 = _series(ctx.quarterly, t, "cet1")
+        q_nnpa = _q_pit("nnpa")
+        q_gnpa = _q_pit("gnpa")
+        q_cet1 = _q_pit("cet1")
         if len(q_nnpa):
             nn = float(q_nnpa.iloc[-1])
             d_nn = float(q_nnpa.iloc[-1] - q_nnpa.iloc[-5]) if len(q_nnpa) >= 5 else 0.0
