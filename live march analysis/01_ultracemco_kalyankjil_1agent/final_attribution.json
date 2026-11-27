@@ -1,0 +1,153 @@
+{
+  "window": [
+    "2026-02-27",
+    "2026-11-25"
+  ],
+  "trader_summary": {
+    "total_ret_pct": -4.59,
+    "max_dd_pct": -5.02,
+    "sharpe": -2.097,
+    "final_nav": 954098.26,
+    "total_pnl_rs": -45902.0,
+    "total_trades": 8
+  },
+  "per_stock": {
+    "ULTRACEMCO.NS": {
+      "realized_rs": -12583.0,
+      "unrealized_rs": 0.0,
+      "total_pnl_rs": -12583.0,
+      "n_buys": 1,
+      "n_sells": 1
+    },
+    "KALYANKJIL.NS": {
+      "realized_rs": -33319.0,
+      "unrealized_rs": 0.0,
+      "total_pnl_rs": -33319.0,
+      "n_buys": 3,
+      "n_sells": 3
+    }
+  },
+  "benchmarks": {
+    "BH_ULTRACEMCO": {
+      "total_ret_pct": 0.97,
+      "max_dd_pct": -18.26,
+      "sharpe": 0.184,
+      "start_close": 12677.0,
+      "end_close": 12800.0,
+      "min_close": 10362.0,
+      "max_close": 12939.0
+    },
+    "MECH_G1_BUYNOW_ULTRACEMCO": {
+      "total_ret_pct": 0.0,
+      "max_dd_pct": 0.0,
+      "sharpe": 0.0,
+      "trades": 0
+    },
+    "BH_KALYANKJIL": {
+      "total_ret_pct": 55.17,
+      "max_dd_pct": -26.35,
+      "sharpe": 1.427,
+      "start_close": 410.1,
+      "end_close": 636.35,
+      "min_close": 330.8,
+      "max_close": 710.9
+    },
+    "MECH_G1_BUYNOW_KALYANKJIL": {
+      "total_ret_pct": 0.16,
+      "max_dd_pct": -10.26,
+      "sharpe": 0.111,
+      "trades": 3
+    },
+    "BH_50_50": {
+      "total_ret_pct": 28.07,
+      "max_dd_pct": -17.34,
+      "sharpe": 1.162
+    },
+    "NIFTY_50": {
+      "total_ret_pct": 2.54,
+      "max_dd_pct": -11.7,
+      "sharpe": 0.3,
+      "start_close": 25178.65,
+      "end_close": 25819.25
+    }
+  },
+  "trades": [
+    {
+      "date": "2026-04-07",
+      "ticker": "KALYANKJIL.NS",
+      "side": "BUY",
+      "reason": "TRIGGER@415.0",
+      "px": 435.0,
+      "shares": 344,
+      "value": 149640.0
+    },
+    {
+      "date": "2026-04-24",
+      "ticker": "KALYANKJIL.NS",
+      "side": "SELL",
+      "reason": "TRAIL_8%_HIT",
+      "px": 412.8,
+      "shares": 344,
+      "pnl_pct": -5.29,
+      "pnl_rs": -8220.0
+    },
+    {
+      "date": "2026-05-04",
+      "ticker": "KALYANKJIL.NS",
+      "side": "BUY",
+      "reason": "BUY_NOW",
+      "px": 414.0,
+      "shares": 359,
+      "value": 148626.0
+    },
+    {
+      "date": "2026-05-11",
+      "ticker": "KALYANKJIL.NS",
+      "side": "SELL",
+      "reason": "HARD_STOP@385.0",
+      "px": 385.0,
+      "shares": 359,
+      "pnl_pct": -7.19,
+      "pnl_rs": -10985.0
+    },
+    {
+      "date": "2026-07-22",
+      "ticker": "ULTRACEMCO.NS",
+      "side": "BUY",
+      "reason": "TRIGGER@12050.0",
+      "px": 12081.0,
+      "shares": 20,
+      "value": 241620.0
+    },
+    {
+      "date": "2026-08-19",
+      "ticker": "ULTRACEMCO.NS",
+      "side": "SELL",
+      "reason": "MA50_BREAK(11499.0<11637.5)",
+      "px": 11499.0,
+      "shares": 20,
+      "pnl_pct": -5.01,
+      "pnl_rs": -12583.0
+    },
+    {
+      "date": "2026-09-16",
+      "ticker": "KALYANKJIL.NS",
+      "side": "BUY",
+      "reason": "BUY_NOW",
+      "px": 606.9,
+      "shares": 319,
+      "value": 193601.0
+    },
+    {
+      "date": "2026-09-28",
+      "ticker": "KALYANKJIL.NS",
+      "side": "SELL",
+      "reason": "HARD_STOP@565.0",
+      "px": 565.0,
+      "shares": 319,
+      "pnl_pct": -7.09,
+      "pnl_rs": -14114.0
+    }
+  ],
+  "open_positions_at_end": {}
+}

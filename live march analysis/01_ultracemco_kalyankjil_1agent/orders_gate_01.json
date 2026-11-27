@@ -1,0 +1,32 @@
+{
+  "gate_num": 1,
+  "gate_date": "2026-02-27",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "PLACE_TRIGGER",
+      "target_pct": 20,
+      "trigger_px": 13120.0,
+      "stop_px": 12380.0,
+      "trail_pct": 0.12,
+      "use_ma50_exit": true
+    },
+    "KALYANKJIL.NS": {
+      "action": "AVOID",
+      "target_pct": 0,
+      "trigger_px": null,
+      "stop_px": null,
+      "trail_pct": null,
+      "use_ma50_exit": false
+    }
+  },
+  "notes": {
+    "regime": "MILD BEAR / BEAR breadth (26.8% > 200DMA) / CAUTION (12% trail) -> capital preservation, cash default.",
+    "ultracemco": "PLACE_TRIGGER 20% @ Close >= 13120 (above ~13110 52W high), stop 12380 (-5.64%), MA50 exit + 12% trail. Avoids buying Stage 3 BEAR anchor immediately.",
+    "kalyankjil": "AVOID 0%: Stage 4, caution=3, DISTRIBUTION, FAR OVERHANG, 59% vol despite NP +90% and UNRATED cheapness.",
+    "missing_signals": [
+      "India VIX (was null on 2026-02-27) & trailing 5d/20d FII cash flow / PCR",
+      "News / Governance / Promoter Pledge / Block-Deal catalyst feed (explaining KALYANKJIL NP +90% vs -33.6% DISTRIBUTION divergence)",
+      "20-day OHLCV swing pivots, volume-surge ratios, and earnings-day Anchored VWAP (AVWAP)"
+    ]
+  }
+}

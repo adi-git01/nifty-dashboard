@@ -1,0 +1,43 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-02-27",
+    "to_date": "2026-03-30",
+    "orders": {
+      "MACPOWER.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 907.0, "trail_pct": 15, "use_ma50_exit": false, "max_gap_pct": 5},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": 201.8, "trail_pct": 12, "use_ma50_exit": false, "max_gap_pct": 5},
+      "LAURUSLABS.NS": {"action": "PLACE_TRIGGER", "target_pct": 14, "trigger_px": 1092.0, "stop_px": 1020.7, "trail_pct": 15, "use_ma50_exit": false, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "CAUTION 22% starter in MACPOWER/SSWL + LAURUSLABS trigger 1092"}
+  },
+  "mom_trader": {
+    "from_date": "2026-02-27",
+    "to_date": "2026-03-30",
+    "orders": {
+      "MACPOWER.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 907.0, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 8, "stop_px": 201.8, "trail_pct": 12, "use_ma50_exit": false, "max_gap_pct": 5},
+      "LAURUSLABS.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 1108.0, "stop_px": 1020.7, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "CAUTION 20% starter in MACPOWER/SSWL + LAURUSLABS trigger 1108", "critique": "GARP risks Stage 4 traps; Hybrid may chase STLTECH"}
+  },
+  "garp_investor": {
+    "from_date": "2026-02-27",
+    "to_date": "2026-03-30",
+    "orders": {
+      "HFCL.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": null, "trail_pct": null, "use_ma50_exit": false, "max_gap_pct": 99},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": null, "trail_pct": null, "use_ma50_exit": false, "max_gap_pct": 99},
+      "MACPOWER.NS": {"action": "BUY_NOW", "target_pct": 8, "stop_px": null, "trail_pct": null, "use_ma50_exit": false, "max_gap_pct": 99}
+    },
+    "notes": {"rationale": "30% GARP starter in HFCL (<Bear), SSWL (FCF 1.68), MACPOWER (ROCE 27%)", "critique": "Mom/Hybrid risk chasing STLTECH 5.93 ATR & miss HFCL Bear floor"}
+  },
+  "hybrid_pm": {
+    "from_date": "2026-02-27",
+    "to_date": "2026-03-30",
+    "orders": {
+      "MACPOWER.NS": {"action": "BUY_NOW", "target_pct": 14, "stop_px": 845.0, "trail_pct": 16, "use_ma50_exit": false, "max_gap_pct": 6},
+      "LAURUSLABS.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 915.0, "trail_pct": 15, "use_ma50_exit": false, "max_gap_pct": 6},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": 183.0, "trail_pct": 15, "use_ma50_exit": false, "max_gap_pct": 6},
+      "HFCL.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 71.0, "stop_px": 59.5, "trail_pct": 16, "use_ma50_exit": false, "max_gap_pct": 6}
+    },
+    "notes": {"rationale": "36% starter in MACPOWER/LAURUSLABS/SSWL + HFCL trigger 71 with 15-16% adaptive stops", "critique": "Mom tight 5-6% stops risk whipsaw; GARP over-penalizes LAURUSLABS capex FCF"}
+  }
+}

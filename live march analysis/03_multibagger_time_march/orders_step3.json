@@ -1,0 +1,51 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-04-30",
+    "to_date": "2026-05-29",
+    "orders": {
+      "STLTECH.NS": {"action": "TRIM", "target_pct": 8, "stop_px": 235.0, "trail_pct": 12},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 98.0, "trail_pct": 12},
+      "LAURUSLABS.NS": {"action": "ADD", "target_pct": 15, "stop_px": 1033.3, "trail_pct": 15},
+      "MACPOWER.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 1165.0, "stop_px": 1015.0, "trail_pct": 14, "max_gap_pct": 5},
+      "SSWL.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 222.0, "stop_px": 208.4, "trail_pct": 14, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Trim STLTECH (+57%, 12 ATR), add LAURUSLABS to 15%, triggers on MACPOWER/SSWL"}
+  },
+  "mom_trader": {
+    "from_date": "2026-04-08",
+    "to_date": "2026-05-18",
+    "orders": {
+      "CUPID.NS": {"action": "ADD", "target_pct": 16, "stop_px": 80.8, "trail_pct": 15, "use_ma50_exit": true},
+      "LAURUSLABS.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 991.3, "trail_pct": 15, "use_ma50_exit": true},
+      "MACPOWER.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 1015.0, "stop_px": 866.6, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5},
+      "SSWL.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 206.0, "stop_px": 196.5, "trail_pct": 12, "max_gap_pct": 5},
+      "SIGMAADV.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 174.5, "stop_px": 163.3, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "RECOVERY thrust -> pyramid CUPID, buy LAURUSLABS, arm SIGMAADV/MACPOWER/SSWL triggers"}
+  },
+  "garp_investor": {
+    "from_date": "2026-04-08",
+    "to_date": "2026-05-18",
+    "orders": {
+      "HFCL.NS": {"action": "ADD", "target_pct": 16, "stop_px": null, "trail_pct": null},
+      "MACPOWER.NS": {"action": "ADD", "target_pct": 15, "stop_px": null, "trail_pct": null},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 13, "stop_px": null, "trail_pct": null},
+      "FILATEX.NS": {"action": "HOLD", "target_pct": 11, "stop_px": null, "trail_pct": null}
+    },
+    "notes": {"rationale": "Add HFCL (<Bear) & MACPOWER to 55% invested into RECOVERY"}
+  },
+  "hybrid_pm": {
+    "from_date": "2026-04-08",
+    "to_date": "2026-05-18",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "ADD", "target_pct": 20, "stop_px": 920.0, "trail_pct": 15},
+      "MACPOWER.NS": {"action": "ADD", "target_pct": 18, "stop_px": 855.0, "trail_pct": 15},
+      "STLTECH.NS": {"action": "HOLD", "target_pct": 15, "stop_px": 166.0, "trail_pct": 17},
+      "FILATEX.NS": {"action": "HOLD", "target_pct": 11, "stop_px": 38.0, "trail_pct": 15},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 172.0, "trail_pct": 15},
+      "HFCL.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 63.5, "trail_pct": 15},
+      "CUPID.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": 78.0, "trail_pct": 15}
+    },
+    "notes": {"rationale": "RECOVERY thrust -> 94% invested, pyramid LAURUSLABS/MACPOWER + initiate CUPID"}
+  }
+}

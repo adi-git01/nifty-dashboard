@@ -1,0 +1,51 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-07-31",
+    "to_date": "2026-08-31",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "HOLD", "target_pct": 14, "stop_px": 1550.0, "trail_pct": 12},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 12, "stop_px": 192.0, "trail_pct": 13},
+      "TBZ.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 225.0, "trail_pct": 13},
+      "SSWL.NS": {"action": "ADD", "target_pct": 12, "stop_px": 264.6, "trail_pct": 13},
+      "SIGMAADV.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 648.0, "stop_px": 550.0, "trail_pct": 14, "max_gap_pct": 5},
+      "STLTECH.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 615.0, "stop_px": 535.0, "trail_pct": 13, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Hold 3 winners, ADD SSWL to 12%, arm SIGMAADV & STLTECH triggers"}
+  },
+  "mom_trader": {
+    "from_date": "2026-07-20",
+    "to_date": "2026-09-15",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "ADD", "target_pct": 16, "stop_px": 1435.0, "trail_pct": 15, "use_ma50_exit": true},
+      "SSWL.NS": {"action": "ADD", "target_pct": 16, "stop_px": 230.3, "trail_pct": 15, "use_ma50_exit": true},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 13, "stop_px": 165.0, "trail_pct": 15, "use_ma50_exit": true},
+      "TBZ.NS": {"action": "TRIM", "target_pct": 9, "stop_px": 205.0, "trail_pct": 15, "use_ma50_exit": true},
+      "SIGMAADV.NS": {"action": "HOLD", "target_pct": 7, "stop_px": 451.3, "trail_pct": 15, "use_ma50_exit": true},
+      "MACPOWER.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 1345.0, "stop_px": 1131.5, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Pyramid BUY NOW LAURUSLABS & SSWL to 16%, trim TBZ, arm MACPOWER @ 1345"}
+  },
+  "garp_investor": {
+    "from_date": "2026-07-20",
+    "to_date": "2026-09-15",
+    "orders": {
+      "MACPOWER.NS": {"action": "HOLD", "target_pct": 17, "stop_px": null, "trail_pct": null},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 16, "stop_px": null, "trail_pct": null},
+      "FILATEX.NS": {"action": "TRIM", "target_pct": 8, "stop_px": null, "trail_pct": null}
+    },
+    "notes": {"rationale": "Trim FILATEX (+91%) to 8%; hold MACPOWER & SSWL"}
+  },
+  "hybrid_pm": {
+    "from_date": "2026-07-20",
+    "to_date": "2026-09-15",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "HOLD", "target_pct": 20, "stop_px": 1325.0, "trail_pct": 15},
+      "SSWL.NS": {"action": "ADD", "target_pct": 16, "stop_px": 232.0, "trail_pct": 15},
+      "CUPID.NS": {"action": "ADD", "target_pct": 16, "stop_px": 172.0, "trail_pct": 16},
+      "TBZ.NS": {"action": "HOLD", "target_pct": 15, "stop_px": 215.0, "trail_pct": 16},
+      "MACPOWER.NS": {"action": "HOLD", "target_pct": 12, "stop_px": 1110.0, "trail_pct": 15},
+      "SIGMAADV.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": 448.0, "trail_pct": 16}
+    },
+    "notes": {"rationale": "Pyramid SSWL & CUPID to 16%, BUY SIGMAADV (BBP 8 squeeze) -> 89% invested"}
+  }
+}

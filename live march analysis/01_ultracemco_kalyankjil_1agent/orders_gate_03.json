@@ -1,0 +1,32 @@
+{
+  "gate_num": 3,
+  "gate_date": "2026-04-30",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "PLACE_TRIGGER",
+      "target_pct": 20,
+      "trigger_px": 12200.0,
+      "stop_px": 11500.0,
+      "trail_pct": 0.12,
+      "use_ma50_exit": true
+    },
+    "KALYANKJIL.NS": {
+      "action": "BUY_NOW",
+      "target_pct": 15,
+      "trigger_px": null,
+      "stop_px": 385.0,
+      "trail_pct": 0.12,
+      "use_ma50_exit": false
+    }
+  },
+  "notes": {
+    "regime": "Breadth thrust (78.7% > 50DMA, 41.2% > 200DMA CHOPPY) lifted engine BEAR -> CAUTION (12% trail). Nifty still -4.38% vs 200DMA, FII longs 11.5% (23rd pctile).",
+    "ultracemco": "PLACE_TRIGGER 20% @ Close >= 12200 (above 200DMA 12092 & Apr-21 rejection 12039), stop 11500 (-5.74%), 12% trail + MA50 exit. Cement rank 54/54 but vol halved (49->29%), deliv 1.14x, ACCUMULATE P35.",
+    "kalyankjil": "BUY_NOW 15% starter right above rising 50DMA (412.75 vs 405.62) after Apr-24 shakeout & Apr-27 reclaim. DNA BUY, RS3M +16.6%, CompRS +7.26, Consumer Durables TURNING UP. Stop 385 (-6.72%), 12% trail, no MA50 whipsaw exit.",
+    "missing_signals": [
+      "Actual Q4 FY26 earnings announcement dates & operational updates (instead of flat 45-day lag keeping Dec 2025)",
+      "India VIX, Nifty 5d RSI, and FII vs DII daily cash flows",
+      "20-day swing high/low & Volume-at-Price (VAP) overhead supply map"
+    ]
+  }
+}

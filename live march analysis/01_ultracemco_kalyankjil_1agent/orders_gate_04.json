@@ -1,0 +1,32 @@
+{
+  "gate_num": 4,
+  "gate_date": "2026-06-15",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "PLACE_TRIGGER",
+      "target_pct": 25,
+      "trigger_px": 12050.0,
+      "stop_px": 11380.0,
+      "trail_pct": 0.12,
+      "use_ma50_exit": true
+    },
+    "KALYANKJIL.NS": {
+      "action": "AVOID",
+      "target_pct": 0,
+      "trigger_px": null,
+      "stop_px": null,
+      "trail_pct": null,
+      "use_ma50_exit": false
+    }
+  },
+  "notes": {
+    "regime": "Breadth >200DMA crossed 51.0% (MILD BULL), >50DMA 64.2%, but Nifty still -4.25% vs 200DMA -> engine CAUTION (12% trail).",
+    "ultracemco": "PLACE_TRIGGER 25% @ Close >= 12050 (clears 200DMA 11947 & Apr-21 high 12039), stop 11380 (-5.56%), 12% trail + MA50 exit. Upgraded Stage 4->1, vol20 coiled 49->22%, Q4 OPM 22% (+2pp), DII +0.97pp, ACCUMULATE P34.",
+    "kalyankjil": "AVOID 0%: Q4 NP +118% yet DII sold (-1.1pp), deliv collapsed to 15.9% (0.44x), vol20 jumped back to 54.1%, Stage 4 dist_days=3 -> refuses 3rd Stage 4 probe.",
+    "missing_signals": [
+      "FY26 cash-flow quality (CFO/EBITDA), working capital/inventory days, promoter pledge & franchisee/gold-loan governance checks for KALYANKJIL",
+      "Regional cement pricing (Rs/bag) & top-5 peer RS inside Cement & Cement Products",
+      "India VIX (still null) & FII/DII daily cash-market flows"
+    ]
+  }
+}

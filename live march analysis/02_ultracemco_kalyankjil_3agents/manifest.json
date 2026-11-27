@@ -1,0 +1,59 @@
+{
+  "events": [
+    {
+      "event_num": 1,
+      "date": "2026-02-27",
+      "label": "E1: Launch (Feb 27) \u2014 Market CAUTION, UltraTech Gate 1 / Stage 3, Kalyan Stage 4",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_01_2026-02-27.json"
+    },
+    {
+      "event_num": 2,
+      "date": "2026-03-30",
+      "label": "E2: Bear Washout (Mar 30) \u2014 Nifty BEAR, Breadth 12.5%, UltraTech Valuation ACCUMULATE",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_02_2026-03-30.json"
+    },
+    {
+      "event_num": 3,
+      "date": "2026-04-22",
+      "label": "E3: Breadth Thrust & UltraTech 200-DMA / Gate 1 ON (Apr 22)",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_03_2026-04-22.json"
+    },
+    {
+      "event_num": 4,
+      "date": "2026-05-18",
+      "label": "E4: Post-Q4 FY26 Results Live (May 18) \u2014 UltraTech OPM 22%, Kalyan NP +118%",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_04_2026-05-18.json"
+    },
+    {
+      "event_num": 5,
+      "date": "2026-07-09",
+      "label": "E5: Kalyan 200-DMA High-Volume Breakout (Jul 9, Rs 443)",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_05_2026-07-09.json"
+    },
+    {
+      "event_num": 6,
+      "date": "2026-07-20",
+      "label": "E6: Dual Event (Jul 20) \u2014 UltraTech 200-DMA/Gate 1 ON + Kalyan First BUY NOW",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_06_2026-07-20.json"
+    },
+    {
+      "event_num": 7,
+      "date": "2026-09-15",
+      "label": "E7: Market BEAR + Kalyan Tight Squeeze BUY NOW + UltraTech ACCUMULATE P28 (Sep 15)",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_07_2026-09-15.json"
+    },
+    {
+      "event_num": 8,
+      "date": "2026-11-06",
+      "label": "E8: November Bull Breakout (Nov 6) \u2014 Both Stocks Gate 1 ON + Sep-2026 SHP Live",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_08_2026-11-06.json"
+    },
+    {
+      "event_num": 9,
+      "date": "2026-11-25",
+      "label": "E9: Final Checkpoint \u2014 Today (Nov 25, BULL Mode)",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march_3agents\\packets\\event_09_2026-11-25.json"
+    }
+  ],
+  "elapsed_sec": 11.3
+}

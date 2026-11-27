@@ -1,0 +1,32 @@
+{
+  "mom_trader": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "BUY_NOW", "target_pct": 30, "trigger_px": null, "max_gap_pct": null, "stop_px": 11350.0, "trail_pct": 0.12, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "WAIT", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "ULTRACEMCO flipped HOLD deterring value buyers right as Gate 1 ignites; KALYANKJIL bleeding -7% 1W RS under VETO.",
+      "missing": "Distance-from-10/20-EMA & VCP flag detector to scale BBP 94.8 pilot."
+    }
+  },
+  "garp_investor": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "HOLD", "target_pct": 26.7, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "HOLD", "target_pct": 35.5, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Chart traders get ULTRACEMCO Gate 1 only after +13.5% bounce to 40.7x PE HOLD, while still locked out of KALYANKJIL 25% below bear blend.",
+      "missing": "Q4 FY26 earnings & catalyst behind DII -1.10% QoQ trim in Kalyan."
+    }
+  },
+  "hybrid_pm": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "ADD", "target_pct": 35, "trigger_px": null, "max_gap_pct": null, "stop_px": 11220.0, "trail_pct": 0.12, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "HOLD", "target_pct": 25.7, "trigger_px": null, "max_gap_pct": null, "stop_px": 345.0, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Momentum enters ULTRACEMCO cold at BBP 95 facing 200DMA pullback; GARP refuses to pyramid breadth-thrust breakout.",
+      "missing": "Q4 FY26 earnings dates/consensus & driver of Mar-26 DII trim in Kalyan."
+    }
+  }
+}

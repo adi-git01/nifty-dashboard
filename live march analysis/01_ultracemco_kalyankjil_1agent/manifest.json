@@ -1,0 +1,49 @@
+{
+  "gates": [
+    {
+      "gate_num": 1,
+      "date": "2026-02-27",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_01_2026-02-27.json"
+    },
+    {
+      "gate_num": 2,
+      "date": "2026-03-30",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_02_2026-03-30.json"
+    },
+    {
+      "gate_num": 3,
+      "date": "2026-04-30",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_03_2026-04-30.json"
+    },
+    {
+      "gate_num": 4,
+      "date": "2026-06-15",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_04_2026-06-15.json"
+    },
+    {
+      "gate_num": 5,
+      "date": "2026-07-31",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_05_2026-07-31.json"
+    },
+    {
+      "gate_num": 6,
+      "date": "2026-09-15",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_06_2026-09-15.json"
+    },
+    {
+      "gate_num": 7,
+      "date": "2026-10-30",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_07_2026-10-30.json"
+    },
+    {
+      "gate_num": 8,
+      "date": "2026-11-25",
+      "path": "C:\\Users\\adity\\.gemini\\antigravity\\brain\\40c6abb7-9cd2-4dc5-b585-90209394eacd\\scratch\\time_march\\packets\\gate_08_2026-11-25.json"
+    }
+  ],
+  "extra_nse_days": [
+    "2026-11-23",
+    "2026-11-25"
+  ],
+  "elapsed_sec": 19.4
+}

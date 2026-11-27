@@ -1,0 +1,32 @@
+{
+  "gate_num": 5,
+  "gate_date": "2026-07-31",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "HOLD",
+      "target_pct": 24,
+      "trigger_px": null,
+      "stop_px": 11380.0,
+      "trail_pct": 0.12,
+      "use_ma50_exit": true
+    },
+    "KALYANKJIL.NS": {
+      "action": "PLACE_TRIGGER",
+      "target_pct": 12,
+      "trigger_px": 652.0,
+      "stop_px": 560.0,
+      "trail_pct": 0.15,
+      "use_ma50_exit": false
+    }
+  },
+  "notes": {
+    "regime": "Cusp of bull transition: breadth >200DMA 57.7% (MILD BULL), Nifty -1.59% vs 200DMA (CAUTION 12% trail), FII longs 11.1% (29th pctile).",
+    "ultracemco": "HOLD 24.4% (20 sh @ avg 12105.16, CMP 11903): textbook low-vol (20.4%) backtest of 200DMA (11813), Gate 1=True, DNA BUY, caution=0, Cement improving 54->41. Keep stop 11380, 12% trail, MA50 exit.",
+    "kalyankjil": "PLACE_TRIGGER 12% (half_size + invvol 0.50) @ Close >= 652 (above implied 649 52W high), stop 560 (-14.1%, below Jul-20 570 BUY NOW anchor), 15% trail. Refuses chasing +41.4% extension & 82% vol blindly.",
+    "missing_signals": [
+      "Q1 FY27 (Jun 2026) earnings / corporate catalyst feed explaining Kalyan's 10x turnover surge (Rs 2033 Cr/day)",
+      "Absolute Delivery Value (Rs Cr/day) & F&O OI / short-covering vs long-buildup / NSE F&O ban status",
+      "India VIX & 10-day high-tight-flag OHLCV / volume dry-up structure"
+    ]
+  }
+}

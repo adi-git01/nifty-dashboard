@@ -1,0 +1,37 @@
+{
+  "gate_num": 8,
+  "gate_date": "2026-11-25",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "BUY_NOW",
+      "target_pct": 22,
+      "trigger_px": null,
+      "stop_px": 11600.0,
+      "trail_pct": 0.15,
+      "use_ma50_exit": true
+    },
+    "KALYANKJIL.NS": {
+      "action": "BUY_NOW",
+      "target_pct": 18,
+      "trigger_px": null,
+      "stop_px": 565.0,
+      "trail_pct": 0.15,
+      "use_ma50_exit": true
+    }
+  },
+  "notes": {
+    "regime": "First BULL mode of the march: Nifty +12.0% to 25819.2 (+7.58% vs 200DMA), FII longs tripled 11.1->34.1% (98th pctile), 15% engine trail. Breadth still CHOPPY (37.8% >50DMA, 43.9% >200DMA) -> deploy 40% total, keep 60% dry powder.",
+    "ultracemco": "BUY_NOW 22% (half_size=true): BULL regime + Cement #11/54 LEADING + Stage 2 + ACCUMULATING (DII 20.86%, +1.01q) + CLEAN AIR -2.4% off 52wH. Stop 11600 (200DMA, -9.38% -> 2.06% NAV risk), 15% trail + MA50 exit.",
+    "kalyankjil": "BUY_NOW 18% (vol-adjusted): Highest Funnel score of march (64.1 Grade B, zero cons), MTF 3/3, BUY NOW, FIIs flipped back to ACCUMULATING (+1.59q, Q2 NP +63.6%), pulled back -12.8% off 729 high. Override tight 620 (2.57%, <0.7 sigma) forensics stop with 565 (below 50DMA 578.7, 3.0 sigma -> 2.02% NAV risk), MA50 exit + 15% trail.",
+    "missing_signals": [
+      "5-day intra-week OHLCV pullback bars on KALYANKJIL (verifying DISTRIBUTION vs quiet flag)",
+      "India VIX & Midcap/Smallcap breadth thrust metrics",
+      "Real-time post-Q2 Nov FII/DII cash & block prints"
+    ],
+    "self_reflection_top3_missing": [
+      "Earnings / operational catalyst calendar + real-time monthly MF/FII institutional flow feed (75-90d quarterly shareholding lag)",
+      "India VIX (null across all 8 gates) & breadth capitulation/thrust timers at Mar-30 and Oct-30 washouts",
+      "20-day OHLCV pivot / gap-slippage ATR stats & F&O OI / absolute delivery value (Rs Cr/day) microstructure"
+    ]
+  }
+}

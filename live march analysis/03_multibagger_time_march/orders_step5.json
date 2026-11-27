@@ -1,0 +1,52 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-06-30",
+    "to_date": "2026-07-31",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "HOLD", "target_pct": 13, "stop_px": 1340.0, "trail_pct": 13},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 11, "stop_px": 155.0, "trail_pct": 13},
+      "SIGMAADV.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 455.0, "trail_pct": 13},
+      "TBZ.NS": {"action": "BUY_NOW", "target_pct": 8, "stop_px": 162.0, "trail_pct": 15},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 8, "stop_px": 213.4, "trail_pct": 14},
+      "STLTECH.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 645.0, "stop_px": 535.0, "trail_pct": 12, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Hold 3 winners, BUY TBZ & SSWL, re-entry trigger on STLTECH @ 645"}
+  },
+  "mom_trader": {
+    "from_date": "2026-06-22",
+    "to_date": "2026-07-20",
+    "orders": {
+      "CUPID.NS": {"action": "TRIM", "target_pct": 12, "stop_px": 142.5, "trail_pct": 15, "use_ma50_exit": true},
+      "SIGMAADV.NS": {"action": "TRIM", "target_pct": 8, "stop_px": 415.0, "trail_pct": 15, "use_ma50_exit": true},
+      "LAURUSLABS.NS": {"action": "HOLD", "target_pct": 9, "stop_px": 1254.3, "trail_pct": 12, "use_ma50_exit": true},
+      "SSWL.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 211.0, "trail_pct": 15, "use_ma50_exit": true},
+      "TBZ.NS": {"action": "BUY_NOW", "target_pct": 10, "stop_px": 150.1, "trail_pct": 15, "use_ma50_exit": true},
+      "MACPOWER.NS": {"action": "PLACE_TRIGGER", "target_pct": 10, "trigger_px": 1205.0, "stop_px": 1053.8, "trail_pct": 15, "use_ma50_exit": true, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Trim CUPID/SIGMAADV, BUY SSWL & TBZ, arm MACPOWER @ 1205"}
+  },
+  "garp_investor": {
+    "from_date": "2026-06-22",
+    "to_date": "2026-07-20",
+    "orders": {
+      "HFCL.NS": {"action": "EXIT", "target_pct": 0},
+      "MACPOWER.NS": {"action": "ADD", "target_pct": 17, "stop_px": null, "trail_pct": null},
+      "SSWL.NS": {"action": "ADD", "target_pct": 14, "stop_px": null, "trail_pct": null},
+      "FILATEX.NS": {"action": "HOLD", "target_pct": 11, "stop_px": null, "trail_pct": null}
+    },
+    "notes": {"rationale": "EXIT HFCL (+208%, FY26 CFO/P flipped -1.15); ADD MACPOWER (ROCE 29%) & SSWL"}
+  },
+  "hybrid_pm": {
+    "from_date": "2026-06-22",
+    "to_date": "2026-07-20",
+    "orders": {
+      "STLTECH.NS": {"action": "TRIM", "target_pct": 16, "stop_px": 515.0, "trail_pct": 17},
+      "LAURUSLABS.NS": {"action": "ADD", "target_pct": 20, "stop_px": 1220.0, "trail_pct": 15},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 13, "stop_px": 149.0, "trail_pct": 16},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 11, "stop_px": 195.0, "trail_pct": 15},
+      "TBZ.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 158.0, "trail_pct": 16},
+      "MACPOWER.NS": {"action": "BUY_NOW", "target_pct": 12, "stop_px": 1005.0, "trail_pct": 15}
+    },
+    "notes": {"rationale": "Trim STLTECH (+235%), pyramid LAURUSLABS (BBP 10, ROCE 18%), BUY TBZ & MACPOWER -> 84% invested"}
+  }
+}

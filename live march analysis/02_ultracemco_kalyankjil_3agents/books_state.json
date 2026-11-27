@@ -1,0 +1,3557 @@
+{
+  "start_date": "2026-02-27",
+  "as_of": "2026-11-25",
+  "initial_capital": 1000000.0,
+  "books": {
+    "mom_trader": {
+      "cash": 744656.3714000001,
+      "positions": {
+        "ULTRACEMCO.NS": {
+          "entry_date": "2026-11-08",
+          "shares": 20,
+          "avg_px": 12419.79,
+          "cost_basis": 248395.8,
+          "peak_close": 12939.0,
+          "stop_px": 11580.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": true
+        }
+      },
+      "pending_triggers": {},
+      "trades": [
+        {
+          "date": "2026-04-23",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 12105.0,
+          "shares": 24,
+          "value": 290520.0
+        },
+        {
+          "date": "2026-05-18",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "SELL",
+          "reason": "HARD_STOP@11350.0",
+          "px": 11350.0,
+          "shares": 24,
+          "pnl_pct": -6.42,
+          "pnl_rs": -19246.0
+        },
+        {
+          "date": "2026-07-13",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "TRIGGER@465.0",
+          "px": 470.5,
+          "shares": 416,
+          "value": 195728.0
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 12070.0,
+          "shares": 25,
+          "value": 301750.0
+        },
+        {
+          "date": "2026-08-19",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "SELL",
+          "reason": "MA50_BREAK(11499.0<11637.5)",
+          "px": 11499.0,
+          "shares": 25,
+          "pnl_pct": -4.92,
+          "pnl_rs": -15453.0
+        },
+        {
+          "date": "2026-09-16",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 606.9,
+          "shares": 257,
+          "value": 155973.0
+        },
+        {
+          "date": "2026-09-29",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "TRAIL_11%_HIT",
+          "px": 566.0,
+          "shares": 673,
+          "pnl_pct": 8.09,
+          "pnl_rs": 27751.0
+        },
+        {
+          "date": "2026-11-08",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 12395.0,
+          "shares": 20,
+          "value": 247900.0
+        }
+      ],
+      "equity_curve": [
+        {
+          "date": "2026-02-27",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-02",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-04",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-05",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-06",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-09",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-10",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-11",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-12",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-13",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-16",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-17",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-18",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-19",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-20",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-23",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-24",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-25",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-27",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-30",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-01",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-02",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-06",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-07",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-08",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-09",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-10",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-13",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-15",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-16",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-17",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-20",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-21",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-22",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-23",
+          "nav": 1000906.96
+        },
+        {
+          "date": "2026-04-24",
+          "nav": 996850.96
+        },
+        {
+          "date": "2026-04-27",
+          "nav": 997138.96
+        },
+        {
+          "date": "2026-04-28",
+          "nav": 992506.96
+        },
+        {
+          "date": "2026-04-29",
+          "nav": 992890.96
+        },
+        {
+          "date": "2026-04-30",
+          "nav": 986962.96
+        },
+        {
+          "date": "2026-05-04",
+          "nav": 991090.96
+        },
+        {
+          "date": "2026-05-05",
+          "nav": 996010.96
+        },
+        {
+          "date": "2026-05-06",
+          "nav": 999130.96
+        },
+        {
+          "date": "2026-05-07",
+          "nav": 1000402.96
+        },
+        {
+          "date": "2026-05-08",
+          "nav": 995698.96
+        },
+        {
+          "date": "2026-05-11",
+          "nav": 993682.96
+        },
+        {
+          "date": "2026-05-12",
+          "nav": 985282.96
+        },
+        {
+          "date": "2026-05-13",
+          "nav": 986650.96
+        },
+        {
+          "date": "2026-05-14",
+          "nav": 989506.96
+        },
+        {
+          "date": "2026-05-15",
+          "nav": 984586.96
+        },
+        {
+          "date": "2026-05-18",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-19",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-20",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-21",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-22",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-25",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-26",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-27",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-05-29",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-01",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-02",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-03",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-04",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-05",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-08",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-09",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-10",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-11",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-12",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-15",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-16",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-17",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-18",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-19",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-22",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-23",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-24",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-25",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-29",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-06-30",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-01",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-02",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-03",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-06",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-07",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-08",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-09",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-10",
+          "nav": 980754.16
+        },
+        {
+          "date": "2026-07-13",
+          "nav": 997065.1
+        },
+        {
+          "date": "2026-07-14",
+          "nav": 1005010.7
+        },
+        {
+          "date": "2026-07-15",
+          "nav": 1012644.3
+        },
+        {
+          "date": "2026-07-16",
+          "nav": 1012020.3
+        },
+        {
+          "date": "2026-07-17",
+          "nav": 1023585.1
+        },
+        {
+          "date": "2026-07-20",
+          "nav": 1021754.7
+        },
+        {
+          "date": "2026-07-21",
+          "nav": 1024663.2
+        },
+        {
+          "date": "2026-07-22",
+          "nav": 1027583.8
+        },
+        {
+          "date": "2026-07-23",
+          "nav": 1023590.8
+        },
+        {
+          "date": "2026-07-24",
+          "nav": 1017028.0
+        },
+        {
+          "date": "2026-07-27",
+          "nav": 1014179.8
+        },
+        {
+          "date": "2026-07-28",
+          "nav": 1034254.8
+        },
+        {
+          "date": "2026-07-29",
+          "nav": 1043728.8
+        },
+        {
+          "date": "2026-07-30",
+          "nav": 1042449.8
+        },
+        {
+          "date": "2026-07-31",
+          "nav": 1034697.8
+        },
+        {
+          "date": "2026-08-03",
+          "nav": 1036559.2
+        },
+        {
+          "date": "2026-08-04",
+          "nav": 1029553.6
+        },
+        {
+          "date": "2026-08-05",
+          "nav": 1023943.2
+        },
+        {
+          "date": "2026-08-06",
+          "nav": 1032924.2
+        },
+        {
+          "date": "2026-08-07",
+          "nav": 1037127.0
+        },
+        {
+          "date": "2026-08-10",
+          "nav": 1032935.2
+        },
+        {
+          "date": "2026-08-11",
+          "nav": 1027296.4
+        },
+        {
+          "date": "2026-08-12",
+          "nav": 1027783.4
+        },
+        {
+          "date": "2026-08-13",
+          "nav": 1030105.6
+        },
+        {
+          "date": "2026-08-14",
+          "nav": 1025788.2
+        },
+        {
+          "date": "2026-08-17",
+          "nav": 1028066.2
+        },
+        {
+          "date": "2026-08-18",
+          "nav": 1020021.8
+        },
+        {
+          "date": "2026-08-19",
+          "nav": 1016784.45
+        },
+        {
+          "date": "2026-08-20",
+          "nav": 1017117.25
+        },
+        {
+          "date": "2026-08-21",
+          "nav": 1020258.05
+        },
+        {
+          "date": "2026-08-24",
+          "nav": 1022088.45
+        },
+        {
+          "date": "2026-08-25",
+          "nav": 1024022.85
+        },
+        {
+          "date": "2026-08-26",
+          "nav": 1023190.85
+        },
+        {
+          "date": "2026-08-27",
+          "nav": 1030970.05
+        },
+        {
+          "date": "2026-08-28",
+          "nav": 1025354.05
+        },
+        {
+          "date": "2026-08-31",
+          "nav": 1019197.25
+        },
+        {
+          "date": "2026-09-01",
+          "nav": 1007549.25
+        },
+        {
+          "date": "2026-09-02",
+          "nav": 1014621.25
+        },
+        {
+          "date": "2026-09-03",
+          "nav": 1012666.05
+        },
+        {
+          "date": "2026-09-04",
+          "nav": 1018282.05
+        },
+        {
+          "date": "2026-09-07",
+          "nav": 1015037.25
+        },
+        {
+          "date": "2026-09-08",
+          "nav": 1024022.85
+        },
+        {
+          "date": "2026-09-09",
+          "nav": 1021942.85
+        },
+        {
+          "date": "2026-09-10",
+          "nav": 1025104.45
+        },
+        {
+          "date": "2026-09-11",
+          "nav": 1019259.65
+        },
+        {
+          "date": "2026-09-15",
+          "nav": 1020528.45
+        },
+        {
+          "date": "2026-09-16",
+          "nav": 1003841.71
+        },
+        {
+          "date": "2026-09-17",
+          "nav": 1004211.86
+        },
+        {
+          "date": "2026-09-18",
+          "nav": 1004481.06
+        },
+        {
+          "date": "2026-09-21",
+          "nav": 1004245.51
+        },
+        {
+          "date": "2026-09-22",
+          "nav": 1005322.31
+        },
+        {
+          "date": "2026-09-23",
+          "nav": 1006096.26
+        },
+        {
+          "date": "2026-09-24",
+          "nav": 998928.81
+        },
+        {
+          "date": "2026-09-25",
+          "nav": 998525.01
+        },
+        {
+          "date": "2026-09-28",
+          "nav": 992468.01
+        },
+        {
+          "date": "2026-09-29",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-09-30",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-01",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-05",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-06",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-07",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-08",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-09",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-12",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-13",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-14",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-15",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-16",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-19",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-21",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-22",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-23",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-26",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-27",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-28",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-29",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-10-30",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-02",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-03",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-04",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-05",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-06",
+          "nav": 993052.17
+        },
+        {
+          "date": "2026-11-08",
+          "nav": 994636.37
+        },
+        {
+          "date": "2026-11-09",
+          "nav": 990156.37
+        },
+        {
+          "date": "2026-11-11",
+          "nav": 991896.37
+        },
+        {
+          "date": "2026-11-12",
+          "nav": 991396.37
+        },
+        {
+          "date": "2026-11-13",
+          "nav": 986656.37
+        },
+        {
+          "date": "2026-11-16",
+          "nav": 990056.37
+        },
+        {
+          "date": "2026-11-17",
+          "nav": 990456.37
+        },
+        {
+          "date": "2026-11-18",
+          "nav": 993216.37
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 995856.37
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 1003436.37
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 997656.37
+        },
+        {
+          "date": "2026-11-25",
+          "nav": 1000656.37
+        }
+      ],
+      "event_history": [
+        {
+          "from_date": "2026-02-27",
+          "to_date": "2026-03-30",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 25,
+              "trigger_px": 13120.0,
+              "max_gap_pct": 2.5,
+              "stop_px": 12520.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            },
+            "KALYANKJIL.NS": {
+              "action": "AVOID",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [],
+          "notes": {
+            "critique": "Chasing KALYANKJIL for 0.4% val pctile ignores Stage 4 DISTRIBUTION in 26.8% BEAR breadth.",
+            "missing": "Exact multi-week pivot high & breakout volume-surge confirmation (>1.5x 20d vol)."
+          }
+        },
+        {
+          "from_date": "2026-03-30",
+          "to_date": "2026-04-22",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "AVOID",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "WAIT",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [],
+          "notes": {
+            "critique": "Buying ACCUMULATE into VIX 27.89 (+5.1 in 5d) & ADX 47.4 / 8 dist_days risks severe MTM pain.",
+            "missing": "Market Follow-Through Day (FTD) / breadth-thrust & VIX peak-reversal indicator."
+          }
+        },
+        {
+          "from_date": "2026-04-22",
+          "to_date": "2026-05-18",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 30,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11350.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "WAIT",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-04-23",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 12105.0,
+              "shares": 24,
+              "value": 290520.0
+            },
+            {
+              "date": "2026-05-18",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "SELL",
+              "reason": "HARD_STOP@11350.0",
+              "px": 11350.0,
+              "shares": 24,
+              "pnl_pct": -6.42,
+              "pnl_rs": -19246.0
+            }
+          ],
+          "notes": {
+            "critique": "ULTRACEMCO flipped HOLD deterring value buyers right as Gate 1 ignites; KALYANKJIL bleeding -7% 1W RS under VETO.",
+            "missing": "Distance-from-10/20-EMA & VCP flag detector to scale BBP 94.8 pilot."
+          }
+        },
+        {
+          "from_date": "2026-05-18",
+          "to_date": "2026-07-09",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 25,
+              "trigger_px": 12150.0,
+              "max_gap_pct": 2.5,
+              "stop_px": 11380.0,
+              "trail_pct": 0.08,
+              "use_ma50_exit": true
+            },
+            "KALYANKJIL.NS": {
+              "action": "AVOID",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [],
+          "notes": {
+            "critique": "KALYANKJIL printed +118% NP at PE 22.3 and still cratered -16.5% on DISTRIBUTION \u2014 headline GARP cannot override Stage 4 supply.",
+            "missing": "Post-earnings price/volume absorption & institutional block-flow/guidance-revision flag."
+          }
+        },
+        {
+          "from_date": "2026-07-09",
+          "to_date": "2026-07-20",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 25,
+              "trigger_px": 11900.0,
+              "max_gap_pct": 2.5,
+              "stop_px": 11320.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            },
+            "KALYANKJIL.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 20,
+              "trigger_px": 465.0,
+              "max_gap_pct": 3.0,
+              "stop_px": 405.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-13",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "TRIGGER@465.0",
+              "px": 470.5,
+              "shares": 416,
+              "value": 195728.0
+            }
+          ],
+          "notes": {
+            "critique": "GARP caught Kalyan bounce but ignoring 13.1% deliv / 80% vol risks short-squeeze whipsaw; UltraTech stays dead-money Stage 1.",
+            "missing": "Post-spike delivery-confirmation / 10-EMA tight-flag pullback trigger."
+          }
+        },
+        {
+          "from_date": "2026-07-20",
+          "to_date": "2026-09-15",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 30,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11320.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            },
+            "KALYANKJIL.NS": {
+              "action": "HOLD",
+              "target_pct": 23,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 475.0,
+              "trail_pct": 0.15,
+              "use_ma50_exit": true
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-21",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 12070.0,
+              "shares": 25,
+              "value": 301750.0
+            },
+            {
+              "date": "2026-08-19",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "SELL",
+              "reason": "MA50_BREAK(11499.0<11637.5)",
+              "px": 11499.0,
+              "shares": 25,
+              "pnl_pct": -4.92,
+              "pnl_rs": -15453.0
+            }
+          ],
+          "notes": {
+            "critique": "ULTRACEMCO flipped HOLD the exact day Gate 1 fired; late Kalyan buyers at RSI 81.9 face 17.7% stop while Rs 465 trigger rides free.",
+            "missing": "5-day rolling delivery-ratio trend & FII/DII daily cash-flow attribution."
+          }
+        },
+        {
+          "from_date": "2026-09-15",
+          "to_date": "2026-11-06",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "AVOID",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "ADD",
+              "target_pct": 40,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 550.0,
+              "trail_pct": 0.11,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-09-16",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 606.9,
+              "shares": 257,
+              "value": 155973.0
+            },
+            {
+              "date": "2026-09-29",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SELL",
+              "reason": "TRAIL_11%_HIT",
+              "px": 566.0,
+              "shares": 673,
+              "pnl_pct": 8.09,
+              "pnl_rs": 27751.0
+            }
+          ],
+          "notes": {
+            "critique": "ULTRACEMCO ACCUMULATE P28 walks into Stage 4 VETO; valuation purists scared of PE 38.9 miss Kalyan Stage 2 tight squeeze.",
+            "missing": "Exact INSIDE shelf upper-pivot price & RS-line new-high breakout flag."
+          }
+        },
+        {
+          "from_date": "2026-11-06",
+          "to_date": "2026-11-25",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 25,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11580.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            },
+            "KALYANKJIL.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 25,
+              "trigger_px": 611.0,
+              "max_gap_pct": 3.0,
+              "stop_px": 548.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": true
+            }
+          },
+          "events": [
+            {
+              "date": "2026-11-08",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 12395.0,
+              "shares": 20,
+              "value": 247900.0
+            },
+            {
+              "date": "2026-11-11",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SKIP",
+              "reason": "GAP_GUARD(3.1%>3.0%)",
+              "px": 630.0
+            }
+          ],
+          "notes": {
+            "critique": "ULTRACEMCO reverted HOLD right as institutional breakout fired; buying Kalyan blindly on Sep SHP ignores NEAR OVERHANG below 610.5.",
+            "missing": "Narrow-index vs broad-market breadth-thrust divergence tracker."
+          }
+        }
+      ]
+    },
+    "garp_investor": {
+      "cash": 39848.587000000014,
+      "positions": {
+        "KALYANKJIL.NS": {
+          "entry_date": "2026-03-02",
+          "shares": 1100,
+          "avg_px": 398.53,
+          "cost_basis": 438379.44,
+          "peak_close": 710.9,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        },
+        "ULTRACEMCO.NS": {
+          "entry_date": "2026-04-01",
+          "shares": 52,
+          "avg_px": 11065.51,
+          "cost_basis": 575406.52,
+          "peak_close": 12939.0,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        }
+      },
+      "pending_triggers": {},
+      "trades": [
+        {
+          "date": "2026-03-02",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 394.95,
+          "shares": 506,
+          "value": 199845.0
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 10802.0,
+          "shares": 23,
+          "value": 248446.0
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 385.6,
+          "shares": 396,
+          "value": 152698.0
+        },
+        {
+          "date": "2026-05-19",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 11540.0,
+          "shares": 10,
+          "value": 115400.0
+        },
+        {
+          "date": "2026-05-19",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 347.6,
+          "shares": 362,
+          "value": 125831.0
+        },
+        {
+          "date": "2026-07-10",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 11584.0,
+          "shares": 7,
+          "value": 81088.0
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "EVENT_TRIM",
+          "px": 568.0,
+          "shares": 141,
+          "pnl_pct": 49.78,
+          "pnl_rs": 26458.0
+        },
+        {
+          "date": "2026-09-16",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "EVENT_TRIM",
+          "px": 606.9,
+          "shares": 120,
+          "pnl_pct": 60.04,
+          "pnl_rs": 27176.0
+        },
+        {
+          "date": "2026-09-16",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 10777.0,
+          "shares": 12,
+          "value": 129324.0
+        },
+        {
+          "date": "2026-11-08",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 597.0,
+          "shares": 97,
+          "value": 57909.0
+        }
+      ],
+      "equity_curve": [
+        {
+          "date": "2026-02-27",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-02",
+          "nav": 1003041.11
+        },
+        {
+          "date": "2026-03-04",
+          "nav": 999018.41
+        },
+        {
+          "date": "2026-03-05",
+          "nav": 1002054.41
+        },
+        {
+          "date": "2026-03-06",
+          "nav": 999903.91
+        },
+        {
+          "date": "2026-03-09",
+          "nav": 996589.61
+        },
+        {
+          "date": "2026-03-10",
+          "nav": 998537.71
+        },
+        {
+          "date": "2026-03-11",
+          "nav": 997348.61
+        },
+        {
+          "date": "2026-03-12",
+          "nav": 997070.31
+        },
+        {
+          "date": "2026-03-13",
+          "nav": 991529.61
+        },
+        {
+          "date": "2026-03-16",
+          "nav": 992845.21
+        },
+        {
+          "date": "2026-03-17",
+          "nav": 993907.81
+        },
+        {
+          "date": "2026-03-18",
+          "nav": 996893.21
+        },
+        {
+          "date": "2026-03-19",
+          "nav": 988797.21
+        },
+        {
+          "date": "2026-03-20",
+          "nav": 993401.81
+        },
+        {
+          "date": "2026-03-23",
+          "nav": 983281.81
+        },
+        {
+          "date": "2026-03-24",
+          "nav": 987835.81
+        },
+        {
+          "date": "2026-03-25",
+          "nav": 998031.71
+        },
+        {
+          "date": "2026-03-27",
+          "nav": 996260.71
+        },
+        {
+          "date": "2026-03-30",
+          "nav": 989961.01
+        },
+        {
+          "date": "2026-04-01",
+          "nav": 993395.92
+        },
+        {
+          "date": "2026-04-02",
+          "nav": 997773.42
+        },
+        {
+          "date": "2026-04-06",
+          "nav": 1028930.42
+        },
+        {
+          "date": "2026-04-07",
+          "nav": 1023081.42
+        },
+        {
+          "date": "2026-04-08",
+          "nav": 1066564.82
+        },
+        {
+          "date": "2026-04-09",
+          "nav": 1063495.92
+        },
+        {
+          "date": "2026-04-10",
+          "nav": 1069490.02
+        },
+        {
+          "date": "2026-04-13",
+          "nav": 1060724.02
+        },
+        {
+          "date": "2026-04-15",
+          "nav": 1067999.72
+        },
+        {
+          "date": "2026-04-16",
+          "nav": 1066958.32
+        },
+        {
+          "date": "2026-04-17",
+          "nav": 1056206.42
+        },
+        {
+          "date": "2026-04-20",
+          "nav": 1048485.72
+        },
+        {
+          "date": "2026-04-21",
+          "nav": 1049126.92
+        },
+        {
+          "date": "2026-04-22",
+          "nav": 1051902.22
+        },
+        {
+          "date": "2026-04-23",
+          "nav": 1050041.42
+        },
+        {
+          "date": "2026-04-24",
+          "nav": 1039344.32
+        },
+        {
+          "date": "2026-04-27",
+          "nav": 1047152.02
+        },
+        {
+          "date": "2026-04-28",
+          "nav": 1041811.02
+        },
+        {
+          "date": "2026-04-29",
+          "nav": 1041953.52
+        },
+        {
+          "date": "2026-04-30",
+          "nav": 1036588.22
+        },
+        {
+          "date": "2026-05-04",
+          "nav": 1041040.32
+        },
+        {
+          "date": "2026-05-05",
+          "nav": 1039711.92
+        },
+        {
+          "date": "2026-05-06",
+          "nav": 1050865.02
+        },
+        {
+          "date": "2026-05-07",
+          "nav": 1048025.02
+        },
+        {
+          "date": "2026-05-08",
+          "nav": 1055603.82
+        },
+        {
+          "date": "2026-05-11",
+          "nav": 1018178.12
+        },
+        {
+          "date": "2026-05-12",
+          "nav": 989021.32
+        },
+        {
+          "date": "2026-05-13",
+          "nav": 984559.52
+        },
+        {
+          "date": "2026-05-14",
+          "nav": 992347.72
+        },
+        {
+          "date": "2026-05-15",
+          "nav": 980461.82
+        },
+        {
+          "date": "2026-05-18",
+          "nav": 975894.92
+        },
+        {
+          "date": "2026-05-19",
+          "nav": 966245.66
+        },
+        {
+          "date": "2026-05-20",
+          "nav": 966840.26
+        },
+        {
+          "date": "2026-05-21",
+          "nav": 980930.06
+        },
+        {
+          "date": "2026-05-22",
+          "nav": 983306.66
+        },
+        {
+          "date": "2026-05-25",
+          "nav": 995376.46
+        },
+        {
+          "date": "2026-05-26",
+          "nav": 988943.86
+        },
+        {
+          "date": "2026-05-27",
+          "nav": 990237.06
+        },
+        {
+          "date": "2026-05-29",
+          "nav": 983785.26
+        },
+        {
+          "date": "2026-06-01",
+          "nav": 961504.86
+        },
+        {
+          "date": "2026-06-02",
+          "nav": 970859.46
+        },
+        {
+          "date": "2026-06-03",
+          "nav": 968621.06
+        },
+        {
+          "date": "2026-06-04",
+          "nav": 976691.46
+        },
+        {
+          "date": "2026-06-05",
+          "nav": 986210.46
+        },
+        {
+          "date": "2026-06-08",
+          "nav": 960039.86
+        },
+        {
+          "date": "2026-06-09",
+          "nav": 964942.26
+        },
+        {
+          "date": "2026-06-10",
+          "nav": 942790.86
+        },
+        {
+          "date": "2026-06-11",
+          "nav": 931617.26
+        },
+        {
+          "date": "2026-06-12",
+          "nav": 958721.06
+        },
+        {
+          "date": "2026-06-15",
+          "nav": 1018586.06
+        },
+        {
+          "date": "2026-06-16",
+          "nav": 1010486.26
+        },
+        {
+          "date": "2026-06-17",
+          "nav": 1015580.26
+        },
+        {
+          "date": "2026-06-18",
+          "nav": 1017334.86
+        },
+        {
+          "date": "2026-06-19",
+          "nav": 1015951.06
+        },
+        {
+          "date": "2026-06-22",
+          "nav": 1014072.46
+        },
+        {
+          "date": "2026-06-23",
+          "nav": 1000825.46
+        },
+        {
+          "date": "2026-06-24",
+          "nav": 1008802.86
+        },
+        {
+          "date": "2026-06-25",
+          "nav": 1012772.26
+        },
+        {
+          "date": "2026-06-29",
+          "nav": 1007786.46
+        },
+        {
+          "date": "2026-06-30",
+          "nav": 1016233.86
+        },
+        {
+          "date": "2026-07-01",
+          "nav": 1015791.26
+        },
+        {
+          "date": "2026-07-02",
+          "nav": 1027342.46
+        },
+        {
+          "date": "2026-07-03",
+          "nav": 1025866.26
+        },
+        {
+          "date": "2026-07-06",
+          "nav": 1022809.06
+        },
+        {
+          "date": "2026-07-07",
+          "nav": 988917.06
+        },
+        {
+          "date": "2026-07-08",
+          "nav": 1003670.66
+        },
+        {
+          "date": "2026-07-09",
+          "nav": 1096340.06
+        },
+        {
+          "date": "2026-07-10",
+          "nav": 1145139.48
+        },
+        {
+          "date": "2026-07-13",
+          "nav": 1183147.48
+        },
+        {
+          "date": "2026-07-14",
+          "nav": 1204289.89
+        },
+        {
+          "date": "2026-07-15",
+          "nav": 1240124.29
+        },
+        {
+          "date": "2026-07-16",
+          "nav": 1236588.29
+        },
+        {
+          "date": "2026-07-17",
+          "nav": 1269967.48
+        },
+        {
+          "date": "2026-07-20",
+          "nav": 1271445.89
+        },
+        {
+          "date": "2026-07-21",
+          "nav": 1286504.71
+        },
+        {
+          "date": "2026-07-22",
+          "nav": 1299914.01
+        },
+        {
+          "date": "2026-07-23",
+          "nav": 1288722.51
+        },
+        {
+          "date": "2026-07-24",
+          "nav": 1272710.36
+        },
+        {
+          "date": "2026-07-27",
+          "nav": 1264059.51
+        },
+        {
+          "date": "2026-07-28",
+          "nav": 1316190.76
+        },
+        {
+          "date": "2026-07-29",
+          "nav": 1340611.51
+        },
+        {
+          "date": "2026-07-30",
+          "nav": 1341309.51
+        },
+        {
+          "date": "2026-07-31",
+          "nav": 1318843.51
+        },
+        {
+          "date": "2026-08-03",
+          "nav": 1319717.71
+        },
+        {
+          "date": "2026-08-04",
+          "nav": 1300915.91
+        },
+        {
+          "date": "2026-08-05",
+          "nav": 1281922.21
+        },
+        {
+          "date": "2026-08-06",
+          "nav": 1309327.71
+        },
+        {
+          "date": "2026-08-07",
+          "nav": 1319848.61
+        },
+        {
+          "date": "2026-08-10",
+          "nav": 1310374.46
+        },
+        {
+          "date": "2026-08-11",
+          "nav": 1302244.31
+        },
+        {
+          "date": "2026-08-12",
+          "nav": 1300507.81
+        },
+        {
+          "date": "2026-08-13",
+          "nav": 1311861.91
+        },
+        {
+          "date": "2026-08-14",
+          "nav": 1302598.46
+        },
+        {
+          "date": "2026-08-17",
+          "nav": 1307043.71
+        },
+        {
+          "date": "2026-08-18",
+          "nav": 1290330.51
+        },
+        {
+          "date": "2026-08-19",
+          "nav": 1281183.31
+        },
+        {
+          "date": "2026-08-20",
+          "nav": 1287081.71
+        },
+        {
+          "date": "2026-08-21",
+          "nav": 1295360.36
+        },
+        {
+          "date": "2026-08-24",
+          "nav": 1297661.56
+        },
+        {
+          "date": "2026-08-25",
+          "nav": 1304323.51
+        },
+        {
+          "date": "2026-08-26",
+          "nav": 1309157.51
+        },
+        {
+          "date": "2026-08-27",
+          "nav": 1330157.61
+        },
+        {
+          "date": "2026-08-28",
+          "nav": 1309877.11
+        },
+        {
+          "date": "2026-08-31",
+          "nav": 1287696.71
+        },
+        {
+          "date": "2026-09-01",
+          "nav": 1254252.71
+        },
+        {
+          "date": "2026-09-02",
+          "nav": 1273063.71
+        },
+        {
+          "date": "2026-09-03",
+          "nav": 1263065.61
+        },
+        {
+          "date": "2026-09-04",
+          "nav": 1283546.11
+        },
+        {
+          "date": "2026-09-07",
+          "nav": 1265466.71
+        },
+        {
+          "date": "2026-09-08",
+          "nav": 1283083.51
+        },
+        {
+          "date": "2026-09-09",
+          "nav": 1273108.51
+        },
+        {
+          "date": "2026-09-10",
+          "nav": 1284803.31
+        },
+        {
+          "date": "2026-09-11",
+          "nav": 1269865.16
+        },
+        {
+          "date": "2026-09-15",
+          "nav": 1261170.31
+        },
+        {
+          "date": "2026-09-16",
+          "nav": 1236916.1
+        },
+        {
+          "date": "2026-09-17",
+          "nav": 1240795.76
+        },
+        {
+          "date": "2026-09-18",
+          "nav": 1254196.96
+        },
+        {
+          "date": "2026-09-21",
+          "nav": 1258317.91
+        },
+        {
+          "date": "2026-09-22",
+          "nav": 1254722.71
+        },
+        {
+          "date": "2026-09-23",
+          "nav": 1263936.16
+        },
+        {
+          "date": "2026-09-24",
+          "nav": 1248106.21
+        },
+        {
+          "date": "2026-09-25",
+          "nav": 1252652.41
+        },
+        {
+          "date": "2026-09-28",
+          "nav": 1236865.41
+        },
+        {
+          "date": "2026-09-29",
+          "nav": 1231537.96
+        },
+        {
+          "date": "2026-09-30",
+          "nav": 1222394.85
+        },
+        {
+          "date": "2026-10-01",
+          "nav": 1184878.91
+        },
+        {
+          "date": "2026-10-05",
+          "nav": 1220593.96
+        },
+        {
+          "date": "2026-10-06",
+          "nav": 1206667.85
+        },
+        {
+          "date": "2026-10-07",
+          "nav": 1222796.41
+        },
+        {
+          "date": "2026-10-08",
+          "nav": 1195185.91
+        },
+        {
+          "date": "2026-10-09",
+          "nav": 1208635.41
+        },
+        {
+          "date": "2026-10-12",
+          "nav": 1213764.85
+        },
+        {
+          "date": "2026-10-13",
+          "nav": 1229586.41
+        },
+        {
+          "date": "2026-10-14",
+          "nav": 1224905.41
+        },
+        {
+          "date": "2026-10-15",
+          "nav": 1223223.96
+        },
+        {
+          "date": "2026-10-16",
+          "nav": 1224711.41
+        },
+        {
+          "date": "2026-10-19",
+          "nav": 1204627.3
+        },
+        {
+          "date": "2026-10-21",
+          "nav": 1220692.41
+        },
+        {
+          "date": "2026-10-22",
+          "nav": 1199680.6
+        },
+        {
+          "date": "2026-10-23",
+          "nav": 1186009.41
+        },
+        {
+          "date": "2026-10-26",
+          "nav": 1185547.81
+        },
+        {
+          "date": "2026-10-27",
+          "nav": 1179173.41
+        },
+        {
+          "date": "2026-10-28",
+          "nav": 1186811.41
+        },
+        {
+          "date": "2026-10-29",
+          "nav": 1195518.41
+        },
+        {
+          "date": "2026-10-30",
+          "nav": 1171707.41
+        },
+        {
+          "date": "2026-11-02",
+          "nav": 1196963.75
+        },
+        {
+          "date": "2026-11-03",
+          "nav": 1215998.0
+        },
+        {
+          "date": "2026-11-04",
+          "nav": 1242942.55
+        },
+        {
+          "date": "2026-11-05",
+          "nav": 1296553.41
+        },
+        {
+          "date": "2026-11-06",
+          "nav": 1337795.66
+        },
+        {
+          "date": "2026-11-08",
+          "nav": 1340996.59
+        },
+        {
+          "date": "2026-11-09",
+          "nav": 1350248.59
+        },
+        {
+          "date": "2026-11-11",
+          "nav": 1412797.59
+        },
+        {
+          "date": "2026-11-12",
+          "nav": 1463362.59
+        },
+        {
+          "date": "2026-11-13",
+          "nav": 1435748.59
+        },
+        {
+          "date": "2026-11-16",
+          "nav": 1456853.59
+        },
+        {
+          "date": "2026-11-17",
+          "nav": 1429953.59
+        },
+        {
+          "date": "2026-11-18",
+          "nav": 1401104.59
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 1420068.59
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 1415246.59
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 1415838.59
+        },
+        {
+          "date": "2026-11-25",
+          "nav": 1405433.59
+        }
+      ],
+      "event_history": [
+        {
+          "from_date": "2026-02-27",
+          "to_date": "2026-03-30",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "WAIT",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 20,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-03-02",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 394.95,
+              "shares": 506,
+              "value": 199845.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart traders chase ULTRACEMCO at 42.3x PE while blindly avoiding KALYANKJIL 25.8% below bear blend (Rs 552.8) on +90% NP & 1.28x FCF/PAT.",
+            "missing": "Breakdown of Valuation v4.1 gate A,B flags & promoter pledge / gold-metal-loan split behind 0.92 D/E."
+          }
+        },
+        {
+          "from_date": "2026-03-30",
+          "to_date": "2026-04-22",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 25,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "ADD",
+              "target_pct": 35,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-04-01",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 10802.0,
+              "shares": 23,
+              "value": 248446.0
+            },
+            {
+              "date": "2026-04-01",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 385.6,
+              "shares": 396,
+              "value": 152698.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart systems freeze at VIX 27.9 / 12.5% breadth \u2014 missing UltraTech ACCUMULATE & Kalyan 0.1%ile + 1.43x delivery.",
+            "missing": "Pre-results Q4 FY26 cement pricing checks & Kalyan gold-price demand elasticity."
+          }
+        },
+        {
+          "from_date": "2026-04-22",
+          "to_date": "2026-05-18",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "HOLD",
+              "target_pct": 26.7,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "HOLD",
+              "target_pct": 35.5,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [],
+          "notes": {
+            "critique": "Chart traders get ULTRACEMCO Gate 1 only after +13.5% bounce to 40.7x PE HOLD, while still locked out of KALYANKJIL 25% below bear blend.",
+            "missing": "Q4 FY26 earnings & catalyst behind DII -1.10% QoQ trim in Kalyan."
+          }
+        },
+        {
+          "from_date": "2026-05-18",
+          "to_date": "2026-07-09",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "ADD",
+              "target_pct": 40,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "ADD",
+              "target_pct": 45,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-05-19",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 11540.0,
+              "shares": 10,
+              "value": 115400.0
+            },
+            {
+              "date": "2026-05-19",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 347.6,
+              "shares": 362,
+              "value": 125831.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart traders got whipsawed across 4 MA flips on UltraTech while rejecting Kalyan at 22x PE on +118% NP growth.",
+            "missing": "Kalyan Q4 balance-sheet/concall disclosures explaining price-vs-profit divergence."
+          }
+        },
+        {
+          "from_date": "2026-07-09",
+          "to_date": "2026-07-20",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "ADD",
+              "target_pct": 42,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "HOLD",
+              "target_pct": 50,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-10",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 11584.0,
+              "shares": 7,
+              "value": 81088.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart traders only get DNA BUY at Rs 443 (+18.6% extended, 80% vol) after missing Rs 348->443, while getting whipsawed on UltraTech MA50.",
+            "missing": "June 2026 SHP & Q1 FY27 operational updates."
+          }
+        },
+        {
+          "from_date": "2026-07-20",
+          "to_date": "2026-09-15",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "HOLD",
+              "target_pct": 37.4,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "TRIM",
+              "target_pct": 50,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-21",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SELL",
+              "reason": "EVENT_TRIM",
+              "px": 568.0,
+              "shares": 141,
+              "pnl_pct": 49.78,
+              "pnl_rs": 26458.0
+            }
+          ],
+          "notes": {
+            "critique": "Kalyan first BUY NOW/Gate 1 arrives at Rs 570 (RSI 81.9, +45.8% vs 50DMA) forcing chart traders to chase +64% above GARP add.",
+            "missing": "Q1 FY27 earnings & Jun-2026 SHP to verify institutional accumulation above bear blend."
+          }
+        },
+        {
+          "from_date": "2026-09-15",
+          "to_date": "2026-11-06",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "ADD",
+              "target_pct": 45,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "TRIM",
+              "target_pct": 48,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-09-16",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SELL",
+              "reason": "EVENT_TRIM",
+              "px": 606.9,
+              "shares": 120,
+              "pnl_pct": 60.04,
+              "pnl_rs": 27176.0
+            },
+            {
+              "date": "2026-09-16",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 10777.0,
+              "shares": 12,
+              "value": 129324.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart traders chase Kalyan squeeze 59% above GARP cost as FIIs distribute, while auto-rejecting UltraTech at P28 ACCUMULATE & 62% deliv.",
+            "missing": "Driver of Kalyan -3.73% FII exit & monsoon cement realization trends."
+          }
+        },
+        {
+          "from_date": "2026-11-06",
+          "to_date": "2026-11-25",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "HOLD",
+              "target_pct": 48.4,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "ADD",
+              "target_pct": 49,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-11-08",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 597.0,
+              "shares": 97,
+              "value": 57909.0
+            }
+          ],
+          "notes": {
+            "critique": "Chart traders get UltraTech Gate 1 only after +16.4% move to RSI 76.6 / 41.5x PE, while stuck in WAIT on Kalyan despite +3.01% FII buying.",
+            "missing": "Q2 FY27 earnings & reason for UltraTech -0.85% promoter stake dip."
+          }
+        }
+      ]
+    },
+    "hybrid_pm": {
+      "cash": 482530.8422,
+      "positions": {
+        "ULTRACEMCO.NS": {
+          "entry_date": "2026-09-16",
+          "shares": 18,
+          "avg_px": 10798.55,
+          "cost_basis": 194373.97,
+          "peak_close": 12939.0,
+          "stop_px": 11500.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": false
+        },
+        "KALYANKJIL.NS": {
+          "entry_date": "2026-11-11",
+          "shares": 479,
+          "avg_px": 631.26,
+          "cost_basis": 302373.54,
+          "peak_close": 710.9,
+          "stop_px": 540.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": false
+        }
+      },
+      "pending_triggers": {},
+      "trades": [
+        {
+          "date": "2026-04-01",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 10802.0,
+          "shares": 18,
+          "value": 194436.0
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 385.6,
+          "shares": 648,
+          "value": 249869.0
+        },
+        {
+          "date": "2026-04-23",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 12105.0,
+          "shares": 12,
+          "value": 145260.0
+        },
+        {
+          "date": "2026-05-13",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "HARD_STOP@345.0",
+          "px": 345.0,
+          "shares": 648,
+          "pnl_pct": -10.71,
+          "pnl_rs": -27256.0
+        },
+        {
+          "date": "2026-05-19",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "SELL",
+          "reason": "EVENT_TRIM",
+          "px": 11540.0,
+          "shares": 11,
+          "pnl_pct": 1.71,
+          "pnl_rs": 1882.0
+        },
+        {
+          "date": "2026-07-13",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "TRIGGER@455.0",
+          "px": 470.5,
+          "shares": 374,
+          "value": 175967.0
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 12070.0,
+          "shares": 10,
+          "value": 120700.0
+        },
+        {
+          "date": "2026-09-02",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "SELL",
+          "reason": "HARD_STOP@11250.0",
+          "px": 11250.0,
+          "shares": 29,
+          "pnl_pct": -3.05,
+          "pnl_rs": -10915.0
+        },
+        {
+          "date": "2026-09-16",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 10777.0,
+          "shares": 18,
+          "value": 193986.0
+        },
+        {
+          "date": "2026-09-16",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "ADD",
+          "px": 606.9,
+          "shares": 260,
+          "value": 157794.0
+        },
+        {
+          "date": "2026-10-01",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "TRAIL_12%_HIT",
+          "px": 553.15,
+          "shares": 634,
+          "pnl_pct": 4.86,
+          "pnl_rs": 15567.0
+        },
+        {
+          "date": "2026-11-11",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "TRIGGER@611.0",
+          "px": 630.0,
+          "shares": 479,
+          "value": 301770.0
+        }
+      ],
+      "equity_curve": [
+        {
+          "date": "2026-02-27",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-02",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-04",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-05",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-06",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-09",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-10",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-11",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-12",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-13",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-16",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-17",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-18",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-19",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-20",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-23",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-24",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-25",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-27",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-03-30",
+          "nav": 1000000.0
+        },
+        {
+          "date": "2026-04-01",
+          "nav": 998499.39
+        },
+        {
+          "date": "2026-04-02",
+          "nav": 1001505.39
+        },
+        {
+          "date": "2026-04-06",
+          "nav": 1024383.39
+        },
+        {
+          "date": "2026-04-07",
+          "nav": 1020153.39
+        },
+        {
+          "date": "2026-04-08",
+          "nav": 1052376.99
+        },
+        {
+          "date": "2026-04-09",
+          "nav": 1049943.39
+        },
+        {
+          "date": "2026-04-10",
+          "nav": 1054457.79
+        },
+        {
+          "date": "2026-04-13",
+          "nav": 1048031.79
+        },
+        {
+          "date": "2026-04-15",
+          "nav": 1053676.59
+        },
+        {
+          "date": "2026-04-16",
+          "nav": 1052988.99
+        },
+        {
+          "date": "2026-04-17",
+          "nav": 1045353.39
+        },
+        {
+          "date": "2026-04-20",
+          "nav": 1039852.59
+        },
+        {
+          "date": "2026-04-21",
+          "nav": 1040493.39
+        },
+        {
+          "date": "2026-04-22",
+          "nav": 1042714.59
+        },
+        {
+          "date": "2026-04-23",
+          "nav": 1041792.87
+        },
+        {
+          "date": "2026-04-24",
+          "nav": 1031830.47
+        },
+        {
+          "date": "2026-04-27",
+          "nav": 1037601.27
+        },
+        {
+          "date": "2026-04-28",
+          "nav": 1031163.27
+        },
+        {
+          "date": "2026-04-29",
+          "nav": 1031481.27
+        },
+        {
+          "date": "2026-04-30",
+          "nav": 1024298.07
+        },
+        {
+          "date": "2026-05-04",
+          "nav": 1029814.47
+        },
+        {
+          "date": "2026-05-05",
+          "nav": 1031622.87
+        },
+        {
+          "date": "2026-05-06",
+          "nav": 1041387.27
+        },
+        {
+          "date": "2026-05-07",
+          "nav": 1040061.27
+        },
+        {
+          "date": "2026-05-08",
+          "nav": 1042864.47
+        },
+        {
+          "date": "2026-05-11",
+          "nav": 1014845.67
+        },
+        {
+          "date": "2026-05-12",
+          "nav": 989182.47
+        },
+        {
+          "date": "2026-05-13",
+          "nav": 979558.95
+        },
+        {
+          "date": "2026-05-14",
+          "nav": 983128.95
+        },
+        {
+          "date": "2026-05-15",
+          "nav": 976978.95
+        },
+        {
+          "date": "2026-05-18",
+          "nav": 979198.95
+        },
+        {
+          "date": "2026-05-19",
+          "nav": 975047.07
+        },
+        {
+          "date": "2026-05-20",
+          "nav": 975826.07
+        },
+        {
+          "date": "2026-05-21",
+          "nav": 977061.07
+        },
+        {
+          "date": "2026-05-22",
+          "nav": 978866.07
+        },
+        {
+          "date": "2026-05-25",
+          "nav": 981849.07
+        },
+        {
+          "date": "2026-05-26",
+          "nav": 979892.07
+        },
+        {
+          "date": "2026-05-27",
+          "nav": 981146.07
+        },
+        {
+          "date": "2026-05-29",
+          "nav": 977213.07
+        },
+        {
+          "date": "2026-06-01",
+          "nav": 972463.07
+        },
+        {
+          "date": "2026-06-02",
+          "nav": 971190.07
+        },
+        {
+          "date": "2026-06-03",
+          "nav": 969974.07
+        },
+        {
+          "date": "2026-06-04",
+          "nav": 967998.07
+        },
+        {
+          "date": "2026-06-05",
+          "nav": 966383.07
+        },
+        {
+          "date": "2026-06-08",
+          "nav": 964160.07
+        },
+        {
+          "date": "2026-06-09",
+          "nav": 966364.07
+        },
+        {
+          "date": "2026-06-10",
+          "nav": 965509.07
+        },
+        {
+          "date": "2026-06-11",
+          "nav": 964825.07
+        },
+        {
+          "date": "2026-06-12",
+          "nav": 970278.07
+        },
+        {
+          "date": "2026-06-15",
+          "nav": 976909.07
+        },
+        {
+          "date": "2026-06-16",
+          "nav": 975484.07
+        },
+        {
+          "date": "2026-06-17",
+          "nav": 975142.07
+        },
+        {
+          "date": "2026-06-18",
+          "nav": 976225.07
+        },
+        {
+          "date": "2026-06-19",
+          "nav": 975028.07
+        },
+        {
+          "date": "2026-06-22",
+          "nav": 975693.07
+        },
+        {
+          "date": "2026-06-23",
+          "nav": 973888.07
+        },
+        {
+          "date": "2026-06-24",
+          "nav": 976225.07
+        },
+        {
+          "date": "2026-06-25",
+          "nav": 977346.07
+        },
+        {
+          "date": "2026-06-29",
+          "nav": 974439.07
+        },
+        {
+          "date": "2026-06-30",
+          "nav": 972862.07
+        },
+        {
+          "date": "2026-07-01",
+          "nav": 976719.07
+        },
+        {
+          "date": "2026-07-02",
+          "nav": 978239.07
+        },
+        {
+          "date": "2026-07-03",
+          "nav": 981792.07
+        },
+        {
+          "date": "2026-07-06",
+          "nav": 980614.07
+        },
+        {
+          "date": "2026-07-07",
+          "nav": 980386.07
+        },
+        {
+          "date": "2026-07-08",
+          "nav": 974762.07
+        },
+        {
+          "date": "2026-07-09",
+          "nav": 978011.07
+        },
+        {
+          "date": "2026-07-10",
+          "nav": 981564.07
+        },
+        {
+          "date": "2026-07-13",
+          "nav": 993568.24
+        },
+        {
+          "date": "2026-07-14",
+          "nav": 999286.64
+        },
+        {
+          "date": "2026-07-15",
+          "nav": 1012153.54
+        },
+        {
+          "date": "2026-07-16",
+          "nav": 1010813.54
+        },
+        {
+          "date": "2026-07-17",
+          "nav": 1020374.74
+        },
+        {
+          "date": "2026-07-20",
+          "nav": 1022073.14
+        },
+        {
+          "date": "2026-07-21",
+          "nav": 1028318.74
+        },
+        {
+          "date": "2026-07-22",
+          "nav": 1029633.14
+        },
+        {
+          "date": "2026-07-23",
+          "nav": 1026141.14
+        },
+        {
+          "date": "2026-07-24",
+          "nav": 1019836.44
+        },
+        {
+          "date": "2026-07-27",
+          "nav": 1017504.14
+        },
+        {
+          "date": "2026-07-28",
+          "nav": 1036041.64
+        },
+        {
+          "date": "2026-07-29",
+          "nav": 1044833.14
+        },
+        {
+          "date": "2026-07-30",
+          "nav": 1042698.14
+        },
+        {
+          "date": "2026-07-31",
+          "nav": 1036094.14
+        },
+        {
+          "date": "2026-08-03",
+          "nav": 1038752.74
+        },
+        {
+          "date": "2026-08-04",
+          "nav": 1032428.34
+        },
+        {
+          "date": "2026-08-05",
+          "nav": 1028297.74
+        },
+        {
+          "date": "2026-08-06",
+          "nav": 1035621.74
+        },
+        {
+          "date": "2026-08-07",
+          "nav": 1039595.94
+        },
+        {
+          "date": "2026-08-10",
+          "nav": 1035390.24
+        },
+        {
+          "date": "2026-08-11",
+          "nav": 1028637.54
+        },
+        {
+          "date": "2026-08-12",
+          "nav": 1029799.54
+        },
+        {
+          "date": "2026-08-13",
+          "nav": 1030680.34
+        },
+        {
+          "date": "2026-08-14",
+          "nav": 1026231.24
+        },
+        {
+          "date": "2026-08-17",
+          "nav": 1028683.74
+        },
+        {
+          "date": "2026-08-18",
+          "nav": 1020264.14
+        },
+        {
+          "date": "2026-08-19",
+          "nav": 1016449.54
+        },
+        {
+          "date": "2026-08-20",
+          "nav": 1020373.74
+        },
+        {
+          "date": "2026-08-21",
+          "nav": 1023052.44
+        },
+        {
+          "date": "2026-08-24",
+          "nav": 1022784.04
+        },
+        {
+          "date": "2026-08-25",
+          "nav": 1025567.14
+        },
+        {
+          "date": "2026-08-26",
+          "nav": 1029952.14
+        },
+        {
+          "date": "2026-08-27",
+          "nav": 1036945.94
+        },
+        {
+          "date": "2026-08-28",
+          "nav": 1028184.94
+        },
+        {
+          "date": "2026-08-31",
+          "nav": 1018618.74
+        },
+        {
+          "date": "2026-09-01",
+          "nav": 1006696.74
+        },
+        {
+          "date": "2026-09-02",
+          "nav": 1008052.24
+        },
+        {
+          "date": "2026-09-03",
+          "nav": 1006294.44
+        },
+        {
+          "date": "2026-09-04",
+          "nav": 1011343.44
+        },
+        {
+          "date": "2026-09-07",
+          "nav": 1008426.24
+        },
+        {
+          "date": "2026-09-08",
+          "nav": 1016504.64
+        },
+        {
+          "date": "2026-09-09",
+          "nav": 1014634.64
+        },
+        {
+          "date": "2026-09-10",
+          "nav": 1017477.04
+        },
+        {
+          "date": "2026-09-11",
+          "nav": 1012222.34
+        },
+        {
+          "date": "2026-09-15",
+          "nav": 1013363.04
+        },
+        {
+          "date": "2026-09-16",
+          "nav": 995799.28
+        },
+        {
+          "date": "2026-09-17",
+          "nav": 997299.98
+        },
+        {
+          "date": "2026-09-18",
+          "nav": 1002053.58
+        },
+        {
+          "date": "2026-09-21",
+          "nav": 1003379.68
+        },
+        {
+          "date": "2026-09-22",
+          "nav": 1002594.08
+        },
+        {
+          "date": "2026-09-23",
+          "nav": 1006113.18
+        },
+        {
+          "date": "2026-09-24",
+          "nav": 997579.08
+        },
+        {
+          "date": "2026-09-25",
+          "nav": 998980.68
+        },
+        {
+          "date": "2026-09-28",
+          "nav": 990934.68
+        },
+        {
+          "date": "2026-09-29",
+          "nav": 990481.58
+        },
+        {
+          "date": "2026-09-30",
+          "nav": 982813.78
+        },
+        {
+          "date": "2026-10-01",
+          "nav": 977684.38
+        },
+        {
+          "date": "2026-10-05",
+          "nav": 980204.38
+        },
+        {
+          "date": "2026-10-06",
+          "nav": 978404.38
+        },
+        {
+          "date": "2026-10-07",
+          "nav": 976748.38
+        },
+        {
+          "date": "2026-10-08",
+          "nav": 972572.38
+        },
+        {
+          "date": "2026-10-09",
+          "nav": 977054.38
+        },
+        {
+          "date": "2026-10-12",
+          "nav": 974264.38
+        },
+        {
+          "date": "2026-10-13",
+          "nav": 978404.38
+        },
+        {
+          "date": "2026-10-14",
+          "nav": 979214.38
+        },
+        {
+          "date": "2026-10-15",
+          "nav": 980420.38
+        },
+        {
+          "date": "2026-10-16",
+          "nav": 981230.38
+        },
+        {
+          "date": "2026-10-19",
+          "nav": 976604.38
+        },
+        {
+          "date": "2026-10-21",
+          "nav": 980186.38
+        },
+        {
+          "date": "2026-10-22",
+          "nav": 982148.38
+        },
+        {
+          "date": "2026-10-23",
+          "nav": 983804.38
+        },
+        {
+          "date": "2026-10-26",
+          "nav": 986144.38
+        },
+        {
+          "date": "2026-10-27",
+          "nav": 985604.38
+        },
+        {
+          "date": "2026-10-28",
+          "nav": 984776.38
+        },
+        {
+          "date": "2026-10-29",
+          "nav": 986054.38
+        },
+        {
+          "date": "2026-10-30",
+          "nav": 983714.38
+        },
+        {
+          "date": "2026-11-02",
+          "nav": 989870.38
+        },
+        {
+          "date": "2026-11-03",
+          "nav": 995504.38
+        },
+        {
+          "date": "2026-11-04",
+          "nav": 997592.38
+        },
+        {
+          "date": "2026-11-05",
+          "nav": 1005404.38
+        },
+        {
+          "date": "2026-11-06",
+          "nav": 1009004.38
+        },
+        {
+          "date": "2026-11-08",
+          "nav": 1009886.38
+        },
+        {
+          "date": "2026-11-09",
+          "nav": 1005854.38
+        },
+        {
+          "date": "2026-11-11",
+          "nav": 1022983.09
+        },
+        {
+          "date": "2026-11-12",
+          "nav": 1045117.94
+        },
+        {
+          "date": "2026-11-13",
+          "nav": 1034193.84
+        },
+        {
+          "date": "2026-11-16",
+          "nav": 1042594.69
+        },
+        {
+          "date": "2026-11-17",
+          "nav": 1030788.09
+        },
+        {
+          "date": "2026-11-18",
+          "nav": 1017584.84
+        },
+        {
+          "date": "2026-11-19",
+          "nav": 1025229.84
+        },
+        {
+          "date": "2026-11-20",
+          "nav": 1021370.14
+        },
+        {
+          "date": "2026-11-23",
+          "nav": 1022969.94
+        },
+        {
+          "date": "2026-11-25",
+          "nav": 1017742.49
+        }
+      ],
+      "event_history": [
+        {
+          "from_date": "2026-02-27",
+          "to_date": "2026-03-30",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "WAIT",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 15,
+              "trigger_px": 442.0,
+              "max_gap_pct": 3.0,
+              "stop_px": 398.0,
+              "trail_pct": 0.15,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [],
+          "notes": {
+            "critique": "Momentum risks Stage 3 ULTRACEMCO whipsaw in bear breadth; GARP risks knife-catching KALYANKJIL at complacent VIX 13.7 / PE 22.0.",
+            "missing": "Specific reason for KALYANKJIL UNRATED (gate A,B) flag + daily FII cash flows."
+          }
+        },
+        {
+          "from_date": "2026-03-30",
+          "to_date": "2026-04-22",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 20,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 9150.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 25,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 315.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-04-01",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 10802.0,
+              "shares": 18,
+              "value": 194436.0
+            },
+            {
+              "date": "2026-04-01",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 385.6,
+              "shares": 648,
+              "value": 249869.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum freezes at VIX 28 / 12.5% capitulation; GARP without catastrophe stops ignores VIX 28 aftershock & UltraTech 8 dist_days.",
+            "missing": "Exogenous catalyst behind VIX 28 shock & provisional March FII/DII cash flows."
+          }
+        },
+        {
+          "from_date": "2026-04-22",
+          "to_date": "2026-05-18",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "ADD",
+              "target_pct": 35,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11220.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "HOLD",
+              "target_pct": 25.7,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 345.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-04-23",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 12105.0,
+              "shares": 12,
+              "value": 145260.0
+            },
+            {
+              "date": "2026-05-13",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SELL",
+              "reason": "HARD_STOP@345.0",
+              "px": 345.0,
+              "shares": 648,
+              "pnl_pct": -10.71,
+              "pnl_rs": -27256.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum enters ULTRACEMCO cold at BBP 95 facing 200DMA pullback; GARP refuses to pyramid breadth-thrust breakout.",
+            "missing": "Q4 FY26 earnings dates/consensus & driver of Mar-26 DII trim in Kalyan."
+          }
+        },
+        {
+          "from_date": "2026-05-18",
+          "to_date": "2026-07-09",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "TRIM",
+              "target_pct": 22,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 10600.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "WAIT",
+              "target_pct": 0,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": null,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-05-19",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "SELL",
+              "reason": "EVENT_TRIM",
+              "px": 11540.0,
+              "shares": 11,
+              "pnl_pct": 1.71,
+              "pnl_rs": 1882.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum got whiplashed out of UltraTech Stage 1 base; GARP averaging into post-results DISTRIBUTION risks a classic value trap.",
+            "missing": "Kalyan Q4 balance-sheet/CF details & post-results institutional block-deal flows."
+          }
+        },
+        {
+          "from_date": "2026-07-09",
+          "to_date": "2026-07-20",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "HOLD",
+              "target_pct": 22.4,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 10800.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 18,
+              "trigger_px": 455.0,
+              "max_gap_pct": 5.0,
+              "stop_px": 396.0,
+              "trail_pct": 0.14,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-13",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "TRIGGER@455.0",
+              "px": 470.5,
+              "shares": 374,
+              "value": 175967.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum blocked by gate1:false or chasing 13.1% deliv spike; GARP endured unhedged Rs 346 DD & ignores 0.45x deliv mean-reversion risk.",
+            "missing": "Catalyst behind Kalyan +18.4% surge (Q1 operational update) & fresh Jun 2026 SHP."
+          }
+        },
+        {
+          "from_date": "2026-07-20",
+          "to_date": "2026-09-15",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "ADD",
+              "target_pct": 35,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11250.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "HOLD",
+              "target_pct": 20.9,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 480.0,
+              "trail_pct": 0.15,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-07-21",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 12070.0,
+              "shares": 10,
+              "value": 120700.0
+            },
+            {
+              "date": "2026-09-02",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "SELL",
+              "reason": "HARD_STOP@11250.0",
+              "px": 11250.0,
+              "shares": 29,
+              "pnl_pct": -3.05,
+              "pnl_rs": -10915.0
+            }
+          ],
+          "notes": {
+            "critique": "Cold momentum buys at RSI 82 have awful asymmetry; GARP skipping UltraTech 200DMA breakout misses low-vol coil & leaves Kalyan unhedged.",
+            "missing": "Jun-2026 SHP flows & Q1 FY27 earnings dates/margin commentary."
+          }
+        },
+        {
+          "from_date": "2026-09-15",
+          "to_date": "2026-11-06",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "BUY_NOW",
+              "target_pct": 20,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 9700.0,
+              "trail_pct": null,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "ADD",
+              "target_pct": 38,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 538.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-09-16",
+              "ticker": "ULTRACEMCO.NS",
+              "side": "BUY",
+              "reason": "BUY_NOW",
+              "px": 10777.0,
+              "shares": 18,
+              "value": 193986.0
+            },
+            {
+              "date": "2026-09-16",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "ADD",
+              "px": 606.9,
+              "shares": 260,
+              "value": 157794.0
+            },
+            {
+              "date": "2026-10-01",
+              "ticker": "KALYANKJIL.NS",
+              "side": "SELL",
+              "reason": "TRAIL_12%_HIT",
+              "px": 553.15,
+              "shares": 634,
+              "pnl_pct": 4.86,
+              "pnl_rs": 15567.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum ignores UltraTech RSI 28 / DII +1.27% floor; GARP fears Kalyan 39x PE / stale Jun FII outflow & misses 1.37x deliv squeeze.",
+            "missing": "Post-monsoon cement pricing trends & live Sep-quarter FII flows in Kalyan."
+          }
+        },
+        {
+          "from_date": "2026-11-06",
+          "to_date": "2026-11-25",
+          "orders": {
+            "ULTRACEMCO.NS": {
+              "action": "HOLD",
+              "target_pct": 22.2,
+              "trigger_px": null,
+              "max_gap_pct": null,
+              "stop_px": 11500.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            },
+            "KALYANKJIL.NS": {
+              "action": "PLACE_TRIGGER",
+              "target_pct": 30,
+              "trigger_px": 611.0,
+              "max_gap_pct": 4.0,
+              "stop_px": 540.0,
+              "trail_pct": 0.12,
+              "use_ma50_exit": false
+            }
+          },
+          "events": [
+            {
+              "date": "2026-11-11",
+              "ticker": "KALYANKJIL.NS",
+              "side": "BUY",
+              "reason": "TRIGGER@611.0",
+              "px": 630.0,
+              "shares": 479,
+              "value": 301770.0
+            }
+          ],
+          "notes": {
+            "critique": "Momentum chases UltraTech cold at RSI 76.6 into 34% breadth; GARP trimming UltraTech misses DII +1.17% breakout.",
+            "missing": "Q2 FY27 earnings (cement margins & festive Kalyan OPM)."
+          }
+        }
+      ]
+    }
+  }
+}

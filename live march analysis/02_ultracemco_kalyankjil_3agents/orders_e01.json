@@ -1,0 +1,32 @@
+{
+  "mom_trader": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "PLACE_TRIGGER", "target_pct": 25, "trigger_px": 13120.0, "max_gap_pct": 2.5, "stop_px": 12520.0, "trail_pct": 0.12, "use_ma50_exit": true},
+      "KALYANKJIL.NS": {"action": "AVOID", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Chasing KALYANKJIL for 0.4% val pctile ignores Stage 4 DISTRIBUTION in 26.8% BEAR breadth.",
+      "missing": "Exact multi-week pivot high & breakout volume-surge confirmation (>1.5x 20d vol)."
+    }
+  },
+  "garp_investor": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "WAIT", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "BUY_NOW", "target_pct": 20, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Chart traders chase ULTRACEMCO at 42.3x PE while blindly avoiding KALYANKJIL 25.8% below bear blend (Rs 552.8) on +90% NP & 1.28x FCF/PAT.",
+      "missing": "Breakdown of Valuation v4.1 gate A,B flags & promoter pledge / gold-metal-loan split behind 0.92 D/E."
+    }
+  },
+  "hybrid_pm": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "WAIT", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "PLACE_TRIGGER", "target_pct": 15, "trigger_px": 442.0, "max_gap_pct": 3.0, "stop_px": 398.0, "trail_pct": 0.15, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Momentum risks Stage 3 ULTRACEMCO whipsaw in bear breadth; GARP risks knife-catching KALYANKJIL at complacent VIX 13.7 / PE 22.0.",
+      "missing": "Specific reason for KALYANKJIL UNRATED (gate A,B) flag + daily FII cash flows."
+    }
+  }
+}

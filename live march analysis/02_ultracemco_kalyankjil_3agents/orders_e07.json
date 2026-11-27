@@ -1,0 +1,32 @@
+{
+  "mom_trader": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "AVOID", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "ADD", "target_pct": 40, "trigger_px": null, "max_gap_pct": null, "stop_px": 550.0, "trail_pct": 0.11, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "ULTRACEMCO ACCUMULATE P28 walks into Stage 4 VETO; valuation purists scared of PE 38.9 miss Kalyan Stage 2 tight squeeze.",
+      "missing": "Exact INSIDE shelf upper-pivot price & RS-line new-high breakout flag."
+    }
+  },
+  "garp_investor": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "ADD", "target_pct": 45, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "TRIM", "target_pct": 48, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Chart traders chase Kalyan squeeze 59% above GARP cost as FIIs distribute, while auto-rejecting UltraTech at P28 ACCUMULATE & 62% deliv.",
+      "missing": "Driver of Kalyan -3.73% FII exit & monsoon cement realization trends."
+    }
+  },
+  "hybrid_pm": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "BUY_NOW", "target_pct": 20, "trigger_px": null, "max_gap_pct": null, "stop_px": 9700.0, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "ADD", "target_pct": 38, "trigger_px": null, "max_gap_pct": null, "stop_px": 538.0, "trail_pct": 0.12, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Momentum ignores UltraTech RSI 28 / DII +1.27% floor; GARP fears Kalyan 39x PE / stale Jun FII outflow & misses 1.37x deliv squeeze.",
+      "missing": "Post-monsoon cement pricing trends & live Sep-quarter FII flows in Kalyan."
+    }
+  }
+}

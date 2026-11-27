@@ -1,0 +1,32 @@
+{
+  "mom_trader": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "AVOID", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "WAIT", "target_pct": 0, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Buying ACCUMULATE into VIX 27.89 (+5.1 in 5d) & ADX 47.4 / 8 dist_days risks severe MTM pain.",
+      "missing": "Market Follow-Through Day (FTD) / breadth-thrust & VIX peak-reversal indicator."
+    }
+  },
+  "garp_investor": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "BUY_NOW", "target_pct": 25, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "ADD", "target_pct": 35, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Chart systems freeze at VIX 27.9 / 12.5% breadth — missing UltraTech ACCUMULATE & Kalyan 0.1%ile + 1.43x delivery.",
+      "missing": "Pre-results Q4 FY26 cement pricing checks & Kalyan gold-price demand elasticity."
+    }
+  },
+  "hybrid_pm": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "BUY_NOW", "target_pct": 20, "trigger_px": null, "max_gap_pct": null, "stop_px": 9150.0, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "BUY_NOW", "target_pct": 25, "trigger_px": null, "max_gap_pct": null, "stop_px": 315.0, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Momentum freezes at VIX 28 / 12.5% capitulation; GARP without catastrophe stops ignores VIX 28 aftershock & UltraTech 8 dist_days.",
+      "missing": "Exogenous catalyst behind VIX 28 shock & provisional March FII/DII cash flows."
+    }
+  }
+}

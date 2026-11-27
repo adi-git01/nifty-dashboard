@@ -1,0 +1,32 @@
+{
+  "mom_trader": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "BUY_NOW", "target_pct": 30, "trigger_px": null, "max_gap_pct": null, "stop_px": 11320.0, "trail_pct": 0.12, "use_ma50_exit": true},
+      "KALYANKJIL.NS": {"action": "HOLD", "target_pct": 23, "trigger_px": null, "max_gap_pct": null, "stop_px": 475.0, "trail_pct": 0.15, "use_ma50_exit": true}
+    },
+    "notes": {
+      "critique": "ULTRACEMCO flipped HOLD the exact day Gate 1 fired; late Kalyan buyers at RSI 81.9 face 17.7% stop while Rs 465 trigger rides free.",
+      "missing": "5-day rolling delivery-ratio trend & FII/DII daily cash-flow attribution."
+    }
+  },
+  "garp_investor": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "HOLD", "target_pct": 37.4, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "TRIM", "target_pct": 50, "trigger_px": null, "max_gap_pct": null, "stop_px": null, "trail_pct": null, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Kalyan first BUY NOW/Gate 1 arrives at Rs 570 (RSI 81.9, +45.8% vs 50DMA) forcing chart traders to chase +64% above GARP add.",
+      "missing": "Q1 FY27 earnings & Jun-2026 SHP to verify institutional accumulation above bear blend."
+    }
+  },
+  "hybrid_pm": {
+    "orders": {
+      "ULTRACEMCO.NS": {"action": "ADD", "target_pct": 35, "trigger_px": null, "max_gap_pct": null, "stop_px": 11250.0, "trail_pct": 0.12, "use_ma50_exit": false},
+      "KALYANKJIL.NS": {"action": "HOLD", "target_pct": 20.9, "trigger_px": null, "max_gap_pct": null, "stop_px": 480.0, "trail_pct": 0.15, "use_ma50_exit": false}
+    },
+    "notes": {
+      "critique": "Cold momentum buys at RSI 82 have awful asymmetry; GARP skipping UltraTech 200DMA breakout misses low-vol coil & leaves Kalyan unhedged.",
+      "missing": "Jun-2026 SHP flows & Q1 FY27 earnings dates/margin commentary."
+    }
+  }
+}

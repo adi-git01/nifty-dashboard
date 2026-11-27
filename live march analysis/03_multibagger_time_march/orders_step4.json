@@ -1,0 +1,50 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-05-29",
+    "to_date": "2026-06-30",
+    "orders": {
+      "STLTECH.NS": {"action": "TRIM", "target_pct": 9, "stop_px": 410.0, "trail_pct": 12},
+      "LAURUSLABS.NS": {"action": "TRIM", "target_pct": 12, "stop_px": 1160.0, "trail_pct": 12},
+      "SIGMAADV.NS": {"action": "BUY_NOW", "target_pct": 8, "stop_px": 353.1, "trail_pct": 15},
+      "CUPID.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 136.0, "stop_px": 115.0, "trail_pct": 14, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Trim STLTECH/LAURUSLABS in BEAR, buy SIGMAADV 8% (Q_NP +1322%), trigger CUPID BBP 12"}
+  },
+  "mom_trader": {
+    "from_date": "2026-05-18",
+    "to_date": "2026-06-22",
+    "orders": {
+      "CUPID.NS": {"action": "TRIM", "target_pct": 12, "stop_px": 96.4, "trail_pct": 15, "use_ma50_exit": true},
+      "LAURUSLABS.NS": {"action": "TRIM", "target_pct": 9, "stop_px": 1120.0, "trail_pct": 12, "use_ma50_exit": true},
+      "SIGMAADV.NS": {"action": "TRIM", "target_pct": 7, "stop_px": 225.0, "trail_pct": 12, "use_ma50_exit": true},
+      "MACPOWER.NS": {"action": "HOLD", "target_pct": 9, "stop_px": 985.5, "trail_pct": 15, "use_ma50_exit": true},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 9, "stop_px": 196.8, "trail_pct": 12}
+    },
+    "notes": {"rationale": "Harvest extended gains (SIGMAADV/LAURUSLABS/CUPID), hold MACPOWER & BBP 4 SSWL"}
+  },
+  "garp_investor": {
+    "from_date": "2026-05-18",
+    "to_date": "2026-06-22",
+    "orders": {
+      "HFCL.NS": {"action": "TRIM", "target_pct": 10, "stop_px": null, "trail_pct": null},
+      "MACPOWER.NS": {"action": "HOLD", "target_pct": 14, "stop_px": null, "trail_pct": null},
+      "SSWL.NS": {"action": "HOLD", "target_pct": 12, "stop_px": null, "trail_pct": null},
+      "FILATEX.NS": {"action": "HOLD", "target_pct": 9, "stop_px": null, "trail_pct": null}
+    },
+    "notes": {"rationale": "Trim HFCL (+105%, cap breach) to 10%; hold MACPOWER/SSWL/FILATEX"}
+  },
+  "hybrid_pm": {
+    "from_date": "2026-05-18",
+    "to_date": "2026-06-22",
+    "orders": {
+      "STLTECH.NS": {"action": "TRIM", "target_pct": 16, "stop_px": 350.0, "trail_pct": 17},
+      "LAURUSLABS.NS": {"action": "TRIM", "target_pct": 15, "stop_px": 1125.0, "trail_pct": 15},
+      "MACPOWER.NS": {"action": "HOLD", "target_pct": 15, "stop_px": 935.0, "trail_pct": 15},
+      "SSWL.NS": {"action": "ADD", "target_pct": 12, "stop_px": 178.0, "trail_pct": 15},
+      "HFCL.NS": {"action": "TRIM", "target_pct": 10, "stop_px": 116.0, "trail_pct": 17},
+      "CUPID.NS": {"action": "HOLD", "target_pct": 10, "stop_px": 102.0, "trail_pct": 15},
+      "FILATEX.NS": {"action": "EXIT", "target_pct": 0}
+    },
+    "notes": {"rationale": "Trim STLTECH/HFCL/LAURUSLABS in BEAR, exit FILATEX (Q4 miss), add SSWL BBP 4 squeeze"}
+  }
+}

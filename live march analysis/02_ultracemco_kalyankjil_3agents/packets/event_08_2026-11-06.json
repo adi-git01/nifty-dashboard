@@ -1,0 +1,256 @@
+{
+  "event_num": 8,
+  "event_date": "2026-11-06",
+  "event_label": "E8: November Bull Breakout (Nov 6) \u2014 Both Stocks Gate 1 ON + Sep-2026 SHP Live",
+  "market": {
+    "as_of": "2026-11-06",
+    "nifty_close": 25030.3,
+    "nifty_vs_200dma_pct": 4.32,
+    "nifty_dd_from_52w_pct": -4.93,
+    "nifty_regime": "MILD BULL",
+    "breadth_above_50dma_pct": 34.1,
+    "breadth_above_200dma_pct": 45.8,
+    "breadth_regime": "CHOPPY",
+    "engine_mode": "CAUTION",
+    "engine_trail_stop_pct": 12.0,
+    "india_vix": 17.47,
+    "india_vix_5d_chg": 2.17,
+    "nifty_pe": 20.65,
+    "fii_idx_futures_long_pct": 24.6,
+    "fii_idx_126d_pctile": 100.0
+  },
+  "stocks": {
+    "ULTRACEMCO.NS": {
+      "price": 12450.0,
+      "ma50": 11102.6,
+      "ma200": 11619.6,
+      "vs_50dma_pct": 12.14,
+      "vs_200dma_pct": 7.15,
+      "vs_52w_high_pct": -5.03,
+      "rs": {
+        "rs1w": 4.14,
+        "rs1m": 6.07,
+        "rs3m": 1.5,
+        "rs6m": -0.39,
+        "comp_rs": 4.05
+      },
+      "dna_signal": "BUY",
+      "gate1": true,
+      "industry": {
+        "industry": "Cement & Cement Products",
+        "rank": 36,
+        "of": 54,
+        "score": 35.0,
+        "group": "LAGGING",
+        "status": "BASING",
+        "above_50_pct": 54.0,
+        "above_200_pct": 31.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "NO ANCHOR",
+        "supply": "CLEAN AIR",
+        "signature": "",
+        "adx": 32.8,
+        "pdi": 38.6,
+        "ndi": 6.8,
+        "rsi": 76.6,
+        "bbp": 93.7,
+        "gap": false,
+        "entry": 12450.0,
+        "stop": 10963.51,
+        "stop_pct": 11.94,
+        "half_size": true
+      },
+      "simba": {
+        "stage": 1,
+        "mtf": 1,
+        "mrs": 4.11,
+        "caution": 1,
+        "dist_days": 4
+      },
+      "microstructure": {
+        "deliv_pct": 59.6,
+        "deliv_avg20": 54.0,
+        "deliv_ratio": 1.1,
+        "abs_deliv_cr": 187.6,
+        "vol20_ann_pct": 24.4,
+        "atr14_pct": 2.5,
+        "invvol20_w_mult": 1.5,
+        "liq_cr_day": 314.8
+      },
+      "business_pit": {
+        "verdict": "HEALTHY",
+        "score": 62.0,
+        "quarterly": {
+          "quarter": "Jun 2026",
+          "sales_yoy": 15.9,
+          "opm": 20.0,
+          "opm_chg": -1.0,
+          "np_yoy": 17.2,
+          "shp_quarter": "Sep 2026",
+          "fii": 12.2,
+          "dii": 20.86,
+          "promoters": 58.48,
+          "fii_q": -0.16,
+          "dii_q": 1.17,
+          "inst_q": 1.01,
+          "inst_y": 1.08,
+          "inst_label": "ACCUMULATING"
+        }
+      },
+      "valuation_pit": {
+        "rating": "HOLD",
+        "verdict_raw": "HOLD",
+        "cmp_pct": 52.9,
+        "p50": 12210.0,
+        "to_p50_pct": -1.9,
+        "bear_blend": 7300.8,
+        "base_blend": 11288.4,
+        "pe": 41.5,
+        "roce_pct": 13.0,
+        "de": 0.4,
+        "cfo_pat_3y": 1.74,
+        "fcf_pat_3y": 0.13,
+        "ladder": {
+          "accumulate": 11293.7,
+          "fair_hi": 14501.6,
+          "trim": 17479.3
+        }
+      },
+      "funnel_v3": {
+        "score": 40.8,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udfe2 Inst +1.0q/+1.1y (+8)",
+          "\ud83d\udcc8 RS +4.0"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)",
+          "\u2696\ufe0f Half-size 11.9% stop"
+        ]
+      },
+      "inter_event_log": [
+        "2026-10-26: Above 50-DMA (11180.0 vs 11103.94)",
+        "2026-10-30: Below 50-DMA (11045.0 vs 11063.32)",
+        "2026-11-02: Above 50-DMA (11387.0 vs 11062.06)",
+        "2026-11-03: Above 200-DMA (11700.0 vs 11619.0)"
+      ]
+    },
+    "KALYANKJIL.NS": {
+      "price": 590.75,
+      "ma50": 565.24,
+      "ma200": 466.6,
+      "vs_50dma_pct": 4.51,
+      "vs_200dma_pct": 26.61,
+      "vs_52w_high_pct": -8.97,
+      "rs": {
+        "rs1w": 10.05,
+        "rs1m": -6.92,
+        "rs3m": -2.81,
+        "rs6m": 40.79,
+        "comp_rs": -3.58
+      },
+      "dna_signal": "HOLD",
+      "gate1": true,
+      "industry": {
+        "industry": "Consumer Durables",
+        "rank": 29,
+        "of": 54,
+        "score": 48.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 39.0,
+        "above_200_pct": 47.0
+      },
+      "forensics": {
+        "action": "WAIT",
+        "state": "WAIT (running)",
+        "supply": "NEAR OVERHANG",
+        "signature": "",
+        "adx": 25.5,
+        "pdi": 36.3,
+        "ndi": 18.9,
+        "rsi": 63.9,
+        "bbp": 70.2,
+        "gap": false,
+        "entry": 610.49,
+        "stop": 554.25,
+        "stop_pct": 9.21,
+        "half_size": false
+      },
+      "simba": {
+        "stage": 2,
+        "mtf": 2,
+        "mrs": 21.68,
+        "caution": 1,
+        "dist_days": 1
+      },
+      "microstructure": {
+        "deliv_pct": 28.1,
+        "deliv_avg20": 28.3,
+        "deliv_ratio": 0.99,
+        "abs_deliv_cr": 59.0,
+        "vol20_ann_pct": 43.7,
+        "atr14_pct": 3.85,
+        "invvol20_w_mult": 0.948,
+        "liq_cr_day": 209.9
+      },
+      "business_pit": {
+        "verdict": "STRONG",
+        "score": 75.0,
+        "quarterly": {
+          "quarter": "Jun 2026",
+          "sales_yoy": 45.7,
+          "opm": 6.0,
+          "opm_chg": -1.0,
+          "np_yoy": 32.2,
+          "shp_quarter": "Sep 2026",
+          "fii": 13.83,
+          "dii": 14.41,
+          "promoters": 62.85,
+          "fii_q": 3.01,
+          "dii_q": -1.42,
+          "inst_q": 1.59,
+          "inst_y": -0.44,
+          "inst_label": "ACCUMULATING"
+        }
+      },
+      "valuation_pit": {
+        "rating": "UNRATED (gate A, B)",
+        "verdict_raw": "BUY",
+        "cmp_pct": 8.0,
+        "p50": 1123.2,
+        "to_p50_pct": 90.1,
+        "bear_blend": 552.8,
+        "base_blend": 1219.8,
+        "pe": 38.1,
+        "roce_pct": 21.0,
+        "de": 0.92,
+        "cfo_pat_3y": 1.45,
+        "fcf_pat_3y": 1.28,
+        "ladder": {
+          "accumulate": 1028.6,
+          "fair_hi": 1350.0,
+          "trim": 1527.0
+        }
+      },
+      "funnel_v3": {
+        "score": 41.1,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udfe2 Inst +1.6q/-0.4y (+8)",
+          "\ud83c\udfe2 Biz 75 Strong",
+          "\ud83d\udccf Tight 9.2% stop"
+        ],
+        "cons": [
+          "\ud83d\udd34 Near Overhang (-6)",
+          "\ud83d\udfe0 WAIT (Needs trigger)"
+        ]
+      },
+      "inter_event_log": [
+        "2026-11-06: Above 50-DMA (590.75 vs 565.24)"
+      ]
+    }
+  }
+}

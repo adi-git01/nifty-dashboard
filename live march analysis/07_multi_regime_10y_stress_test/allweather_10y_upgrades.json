@@ -1,0 +1,620 @@
+{
+  "full_10y": {
+    "NIFTY_50": {
+      "ret": 234.51,
+      "cagr": 12.02,
+      "mdd": -38.44,
+      "sharpe": 0.802,
+      "calmar": 0.31
+    },
+    "EW_TRADABLE_500CR": {
+      "ret": 349.24,
+      "cagr": 15.17,
+      "mdd": -59.77,
+      "sharpe": 0.84,
+      "calmar": 0.25
+    },
+    "momq_dyn_2_20_th": {
+      "ret": 221.38,
+      "cagr": 11.6,
+      "mdd": -16.88,
+      "sharpe": 0.999,
+      "calmar": 0.69
+    },
+    "momq_dyn_5_20_th": {
+      "ret": 221.88,
+      "cagr": 11.62,
+      "mdd": -16.87,
+      "sharpe": 1.001,
+      "calmar": 0.69
+    },
+    "momq_dyn_2_20_dualb": {
+      "ret": 219.97,
+      "cagr": 11.55,
+      "mdd": -16.85,
+      "sharpe": 0.992,
+      "calmar": 0.69
+    },
+    "garp_throttled_2cr": {
+      "ret": 253.31,
+      "cagr": 12.6,
+      "mdd": -52.43,
+      "sharpe": 0.721,
+      "calmar": 0.24
+    },
+    "garp_stage2_trend_th": {
+      "ret": 333.83,
+      "cagr": 14.79,
+      "mdd": -30.0,
+      "sharpe": 1.151,
+      "calmar": 0.49
+    },
+    "garp_stage2_trend_noth": {
+      "ret": 347.72,
+      "cagr": 15.13,
+      "mdd": -32.47,
+      "sharpe": 1.158,
+      "calmar": 0.47
+    },
+    "garp_stage12_qual_th": {
+      "ret": 291.73,
+      "cagr": 13.7,
+      "mdd": -47.39,
+      "sharpe": 0.953,
+      "calmar": 0.29
+    },
+    "pead_dyn_5_20_th": {
+      "ret": 157.42,
+      "cagr": 9.3,
+      "mdd": -21.67,
+      "sharpe": 0.888,
+      "calmar": 0.43
+    },
+    "ALLWEATHER_40_40_20": {
+      "ret": 258.99,
+      "cagr": 12.77,
+      "mdd": -20.48,
+      "sharpe": 1.202,
+      "calmar": 0.62
+    },
+    "ALLWEATHER_40_40_20_TH": {
+      "ret": 254.66,
+      "cagr": 12.64,
+      "mdd": -19.35,
+      "sharpe": 1.2,
+      "calmar": 0.65
+    },
+    "ALLWEATHER_50_35_15": {
+      "ret": 274.35,
+      "cagr": 13.21,
+      "mdd": -22.44,
+      "sharpe": 1.21,
+      "calmar": 0.59
+    }
+  },
+  "regimes": {
+    "R1_16_17_Bull": {
+      "NIFTY_50": {
+        "ret": 42.97,
+        "cagr": 21.52,
+        "mdd": -11.66,
+        "sharpe": 1.865,
+        "calmar": 1.84
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": 71.9,
+        "cagr": 34.36,
+        "mdd": -16.57,
+        "sharpe": 1.965,
+        "calmar": 2.07
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 15.28,
+        "cagr": 8.06,
+        "mdd": -11.03,
+        "sharpe": 0.739,
+        "calmar": 0.73
+      },
+      "garp_throttled_2cr": {
+        "ret": 51.41,
+        "cagr": 25.37,
+        "mdd": -19.03,
+        "sharpe": 1.304,
+        "calmar": 1.33
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 32.62,
+        "cagr": 16.64,
+        "mdd": -15.66,
+        "sharpe": 1.293,
+        "calmar": 1.06
+      },
+      "garp_stage2_trend_th": {
+        "ret": 31.15,
+        "cagr": 15.93,
+        "mdd": -15.2,
+        "sharpe": 1.281,
+        "calmar": 1.05
+      },
+      "pead_dyn_5_20_th": {
+        "ret": 20.01,
+        "cagr": 10.46,
+        "mdd": -8.66,
+        "sharpe": 1.099,
+        "calmar": 1.21
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": 23.47,
+        "cagr": 12.18,
+        "mdd": -9.17,
+        "sharpe": 1.23,
+        "calmar": 1.33
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": 22.9,
+        "cagr": 11.9,
+        "mdd": -8.97,
+        "sharpe": 1.227,
+        "calmar": 1.33
+      }
+    },
+    "R2_18_19_Bear": {
+      "NIFTY_50": {
+        "ret": 8.58,
+        "cagr": 4.21,
+        "mdd": -14.55,
+        "sharpe": 0.381,
+        "calmar": 0.29
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": -27.17,
+        "cagr": -14.69,
+        "mdd": -38.28,
+        "sharpe": -0.81,
+        "calmar": -0.38
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 4.41,
+        "cagr": 2.19,
+        "mdd": -16.07,
+        "sharpe": 0.288,
+        "calmar": 0.14
+      },
+      "garp_throttled_2cr": {
+        "ret": -39.94,
+        "cagr": -22.54,
+        "mdd": -41.1,
+        "sharpe": -1.463,
+        "calmar": -0.55
+      },
+      "garp_stage2_trend_noth": {
+        "ret": -17.65,
+        "cagr": -9.27,
+        "mdd": -21.6,
+        "sharpe": -1.626,
+        "calmar": -0.43
+      },
+      "garp_stage2_trend_th": {
+        "ret": -17.08,
+        "cagr": -8.96,
+        "mdd": -20.68,
+        "sharpe": -1.632,
+        "calmar": -0.43
+      },
+      "pead_dyn_5_20_th": {
+        "ret": -5.02,
+        "cagr": -2.55,
+        "mdd": -21.21,
+        "sharpe": -0.298,
+        "calmar": -0.12
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": -6.62,
+        "cagr": -3.37,
+        "mdd": -14.59,
+        "sharpe": -0.545,
+        "calmar": -0.23
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": -6.36,
+        "cagr": -3.24,
+        "mdd": -14.59,
+        "sharpe": -0.529,
+        "calmar": -0.22
+      }
+    },
+    "R3_20_COVID": {
+      "NIFTY_50": {
+        "ret": -3.55,
+        "cagr": -5.31,
+        "mdd": -37.63,
+        "sharpe": 0.039,
+        "calmar": -0.14
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": -0.31,
+        "cagr": -0.46,
+        "mdd": -41.38,
+        "sharpe": 0.155,
+        "calmar": -0.01
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 13.78,
+        "cagr": 21.52,
+        "mdd": -9.53,
+        "sharpe": 1.864,
+        "calmar": 2.26
+      },
+      "garp_throttled_2cr": {
+        "ret": 5.56,
+        "cagr": 8.52,
+        "mdd": -15.57,
+        "sharpe": 0.534,
+        "calmar": 0.55
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 4.17,
+        "cagr": 6.36,
+        "mdd": -11.0,
+        "sharpe": 0.573,
+        "calmar": 0.58
+      },
+      "garp_stage2_trend_th": {
+        "ret": 6.11,
+        "cagr": 9.37,
+        "mdd": -8.67,
+        "sharpe": 0.858,
+        "calmar": 1.08
+      },
+      "pead_dyn_5_20_th": {
+        "ret": 14.81,
+        "cagr": 23.18,
+        "mdd": -11.1,
+        "sharpe": 1.643,
+        "calmar": 2.09
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": 10.16,
+        "cagr": 15.72,
+        "mdd": -10.14,
+        "sharpe": 1.415,
+        "calmar": 1.55
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": 10.96,
+        "cagr": 17.0,
+        "mdd": -9.32,
+        "sharpe": 1.558,
+        "calmar": 1.82
+      }
+    },
+    "R4_20_21_PostCovid": {
+      "NIFTY_50": {
+        "ret": 52.0,
+        "cagr": 39.85,
+        "mdd": -10.08,
+        "sharpe": 2.284,
+        "calmar": 3.95
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": 88.29,
+        "cagr": 66.01,
+        "mdd": -9.71,
+        "sharpe": 3.027,
+        "calmar": 6.8
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 40.06,
+        "cagr": 30.98,
+        "mdd": -6.85,
+        "sharpe": 2.186,
+        "calmar": 4.52
+      },
+      "garp_throttled_2cr": {
+        "ret": 112.85,
+        "cagr": 83.14,
+        "mdd": -14.1,
+        "sharpe": 2.839,
+        "calmar": 5.9
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 93.04,
+        "cagr": 69.36,
+        "mdd": -9.03,
+        "sharpe": 3.588,
+        "calmar": 7.68
+      },
+      "garp_stage2_trend_th": {
+        "ret": 99.27,
+        "cagr": 73.72,
+        "mdd": -9.05,
+        "sharpe": 3.582,
+        "calmar": 8.14
+      },
+      "pead_dyn_5_20_th": {
+        "ret": 19.78,
+        "cagr": 15.55,
+        "mdd": -6.46,
+        "sharpe": 1.491,
+        "calmar": 2.41
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": 54.97,
+        "cagr": 42.03,
+        "mdd": -6.82,
+        "sharpe": 3.069,
+        "calmar": 6.17
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": 56.99,
+        "cagr": 43.51,
+        "mdd": -6.82,
+        "sharpe": 3.083,
+        "calmar": 6.38
+      }
+    },
+    "R5_22_23_Chop": {
+      "NIFTY_50": {
+        "ret": -1.51,
+        "cagr": -1.22,
+        "mdd": -16.47,
+        "sharpe": 0.006,
+        "calmar": -0.07
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": -7.16,
+        "cagr": -5.83,
+        "mdd": -23.94,
+        "sharpe": -0.207,
+        "calmar": -0.24
+      },
+      "momq_dyn_2_20_th": {
+        "ret": -8.5,
+        "cagr": -6.92,
+        "mdd": -13.82,
+        "sharpe": -0.543,
+        "calmar": -0.5
+      },
+      "garp_throttled_2cr": {
+        "ret": 15.01,
+        "cagr": 11.97,
+        "mdd": -17.9,
+        "sharpe": 0.664,
+        "calmar": 0.67
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 6.47,
+        "cagr": 5.2,
+        "mdd": -12.99,
+        "sharpe": 0.417,
+        "calmar": 0.4
+      },
+      "garp_stage2_trend_th": {
+        "ret": 11.09,
+        "cagr": 8.87,
+        "mdd": -12.87,
+        "sharpe": 0.66,
+        "calmar": 0.69
+      },
+      "pead_dyn_5_20_th": {
+        "ret": -15.04,
+        "cagr": -12.34,
+        "mdd": -15.33,
+        "sharpe": -1.35,
+        "calmar": -0.8
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": -3.99,
+        "cagr": -3.24,
+        "mdd": -12.05,
+        "sharpe": -0.237,
+        "calmar": -0.27
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": -2.31,
+        "cagr": -1.87,
+        "mdd": -11.32,
+        "sharpe": -0.114,
+        "calmar": -0.17
+      }
+    },
+    "R6_23_24_SuperBull": {
+      "NIFTY_50": {
+        "ret": 48.35,
+        "cagr": 30.19,
+        "mdd": -6.61,
+        "sharpe": 2.32,
+        "calmar": 4.57
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": 113.1,
+        "cagr": 65.89,
+        "mdd": -13.03,
+        "sharpe": 3.206,
+        "calmar": 5.06
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 63.11,
+        "cagr": 38.72,
+        "mdd": -7.71,
+        "sharpe": 2.444,
+        "calmar": 5.02
+      },
+      "garp_throttled_2cr": {
+        "ret": 99.66,
+        "cagr": 58.81,
+        "mdd": -15.81,
+        "sharpe": 2.169,
+        "calmar": 3.72
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 89.11,
+        "cagr": 53.15,
+        "mdd": -9.52,
+        "sharpe": 2.588,
+        "calmar": 5.58
+      },
+      "garp_stage2_trend_th": {
+        "ret": 76.51,
+        "cagr": 46.25,
+        "mdd": -10.34,
+        "sharpe": 2.379,
+        "calmar": 4.47
+      },
+      "pead_dyn_5_20_th": {
+        "ret": 79.79,
+        "cagr": 48.06,
+        "mdd": -8.45,
+        "sharpe": 2.84,
+        "calmar": 5.68
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": 77.09,
+        "cagr": 46.57,
+        "mdd": -7.43,
+        "sharpe": 2.835,
+        "calmar": 6.27
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": 72.32,
+        "cagr": 43.91,
+        "mdd": -7.47,
+        "sharpe": 2.744,
+        "calmar": 5.88
+      }
+    },
+    "R7_24_26_Post24": {
+      "NIFTY_50": {
+        "ret": 0.01,
+        "cagr": 0.01,
+        "mdd": -15.56,
+        "sharpe": 0.068,
+        "calmar": 0.0
+      },
+      "EW_TRADABLE_500CR": {
+        "ret": -4.84,
+        "cagr": -2.29,
+        "mdd": -25.37,
+        "sharpe": -0.019,
+        "calmar": -0.09
+      },
+      "momq_dyn_2_20_th": {
+        "ret": 16.97,
+        "cagr": 7.61,
+        "mdd": -11.97,
+        "sharpe": 0.675,
+        "calmar": 0.64
+      },
+      "garp_throttled_2cr": {
+        "ret": -22.15,
+        "cagr": -11.07,
+        "mdd": -24.53,
+        "sharpe": -0.673,
+        "calmar": -0.45
+      },
+      "garp_stage2_trend_noth": {
+        "ret": 2.97,
+        "cagr": 1.38,
+        "mdd": -11.56,
+        "sharpe": 0.175,
+        "calmar": 0.12
+      },
+      "garp_stage2_trend_th": {
+        "ret": -1.48,
+        "cagr": -0.7,
+        "mdd": -10.49,
+        "sharpe": 0.0,
+        "calmar": -0.07
+      },
+      "pead_dyn_5_20_th": {
+        "ret": 7.59,
+        "cagr": 3.49,
+        "mdd": -12.59,
+        "sharpe": 0.364,
+        "calmar": 0.28
+      },
+      "ALLWEATHER_40_40_20": {
+        "ret": 9.8,
+        "cagr": 4.48,
+        "mdd": -9.1,
+        "sharpe": 0.483,
+        "calmar": 0.49
+      },
+      "ALLWEATHER_40_40_20_TH": {
+        "ret": 7.87,
+        "cagr": 3.61,
+        "mdd": -8.76,
+        "sharpe": 0.403,
+        "calmar": 0.41
+      }
+    }
+  },
+  "corr": {
+    "GARP_S2": {
+      "GARP_S2": 1.0,
+      "MOMQ_Dyn": 0.63,
+      "PEAD_Dyn": 0.57,
+      "NIFTY_50": 0.44
+    },
+    "MOMQ_Dyn": {
+      "GARP_S2": 0.63,
+      "MOMQ_Dyn": 1.0,
+      "PEAD_Dyn": 0.66,
+      "NIFTY_50": 0.51
+    },
+    "PEAD_Dyn": {
+      "GARP_S2": 0.57,
+      "MOMQ_Dyn": 0.66,
+      "PEAD_Dyn": 1.0,
+      "NIFTY_50": 0.4
+    },
+    "NIFTY_50": {
+      "GARP_S2": 0.44,
+      "MOMQ_Dyn": 0.51,
+      "PEAD_Dyn": 0.4,
+      "NIFTY_50": 1.0
+    }
+  },
+  "meta": {
+    "momq_dyn_2_20_th": {
+      "cash_mean": 40.7,
+      "buys": 837,
+      "win_rate": 35.8
+    },
+    "momq_dyn_5_20_th": {
+      "cash_mean": 40.2,
+      "buys": 839,
+      "win_rate": 35.4
+    },
+    "momq_dyn_2_20_dualb": {
+      "cash_mean": 40.3,
+      "buys": 845,
+      "win_rate": 35.2
+    },
+    "garp_throttled_2cr": {
+      "cash_mean": 17.8,
+      "buys": 182,
+      "win_rate": 42.1
+    },
+    "garp_stage2_trend_th": {
+      "cash_mean": 48.0,
+      "buys": 211,
+      "win_rate": 41.5
+    },
+    "garp_stage2_trend_noth": {
+      "cash_mean": 44.9,
+      "buys": 220,
+      "win_rate": 43.7
+    },
+    "garp_stage12_qual_th": {
+      "cash_mean": 35.6,
+      "buys": 278,
+      "win_rate": 37.9
+    },
+    "pead_dyn_5_20_th": {
+      "cash_mean": 55.6,
+      "buys": 646,
+      "win_rate": 32.6
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# Live March Analysis Archive (`2016–2026`)
+
+> **Complete archive of reports, master learnings, simulation scripts, point-in-time packets, and raw result ledgers from all 9 causal live time-march experiments.**
+
+Every study in this folder was executed under a **strict zero-lookahead protocol (`<= t`)** with realistic NSE friction (`20 bps/side` = `40 bps` round-trip, `T+1 Open` execution, `0%` cash yield unless noted, and survivorship-free NSE equity data including delisted blowups for the 10-year studies).
+
+---
+
+## 1. Chronological Experiment Index
+
+| # | Folder | Scope & Window | Headline Result | Report & Key Artifacts |
+|---:|---|---|---|---|
+| **01** | `01_ultracemco_kalyankjil_1agent/` | 1 Blind Quant Trader, monthly gates (`ULTRACEMCO`, `KALYANKJIL`, `Feb–Nov 2026`) | `−4.59%` vs `BH_50_50 +28.07%` — revealed monthly-gate lag, `0` `BUY NOW` triggers on `ULTRACEMCO`, and tight trailing-stop whipsaws | [Report](./01_ultracemco_kalyankjil_1agent/time_march_ultracemco_kalyankjil.md) · [sim_step.py](./01_ultracemco_kalyankjil_1agent/sim_step.py) · [final_attribution.json](./01_ultracemco_kalyankjil_1agent/final_attribution.json) |
+| **02** | `02_ultracemco_kalyankjil_3agents/` | 3 Parallel Blind Experts (`Mom`, `GARP`, `Hybrid`) on 9 causal events (`Feb–Nov 2026`) | **GARP `+40.54%` (Sharpe `1.92`)**, Hybrid `+1.77%`, Mom `+0.07%` — proved Valuation v4.1 Bear-zone staging + event wakeups beat monthly gating | [Report](./02_ultracemco_kalyankjil_3agents/live_3agent_time_march_ultracemco_kalyankjil.md) · [sim_multi.py](./02_ultracemco_kalyankjil_3agents/sim_multi.py) · [final_3agent_attribution.json](./02_ultracemco_kalyankjil_3agents/final_3agent_attribution.json) |
+| **03** | `03_multibagger_time_march/` | 11 NSE 2026 Multibaggers: Monthly-Gate vs 3-Agent Event-March (`Feb–Nov 2026`) | **Hybrid `+148.34%` (Sharpe `5.87`, `−8.32%` DD)**, GARP `+82.37%`, Mom `+65.85%`, Monthly `+55.55%`; uncovered `forensics.py` over-extension lockouts & N1000 blind spot | [Report](./03_multibagger_time_march/multibagger_time_march_report.md) · [sim_multibagger.py](./03_multibagger_time_march/sim_multibagger.py) · [final_multibagger_attribution.json](./03_multibagger_time_march/final_multibagger_attribution.json) |
+| **04** | `04_poisoned_universe_dual_atr/` | Poisoned 23-stock universe (11 winners + 12 real value/squeeze traps) & Dual-ATR ablation (`Feb–Nov 2026`) | Validated `forensics.py` Dual-ATR fix + proved the 3 anti-trap rules (`CFO/PAT >= 0.80`, `Q NP YoY > 0%`, `No Stage 4`) | [Report](./04_poisoned_universe_dual_atr/poisoned_universe_and_dual_atr_validation.md) · [run_experiments.py](./04_poisoned_universe_dual_atr/run_experiments.py) · [experiments_results.json](./04_poisoned_universe_dual_atr/experiments_results.json) |
+| **05** | `05_nifty500_nifty1000_system_design/` | Full **Nifty 500 (`495`)** vs **Nifty 1000 (`1,144`)** live march + Expert #4 (PEAD) & #5 (Sector Rotator) (`Feb–Nov 2026`) | **3-Sleeve Orthogonal Barbell**: N500 `+29.31%` (`−6.70%` DD, Sharpe `2.87`) / N1000 `+34.81%` (`−7.11%` DD, Sharpe `2.96`); `pead_calibrated` Sharpe `2.34–2.39` | [Report](./05_nifty500_nifty1000_system_design/nifty500_nifty1000_live_march_and_system_design.md) · [run_n500_n1000_march.py](./05_nifty500_nifty1000_system_design/run_n500_n1000_march.py) · [n500_n1000_results.json](./05_nifty500_nifty1000_system_design/n500_n1000_results.json) |
+| **06** | `06_tradable_500cr_live_march/` | **Tradable All-Cap NSE (`>= ₹500 Cr` MCap & `>= ₹2 Cr/d` Liq, `1,396` stocks)** vs N500/N1000/Tail (`Feb–Nov 2026`) | `mom_quality_ranked (>= ₹20Cr)` **`+38.69%` (Sharpe `3.50`, `−6.70%` DD)**; `garp_guarded` `+56.06%`; uncovered 437-stock Valuation v4.1 coverage gap in small-cap tail | [Report](./06_tradable_500cr_live_march/tradable_500cr_live_march_report.md) · [run_tradable500cr.py](./06_tradable_500cr_live_march/run_tradable500cr.py) · [tradable500cr_results.json](./06_tradable_500cr_live_march/tradable500cr_results.json) |
+| **07** | `07_multi_regime_10y_stress_test/` | **10.6-Year Survivorship-Free Stress Test (`2016–2026`, 7 Regimes)**: 2016–17 Bull, 2018–19 NBFC Bear, COVID, Post-COVID Bull, 2022–23 Chop, 2023–24 Bull, Post-2024 Chop | `mom_quality_2cr_th` **`+13.24%` CAGR, `−17.35%` MaxDD (Calmar `0.76`)** vs Nifty `+12.02% / −38.44%`; exposed Stage-3 GARP breaking in 2018–19 (`−61.5%` DD) & fixed it with Stage-2 Trend GARP (`−30.0%` DD, Sharpe `1.15`) | [Report](./07_multi_regime_10y_stress_test/multi_regime_10y_stress_test_report.md) · [run_10y_regimes.py](./07_multi_regime_10y_stress_test/run_10y_regimes.py) · [run_10y_v2_upgrades.py](./07_multi_regime_10y_stress_test/run_10y_v2_upgrades.py) · [multi_regime_10y_results.json](./07_multi_regime_10y_stress_test/multi_regime_10y_results.json) |
+| **08** | `08_phd_council_10y_time_march/` | **10.5-Year Blinded 3-PhD Adversarial Council (`2016-06` → `2026-11`, Max 15 Stocks)** — `22` epochs, `132` live LLM debate turns on anonymized `STK_XXXX` IDs | **`₹10L → ₹55.81L` (`+458.1%`, `+17.85%` CAGR @ `0%` cash yield / `~20.0%` w/ T-Bill, `−21.92%` MaxDD, Sharpe `1.164`, Calmar `0.81`)**, `0` notorious blowups; caught `HAL +344%`, `DEEPAKNTR +369%`, `BEPL +314%`, `DIXON +280%` | [Report](./08_phd_council_10y_time_march/phd_council_10y_time_march_report.md) · [workflow_phd_council_10y.py](./08_phd_council_10y_time_march/workflow_phd_council_10y.py) · [phd_council_10y_results.json](./08_phd_council_10y_time_march/phd_council_10y_results.json) |
+| **09** | `09_tradable_2024_2026_oos_validation/` | **2.0-Year Pure OOS Test (`2024-11-18` → `2026-11-20`)** applying exact `Tradable >= ₹500 Cr` strategies to the full post-2024 chop | **`pead_calibrated_5cr` (`+13.09%`, Sharpe `0.646`, `−13.01%` DD)** and **`mom_quality_2cr` (`+12.41%`, Sharpe `0.597`)** beat both Nifty (`+10.01%`) & Broad All-Cap (`+3.52%`); **caught the `utils/valuation.py` `as_of` lookahead bug** | [Report](./09_tradable_2024_2026_oos_validation/tradable_24_26_oos_validation_report.md) · [run_tradable_24_26.py](./09_tradable_2024_2026_oos_validation/run_tradable_24_26.py) · [tradable_24_26_results.json](./09_tradable_2024_2026_oos_validation/tradable_24_26_results.json) |
+
+---
+
+## 2. Master Learnings Across All 9 Live Marches
+
+### A. Constants That Held True Across Every Universe & Regime (`2016–2026`)
+1. **Unfiltered Raw Momentum (`CompRS` alone) Fails in Real-World Survivorship-Free All-Cap Universes:**
+   - Across `10.6` years (`2016–2026`), naive unthrottled `CompRS` delivered only `+6.06%` CAGR with a catastrophic `−57.86%` MaxDD (Sharpe `0.384`).
+   - Adding **quality ranking (`Industry RS` + `Delivery %` + `Quarterly NP Growth`) + regime cash throttling** lifted 10.6Y performance to **`+13.24%` CAGR, `−17.35%` MaxDD, Sharpe `1.101`, Calmar `0.76`** — and beat both Nifty 50 and broad all-cap in the `2024–2026` chop (`+12.41%` vs `+10.01%` / `+3.52%`).
+2. **Liquidity Floor Is a Structural Regime Variable, Not Just Execution Hygiene:**
+   - Raising the momentum liquidity floor (`₹2 Cr/d → ₹20 Cr/d` or dynamic `5 → 20 Cr/d` in `CAUTION/BEAR`) repeatedly cut tail drawdowns and avoided illiquid micro-cap operator traps in chop/bear markets, while allowing `₹2–5 Cr/d` in verified bull expansions captured small-cap leaders.
+3. **The 3 Anti-Trap Rules Are Mandatory for Any Value / GARP / Hybrid Sleeve:**
+   - Every unfiltered `<Bear` value screen blows up on chronic value traps (`HAPPSTMNDS`, `ATALREAL`, `HFCL`, `2018–19` NBFC/infra blowups).
+   - Enforcing **`CFO/PAT >= 0.80`**, **`Q NP YoY > 0%`**, and **`No Stage 4`** (and in prolonged 2018-style bear markets, **Stage-2 Trend GARP** rather than Stage-3 knife-catching) cut GARP 10.6Y MaxDD in half (`−61.5% → −30.0%`, Sharpe `0.78 → 1.15`).
+4. **Expert #4 — Institutional-Flow PEAD (`pead_calibrated`) Is the Most Consistent Low-DD Alpha Sleeve:**
+   - Delivered **Sharpe `2.39`** on N500, **`2.34`** on N1000, **`2.02`** on Tradable `>= ₹500 Cr`, and ranked **#1 overall (`+13.09%`, `−13.01%` DD, Sharpe `0.646`)** in the full `2024–2026` 2-year OOS stress test.
+5. **Orthogonal Sleeves Beat Same-Stock Consensus Voting:**
+   - Combining `Momentum + GARP + PEAD` as **independent capital sleeves** (`Barbell`) crushed same-stock majority voting (`council_5expert_consensus`) on both return and Sharpe (`2.87–2.96` vs `1.44–1.81`), because genuine momentum breakouts and deep-value bear-zone entries rarely fire on the exact same stock on the same day.
+6. **Blinded Adversarial Debate Adds Real Alpha Over Mechanical Rules Across Multi-Year Cycles:**
+   - Over `10.5` years (`2016–2026`), the 100% blinded 3-PhD Adversarial Council (`Momentum & Microstructure` vs `Corporate Finance & Flows` vs `Portfolio & Regime Control`, max 15 stocks) compounded **`+17.85%` CAGR (`−21.92%` MaxDD, Sharpe `1.164`, Calmar `0.81`)**, beating both `NIFTY_50` (`+11.60% / −38.44%`) and the best mechanical sleeve (`+13.24% / −17.35%`) while holding **`0` notorious 2018–2025 blowups** (`DHFL`, `YESBANK`, `PCJEWELLER`, `RCOM`, `VAKRANGEE`, `GENSOL`, `HFCL`).
+
+### B. What Changed When Scaling Out of Sample
+1. **Small-Cap Tail Valuation Gap (`437` Stocks):** Expanding from N1000 (`1,144`) to Tradable `>= ₹500 Cr & >= ₹2 Cr/d` (`1,396`) added `437` small-cap stocks where Screener data was missing from `Valuation v4.1` — leaving `GARP` blind (`0%` deployment) in the tail while `Hybrid` (`+26.92%`) and `Momentum` (`+23.53%`) captured it.
+2. **2026 Chop Winner vs 2018–19 Bear Survivor:** Stage-3 contrarian GARP (`garp_guarded`) crushed the brief Feb–Nov 2026 chop (`+56.06%`), **but broke (`−61.53%` DD)** in the multi-year 2018–19 NBFC/small-cap bear market and lagged (`−0.25%`) in the 2-year Nov 2024–Nov 2026 decline once lookahead was eliminated. Requiring **Stage-2 trend confirmation** (or institutional `>= ₹20 Cr/d` liquidity) fixed GARP's multi-regime survival.
+3. **Why Earlier Repo `CompRS` Backtests Showed `~30–37%` CAGR vs `~13–18%` Realistic Live-March CAGR:**
+   - Earlier `analysis/` sweeps (`FACTOR_VERDICT.md`, `exit_rule_multiregime_result.md`, `RANKING_BREADTH_VERDICT.md`, `phd_7y_daily_autoresearch_report.md`) ran on **fixed current-constituent Nifty-500/750 universes (survivorship bias)**, mostly covering the **2020–2024 post-COVID secular bull**, with **`T+0` close fills, lower/zero friction, 100% invested concentrated top-N books (no BEAR cash throttle)**, and **`30–40%+` peak drawdowns**.
+   - Once tested on a **survivorship-free 1,796-stock 10.6-year NSE store (`2016–2026`)** with `T+1 Open` fills, `40 bps` round-trip cost, `0%` cash yield on idle cash, and `−17%` to `−22%` drawdown control, realistic net CAGR settles at **`13.2%–15.1%` (mechanical)** and **`17.85%` (`~20%` w/ T-Bill cash yield, 3-PhD Council)** — with **2×–3× higher Calmar ratio** than Nifty 50.
+
+### C. Production Bugs Caught & Patched (`commit 68ddc63`)
+The live-march stress tests directly caught 3 real production bugs in the dashboard codebase (all patched and regression-tested in commit `68ddc63`):
+1. **[utils/valuation.py](../utils/valuation.py)** — `value_stock(..., as_of=dt)` previously only checked staleness against `as_of` without PIT-slicing `ctx.quarterly`, `ctx.annual`, or `ctx.monthly`, silently leaking future earnings/multiples in backtests (caught on `HFCL.NS` in experiment `09`). **Fixed** with strict SEBI lags (`60d` Q4/FY, `45d` Q1–Q3, `21d` SHP) when `as_of` is set, with zero change to live `as_of=None` mode.
+2. **[utils/nse_prices.py](../utils/nse_prices.py)** — Demerger gap lower bound `0.05` missed `KESORAMIND` (`0.049971` on `2025-03-10`), falling into the split-snapping heuristic and creating a fake `20:1` stock split with `20×` inflated historical volume. **Fixed** (`0.01 < gap < 0.96` + gated verified CoA factor path for small carve-outs like `HINDUNILVR`).
+3. **[utils/nse_prices.py](../utils/nse_prices.py)** — `history()` missed pre-Nov-2015 NSE `"CNX *"` index names (`"CNX Nifty"`, `"CNX 500"`, etc.) when stitching historical index parquets. **Fixed** via `_INDEX_ALIASES` + date deduplication.
+
+---
+
+## 3. Reproducibility & Excluded Binary Caches
+
+To keep the repository lightweight (`~2.1 MB` across all 110 archived files), large reproducible binary caches and raw parquet mirrors were intentionally excluded:
+- `*.pkl` panel caches (`panel_n1000.pkl`, `panel_tradable500cr.pkl`, `panel_tradable_24_26.pkl`, `blind_10y_council_panel.pkl`, `blind_10y_stdlib.pkl`, `sealed_*.pkl`) — regenerate with each folder's `build_*.py` / `run_*.py` script.
+- `07_multi_regime_10y_stress_test/nse_11y/` (`155 MB` raw 2015–2019 NSE bhavcopy parquet backfill) — regenerate with [backfill_2015_2019.py](./07_multi_regime_10y_stress_test/backfill_2015_2019.py).
+- `__pycache__/*.pyc` bytecode files.

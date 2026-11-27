@@ -1,0 +1,1332 @@
+{
+  "full_2y": {
+    "NIFTY_50": {
+      "ret": 10.01,
+      "cagr": 4.87,
+      "mdd": -15.56,
+      "sharpe": 0.425
+    },
+    "EW_TRADABLE_500CR": {
+      "ret": 3.52,
+      "cagr": 1.74,
+      "mdd": -27.15,
+      "sharpe": 0.187
+    },
+    "mom_pre_dual_atr": {
+      "ret": 6.21,
+      "cagr": 3.05,
+      "mdd": -30.23,
+      "sharpe": 0.265
+    },
+    "mom_post_dual_atr_comprs": {
+      "ret": -3.01,
+      "cagr": -1.52,
+      "mdd": -33.33,
+      "sharpe": 0.012
+    },
+    "mom_post_deliv_rank": {
+      "ret": -8.07,
+      "cagr": -4.11,
+      "mdd": -18.92,
+      "sharpe": -0.29
+    },
+    "mom_quality_2cr": {
+      "ret": 12.41,
+      "cagr": 6.01,
+      "mdd": -14.43,
+      "sharpe": 0.597
+    },
+    "mom_quality_5cr": {
+      "ret": 11.37,
+      "cagr": 5.52,
+      "mdd": -14.64,
+      "sharpe": 0.55
+    },
+    "mom_quality_20cr": {
+      "ret": 12.32,
+      "cagr": 5.97,
+      "mdd": -14.72,
+      "sharpe": 0.594
+    },
+    "mom_quality_dyn_5_20": {
+      "ret": 12.08,
+      "cagr": 5.85,
+      "mdd": -14.83,
+      "sharpe": 0.583
+    },
+    "garp_unfiltered_2cr": {
+      "ret": -10.74,
+      "cagr": -5.51,
+      "mdd": -33.59,
+      "sharpe": -0.132
+    },
+    "garp_cfo_only_2cr": {
+      "ret": -1.54,
+      "cagr": -0.77,
+      "mdd": -31.61,
+      "sharpe": 0.057
+    },
+    "garp_guarded_2cr": {
+      "ret": -0.25,
+      "cagr": -0.12,
+      "mdd": -17.15,
+      "sharpe": 0.033
+    },
+    "garp_guarded_20cr": {
+      "ret": 5.25,
+      "cagr": 2.59,
+      "mdd": -9.57,
+      "sharpe": 0.365
+    },
+    "garp_stage2_v41_2cr": {
+      "ret": -1.8,
+      "cagr": -0.9,
+      "mdd": -5.68,
+      "sharpe": -0.336
+    },
+    "hybrid_old_2cr": {
+      "ret": -21.94,
+      "cagr": -11.63,
+      "mdd": -32.31,
+      "sharpe": -0.568
+    },
+    "hybrid_guarded_2cr": {
+      "ret": 1.46,
+      "cagr": 0.72,
+      "mdd": -35.95,
+      "sharpe": 0.129
+    },
+    "pead_calibrated_2cr": {
+      "ret": 8.96,
+      "cagr": 4.38,
+      "mdd": -14.65,
+      "sharpe": 0.453
+    },
+    "pead_calibrated_5cr": {
+      "ret": 13.09,
+      "cagr": 6.33,
+      "mdd": -13.01,
+      "sharpe": 0.646
+    },
+    "pead_calibrated_20cr": {
+      "ret": 11.89,
+      "cagr": 5.76,
+      "mdd": -12.39,
+      "sharpe": 0.626
+    },
+    "sector_rotator_rp": {
+      "ret": -3.92,
+      "cagr": -1.98,
+      "mdd": -27.52,
+      "sharpe": -0.085
+    },
+    "monthly_quant_post": {
+      "ret": -30.28,
+      "cagr": -16.47,
+      "mdd": -44.86,
+      "sharpe": -0.832
+    },
+    "BARBELL_BASE_50_30_20": {
+      "ret": 5.38,
+      "cagr": 2.65,
+      "mdd": -15.12,
+      "sharpe": 0.381
+    },
+    "BARBELL_SPLIT_50_30_20": {
+      "ret": 6.18,
+      "cagr": 3.04,
+      "mdd": -14.16,
+      "sharpe": 0.437
+    },
+    "BARBELL_REC_40_40_20": {
+      "ret": 7.45,
+      "cagr": 3.65,
+      "mdd": -13.97,
+      "sharpe": 0.509
+    },
+    "BARBELL_INST_20CR": {
+      "ret": 9.03,
+      "cagr": 4.41,
+      "mdd": -9.36,
+      "sharpe": 0.666
+    },
+    "BARBELL_S2_ALLWEATHER": {
+      "ret": 6.88,
+      "cagr": 3.38,
+      "mdd": -9.62,
+      "sharpe": 0.597
+    }
+  },
+  "oos_24_26feb": {
+    "NIFTY_50": {
+      "ret": 8.71,
+      "cagr": 6.78,
+      "mdd": -10.84,
+      "sharpe": 0.607
+    },
+    "EW_TRADABLE_500CR": {
+      "ret": -6.99,
+      "cagr": -5.53,
+      "mdd": -26.4,
+      "sharpe": -0.203
+    },
+    "mom_pre_dual_atr": {
+      "ret": -17.01,
+      "cagr": -13.62,
+      "mdd": -26.89,
+      "sharpe": -0.878
+    },
+    "mom_post_dual_atr_comprs": {
+      "ret": -23.26,
+      "cagr": -18.78,
+      "mdd": -30.36,
+      "sharpe": -1.208
+    },
+    "mom_post_deliv_rank": {
+      "ret": 0.88,
+      "cagr": 0.69,
+      "mdd": -14.88,
+      "sharpe": 0.118
+    },
+    "mom_quality_2cr": {
+      "ret": -1.86,
+      "cagr": -1.47,
+      "mdd": -12.4,
+      "sharpe": -0.087
+    },
+    "mom_quality_5cr": {
+      "ret": -2.11,
+      "cagr": -1.66,
+      "mdd": -12.63,
+      "sharpe": -0.104
+    },
+    "mom_quality_20cr": {
+      "ret": -2.21,
+      "cagr": -1.74,
+      "mdd": -12.71,
+      "sharpe": -0.111
+    },
+    "mom_quality_dyn_5_20": {
+      "ret": -2.33,
+      "cagr": -1.84,
+      "mdd": -12.8,
+      "sharpe": -0.12
+    },
+    "garp_unfiltered_2cr": {
+      "ret": -17.05,
+      "cagr": -13.66,
+      "mdd": -29.84,
+      "sharpe": -0.573
+    },
+    "garp_cfo_only_2cr": {
+      "ret": -6.74,
+      "cagr": -5.33,
+      "mdd": -21.97,
+      "sharpe": -0.259
+    },
+    "garp_guarded_2cr": {
+      "ret": -11.11,
+      "cagr": -8.84,
+      "mdd": -16.31,
+      "sharpe": -1.344
+    },
+    "garp_guarded_20cr": {
+      "ret": -3.77,
+      "cagr": -2.98,
+      "mdd": -6.18,
+      "sharpe": -0.903
+    },
+    "garp_stage2_v41_2cr": {
+      "ret": -4.74,
+      "cagr": -3.74,
+      "mdd": -4.95,
+      "sharpe": -1.551
+    },
+    "hybrid_old_2cr": {
+      "ret": -21.51,
+      "cagr": -17.33,
+      "mdd": -30.1,
+      "sharpe": -1.093
+    },
+    "hybrid_guarded_2cr": {
+      "ret": -26.24,
+      "cagr": -21.26,
+      "mdd": -32.65,
+      "sharpe": -1.471
+    },
+    "pead_calibrated_2cr": {
+      "ret": -6.0,
+      "cagr": -4.74,
+      "mdd": -14.46,
+      "sharpe": -0.401
+    },
+    "pead_calibrated_5cr": {
+      "ret": -0.73,
+      "cagr": -0.57,
+      "mdd": -13.01,
+      "sharpe": -0.002
+    },
+    "pead_calibrated_20cr": {
+      "ret": -3.5,
+      "cagr": -2.76,
+      "mdd": -12.39,
+      "sharpe": -0.249
+    },
+    "sector_rotator_rp": {
+      "ret": -16.9,
+      "cagr": -13.53,
+      "mdd": -25.71,
+      "sharpe": -1.141
+    },
+    "monthly_quant_post": {
+      "ret": -37.94,
+      "cagr": -31.26,
+      "mdd": -42.99,
+      "sharpe": -2.036
+    },
+    "BARBELL_BASE_50_30_20": {
+      "ret": -7.27,
+      "cagr": -5.76,
+      "mdd": -13.43,
+      "sharpe": -0.885
+    },
+    "BARBELL_SPLIT_50_30_20": {
+      "ret": -6.83,
+      "cagr": -5.41,
+      "mdd": -12.4,
+      "sharpe": -0.849
+    },
+    "BARBELL_REC_40_40_20": {
+      "ret": -5.92,
+      "cagr": -4.68,
+      "mdd": -11.99,
+      "sharpe": -0.679
+    },
+    "BARBELL_INST_20CR": {
+      "ret": -3.06,
+      "cagr": -2.41,
+      "mdd": -7.96,
+      "sharpe": -0.453
+    },
+    "BARBELL_S2_ALLWEATHER": {
+      "ret": -3.24,
+      "cagr": -2.55,
+      "mdd": -8.13,
+      "sharpe": -0.423
+    }
+  },
+  "overlap_26": {
+    "NIFTY_50": {
+      "ret": 2.47,
+      "cagr": 3.41,
+      "mdd": -11.7,
+      "sharpe": 0.298
+    },
+    "EW_TRADABLE_500CR": {
+      "ret": 12.37,
+      "cagr": 17.37,
+      "mdd": -12.52,
+      "sharpe": 0.909
+    },
+    "mom_pre_dual_atr": {
+      "ret": 28.03,
+      "cagr": 40.4,
+      "mdd": -7.13,
+      "sharpe": 1.91
+    },
+    "mom_post_dual_atr_comprs": {
+      "ret": 26.39,
+      "cagr": 37.93,
+      "mdd": -17.99,
+      "sharpe": 1.565
+    },
+    "mom_post_deliv_rank": {
+      "ret": -8.79,
+      "cagr": -11.87,
+      "mdd": -17.04,
+      "sharpe": -0.995
+    },
+    "mom_quality_2cr": {
+      "ret": 14.73,
+      "cagr": 20.76,
+      "mdd": -7.15,
+      "sharpe": 1.759
+    },
+    "mom_quality_5cr": {
+      "ret": 13.96,
+      "cagr": 19.65,
+      "mdd": -7.94,
+      "sharpe": 1.651
+    },
+    "mom_quality_20cr": {
+      "ret": 15.04,
+      "cagr": 21.22,
+      "mdd": -6.68,
+      "sharpe": 1.82
+    },
+    "mom_quality_dyn_5_20": {
+      "ret": 14.94,
+      "cagr": 21.08,
+      "mdd": -6.73,
+      "sharpe": 1.81
+    },
+    "garp_unfiltered_2cr": {
+      "ret": 7.39,
+      "cagr": 10.29,
+      "mdd": -12.99,
+      "sharpe": 0.517
+    },
+    "garp_cfo_only_2cr": {
+      "ret": 6.35,
+      "cagr": 8.82,
+      "mdd": -13.43,
+      "sharpe": 0.476
+    },
+    "garp_guarded_2cr": {
+      "ret": 12.83,
+      "cagr": 18.02,
+      "mdd": -10.27,
+      "sharpe": 1.404
+    },
+    "garp_guarded_20cr": {
+      "ret": 9.65,
+      "cagr": 13.48,
+      "mdd": -9.57,
+      "sharpe": 1.099
+    },
+    "garp_stage2_v41_2cr": {
+      "ret": 3.09,
+      "cagr": 4.27,
+      "mdd": -1.59,
+      "sharpe": 1.505
+    },
+    "hybrid_old_2cr": {
+      "ret": -0.74,
+      "cagr": -1.02,
+      "mdd": -16.08,
+      "sharpe": 0.068
+    },
+    "hybrid_guarded_2cr": {
+      "ret": 37.98,
+      "cagr": 55.6,
+      "mdd": -11.39,
+      "sharpe": 2.31
+    },
+    "pead_calibrated_2cr": {
+      "ret": 15.99,
+      "cagr": 22.59,
+      "mdd": -7.3,
+      "sharpe": 1.938
+    },
+    "pead_calibrated_5cr": {
+      "ret": 13.99,
+      "cagr": 19.7,
+      "mdd": -7.34,
+      "sharpe": 1.831
+    },
+    "pead_calibrated_20cr": {
+      "ret": 16.02,
+      "cagr": 22.64,
+      "mdd": -7.19,
+      "sharpe": 2.059
+    },
+    "sector_rotator_rp": {
+      "ret": 15.87,
+      "cagr": 22.41,
+      "mdd": -9.94,
+      "sharpe": 1.442
+    },
+    "monthly_quant_post": {
+      "ret": 13.81,
+      "cagr": 19.44,
+      "mdd": -11.08,
+      "sharpe": 0.926
+    },
+    "BARBELL_BASE_50_30_20": {
+      "ret": 14.03,
+      "cagr": 19.75,
+      "mdd": -6.33,
+      "sharpe": 1.993
+    },
+    "BARBELL_SPLIT_50_30_20": {
+      "ret": 14.34,
+      "cagr": 20.2,
+      "mdd": -6.48,
+      "sharpe": 2.066
+    },
+    "BARBELL_REC_40_40_20": {
+      "ret": 14.55,
+      "cagr": 20.51,
+      "mdd": -6.19,
+      "sharpe": 2.141
+    },
+    "BARBELL_INST_20CR": {
+      "ret": 12.67,
+      "cagr": 17.8,
+      "mdd": -6.7,
+      "sharpe": 1.859
+    },
+    "BARBELL_S2_ALLWEATHER": {
+      "ret": 10.54,
+      "cagr": 14.75,
+      "mdd": -3.26,
+      "sharpe": 2.312
+    }
+  },
+  "corr_2y": {
+    "GARP_2Cr": {
+      "GARP_2Cr": 1.0,
+      "MOMQ_20Cr": 0.28,
+      "PEAD_20Cr": 0.31,
+      "NIFTY_50": 0.43
+    },
+    "MOMQ_20Cr": {
+      "GARP_2Cr": 0.28,
+      "MOMQ_20Cr": 1.0,
+      "PEAD_20Cr": 0.52,
+      "NIFTY_50": 0.48
+    },
+    "PEAD_20Cr": {
+      "GARP_2Cr": 0.31,
+      "MOMQ_20Cr": 0.52,
+      "PEAD_20Cr": 1.0,
+      "NIFTY_50": 0.37
+    },
+    "NIFTY_50": {
+      "GARP_2Cr": 0.43,
+      "MOMQ_20Cr": 0.48,
+      "PEAD_20Cr": 0.37,
+      "NIFTY_50": 1.0
+    }
+  },
+  "meta": {
+    "mom_pre_dual_atr": {
+      "cash_drag_mean": 34.3,
+      "avg_positions": 7.6,
+      "buys": 185,
+      "win_rate_pct": 27.6,
+      "avg_cands": 33.6,
+      "max_cands": 74,
+      "top5": [
+        [
+          "MTARTECH.NS",
+          74409
+        ],
+        [
+          "ABINFRA.NS",
+          72059
+        ],
+        [
+          "BLISSGVS.NS",
+          62478
+        ],
+        [
+          "KIRLOSENG.NS",
+          53968
+        ],
+        [
+          "KRISHANA.NS",
+          41442
+        ]
+      ],
+      "bot3": [
+        [
+          "E2E.NS",
+          -24160
+        ],
+        [
+          "BSE.NS",
+          -21189
+        ],
+        [
+          "TEMBO.NS",
+          -19507
+        ]
+      ]
+    },
+    "mom_post_dual_atr_comprs": {
+      "cash_drag_mean": 35.5,
+      "avg_positions": 7.8,
+      "buys": 196,
+      "win_rate_pct": 27.3,
+      "avg_cands": 100.1,
+      "max_cands": 255,
+      "top5": [
+        [
+          "STLTECH.NS",
+          114459
+        ],
+        [
+          "BLISSGVS.NS",
+          65851
+        ],
+        [
+          "SIGMAADV.NS",
+          54081
+        ],
+        [
+          "MTARTECH.NS",
+          53571
+        ],
+        [
+          "KIRLOSENG.NS",
+          42766
+        ]
+      ],
+      "bot3": [
+        [
+          "GOLDIAM.NS",
+          -27547
+        ],
+        [
+          "E2E.NS",
+          -24691
+        ],
+        [
+          "SAKAR.NS",
+          -23279
+        ]
+      ]
+    },
+    "mom_post_deliv_rank": {
+      "cash_drag_mean": 38.2,
+      "avg_positions": 8.3,
+      "buys": 209,
+      "win_rate_pct": 25.3,
+      "avg_cands": 99.1,
+      "max_cands": 253,
+      "top5": [
+        [
+          "MTARTECH.NS",
+          75897
+        ],
+        [
+          "CUMMINSIND.NS",
+          25080
+        ],
+        [
+          "ETERNAL.NS",
+          21462
+        ],
+        [
+          "MANAPPURAM.NS",
+          20273
+        ],
+        [
+          "ADANIENSOL.NS",
+          19351
+        ]
+      ],
+      "bot3": [
+        [
+          "MCX.NS",
+          -18626
+        ],
+        [
+          "AMBER.NS",
+          -15271
+        ],
+        [
+          "HFCL.NS",
+          -14288
+        ]
+      ]
+    },
+    "mom_quality_2cr": {
+      "cash_drag_mean": 48.9,
+      "avg_positions": 7.1,
+      "buys": 162,
+      "win_rate_pct": 32.0,
+      "avg_cands": 81.3,
+      "max_cands": 213,
+      "top5": [
+        [
+          "STLTECH.NS",
+          69541
+        ],
+        [
+          "NATIONALUM.NS",
+          49447
+        ],
+        [
+          "MTARTECH.NS",
+          35217
+        ],
+        [
+          "PNB.NS",
+          24331
+        ],
+        [
+          "DIACABS.NS",
+          17673
+        ]
+      ],
+      "bot3": [
+        [
+          "DATAPATTNS.NS",
+          -12776
+        ],
+        [
+          "JSWSTEEL.NS",
+          -11722
+        ],
+        [
+          "INDHOTEL.NS",
+          -11671
+        ]
+      ]
+    },
+    "mom_quality_5cr": {
+      "cash_drag_mean": 49.2,
+      "avg_positions": 6.9,
+      "buys": 156,
+      "win_rate_pct": 32.7,
+      "avg_cands": 75.8,
+      "max_cands": 195,
+      "top5": [
+        [
+          "STLTECH.NS",
+          69541
+        ],
+        [
+          "NATIONALUM.NS",
+          49451
+        ],
+        [
+          "MTARTECH.NS",
+          35217
+        ],
+        [
+          "PNB.NS",
+          24089
+        ],
+        [
+          "DIACABS.NS",
+          17599
+        ]
+      ],
+      "bot3": [
+        [
+          "DATAPATTNS.NS",
+          -12776
+        ],
+        [
+          "JSWSTEEL.NS",
+          -11722
+        ],
+        [
+          "INDHOTEL.NS",
+          -11671
+        ]
+      ]
+    },
+    "mom_quality_20cr": {
+      "cash_drag_mean": 49.2,
+      "avg_positions": 6.9,
+      "buys": 162,
+      "win_rate_pct": 32.7,
+      "avg_cands": 56.0,
+      "max_cands": 143,
+      "top5": [
+        [
+          "STLTECH.NS",
+          69208
+        ],
+        [
+          "NATIONALUM.NS",
+          49332
+        ],
+        [
+          "MTARTECH.NS",
+          35217
+        ],
+        [
+          "CUPID.NS",
+          34999
+        ],
+        [
+          "PNB.NS",
+          24313
+        ]
+      ],
+      "bot3": [
+        [
+          "POWERINDIA.NS",
+          -15822
+        ],
+        [
+          "DATAPATTNS.NS",
+          -12776
+        ],
+        [
+          "INDHOTEL.NS",
+          -11671
+        ]
+      ]
+    },
+    "mom_quality_dyn_5_20": {
+      "cash_drag_mean": 49.2,
+      "avg_positions": 6.6,
+      "buys": 157,
+      "win_rate_pct": 31.8,
+      "avg_cands": 58.9,
+      "max_cands": 143,
+      "top5": [
+        [
+          "STLTECH.NS",
+          69208
+        ],
+        [
+          "NATIONALUM.NS",
+          49332
+        ],
+        [
+          "MTARTECH.NS",
+          35217
+        ],
+        [
+          "CUPID.NS",
+          34052
+        ],
+        [
+          "PNB.NS",
+          24261
+        ]
+      ],
+      "bot3": [
+        [
+          "POWERINDIA.NS",
+          -15822
+        ],
+        [
+          "DATAPATTNS.NS",
+          -12776
+        ],
+        [
+          "INDHOTEL.NS",
+          -11671
+        ]
+      ]
+    },
+    "garp_unfiltered_2cr": {
+      "cash_drag_mean": 0.2,
+      "avg_positions": 12.7,
+      "buys": 13,
+      "win_rate_pct": 0.0,
+      "avg_cands": 16.7,
+      "max_cands": 50,
+      "top5": [
+        [
+          "INDIAGLYCO.NS",
+          127539
+        ],
+        [
+          "STAR.NS",
+          60632
+        ],
+        [
+          "MSUMI.NS",
+          5317
+        ],
+        [
+          "AFFLE.NS",
+          3433
+        ],
+        [
+          "EASEMYTRIP.NS",
+          -13
+        ]
+      ],
+      "bot3": [
+        [
+          "DREAMFOLKS.NS",
+          -86199
+        ],
+        [
+          "GOCOLORS.NS",
+          -73388
+        ],
+        [
+          "RAYMONDLSL.NS",
+          -72572
+        ]
+      ]
+    },
+    "garp_cfo_only_2cr": {
+      "cash_drag_mean": 10.3,
+      "avg_positions": 9.8,
+      "buys": 23,
+      "win_rate_pct": 0.0,
+      "avg_cands": 7.0,
+      "max_cands": 26,
+      "top5": [
+        [
+          "INDIAGLYCO.NS",
+          127687
+        ],
+        [
+          "JSWINFRA.NS",
+          48053
+        ],
+        [
+          "KPIGREEN.NS",
+          5427
+        ],
+        [
+          "MSUMI.NS",
+          5322
+        ],
+        [
+          "MASTEK.NS",
+          4794
+        ]
+      ],
+      "bot3": [
+        [
+          "GOCOLORS.NS",
+          -60433
+        ],
+        [
+          "DREAMFOLKS.NS",
+          -27116
+        ],
+        [
+          "SKFINDIA.NS",
+          -24841
+        ]
+      ]
+    },
+    "garp_guarded_2cr": {
+      "cash_drag_mean": 60.5,
+      "avg_positions": 4.0,
+      "buys": 33,
+      "win_rate_pct": 18.2,
+      "avg_cands": 1.4,
+      "max_cands": 4,
+      "top5": [
+        [
+          "RRKABEL.NS",
+          61938
+        ],
+        [
+          "COFORGE.NS",
+          39168
+        ],
+        [
+          "ADANIPORTS.NS",
+          35995
+        ],
+        [
+          "CONFIPET.NS",
+          7838
+        ],
+        [
+          "HDFCBANK.NS",
+          7502
+        ]
+      ],
+      "bot3": [
+        [
+          "GOCOLORS.NS",
+          -33533
+        ],
+        [
+          "AFFLE.NS",
+          -30760
+        ],
+        [
+          "KPIGREEN.NS",
+          -21500
+        ]
+      ]
+    },
+    "garp_guarded_20cr": {
+      "cash_drag_mean": 71.2,
+      "avg_positions": 2.8,
+      "buys": 21,
+      "win_rate_pct": 25.0,
+      "avg_cands": 0.8,
+      "max_cands": 4,
+      "top5": [
+        [
+          "RRKABEL.NS",
+          67656
+        ],
+        [
+          "COFORGE.NS",
+          42784
+        ],
+        [
+          "ADANIPORTS.NS",
+          39369
+        ],
+        [
+          "HDFCBANK.NS",
+          8233
+        ],
+        [
+          "TCS.NS",
+          5897
+        ]
+      ],
+      "bot3": [
+        [
+          "AFFLE.NS",
+          -32392
+        ],
+        [
+          "KPIGREEN.NS",
+          -22833
+        ],
+        [
+          "GOCOLORS.NS",
+          -18754
+        ]
+      ]
+    },
+    "garp_stage2_v41_2cr": {
+      "cash_drag_mean": 94.8,
+      "avg_positions": 0.5,
+      "buys": 6,
+      "win_rate_pct": 25.0,
+      "avg_cands": 0.2,
+      "max_cands": 1,
+      "top5": [
+        [
+          "COFORGE.NS",
+          15487
+        ],
+        [
+          "AFFLE.NS",
+          1741
+        ],
+        [
+          "INDIAGLYCO.NS",
+          -35180
+        ]
+      ],
+      "bot3": [
+        [
+          "INDIAGLYCO.NS",
+          -35180
+        ],
+        [
+          "AFFLE.NS",
+          1741
+        ],
+        [
+          "COFORGE.NS",
+          15487
+        ]
+      ]
+    },
+    "hybrid_old_2cr": {
+      "cash_drag_mean": 20.4,
+      "avg_positions": 6.3,
+      "buys": 86,
+      "win_rate_pct": 28.7,
+      "avg_cands": 176.8,
+      "max_cands": 459,
+      "top5": [
+        [
+          "SIGMAADV.NS",
+          123698
+        ],
+        [
+          "WINDMACHIN.NS",
+          78615
+        ],
+        [
+          "MSUMI.NS",
+          45760
+        ],
+        [
+          "BETA.NS",
+          34546
+        ],
+        [
+          "DIXON.NS",
+          22583
+        ]
+      ],
+      "bot3": [
+        [
+          "CLEAN.NS",
+          -39495
+        ],
+        [
+          "BSE.NS",
+          -36277
+        ],
+        [
+          "CUPID.NS",
+          -35834
+        ]
+      ]
+    },
+    "hybrid_guarded_2cr": {
+      "cash_drag_mean": 30.2,
+      "avg_positions": 8.5,
+      "buys": 179,
+      "win_rate_pct": 28.7,
+      "avg_cands": 122.0,
+      "max_cands": 344,
+      "top5": [
+        [
+          "STLTECH.NS",
+          109136
+        ],
+        [
+          "SIGMAADV.NS",
+          83529
+        ],
+        [
+          "BLISSGVS.NS",
+          64443
+        ],
+        [
+          "MTARTECH.NS",
+          51339
+        ],
+        [
+          "RRKABEL.NS",
+          49551
+        ]
+      ],
+      "bot3": [
+        [
+          "CUPID.NS",
+          -24270
+        ],
+        [
+          "E2E.NS",
+          -23983
+        ],
+        [
+          "CAMLINFINE.NS",
+          -21290
+        ]
+      ]
+    },
+    "pead_calibrated_2cr": {
+      "cash_drag_mean": 58.8,
+      "avg_positions": 6.7,
+      "buys": 217,
+      "win_rate_pct": 31.7,
+      "avg_cands": 58.8,
+      "max_cands": 109,
+      "top5": [
+        [
+          "LAURUSLABS.NS",
+          89036
+        ],
+        [
+          "BHEL.NS",
+          31054
+        ],
+        [
+          "TI.NS",
+          30534
+        ],
+        [
+          "BSE.NS",
+          29807
+        ],
+        [
+          "EIDPARRY.NS",
+          24110
+        ]
+      ],
+      "bot3": [
+        [
+          "STYRENIX.NS",
+          -13988
+        ],
+        [
+          "ICEMAKE.NS",
+          -12973
+        ],
+        [
+          "GANDHAR.NS",
+          -10354
+        ]
+      ]
+    },
+    "pead_calibrated_5cr": {
+      "cash_drag_mean": 58.4,
+      "avg_positions": 6.2,
+      "buys": 213,
+      "win_rate_pct": 32.5,
+      "avg_cands": 56.3,
+      "max_cands": 107,
+      "top5": [
+        [
+          "LAURUSLABS.NS",
+          94124
+        ],
+        [
+          "TI.NS",
+          35692
+        ],
+        [
+          "BSE.NS",
+          30762
+        ],
+        [
+          "FORTIS.NS",
+          25018
+        ],
+        [
+          "EIDPARRY.NS",
+          24387
+        ]
+      ],
+      "bot3": [
+        [
+          "STYRENIX.NS",
+          -13988
+        ],
+        [
+          "CUPID.NS",
+          -13453
+        ],
+        [
+          "MTARTECH.NS",
+          -10272
+        ]
+      ]
+    },
+    "pead_calibrated_20cr": {
+      "cash_drag_mean": 59.2,
+      "avg_positions": 6.2,
+      "buys": 199,
+      "win_rate_pct": 32.1,
+      "avg_cands": 42.4,
+      "max_cands": 84,
+      "top5": [
+        [
+          "LAURUSLABS.NS",
+          91580
+        ],
+        [
+          "TI.NS",
+          33763
+        ],
+        [
+          "BHEL.NS",
+          31749
+        ],
+        [
+          "BSE.NS",
+          29364
+        ],
+        [
+          "FORTIS.NS",
+          24149
+        ]
+      ],
+      "bot3": [
+        [
+          "GANDHAR.NS",
+          -10611
+        ],
+        [
+          "MTARTECH.NS",
+          -10272
+        ],
+        [
+          "ANGELONE.NS",
+          -8933
+        ]
+      ]
+    },
+    "sector_rotator_rp": {
+      "cash_drag_mean": 48.5,
+      "avg_positions": 7.8,
+      "buys": 195,
+      "win_rate_pct": 25.8,
+      "avg_cands": 43.4,
+      "max_cands": 145,
+      "top5": [
+        [
+          "STLTECH.NS",
+          59892
+        ],
+        [
+          "MTARTECH.NS",
+          39225
+        ],
+        [
+          "SHILPAMED.NS",
+          34907
+        ],
+        [
+          "FORCEMOT.NS",
+          19922
+        ],
+        [
+          "BLUEJET.NS",
+          19351
+        ]
+      ],
+      "bot3": [
+        [
+          "SRF.NS",
+          -17627
+        ],
+        [
+          "TFCILTD.NS",
+          -17390
+        ],
+        [
+          "AARTIPHARM.NS",
+          -15859
+        ]
+      ]
+    },
+    "monthly_quant_post": {
+      "cash_drag_mean": 39.6,
+      "avg_positions": 8.0,
+      "buys": 211,
+      "win_rate_pct": 22.2,
+      "avg_cands": 99.4,
+      "max_cands": 224,
+      "top5": [
+        [
+          "KAPSTON.NS",
+          65532
+        ],
+        [
+          "FORCEMOT.NS",
+          50192
+        ],
+        [
+          "MTARTECH.NS",
+          44853
+        ],
+        [
+          "BLISSGVS.NS",
+          21564
+        ],
+        [
+          "PFOCUS.NS",
+          18617
+        ]
+      ],
+      "bot3": [
+        [
+          "SHAILY.NS",
+          -18899
+        ],
+        [
+          "LUMAXTECH.NS",
+          -18062
+        ],
+        [
+          "AARTIPHARM.NS",
+          -16940
+        ]
+      ]
+    }
+  }
+}

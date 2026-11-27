@@ -1,0 +1,32 @@
+{
+  "gate_num": 2,
+  "gate_date": "2026-03-30",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "WAIT",
+      "target_pct": 0,
+      "trigger_px": null,
+      "stop_px": null,
+      "trail_pct": null,
+      "use_ma50_exit": false
+    },
+    "KALYANKJIL.NS": {
+      "action": "PLACE_TRIGGER",
+      "target_pct": 15,
+      "trigger_px": 415.0,
+      "stop_px": 380.0,
+      "trail_pct": 0.08,
+      "use_ma50_exit": true
+    }
+  },
+  "notes": {
+    "regime": "Full BEAR (Nifty -11.49% vs 200DMA, breadth 12.5%/13.7%, engine BEAR 8% trail). Nifty PE compressed to 19.62 but zero breadth reversal yet.",
+    "ultracemco": "WAIT 0%: Valuation upgraded to ACCUMULATE (P28), but ADX 47.4, NDI 40.2, 8 dist_days, vol20 49%, deliv_ratio 0.65x = active institutional liquidation.",
+    "kalyankjil": "PLACE_TRIGGER 15% @ Close >= 415 (clears 50DMA 396.62 + Gate 1 shelf 410.1), stop 380 (-8.43%), 8% trail + MA50 exit. Early RS divergence (rs1m +5.02%, vol20 59->40%, 0 dist_days, 1.43x deliv).",
+    "missing_signals": [
+      "Capitulation & breadth-thrust internals (India VIX, 52W New Lows count, FII cash flows)",
+      "Up-day vs down-day delivery & NSE bulk/block deal feed",
+      "Q4 FY26 operational update & upcoming earnings calendar dates"
+    ]
+  }
+}

@@ -1,0 +1,1940 @@
+{
+  "gates": [
+    {
+      "gate_num": 1,
+      "date": "2026-02-27",
+      "market": {
+        "as_of": "2026-02-27",
+        "nifty_close": 25178.7,
+        "nifty_vs_200dma_pct": -0.67,
+        "nifty_dd_from_52w_pct": -4.37,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 33.3,
+        "breadth_above_200dma_pct": 26.8,
+        "breadth_regime": "BEAR",
+        "engine_mode": "CAUTION",
+        "engine_trail_stop_pct": 12.0,
+        "india_vix": null,
+        "nifty_pe": 22.03,
+        "fii_idx_futures_long_pct": 18.4,
+        "fii_idx_126d_pctile": 79.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 12677.0,
+          "ma50": 12399.1,
+          "ma200": 12128.74,
+          "vs_50dma": 2.24,
+          "vs_200dma": 4.52,
+          "vs_52wh": -3.3,
+          "comp_rs": 5.58,
+          "rs1m": 0.43,
+          "rs3m": 13.19,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 21,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "BEAR anchor",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 12282.36,
+          "fx_stop_pct": 3.11,
+          "half_size": false,
+          "simba_stage": 3,
+          "simba_mtf": 2,
+          "caution": 0,
+          "dist_days": 1,
+          "deliv_pct": 56.9,
+          "deliv_ratio": 0.95,
+          "vol20": 20.1,
+          "invvol": 1.5,
+          "liq_cr": 225.6,
+          "biz_score": 58.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "inst_q": -0.09,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "HOLD",
+          "val_pct": 53.3,
+          "val_p50": 12376.9,
+          "pe": 42.3,
+          "funnel_score": 30.5,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcc8 RS +5.6",
+            "\ud83d\udccf Tight 3.1% stop"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 410.1,
+          "ma50": 437.18,
+          "ma200": 503.23,
+          "vs_50dma": -6.19,
+          "vs_200dma": -18.51,
+          "vs_52wh": -33.61,
+          "comp_rs": 1.38,
+          "rs1m": 13.96,
+          "rs3m": -14.94,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 35,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "GO",
+          "fx_sup": "FAR OVERHANG",
+          "fx_sig": "DISTRIBUTION",
+          "fx_stop": 429.64,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 0,
+          "caution": 3,
+          "dist_days": 0,
+          "deliv_pct": 39.5,
+          "deliv_ratio": 1.43,
+          "vol20": 59.1,
+          "invvol": 0.602,
+          "liq_cr": 187.5,
+          "biz_score": 72.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "inst_q": 0.66,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 0.4,
+          "val_p50": 1123.2,
+          "pe": 26.4,
+          "funnel_score": 21.2,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udce6 Deliv 40% (1.4\u00d7)",
+            "\u26a1 Gap Up",
+            "\ud83c\udfe2 Biz 72 Strong",
+            "\ud83d\udd25 Qtr NP +90%"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 1,
+        "gate_date": "2026-02-27",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "PLACE_TRIGGER",
+            "target_pct": 20,
+            "trigger_px": 13120.0,
+            "stop_px": 12380.0,
+            "trail_pct": 0.12,
+            "use_ma50_exit": true
+          },
+          "KALYANKJIL.NS": {
+            "action": "AVOID",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "MILD BEAR / BEAR breadth (26.8% > 200DMA) / CAUTION (12% trail) -> capital preservation, cash default.",
+          "ultracemco": "PLACE_TRIGGER 20% @ Close >= 13120 (above ~13110 52W high), stop 12380 (-5.64%), MA50 exit + 12% trail. Avoids buying Stage 3 BEAR anchor immediately.",
+          "kalyankjil": "AVOID 0%: Stage 4, caution=3, DISTRIBUTION, FAR OVERHANG, 59% vol despite NP +90% and UNRATED cheapness.",
+          "missing_signals": [
+            "India VIX (was null on 2026-02-27) & trailing 5d/20d FII cash flow / PCR",
+            "News / Governance / Promoter Pledge / Block-Deal catalyst feed (explaining KALYANKJIL NP +90% vs -33.6% DISTRIBUTION divergence)",
+            "20-day OHLCV swing pivots, volume-surge ratios, and earnings-day Anchored VWAP (AVWAP)"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 2,
+      "date": "2026-03-30",
+      "market": {
+        "as_of": "2026-03-30",
+        "nifty_close": 22331.4,
+        "nifty_vs_200dma_pct": -11.49,
+        "nifty_dd_from_52w_pct": -15.18,
+        "nifty_regime": "BEAR",
+        "breadth_above_50dma_pct": 12.5,
+        "breadth_above_200dma_pct": 13.7,
+        "breadth_regime": "BEAR",
+        "engine_mode": "BEAR",
+        "engine_trail_stop_pct": 8.0,
+        "india_vix": null,
+        "nifty_pe": 19.62,
+        "fii_idx_futures_long_pct": 15.1,
+        "fii_idx_126d_pctile": 68.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 10745.0,
+          "ma50": 12174.1,
+          "ma200": 12112.57,
+          "vs_50dma": -11.74,
+          "vs_200dma": -11.29,
+          "vs_52wh": -18.04,
+          "comp_rs": -0.31,
+          "rs1m": -5.24,
+          "rs3m": 5.36,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 27,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "BEAR anchor",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 11999.16,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 1,
+          "caution": 3,
+          "dist_days": 8,
+          "deliv_pct": 37.3,
+          "deliv_ratio": 0.65,
+          "vol20": 49.0,
+          "invvol": 0.949,
+          "liq_cr": 431.2,
+          "biz_score": 58.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "inst_q": -0.09,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "ACCUMULATE",
+          "val_pct": 28.1,
+          "val_p50": 13242.3,
+          "pe": 35.8,
+          "funnel_score": 16.4,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcb0 Val ACCUMULATE (P28)"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 375.9,
+          "ma50": 396.62,
+          "ma200": 486.94,
+          "vs_50dma": -5.22,
+          "vs_200dma": -22.8,
+          "vs_52wh": -39.15,
+          "comp_rs": -1.02,
+          "rs1m": 5.02,
+          "rs3m": -9.22,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 34,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "VETO",
+          "fx_sup": "FAR OVERHANG",
+          "fx_sig": "",
+          "fx_stop": 389.11,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 0,
+          "caution": 3,
+          "dist_days": 0,
+          "deliv_pct": 44.1,
+          "deliv_ratio": 1.43,
+          "vol20": 40.2,
+          "invvol": 1.156,
+          "liq_cr": 112.2,
+          "biz_score": 72.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "inst_q": 0.66,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 0.1,
+          "val_p50": 1123.2,
+          "pe": 24.2,
+          "funnel_score": 20.0,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udce6 Deliv 44% (1.4\u00d7)",
+            "\u26a1 Gap Up",
+            "\ud83c\udfe2 Biz 72 Strong",
+            "\ud83d\udd25 Qtr NP +90%"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 2,
+        "gate_date": "2026-03-30",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "WAIT",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          },
+          "KALYANKJIL.NS": {
+            "action": "PLACE_TRIGGER",
+            "target_pct": 15,
+            "trigger_px": 415.0,
+            "stop_px": 380.0,
+            "trail_pct": 0.08,
+            "use_ma50_exit": true
+          }
+        },
+        "notes": {
+          "regime": "Full BEAR (Nifty -11.49% vs 200DMA, breadth 12.5%/13.7%, engine BEAR 8% trail). Nifty PE compressed to 19.62 but zero breadth reversal yet.",
+          "ultracemco": "WAIT 0%: Valuation upgraded to ACCUMULATE (P28), but ADX 47.4, NDI 40.2, 8 dist_days, vol20 49%, deliv_ratio 0.65x = active institutional liquidation.",
+          "kalyankjil": "PLACE_TRIGGER 15% @ Close >= 415 (clears 50DMA 396.62 + Gate 1 shelf 410.1), stop 380 (-8.43%), 8% trail + MA50 exit. Early RS divergence (rs1m +5.02%, vol20 59->40%, 0 dist_days, 1.43x deliv).",
+          "missing_signals": [
+            "Capitulation & breadth-thrust internals (India VIX, 52W New Lows count, FII cash flows)",
+            "Up-day vs down-day delivery & NSE bulk/block deal feed",
+            "Q4 FY26 operational update & upcoming earnings calendar dates"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 3,
+      "date": "2026-04-30",
+      "market": {
+        "as_of": "2026-04-30",
+        "nifty_close": 23997.5,
+        "nifty_vs_200dma_pct": -4.38,
+        "nifty_dd_from_52w_pct": -8.85,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 78.7,
+        "breadth_above_200dma_pct": 41.2,
+        "breadth_regime": "CHOPPY",
+        "engine_mode": "CAUTION",
+        "engine_trail_stop_pct": 12.0,
+        "india_vix": null,
+        "nifty_pe": 20.94,
+        "fii_idx_futures_long_pct": 11.5,
+        "fii_idx_126d_pctile": 23.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 11586.0,
+          "ma50": 11777.7,
+          "ma200": 12092.03,
+          "vs_50dma": -1.63,
+          "vs_200dma": -4.18,
+          "vs_52wh": -11.62,
+          "comp_rs": -1.87,
+          "rs1m": -0.3,
+          "rs3m": -3.29,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 54,
+          "ind_grp": "LAGGING",
+          "ind_st": "BASING",
+          "fx_act": "WATCH",
+          "fx_st": "NO ANCHOR",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 11614.79,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 0,
+          "caution": 3,
+          "dist_days": 4,
+          "deliv_pct": 62.8,
+          "deliv_ratio": 1.14,
+          "vol20": 29.3,
+          "invvol": 1.345,
+          "liq_cr": 392.7,
+          "biz_score": 58.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "inst_q": -0.09,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "ACCUMULATE",
+          "val_pct": 34.6,
+          "val_p50": 13242.3,
+          "pe": 38.6,
+          "funnel_score": 11.8,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcb0 Val ACCUMULATE (P35)"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 412.75,
+          "ma50": 405.62,
+          "ma200": 474.71,
+          "vs_50dma": 1.76,
+          "vs_200dma": -13.05,
+          "vs_52wh": -33.18,
+          "comp_rs": 7.26,
+          "rs1m": 1.12,
+          "rs3m": 16.57,
+          "dna": "BUY",
+          "gate1": false,
+          "ind_rank": 37,
+          "ind_grp": "LAGGING",
+          "ind_st": "TURNING UP",
+          "fx_act": "WATCH",
+          "fx_st": "VETO",
+          "fx_sup": "FAR OVERHANG",
+          "fx_sig": "",
+          "fx_stop": 398.74,
+          "fx_stop_pct": 3.39,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 0,
+          "caution": 3,
+          "dist_days": 1,
+          "deliv_pct": 34.6,
+          "deliv_ratio": 1.03,
+          "vol20": 41.4,
+          "invvol": 0.951,
+          "liq_cr": 156.5,
+          "biz_score": 72.0,
+          "qtr": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "inst_q": 0.66,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 0.5,
+          "val_p50": 1123.2,
+          "pe": 26.6,
+          "funnel_score": 27.2,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcc8 RS +7.3",
+            "\u26a1 Gap Up",
+            "\ud83c\udfe2 Biz 72 Strong",
+            "\ud83d\udd25 Qtr NP +90%",
+            "\ud83d\udccf Tight 3.4% stop"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 3,
+        "gate_date": "2026-04-30",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "PLACE_TRIGGER",
+            "target_pct": 20,
+            "trigger_px": 12200.0,
+            "stop_px": 11500.0,
+            "trail_pct": 0.12,
+            "use_ma50_exit": true
+          },
+          "KALYANKJIL.NS": {
+            "action": "BUY_NOW",
+            "target_pct": 15,
+            "trigger_px": null,
+            "stop_px": 385.0,
+            "trail_pct": 0.12,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "Breadth thrust (78.7% > 50DMA, 41.2% > 200DMA CHOPPY) lifted engine BEAR -> CAUTION (12% trail). Nifty still -4.38% vs 200DMA, FII longs 11.5% (23rd pctile).",
+          "ultracemco": "PLACE_TRIGGER 20% @ Close >= 12200 (above 200DMA 12092 & Apr-21 rejection 12039), stop 11500 (-5.74%), 12% trail + MA50 exit. Cement rank 54/54 but vol halved (49->29%), deliv 1.14x, ACCUMULATE P35.",
+          "kalyankjil": "BUY_NOW 15% starter right above rising 50DMA (412.75 vs 405.62) after Apr-24 shakeout & Apr-27 reclaim. DNA BUY, RS3M +16.6%, CompRS +7.26, Consumer Durables TURNING UP. Stop 385 (-6.72%), 12% trail, no MA50 whipsaw exit.",
+          "missing_signals": [
+            "Actual Q4 FY26 earnings announcement dates & operational updates (instead of flat 45-day lag keeping Dec 2025)",
+            "India VIX, Nifty 5d RSI, and FII vs DII daily cash flows",
+            "20-day swing high/low & Volume-at-Price (VAP) overhead supply map"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 4,
+      "date": "2026-06-15",
+      "market": {
+        "as_of": "2026-06-15",
+        "nifty_close": 23853.9,
+        "nifty_vs_200dma_pct": -4.25,
+        "nifty_dd_from_52w_pct": -9.4,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 64.2,
+        "breadth_above_200dma_pct": 51.0,
+        "breadth_regime": "MILD BULL",
+        "engine_mode": "CAUTION",
+        "engine_trail_stop_pct": 12.0,
+        "india_vix": null,
+        "nifty_pe": 20.57,
+        "fii_idx_futures_long_pct": 12.7,
+        "fii_idx_126d_pctile": 52.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 11466.0,
+          "ma50": 11515.22,
+          "ma200": 11946.88,
+          "vs_50dma": -0.43,
+          "vs_200dma": -4.03,
+          "vs_52wh": -12.54,
+          "comp_rs": -0.98,
+          "rs1m": -2.63,
+          "rs3m": 0.07,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 54,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "MIXED anchor",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 11386.43,
+          "fx_stop_pct": 0.69,
+          "half_size": false,
+          "simba_stage": 1,
+          "simba_mtf": 1,
+          "caution": 3,
+          "dist_days": 3,
+          "deliv_pct": 60.1,
+          "deliv_ratio": 0.99,
+          "vol20": 22.0,
+          "invvol": 1.5,
+          "liq_cr": 351.1,
+          "biz_score": 62.0,
+          "qtr": "Mar 2026",
+          "sales_yoy": 11.9,
+          "opm": 22.0,
+          "opm_chg": 2.0,
+          "np_yoy": 21.2,
+          "inst_q": 0.14,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "ACCUMULATE",
+          "val_pct": 33.7,
+          "val_p50": 13242.3,
+          "pe": 38.2,
+          "funnel_score": 14.3,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcb0 Val ACCUMULATE (P34)"
+          ],
+          "cons": [
+            "\ud83d\udd34 0.7% noise stop (-3)",
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 383.0,
+          "ma50": 387.3,
+          "ma200": 443.19,
+          "vs_50dma": -1.11,
+          "vs_200dma": -13.58,
+          "vs_52wh": -38.0,
+          "comp_rs": 2.87,
+          "rs1m": 5.4,
+          "rs3m": -0.83,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 38,
+          "ind_grp": "LAGGING",
+          "ind_st": "BASING",
+          "fx_act": "WATCH",
+          "fx_st": "BEAR anchor",
+          "fx_sup": "FAR OVERHANG",
+          "fx_sig": "",
+          "fx_stop": 379.21,
+          "fx_stop_pct": 0.99,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 1,
+          "caution": 3,
+          "dist_days": 3,
+          "deliv_pct": 15.9,
+          "deliv_ratio": 0.44,
+          "vol20": 54.1,
+          "invvol": 0.76,
+          "liq_cr": 213.3,
+          "biz_score": 75.0,
+          "qtr": "Mar 2026",
+          "sales_yoy": 66.2,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 118.1,
+          "inst_q": -0.66,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 0.1,
+          "val_p50": 1123.2,
+          "pe": 24.7,
+          "funnel_score": 19.6,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83c\udfe2 Biz 75 Strong",
+            "\ud83d\udd25 Qtr NP +118%"
+          ],
+          "cons": [
+            "\ud83d\udd34 1.0% noise stop (-3)",
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 4,
+        "gate_date": "2026-06-15",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "PLACE_TRIGGER",
+            "target_pct": 25,
+            "trigger_px": 12050.0,
+            "stop_px": 11380.0,
+            "trail_pct": 0.12,
+            "use_ma50_exit": true
+          },
+          "KALYANKJIL.NS": {
+            "action": "AVOID",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "Breadth >200DMA crossed 51.0% (MILD BULL), >50DMA 64.2%, but Nifty still -4.25% vs 200DMA -> engine CAUTION (12% trail).",
+          "ultracemco": "PLACE_TRIGGER 25% @ Close >= 12050 (clears 200DMA 11947 & Apr-21 high 12039), stop 11380 (-5.56%), 12% trail + MA50 exit. Upgraded Stage 4->1, vol20 coiled 49->22%, Q4 OPM 22% (+2pp), DII +0.97pp, ACCUMULATE P34.",
+          "kalyankjil": "AVOID 0%: Q4 NP +118% yet DII sold (-1.1pp), deliv collapsed to 15.9% (0.44x), vol20 jumped back to 54.1%, Stage 4 dist_days=3 -> refuses 3rd Stage 4 probe.",
+          "missing_signals": [
+            "FY26 cash-flow quality (CFO/EBITDA), working capital/inventory days, promoter pledge & franchisee/gold-loan governance checks for KALYANKJIL",
+            "Regional cement pricing (Rs/bag) & top-5 peer RS inside Cement & Cement Products",
+            "India VIX (still null) & FII/DII daily cash-market flows"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 5,
+      "date": "2026-07-31",
+      "market": {
+        "as_of": "2026-07-31",
+        "nifty_close": 24383.6,
+        "nifty_vs_200dma_pct": -1.59,
+        "nifty_dd_from_52w_pct": -7.39,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 53.6,
+        "breadth_above_200dma_pct": 57.7,
+        "breadth_regime": "MILD BULL",
+        "engine_mode": "CAUTION",
+        "engine_trail_stop_pct": 12.0,
+        "india_vix": null,
+        "nifty_pe": 20.78,
+        "fii_idx_futures_long_pct": 11.1,
+        "fii_idx_126d_pctile": 29.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 11903.0,
+          "ma50": 11499.04,
+          "ma200": 11812.84,
+          "vs_50dma": 3.51,
+          "vs_200dma": 0.76,
+          "vs_52wh": -9.21,
+          "comp_rs": 1.4,
+          "rs1m": 2.32,
+          "rs3m": 1.13,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 41,
+          "ind_grp": "LAGGING",
+          "ind_st": "BASING",
+          "fx_act": "WATCH",
+          "fx_st": "MIXED anchor",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 11387.16,
+          "fx_stop_pct": 4.33,
+          "half_size": false,
+          "simba_stage": 1,
+          "simba_mtf": 1,
+          "caution": 0,
+          "dist_days": 1,
+          "deliv_pct": 59.0,
+          "deliv_ratio": 1.02,
+          "vol20": 20.4,
+          "invvol": 1.5,
+          "liq_cr": 321.8,
+          "biz_score": 62.0,
+          "qtr": "Mar 2026",
+          "sales_yoy": 11.9,
+          "opm": 22.0,
+          "opm_chg": 2.0,
+          "np_yoy": 21.2,
+          "inst_q": 0.14,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "HOLD",
+          "val_pct": 51.5,
+          "val_p50": 11782.8,
+          "pe": 39.7,
+          "funnel_score": 22.7,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udccf Tight 4.3% stop"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 612.6,
+          "ma50": 433.22,
+          "ma200": 439.5,
+          "vs_50dma": 41.41,
+          "vs_200dma": 39.39,
+          "vs_52wh": -5.6,
+          "comp_rs": 47.64,
+          "rs1m": 56.99,
+          "rs3m": 46.81,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 16,
+          "ind_grp": "LEADING",
+          "ind_st": "UPTREND",
+          "fx_act": "BUY NOW",
+          "fx_st": "GO",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "NEUTRAL",
+          "fx_stop": 469.0,
+          "fx_stop_pct": 23.44,
+          "half_size": true,
+          "simba_stage": 2,
+          "simba_mtf": 2,
+          "caution": 0,
+          "dist_days": 1,
+          "deliv_pct": 15.9,
+          "deliv_ratio": 0.91,
+          "vol20": 82.0,
+          "invvol": 0.5,
+          "liq_cr": 2033.2,
+          "biz_score": 75.0,
+          "qtr": "Mar 2026",
+          "sales_yoy": 66.2,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 118.1,
+          "inst_q": -0.66,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 9.1,
+          "val_p50": 1123.2,
+          "pe": 39.5,
+          "funnel_score": 57.9,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\ude80 RS +47.6 Leader",
+            "\ud83c\udfe2 Biz 75 Strong",
+            "\ud83d\udd25 Qtr NP +118%"
+          ],
+          "cons": [
+            "\ud83d\udd34 Wide 23.4% stop (>15% cap)",
+            "\u26a0\ufe0f +41.4% vs 50DMA (-3)",
+            "\u26a0\ufe0f +39% vs 200DMA (-3)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 5,
+        "gate_date": "2026-07-31",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "HOLD",
+            "target_pct": 24,
+            "trigger_px": null,
+            "stop_px": 11380.0,
+            "trail_pct": 0.12,
+            "use_ma50_exit": true
+          },
+          "KALYANKJIL.NS": {
+            "action": "PLACE_TRIGGER",
+            "target_pct": 12,
+            "trigger_px": 652.0,
+            "stop_px": 560.0,
+            "trail_pct": 0.15,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "Cusp of bull transition: breadth >200DMA 57.7% (MILD BULL), Nifty -1.59% vs 200DMA (CAUTION 12% trail), FII longs 11.1% (29th pctile).",
+          "ultracemco": "HOLD 24.4% (20 sh @ avg 12105.16, CMP 11903): textbook low-vol (20.4%) backtest of 200DMA (11813), Gate 1=True, DNA BUY, caution=0, Cement improving 54->41. Keep stop 11380, 12% trail, MA50 exit.",
+          "kalyankjil": "PLACE_TRIGGER 12% (half_size + invvol 0.50) @ Close >= 652 (above implied 649 52W high), stop 560 (-14.1%, below Jul-20 570 BUY NOW anchor), 15% trail. Refuses chasing +41.4% extension & 82% vol blindly.",
+          "missing_signals": [
+            "Q1 FY27 (Jun 2026) earnings / corporate catalyst feed explaining Kalyan's 10x turnover surge (Rs 2033 Cr/day)",
+            "Absolute Delivery Value (Rs Cr/day) & F&O OI / short-covering vs long-buildup / NSE F&O ban status",
+            "India VIX & 10-day high-tight-flag OHLCV / volume dry-up structure"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 6,
+      "date": "2026-09-15",
+      "market": {
+        "as_of": "2026-09-15",
+        "nifty_close": 23118.6,
+        "nifty_vs_200dma_pct": -5.75,
+        "nifty_dd_from_52w_pct": -12.19,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 32.7,
+        "breadth_above_200dma_pct": 51.7,
+        "breadth_regime": "MILD BULL",
+        "engine_mode": "BEAR",
+        "engine_trail_stop_pct": 8.0,
+        "india_vix": null,
+        "nifty_pe": 19.54,
+        "fii_idx_futures_long_pct": 12.1,
+        "fii_idx_126d_pctile": 55.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 10697.0,
+          "ma50": 11637.58,
+          "ma200": 11745.64,
+          "vs_50dma": -8.08,
+          "vs_200dma": -8.93,
+          "vs_52wh": -18.41,
+          "comp_rs": -2.54,
+          "rs1m": -2.82,
+          "rs3m": -2.46,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 52,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "VETO",
+          "fx_sup": "FAR OVERHANG",
+          "fx_sig": "",
+          "fx_stop": 11536.33,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 1,
+          "caution": 3,
+          "dist_days": 4,
+          "deliv_pct": 62.1,
+          "deliv_ratio": 1.0,
+          "vol20": 17.8,
+          "invvol": 1.5,
+          "liq_cr": 276.2,
+          "biz_score": 62.0,
+          "qtr": "Jun 2026",
+          "sales_yoy": 15.9,
+          "opm": 20.0,
+          "opm_chg": -1.0,
+          "np_yoy": 17.2,
+          "inst_q": 0.02,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "ACCUMULATE",
+          "val_pct": 27.7,
+          "val_p50": 13242.3,
+          "pe": 35.7,
+          "funnel_score": 12.1,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udcb0 Val ACCUMULATE (P28)"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 604.2,
+          "ma50": 579.3,
+          "ma200": 455.55,
+          "vs_50dma": 4.3,
+          "vs_200dma": 32.63,
+          "vs_52wh": -6.9,
+          "comp_rs": 28.02,
+          "rs1m": 4.45,
+          "rs3m": 63.24,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 33,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "BUY NOW",
+          "fx_st": "GO",
+          "fx_sup": "INSIDE shelf",
+          "fx_sig": "NEUTRAL",
+          "fx_stop": 568.63,
+          "fx_stop_pct": 5.89,
+          "half_size": false,
+          "simba_stage": 2,
+          "simba_mtf": 2,
+          "caution": 0,
+          "dist_days": 0,
+          "deliv_pct": 35.4,
+          "deliv_ratio": 1.37,
+          "vol20": 33.6,
+          "invvol": 1.239,
+          "liq_cr": 431.0,
+          "biz_score": 75.0,
+          "qtr": "Jun 2026",
+          "sales_yoy": 45.7,
+          "opm": 6.0,
+          "opm_chg": -1.0,
+          "np_yoy": 32.2,
+          "inst_q": -2.03,
+          "inst_lbl": "DISTRIBUTING",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 8.9,
+          "val_p50": 1123.2,
+          "pe": 38.9,
+          "funnel_score": 58.6,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udce6 Deliv 35% (1.4\u00d7)",
+            "\ud83d\ude80 RS +28.0 Leader",
+            "\ud83c\udf00 Tight Squeeze",
+            "\ud83c\udfe2 Biz 75 Strong",
+            "\ud83d\udccf Tight 5.9% stop"
+          ],
+          "cons": [
+            "\ud83d\udfe0 Inside Shelf (-2.5)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 6,
+        "gate_date": "2026-09-15",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "AVOID",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          },
+          "KALYANKJIL.NS": {
+            "action": "BUY_NOW",
+            "target_pct": 20,
+            "trigger_px": null,
+            "stop_px": 565.0,
+            "trail_pct": 0.09,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "Nifty fell -5.2% (-5.75% vs 200DMA) & breadth >50DMA dropped to 32.7% -> engine BEAR (8% trail), yet breadth >200DMA held 51.7% (MILD BULL) and Nifty PE reset to 19.54.",
+          "ultracemco": "AVOID 0%: Back in Stage 4 / VETO / FAR OVERHANG (-8.1% vs 50DMA, RSI 27.7, Cement rank 52/54, Q1 OPM -1pp to 20%). MA50 exit @ 11499 saved ~7%.",
+          "kalyankjil": "BUY_NOW 20% core entry: 6-week Tight Squeeze (BBP 15.9), vol20 collapsed 82->33.6%, deliv 35.4% (1.37x), 0 dist_days, Stage 2, BUY NOW, tight 5.89% stop (568.63), RS +28.0. Capped at 20% for BEAR engine & lagged Jun-30 DISTRIBUTING flag. Stop 565 (-6.49%), 9% trail.",
+          "missing_signals": [
+            "Monthly AMFI Mutual Fund holding updates & NSE bulk/block deals (Jun-30 shareholding lags July-Sept consolidation by 75+ days)",
+            "India VIX, FII cash-market flow trend, and early festive gold/jewellery demand indicators",
+            "6-week consolidation box OHLCV & volume dry-up profile inside the shelf"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 7,
+      "date": "2026-10-30",
+      "market": {
+        "as_of": "2026-10-30",
+        "nifty_close": 23053.1,
+        "nifty_vs_200dma_pct": -4.08,
+        "nifty_dd_from_52w_pct": -12.44,
+        "nifty_regime": "MILD BEAR",
+        "breadth_above_50dma_pct": 16.4,
+        "breadth_above_200dma_pct": 36.0,
+        "breadth_regime": "MILD BEAR",
+        "engine_mode": "CAUTION",
+        "engine_trail_stop_pct": 12.0,
+        "india_vix": null,
+        "nifty_pe": 19.3,
+        "fii_idx_futures_long_pct": 11.1,
+        "fii_idx_126d_pctile": 59.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 11045.0,
+          "ma50": 11063.32,
+          "ma200": 11623.58,
+          "vs_50dma": -0.17,
+          "vs_200dma": -4.98,
+          "vs_52wh": -15.75,
+          "comp_rs": -0.58,
+          "rs1m": 0.51,
+          "rs3m": -1.57,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 51,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "NO ANCHOR",
+          "fx_sup": "NEAR OVERHANG",
+          "fx_sig": "",
+          "fx_stop": 10942.33,
+          "fx_stop_pct": 6.74,
+          "half_size": false,
+          "simba_stage": 4,
+          "simba_mtf": 0,
+          "caution": 3,
+          "dist_days": 7,
+          "deliv_pct": 55.7,
+          "deliv_ratio": 1.05,
+          "vol20": 23.2,
+          "invvol": 1.5,
+          "liq_cr": 298.6,
+          "biz_score": 62.0,
+          "qtr": "Jun 2026",
+          "sales_yoy": 15.9,
+          "opm": 20.0,
+          "opm_chg": -1.0,
+          "np_yoy": 17.2,
+          "inst_q": 0.02,
+          "inst_lbl": "NEUTRAL",
+          "val_rating": "ACCUMULATE",
+          "val_pct": 30.0,
+          "val_p50": 13242.3,
+          "pe": 36.8,
+          "funnel_score": 21.3,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udccf Tight 6.7% stop",
+            "\ud83d\udcb0 Val ACCUMULATE (P30)"
+          ],
+          "cons": [
+            "\ud83d\udd34 Near Overhang (-6)",
+            "\ud83d\udd34 WATCH (No BUY setup)"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 498.0,
+          "ma50": 571.68,
+          "ma200": 465.62,
+          "vs_50dma": -12.89,
+          "vs_200dma": 6.95,
+          "vs_52wh": -23.26,
+          "comp_rs": -13.98,
+          "rs1m": -13.94,
+          "rs3m": -16.33,
+          "dna": "AVOID",
+          "gate1": false,
+          "ind_rank": 35,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "WATCH",
+          "fx_st": "NO ANCHOR",
+          "fx_sup": "INSIDE shelf",
+          "fx_sig": "",
+          "fx_stop": 561.92,
+          "fx_stop_pct": null,
+          "half_size": false,
+          "simba_stage": 2,
+          "simba_mtf": 1,
+          "caution": 2,
+          "dist_days": 1,
+          "deliv_pct": 27.6,
+          "deliv_ratio": 1.04,
+          "vol20": 42.0,
+          "invvol": 1.001,
+          "liq_cr": 229.1,
+          "biz_score": 75.0,
+          "qtr": "Jun 2026",
+          "sales_yoy": 45.7,
+          "opm": 6.0,
+          "opm_chg": -1.0,
+          "np_yoy": 32.2,
+          "inst_q": -2.03,
+          "inst_lbl": "DISTRIBUTING",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 3.6,
+          "val_p50": 1123.2,
+          "pe": 32.1,
+          "funnel_score": 15.2,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83c\udfe2 Biz 75 Strong"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)",
+            "\ud83d\udfe0 Inside Shelf (-2.5)"
+          ]
+        }
+      },
+      "decision": {
+        "gate_num": 7,
+        "gate_date": "2026-10-30",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "WAIT",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          },
+          "KALYANKJIL.NS": {
+            "action": "AVOID",
+            "target_pct": 0,
+            "trigger_px": null,
+            "stop_px": null,
+            "trail_pct": null,
+            "use_ma50_exit": false
+          }
+        },
+        "notes": {
+          "regime": "Broadening bearish deterioration: breadth >50DMA 16.4%, >200DMA 36.0% (MILD BEAR), Nifty -4.08% vs 200DMA, Nifty PE 19.30, FII longs 11.1% -> 100% cash.",
+          "ultracemco": "WAIT 0%: Broke back below 50DMA today after 4d fakeout, Cement 0.0% >200DMA (rank 51/54), Stage 4, 7 dist_days, NEAR OVERHANG (-6).",
+          "kalyankjil": "AVOID 0%: -12.89% below 50DMA, CompRS -13.98, ADX 27.2 downward (NDI 29.3 >> PDI 14.9), RSI 32.9, approaching 200DMA (465.6) ahead of Q2 earnings.",
+          "missing_signals": [
+            "Q2 FY27 (Sep 2026) earnings & Sep-2026 FII/DII shareholding updates",
+            "Oversold bottoming internals: India VIX, 52W New Lows, FII daily cash flows",
+            "200-DMA demand/supply microstructure (up-day vs down-day delivery & institutional block deals near Rs 465-500)"
+          ]
+        }
+      }
+    },
+    {
+      "gate_num": 8,
+      "date": "2026-11-25",
+      "market": {
+        "as_of": "2026-11-25",
+        "nifty_close": 25819.2,
+        "nifty_vs_200dma_pct": 7.58,
+        "nifty_dd_from_52w_pct": -1.93,
+        "nifty_regime": "MILD BULL",
+        "breadth_above_50dma_pct": 37.8,
+        "breadth_above_200dma_pct": 43.9,
+        "breadth_regime": "CHOPPY",
+        "engine_mode": "BULL",
+        "engine_trail_stop_pct": 15.0,
+        "india_vix": null,
+        "nifty_pe": 21.03,
+        "fii_idx_futures_long_pct": 34.1,
+        "fii_idx_126d_pctile": 98.0
+      },
+      "stocks": {
+        "ULTRACEMCO.NS": {
+          "price": 12800.0,
+          "ma50": 11372.56,
+          "ma200": 11620.73,
+          "vs_50dma": 12.55,
+          "vs_200dma": 10.15,
+          "vs_52wh": -2.36,
+          "comp_rs": 2.61,
+          "rs1m": 1.01,
+          "rs3m": 4.66,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 11,
+          "ind_grp": "LEADING",
+          "ind_st": "BASING",
+          "fx_act": "WATCH",
+          "fx_st": "NO ANCHOR",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "",
+          "fx_stop": 11239.37,
+          "fx_stop_pct": 12.19,
+          "half_size": true,
+          "simba_stage": 2,
+          "simba_mtf": 2,
+          "caution": 0,
+          "dist_days": 1,
+          "deliv_pct": 59.3,
+          "deliv_ratio": 1.05,
+          "vol20": 26.5,
+          "invvol": 1.328,
+          "liq_cr": 259.3,
+          "biz_score": 62.0,
+          "qtr": "Sep 2026",
+          "sales_yoy": 18.8,
+          "opm": 16.0,
+          "opm_chg": 0.0,
+          "np_yoy": 21.2,
+          "inst_q": 1.01,
+          "inst_lbl": "ACCUMULATING",
+          "val_rating": "HOLD",
+          "val_pct": 53.4,
+          "val_p50": 12469.3,
+          "pe": 42.7,
+          "funnel_score": 48.2,
+          "funnel_grade": "C",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udfe2 Inst +1.0q/+1.1y (+8)"
+          ],
+          "cons": [
+            "\ud83d\udd34 WATCH (No BUY setup)",
+            "\u2696\ufe0f Half-size 12.2% stop"
+          ]
+        },
+        "KALYANKJIL.NS": {
+          "price": 636.35,
+          "ma50": 578.73,
+          "ma200": 482.54,
+          "vs_50dma": 9.96,
+          "vs_200dma": 31.87,
+          "vs_52wh": -12.75,
+          "comp_rs": 4.66,
+          "rs1m": 12.58,
+          "rs3m": -1.94,
+          "dna": "BUY",
+          "gate1": true,
+          "ind_rank": 28,
+          "ind_grp": "LAGGING",
+          "ind_st": "DOWNTREND",
+          "fx_act": "BUY NOW",
+          "fx_st": "GO",
+          "fx_sup": "CLEAN AIR",
+          "fx_sig": "DISTRIBUTION",
+          "fx_stop": 620.0,
+          "fx_stop_pct": 2.57,
+          "half_size": false,
+          "simba_stage": 2,
+          "simba_mtf": 3,
+          "caution": 0,
+          "dist_days": 1,
+          "deliv_pct": 18.2,
+          "deliv_ratio": 0.79,
+          "vol20": 59.0,
+          "invvol": 0.597,
+          "liq_cr": 848.7,
+          "biz_score": 75.0,
+          "qtr": "Sep 2026",
+          "sales_yoy": 31.4,
+          "opm": 6.0,
+          "opm_chg": 0.0,
+          "np_yoy": 63.6,
+          "inst_q": 1.59,
+          "inst_lbl": "ACCUMULATING",
+          "val_rating": "UNRATED (gate A, B)",
+          "val_pct": 10.5,
+          "val_p50": 1123.2,
+          "pe": 41.0,
+          "funnel_score": 64.1,
+          "funnel_grade": "B",
+          "funnel_4": false,
+          "pros": [
+            "\ud83d\udfe2 Inst +1.6q/-0.4y (+8)",
+            "\ud83d\udcc8 RS +4.7",
+            "\u26a1 Gap Up",
+            "\ud83c\udfaf Clean Setup",
+            "\ud83d\udcc8 ADX+MTF 12/12"
+          ],
+          "cons": []
+        }
+      },
+      "decision": {
+        "gate_num": 8,
+        "gate_date": "2026-11-25",
+        "orders": {
+          "ULTRACEMCO.NS": {
+            "action": "BUY_NOW",
+            "target_pct": 22,
+            "trigger_px": null,
+            "stop_px": 11600.0,
+            "trail_pct": 0.15,
+            "use_ma50_exit": true
+          },
+          "KALYANKJIL.NS": {
+            "action": "BUY_NOW",
+            "target_pct": 18,
+            "trigger_px": null,
+            "stop_px": 565.0,
+            "trail_pct": 0.15,
+            "use_ma50_exit": true
+          }
+        },
+        "notes": {
+          "regime": "First BULL mode of the march: Nifty +12.0% to 25819.2 (+7.58% vs 200DMA), FII longs tripled 11.1->34.1% (98th pctile), 15% engine trail. Breadth still CHOPPY (37.8% >50DMA, 43.9% >200DMA) -> deploy 40% total, keep 60% dry powder.",
+          "ultracemco": "BUY_NOW 22% (half_size=true): BULL regime + Cement #11/54 LEADING + Stage 2 + ACCUMULATING (DII 20.86%, +1.01q) + CLEAN AIR -2.4% off 52wH. Stop 11600 (200DMA, -9.38% -> 2.06% NAV risk), 15% trail + MA50 exit.",
+          "kalyankjil": "BUY_NOW 18% (vol-adjusted): Highest Funnel score of march (64.1 Grade B, zero cons), MTF 3/3, BUY NOW, FIIs flipped back to ACCUMULATING (+1.59q, Q2 NP +63.6%), pulled back -12.8% off 729 high. Override tight 620 (2.57%, <0.7 sigma) forensics stop with 565 (below 50DMA 578.7, 3.0 sigma -> 2.02% NAV risk), MA50 exit + 15% trail.",
+          "missing_signals": [
+            "5-day intra-week OHLCV pullback bars on KALYANKJIL (verifying DISTRIBUTION vs quiet flag)",
+            "India VIX & Midcap/Smallcap breadth thrust metrics",
+            "Real-time post-Q2 Nov FII/DII cash & block prints"
+          ],
+          "self_reflection_top3_missing": [
+            "Earnings / operational catalyst calendar + real-time monthly MF/FII institutional flow feed (75-90d quarterly shareholding lag)",
+            "India VIX (null across all 8 gates) & breadth capitulation/thrust timers at Mar-30 and Oct-30 washouts",
+            "20-day OHLCV pivot / gap-slippage ATR stats & F&O OI / absolute delivery value (Rs Cr/day) microstructure"
+          ]
+        }
+      }
+    }
+  ],
+  "gate_history": [
+    {
+      "from_date": "2026-02-27",
+      "to_date": "2026-03-30",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "PLACE_TRIGGER",
+          "target_pct": 20,
+          "trigger_px": 13120.0,
+          "stop_px": 12380.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": true
+        },
+        "KALYANKJIL.NS": {
+          "action": "AVOID",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [],
+      "notes": {
+        "regime": "MILD BEAR / BEAR breadth (26.8% > 200DMA) / CAUTION (12% trail) -> capital preservation, cash default.",
+        "ultracemco": "PLACE_TRIGGER 20% @ Close >= 13120 (above ~13110 52W high), stop 12380 (-5.64%), MA50 exit + 12% trail. Avoids buying Stage 3 BEAR anchor immediately.",
+        "kalyankjil": "AVOID 0%: Stage 4, caution=3, DISTRIBUTION, FAR OVERHANG, 59% vol despite NP +90% and UNRATED cheapness.",
+        "missing_signals": [
+          "India VIX (was null on 2026-02-27) & trailing 5d/20d FII cash flow / PCR",
+          "News / Governance / Promoter Pledge / Block-Deal catalyst feed (explaining KALYANKJIL NP +90% vs -33.6% DISTRIBUTION divergence)",
+          "20-day OHLCV swing pivots, volume-surge ratios, and earnings-day Anchored VWAP (AVWAP)"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-03-30",
+      "to_date": "2026-04-30",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "WAIT",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        },
+        "KALYANKJIL.NS": {
+          "action": "PLACE_TRIGGER",
+          "target_pct": 15,
+          "trigger_px": 415.0,
+          "stop_px": 380.0,
+          "trail_pct": 0.08,
+          "use_ma50_exit": true
+        }
+      },
+      "events": [
+        {
+          "date": "2026-04-07",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "TRIGGER@415.0",
+          "px": 435.0,
+          "shares": 344,
+          "value": 149640.0
+        },
+        {
+          "date": "2026-04-24",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "TRAIL_8%_HIT",
+          "px": 412.8,
+          "shares": 344,
+          "pnl_pct": -5.29,
+          "pnl_rs": -8220.0
+        }
+      ],
+      "notes": {
+        "regime": "Full BEAR (Nifty -11.49% vs 200DMA, breadth 12.5%/13.7%, engine BEAR 8% trail). Nifty PE compressed to 19.62 but zero breadth reversal yet.",
+        "ultracemco": "WAIT 0%: Valuation upgraded to ACCUMULATE (P28), but ADX 47.4, NDI 40.2, 8 dist_days, vol20 49%, deliv_ratio 0.65x = active institutional liquidation.",
+        "kalyankjil": "PLACE_TRIGGER 15% @ Close >= 415 (clears 50DMA 396.62 + Gate 1 shelf 410.1), stop 380 (-8.43%), 8% trail + MA50 exit. Early RS divergence (rs1m +5.02%, vol20 59->40%, 0 dist_days, 1.43x deliv).",
+        "missing_signals": [
+          "Capitulation & breadth-thrust internals (India VIX, 52W New Lows count, FII cash flows)",
+          "Up-day vs down-day delivery & NSE bulk/block deal feed",
+          "Q4 FY26 operational update & upcoming earnings calendar dates"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-04-30",
+      "to_date": "2026-06-15",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "PLACE_TRIGGER",
+          "target_pct": 20,
+          "trigger_px": 12200.0,
+          "stop_px": 11500.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": true
+        },
+        "KALYANKJIL.NS": {
+          "action": "BUY_NOW",
+          "target_pct": 15,
+          "trigger_px": null,
+          "stop_px": 385.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [
+        {
+          "date": "2026-05-04",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 414.0,
+          "shares": 359,
+          "value": 148626.0
+        },
+        {
+          "date": "2026-05-11",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "HARD_STOP@385.0",
+          "px": 385.0,
+          "shares": 359,
+          "pnl_pct": -7.19,
+          "pnl_rs": -10985.0
+        }
+      ],
+      "notes": {
+        "regime": "Breadth thrust (78.7% > 50DMA, 41.2% > 200DMA CHOPPY) lifted engine BEAR -> CAUTION (12% trail). Nifty still -4.38% vs 200DMA, FII longs 11.5% (23rd pctile).",
+        "ultracemco": "PLACE_TRIGGER 20% @ Close >= 12200 (above 200DMA 12092 & Apr-21 rejection 12039), stop 11500 (-5.74%), 12% trail + MA50 exit. Cement rank 54/54 but vol halved (49->29%), deliv 1.14x, ACCUMULATE P35.",
+        "kalyankjil": "BUY_NOW 15% starter right above rising 50DMA (412.75 vs 405.62) after Apr-24 shakeout & Apr-27 reclaim. DNA BUY, RS3M +16.6%, CompRS +7.26, Consumer Durables TURNING UP. Stop 385 (-6.72%), 12% trail, no MA50 whipsaw exit.",
+        "missing_signals": [
+          "Actual Q4 FY26 earnings announcement dates & operational updates (instead of flat 45-day lag keeping Dec 2025)",
+          "India VIX, Nifty 5d RSI, and FII vs DII daily cash flows",
+          "20-day swing high/low & Volume-at-Price (VAP) overhead supply map"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-06-15",
+      "to_date": "2026-07-31",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "PLACE_TRIGGER",
+          "target_pct": 25,
+          "trigger_px": 12050.0,
+          "stop_px": 11380.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": true
+        },
+        "KALYANKJIL.NS": {
+          "action": "AVOID",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [
+        {
+          "date": "2026-07-22",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "BUY",
+          "reason": "TRIGGER@12050.0",
+          "px": 12081.0,
+          "shares": 20,
+          "value": 241620.0
+        }
+      ],
+      "notes": {
+        "regime": "Breadth >200DMA crossed 51.0% (MILD BULL), >50DMA 64.2%, but Nifty still -4.25% vs 200DMA -> engine CAUTION (12% trail).",
+        "ultracemco": "PLACE_TRIGGER 25% @ Close >= 12050 (clears 200DMA 11947 & Apr-21 high 12039), stop 11380 (-5.56%), 12% trail + MA50 exit. Upgraded Stage 4->1, vol20 coiled 49->22%, Q4 OPM 22% (+2pp), DII +0.97pp, ACCUMULATE P34.",
+        "kalyankjil": "AVOID 0%: Q4 NP +118% yet DII sold (-1.1pp), deliv collapsed to 15.9% (0.44x), vol20 jumped back to 54.1%, Stage 4 dist_days=3 -> refuses 3rd Stage 4 probe.",
+        "missing_signals": [
+          "FY26 cash-flow quality (CFO/EBITDA), working capital/inventory days, promoter pledge & franchisee/gold-loan governance checks for KALYANKJIL",
+          "Regional cement pricing (Rs/bag) & top-5 peer RS inside Cement & Cement Products",
+          "India VIX (still null) & FII/DII daily cash-market flows"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-07-31",
+      "to_date": "2026-09-15",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "HOLD",
+          "target_pct": 24,
+          "trigger_px": null,
+          "stop_px": 11380.0,
+          "trail_pct": 0.12,
+          "use_ma50_exit": true
+        },
+        "KALYANKJIL.NS": {
+          "action": "PLACE_TRIGGER",
+          "target_pct": 12,
+          "trigger_px": 652.0,
+          "stop_px": 560.0,
+          "trail_pct": 0.15,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [
+        {
+          "date": "2026-08-19",
+          "ticker": "ULTRACEMCO.NS",
+          "side": "SELL",
+          "reason": "MA50_BREAK(11499.0<11637.5)",
+          "px": 11499.0,
+          "shares": 20,
+          "pnl_pct": -5.01,
+          "pnl_rs": -12583.0
+        }
+      ],
+      "notes": {
+        "regime": "Cusp of bull transition: breadth >200DMA 57.7% (MILD BULL), Nifty -1.59% vs 200DMA (CAUTION 12% trail), FII longs 11.1% (29th pctile).",
+        "ultracemco": "HOLD 24.4% (20 sh @ avg 12105.16, CMP 11903): textbook low-vol (20.4%) backtest of 200DMA (11813), Gate 1=True, DNA BUY, caution=0, Cement improving 54->41. Keep stop 11380, 12% trail, MA50 exit.",
+        "kalyankjil": "PLACE_TRIGGER 12% (half_size + invvol 0.50) @ Close >= 652 (above implied 649 52W high), stop 560 (-14.1%, below Jul-20 570 BUY NOW anchor), 15% trail. Refuses chasing +41.4% extension & 82% vol blindly.",
+        "missing_signals": [
+          "Q1 FY27 (Jun 2026) earnings / corporate catalyst feed explaining Kalyan's 10x turnover surge (Rs 2033 Cr/day)",
+          "Absolute Delivery Value (Rs Cr/day) & F&O OI / short-covering vs long-buildup / NSE F&O ban status",
+          "India VIX & 10-day high-tight-flag OHLCV / volume dry-up structure"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-09-15",
+      "to_date": "2026-10-30",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "AVOID",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        },
+        "KALYANKJIL.NS": {
+          "action": "BUY_NOW",
+          "target_pct": 20,
+          "trigger_px": null,
+          "stop_px": 565.0,
+          "trail_pct": 0.09,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [
+        {
+          "date": "2026-09-16",
+          "ticker": "KALYANKJIL.NS",
+          "side": "BUY",
+          "reason": "BUY_NOW",
+          "px": 606.9,
+          "shares": 319,
+          "value": 193601.0
+        },
+        {
+          "date": "2026-09-28",
+          "ticker": "KALYANKJIL.NS",
+          "side": "SELL",
+          "reason": "HARD_STOP@565.0",
+          "px": 565.0,
+          "shares": 319,
+          "pnl_pct": -7.09,
+          "pnl_rs": -14114.0
+        }
+      ],
+      "notes": {
+        "regime": "Nifty fell -5.2% (-5.75% vs 200DMA) & breadth >50DMA dropped to 32.7% -> engine BEAR (8% trail), yet breadth >200DMA held 51.7% (MILD BULL) and Nifty PE reset to 19.54.",
+        "ultracemco": "AVOID 0%: Back in Stage 4 / VETO / FAR OVERHANG (-8.1% vs 50DMA, RSI 27.7, Cement rank 52/54, Q1 OPM -1pp to 20%). MA50 exit @ 11499 saved ~7%.",
+        "kalyankjil": "BUY_NOW 20% core entry: 6-week Tight Squeeze (BBP 15.9), vol20 collapsed 82->33.6%, deliv 35.4% (1.37x), 0 dist_days, Stage 2, BUY NOW, tight 5.89% stop (568.63), RS +28.0. Capped at 20% for BEAR engine & lagged Jun-30 DISTRIBUTING flag. Stop 565 (-6.49%), 9% trail.",
+        "missing_signals": [
+          "Monthly AMFI Mutual Fund holding updates & NSE bulk/block deals (Jun-30 shareholding lags July-Sept consolidation by 75+ days)",
+          "India VIX, FII cash-market flow trend, and early festive gold/jewellery demand indicators",
+          "6-week consolidation box OHLCV & volume dry-up profile inside the shelf"
+        ]
+      }
+    },
+    {
+      "from_date": "2026-10-30",
+      "to_date": "2026-11-25",
+      "orders": {
+        "ULTRACEMCO.NS": {
+          "action": "WAIT",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        },
+        "KALYANKJIL.NS": {
+          "action": "AVOID",
+          "target_pct": 0,
+          "trigger_px": null,
+          "stop_px": null,
+          "trail_pct": null,
+          "use_ma50_exit": false
+        }
+      },
+      "events": [],
+      "notes": {
+        "regime": "Broadening bearish deterioration: breadth >50DMA 16.4%, >200DMA 36.0% (MILD BEAR), Nifty -4.08% vs 200DMA, Nifty PE 19.30, FII longs 11.1% -> 100% cash.",
+        "ultracemco": "WAIT 0%: Broke back below 50DMA today after 4d fakeout, Cement 0.0% >200DMA (rank 51/54), Stage 4, 7 dist_days, NEAR OVERHANG (-6).",
+        "kalyankjil": "AVOID 0%: -12.89% below 50DMA, CompRS -13.98, ADX 27.2 downward (NDI 29.3 >> PDI 14.9), RSI 32.9, approaching 200DMA (465.6) ahead of Q2 earnings.",
+        "missing_signals": [
+          "Q2 FY27 (Sep 2026) earnings & Sep-2026 FII/DII shareholding updates",
+          "Oversold bottoming internals: India VIX, 52W New Lows, FII daily cash flows",
+          "200-DMA demand/supply microstructure (up-day vs down-day delivery & institutional block deals near Rs 465-500)"
+        ]
+      }
+    }
+  ],
+  "final_attribution": {
+    "window": [
+      "2026-02-27",
+      "2026-11-25"
+    ],
+    "trader_summary": {
+      "total_ret_pct": -4.59,
+      "max_dd_pct": -5.02,
+      "sharpe": -2.097,
+      "final_nav": 954098.26,
+      "total_pnl_rs": -45902.0,
+      "total_trades": 8
+    },
+    "per_stock": {
+      "ULTRACEMCO.NS": {
+        "realized_rs": -12583.0,
+        "unrealized_rs": 0.0,
+        "total_pnl_rs": -12583.0,
+        "n_buys": 1,
+        "n_sells": 1
+      },
+      "KALYANKJIL.NS": {
+        "realized_rs": -33319.0,
+        "unrealized_rs": 0.0,
+        "total_pnl_rs": -33319.0,
+        "n_buys": 3,
+        "n_sells": 3
+      }
+    },
+    "benchmarks": {
+      "BH_ULTRACEMCO": {
+        "total_ret_pct": 0.97,
+        "max_dd_pct": -18.26,
+        "sharpe": 0.184,
+        "start_close": 12677.0,
+        "end_close": 12800.0,
+        "min_close": 10362.0,
+        "max_close": 12939.0
+      },
+      "MECH_G1_BUYNOW_ULTRACEMCO": {
+        "total_ret_pct": 0.0,
+        "max_dd_pct": 0.0,
+        "sharpe": 0.0,
+        "trades": 0
+      },
+      "BH_KALYANKJIL": {
+        "total_ret_pct": 55.17,
+        "max_dd_pct": -26.35,
+        "sharpe": 1.427,
+        "start_close": 410.1,
+        "end_close": 636.35,
+        "min_close": 330.8,
+        "max_close": 710.9
+      },
+      "MECH_G1_BUYNOW_KALYANKJIL": {
+        "total_ret_pct": 0.16,
+        "max_dd_pct": -10.26,
+        "sharpe": 0.111,
+        "trades": 3
+      },
+      "BH_50_50": {
+        "total_ret_pct": 28.07,
+        "max_dd_pct": -17.34,
+        "sharpe": 1.162
+      },
+      "NIFTY_50": {
+        "total_ret_pct": 2.54,
+        "max_dd_pct": -11.7,
+        "sharpe": 0.3,
+        "start_close": 25178.65,
+        "end_close": 25819.25
+      }
+    },
+    "trades": [
+      {
+        "date": "2026-04-07",
+        "ticker": "KALYANKJIL.NS",
+        "side": "BUY",
+        "reason": "TRIGGER@415.0",
+        "px": 435.0,
+        "shares": 344,
+        "value": 149640.0
+      },
+      {
+        "date": "2026-04-24",
+        "ticker": "KALYANKJIL.NS",
+        "side": "SELL",
+        "reason": "TRAIL_8%_HIT",
+        "px": 412.8,
+        "shares": 344,
+        "pnl_pct": -5.29,
+        "pnl_rs": -8220.0
+      },
+      {
+        "date": "2026-05-04",
+        "ticker": "KALYANKJIL.NS",
+        "side": "BUY",
+        "reason": "BUY_NOW",
+        "px": 414.0,
+        "shares": 359,
+        "value": 148626.0
+      },
+      {
+        "date": "2026-05-11",
+        "ticker": "KALYANKJIL.NS",
+        "side": "SELL",
+        "reason": "HARD_STOP@385.0",
+        "px": 385.0,
+        "shares": 359,
+        "pnl_pct": -7.19,
+        "pnl_rs": -10985.0
+      },
+      {
+        "date": "2026-07-22",
+        "ticker": "ULTRACEMCO.NS",
+        "side": "BUY",
+        "reason": "TRIGGER@12050.0",
+        "px": 12081.0,
+        "shares": 20,
+        "value": 241620.0
+      },
+      {
+        "date": "2026-08-19",
+        "ticker": "ULTRACEMCO.NS",
+        "side": "SELL",
+        "reason": "MA50_BREAK(11499.0<11637.5)",
+        "px": 11499.0,
+        "shares": 20,
+        "pnl_pct": -5.01,
+        "pnl_rs": -12583.0
+      },
+      {
+        "date": "2026-09-16",
+        "ticker": "KALYANKJIL.NS",
+        "side": "BUY",
+        "reason": "BUY_NOW",
+        "px": 606.9,
+        "shares": 319,
+        "value": 193601.0
+      },
+      {
+        "date": "2026-09-28",
+        "ticker": "KALYANKJIL.NS",
+        "side": "SELL",
+        "reason": "HARD_STOP@565.0",
+        "px": 565.0,
+        "shares": 319,
+        "pnl_pct": -7.09,
+        "pnl_rs": -14114.0
+      }
+    ],
+    "open_positions_at_end": {}
+  },
+  "daily_milestones": {
+    "ULTRACEMCO.NS": {
+      "n_days": 182,
+      "start_close": 12677.0,
+      "end_close": 12800.0,
+      "min_close": {
+        "date": "2026-03-23",
+        "close": 10362.0
+      },
+      "max_close": {
+        "date": "2026-11-20",
+        "close": 12939.0
+      },
+      "gate1_days": 39,
+      "buy_now_days": 0,
+      "buy_now_sample": [],
+      "buy_on_trig_days": 0,
+      "buy_on_trig_sample": [],
+      "absorption_dates": [],
+      "shakeout_dates": [],
+      "g1_buynow_or_abs_count": 0,
+      "g1_buynow_or_abs_first5": []
+    },
+    "KALYANKJIL.NS": {
+      "n_days": 182,
+      "start_close": 410.1,
+      "end_close": 636.35,
+      "min_close": {
+        "date": "2026-06-11",
+        "close": 330.8
+      },
+      "max_close": {
+        "date": "2026-11-12",
+        "close": 710.9
+      },
+      "gate1_days": 58,
+      "buy_now_days": 46,
+      "buy_now_sample": [
+        {
+          "date": "2026-07-20",
+          "close": 570.0,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-21",
+          "close": 577.0,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-22",
+          "close": 596.1,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-23",
+          "close": 585.6,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-24",
+          "close": 573.55,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-27",
+          "close": 564.6,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-28",
+          "close": 608.35,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-07-29",
+          "close": 628.6,
+          "stop": 469.0,
+          "g1": true
+        },
+        {
+          "date": "2026-11-18",
+          "close": 650.0,
+          "stop": 620.0,
+          "g1": true
+        },
+        {
+          "date": "2026-11-19",
+          "close": 661.0,
+          "stop": 620.0,
+          "g1": true
+        },
+        {
+          "date": "2026-11-20",
+          "close": 638.7,
+          "stop": 620.0,
+          "g1": true
+        },
+        {
+          "date": "2026-11-23",
+          "close": 652.9,
+          "stop": 620.0,
+          "g1": true
+        },
+        {
+          "date": "2026-11-25",
+          "close": 636.35,
+          "stop": 620.0,
+          "g1": true
+        }
+      ],
+      "buy_on_trig_days": 0,
+      "buy_on_trig_sample": [],
+      "absorption_dates": [],
+      "shakeout_dates": [],
+      "g1_buynow_or_abs_count": 46,
+      "g1_buynow_or_abs_first5": [
+        {
+          "date": "2026-07-20",
+          "close": 570.0,
+          "act": "BUY NOW",
+          "sig": "NEUTRAL"
+        },
+        {
+          "date": "2026-07-21",
+          "close": 577.0,
+          "act": "BUY NOW",
+          "sig": "NEUTRAL"
+        },
+        {
+          "date": "2026-07-22",
+          "close": 596.1,
+          "act": "BUY NOW",
+          "sig": "NEUTRAL"
+        },
+        {
+          "date": "2026-07-23",
+          "close": 585.6,
+          "act": "BUY NOW",
+          "sig": "NEUTRAL"
+        },
+        {
+          "date": "2026-07-24",
+          "close": 573.55,
+          "act": "BUY NOW",
+          "sig": "NEUTRAL"
+        }
+      ]
+    }
+  }
+}

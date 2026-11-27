@@ -1,0 +1,252 @@
+{
+  "event_num": 2,
+  "event_date": "2026-03-30",
+  "event_label": "E2: Bear Washout (Mar 30) \u2014 Nifty BEAR, Breadth 12.5%, UltraTech Valuation ACCUMULATE",
+  "market": {
+    "as_of": "2026-03-30",
+    "nifty_close": 22331.4,
+    "nifty_vs_200dma_pct": -11.49,
+    "nifty_dd_from_52w_pct": -15.18,
+    "nifty_regime": "BEAR",
+    "breadth_above_50dma_pct": 12.5,
+    "breadth_above_200dma_pct": 13.7,
+    "breadth_regime": "BEAR",
+    "engine_mode": "BEAR",
+    "engine_trail_stop_pct": 8.0,
+    "india_vix": 27.89,
+    "india_vix_5d_chg": 5.08,
+    "nifty_pe": 19.62,
+    "fii_idx_futures_long_pct": 15.1,
+    "fii_idx_126d_pctile": 68.0
+  },
+  "stocks": {
+    "ULTRACEMCO.NS": {
+      "price": 10745.0,
+      "ma50": 12174.1,
+      "ma200": 12112.57,
+      "vs_50dma_pct": -11.74,
+      "vs_200dma_pct": -11.29,
+      "vs_52w_high_pct": -18.04,
+      "rs": {
+        "rs1w": 1.66,
+        "rs1m": -5.24,
+        "rs3m": 5.36,
+        "rs6m": -1.15,
+        "comp_rs": -0.31
+      },
+      "dna_signal": "AVOID",
+      "gate1": false,
+      "industry": {
+        "industry": "Cement & Cement Products",
+        "rank": 27,
+        "of": 54,
+        "score": 52.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 8.0,
+        "above_200_pct": 8.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "BEAR anchor",
+        "supply": "CLEAN AIR",
+        "signature": "",
+        "adx": 47.4,
+        "pdi": 12.7,
+        "ndi": 40.2,
+        "rsi": 39.1,
+        "bbp": 96.0,
+        "gap": false,
+        "entry": 10745.0,
+        "stop": 11999.16,
+        "stop_pct": null,
+        "half_size": false
+      },
+      "simba": {
+        "stage": 4,
+        "mtf": 1,
+        "mrs": 0.22,
+        "caution": 3,
+        "dist_days": 8
+      },
+      "microstructure": {
+        "deliv_pct": 37.3,
+        "deliv_avg20": 57.4,
+        "deliv_ratio": 0.65,
+        "abs_deliv_cr": 160.8,
+        "vol20_ann_pct": 49.0,
+        "atr14_pct": 3.47,
+        "invvol20_w_mult": 0.949,
+        "liq_cr_day": 431.2
+      },
+      "business_pit": {
+        "verdict": "HEALTHY",
+        "score": 58.0,
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "shp_quarter": "Dec 2025",
+          "fii": 14.44,
+          "dii": 17.45,
+          "promoters": 59.28,
+          "fii_q": -0.89,
+          "dii_q": 0.8,
+          "inst_q": -0.09,
+          "inst_y": -0.24,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "rating": "ACCUMULATE",
+        "verdict_raw": "ACCUMULATE",
+        "cmp_pct": 28.1,
+        "p50": 13242.3,
+        "to_p50_pct": 23.2,
+        "bear_blend": 7300.8,
+        "base_blend": 12509.2,
+        "pe": 35.8,
+        "roce_pct": 13.0,
+        "de": 0.4,
+        "cfo_pat_3y": 1.74,
+        "fcf_pat_3y": 0.13,
+        "ladder": {
+          "accumulate": 12167.4,
+          "fair_hi": 16008.5,
+          "trim": 19369.6
+        }
+      },
+      "funnel_v3": {
+        "score": 16.4,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udcb0 Val ACCUMULATE (P28)"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_event_log": [
+        "2026-03-04: Below 50-DMA (12107.0 vs 12432.52)",
+        "2026-03-04: Below 200-DMA (12107.0 vs 12132.88)",
+        "2026-03-05: Above 200-DMA (12288.0 vs 12134.67)",
+        "2026-03-06: Below 200-DMA (11987.0 vs 12136.12)"
+      ]
+    },
+    "KALYANKJIL.NS": {
+      "price": 375.9,
+      "ma50": 396.62,
+      "ma200": 486.94,
+      "vs_50dma_pct": -5.22,
+      "vs_200dma_pct": -22.8,
+      "vs_52w_high_pct": -39.15,
+      "rs": {
+        "rs1w": 1.61,
+        "rs1m": 5.02,
+        "rs3m": -9.22,
+        "rs6m": -10.66,
+        "comp_rs": -1.02
+      },
+      "dna_signal": "AVOID",
+      "gate1": false,
+      "industry": {
+        "industry": "Consumer Durables",
+        "rank": 34,
+        "of": 54,
+        "score": 39.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 3.0,
+        "above_200_pct": 7.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "VETO",
+        "supply": "FAR OVERHANG",
+        "signature": "",
+        "adx": 13.5,
+        "pdi": 21.9,
+        "ndi": 26.6,
+        "rsi": 43.2,
+        "bbp": 38.1,
+        "gap": true,
+        "entry": 375.9,
+        "stop": 389.11,
+        "stop_pct": null,
+        "half_size": false
+      },
+      "simba": {
+        "stage": 4,
+        "mtf": 0,
+        "mrs": -15.01,
+        "caution": 3,
+        "dist_days": 0
+      },
+      "microstructure": {
+        "deliv_pct": 44.1,
+        "deliv_avg20": 30.9,
+        "deliv_ratio": 1.43,
+        "abs_deliv_cr": 49.5,
+        "vol20_ann_pct": 40.2,
+        "atr14_pct": 3.94,
+        "invvol20_w_mult": 1.156,
+        "liq_cr_day": 112.2
+      },
+      "business_pit": {
+        "verdict": "STRONG",
+        "score": 72.0,
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "shp_quarter": "Dec 2025",
+          "fii": 14.11,
+          "dii": 15.23,
+          "promoters": 62.75,
+          "fii_q": -0.01,
+          "dii_q": 0.67,
+          "inst_q": 0.66,
+          "inst_y": -0.6,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "rating": "UNRATED (gate A, B)",
+        "verdict_raw": "BUY",
+        "cmp_pct": 0.1,
+        "p50": 1123.2,
+        "to_p50_pct": 198.8,
+        "bear_blend": 552.8,
+        "base_blend": 1219.8,
+        "pe": 24.2,
+        "roce_pct": 21.0,
+        "de": 0.92,
+        "cfo_pat_3y": 1.45,
+        "fcf_pat_3y": 1.28,
+        "ladder": {
+          "accumulate": 1028.6,
+          "fair_hi": 1350.0,
+          "trim": 1527.0
+        }
+      },
+      "funnel_v3": {
+        "score": 20.0,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udce6 Deliv 44% (1.4\u00d7)",
+          "\u26a1 Gap Up",
+          "\ud83c\udfe2 Biz 72 Strong",
+          "\ud83d\udd25 Qtr NP +90%"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_event_log": []
+    }
+  }
+}

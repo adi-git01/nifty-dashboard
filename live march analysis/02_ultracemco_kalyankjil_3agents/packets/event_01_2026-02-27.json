@@ -1,0 +1,248 @@
+{
+  "event_num": 1,
+  "event_date": "2026-02-27",
+  "event_label": "E1: Launch (Feb 27) \u2014 Market CAUTION, UltraTech Gate 1 / Stage 3, Kalyan Stage 4",
+  "market": {
+    "as_of": "2026-02-27",
+    "nifty_close": 25178.7,
+    "nifty_vs_200dma_pct": -0.67,
+    "nifty_dd_from_52w_pct": -4.37,
+    "nifty_regime": "MILD BEAR",
+    "breadth_above_50dma_pct": 33.3,
+    "breadth_above_200dma_pct": 26.8,
+    "breadth_regime": "BEAR",
+    "engine_mode": "CAUTION",
+    "engine_trail_stop_pct": 12.0,
+    "india_vix": 13.7,
+    "india_vix_5d_chg": -0.66,
+    "nifty_pe": 22.03,
+    "fii_idx_futures_long_pct": 18.4,
+    "fii_idx_126d_pctile": 79.0
+  },
+  "stocks": {
+    "ULTRACEMCO.NS": {
+      "price": 12677.0,
+      "ma50": 12399.1,
+      "ma200": 12128.74,
+      "vs_50dma_pct": 2.24,
+      "vs_200dma_pct": 4.52,
+      "vs_52w_high_pct": -3.3,
+      "rs": {
+        "rs1w": 0.84,
+        "rs1m": 0.43,
+        "rs3m": 13.19,
+        "rs6m": -1.52,
+        "comp_rs": 5.58
+      },
+      "dna_signal": "BUY",
+      "gate1": true,
+      "industry": {
+        "industry": "Cement & Cement Products",
+        "rank": 21,
+        "of": 54,
+        "score": 63.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 23.0,
+        "above_200_pct": 31.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "BEAR anchor",
+        "supply": "CLEAN AIR",
+        "signature": "",
+        "adx": 13.3,
+        "pdi": 18.2,
+        "ndi": 23.2,
+        "rsi": 48.1,
+        "bbp": 26.2,
+        "gap": false,
+        "entry": 12677.0,
+        "stop": 12282.36,
+        "stop_pct": 3.11,
+        "half_size": false
+      },
+      "simba": {
+        "stage": 3,
+        "mtf": 2,
+        "mrs": 5.01,
+        "caution": 0,
+        "dist_days": 1
+      },
+      "microstructure": {
+        "deliv_pct": 56.9,
+        "deliv_avg20": 59.7,
+        "deliv_ratio": 0.95,
+        "abs_deliv_cr": 128.4,
+        "vol20_ann_pct": 20.1,
+        "atr14_pct": 1.6,
+        "invvol20_w_mult": 1.5,
+        "liq_cr_day": 225.6
+      },
+      "business_pit": {
+        "verdict": "HEALTHY",
+        "score": 58.0,
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "shp_quarter": "Dec 2025",
+          "fii": 14.44,
+          "dii": 17.45,
+          "promoters": 59.28,
+          "fii_q": -0.89,
+          "dii_q": 0.8,
+          "inst_q": -0.09,
+          "inst_y": -0.24,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "rating": "HOLD",
+        "verdict_raw": "HOLD",
+        "cmp_pct": 53.3,
+        "p50": 12376.9,
+        "to_p50_pct": -2.4,
+        "bear_blend": 7300.8,
+        "base_blend": 11494.2,
+        "pe": 42.3,
+        "roce_pct": 13.0,
+        "de": 0.4,
+        "cfo_pat_3y": 1.74,
+        "fcf_pat_3y": 0.13,
+        "ladder": {
+          "accumulate": 11444.5,
+          "fair_hi": 14751.4,
+          "trim": 17798.0
+        }
+      },
+      "funnel_v3": {
+        "score": 30.5,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udcc8 RS +5.6",
+          "\ud83d\udccf Tight 3.1% stop"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_event_log": []
+    },
+    "KALYANKJIL.NS": {
+      "price": 410.1,
+      "ma50": 437.18,
+      "ma200": 503.23,
+      "vs_50dma_pct": -6.19,
+      "vs_200dma_pct": -18.51,
+      "vs_52w_high_pct": -33.61,
+      "rs": {
+        "rs1w": 3.75,
+        "rs1m": 13.96,
+        "rs3m": -14.94,
+        "rs6m": -22.38,
+        "comp_rs": 1.38
+      },
+      "dna_signal": "AVOID",
+      "gate1": false,
+      "industry": {
+        "industry": "Consumer Durables",
+        "rank": 35,
+        "of": 54,
+        "score": 37.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 32.0,
+        "above_200_pct": 18.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "GO",
+        "supply": "FAR OVERHANG",
+        "signature": "DISTRIBUTION",
+        "adx": 15.6,
+        "pdi": 23.6,
+        "ndi": 22.7,
+        "rsi": 47.5,
+        "bbp": 69.0,
+        "gap": true,
+        "entry": 410.1,
+        "stop": 429.64,
+        "stop_pct": null,
+        "half_size": false
+      },
+      "simba": {
+        "stage": 4,
+        "mtf": 0,
+        "mrs": -18.85,
+        "caution": 3,
+        "dist_days": 0
+      },
+      "microstructure": {
+        "deliv_pct": 39.5,
+        "deliv_avg20": 27.6,
+        "deliv_ratio": 1.43,
+        "abs_deliv_cr": 74.1,
+        "vol20_ann_pct": 59.1,
+        "atr14_pct": 2.89,
+        "invvol20_w_mult": 0.602,
+        "liq_cr_day": 187.5
+      },
+      "business_pit": {
+        "verdict": "STRONG",
+        "score": 72.0,
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "shp_quarter": "Dec 2025",
+          "fii": 14.11,
+          "dii": 15.23,
+          "promoters": 62.75,
+          "fii_q": -0.01,
+          "dii_q": 0.67,
+          "inst_q": 0.66,
+          "inst_y": -0.6,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "rating": "UNRATED (gate A, B)",
+        "verdict_raw": "BUY",
+        "cmp_pct": 0.4,
+        "p50": 1123.2,
+        "to_p50_pct": 173.9,
+        "bear_blend": 552.8,
+        "base_blend": 1219.8,
+        "pe": 26.4,
+        "roce_pct": 21.0,
+        "de": 0.92,
+        "cfo_pat_3y": 1.45,
+        "fcf_pat_3y": 1.28,
+        "ladder": {
+          "accumulate": 1028.6,
+          "fair_hi": 1350.0,
+          "trim": 1527.0
+        }
+      },
+      "funnel_v3": {
+        "score": 21.2,
+        "grade": "C",
+        "pros": [
+          "\ud83d\udce6 Deliv 40% (1.4\u00d7)",
+          "\u26a1 Gap Up",
+          "\ud83c\udfe2 Biz 72 Strong",
+          "\ud83d\udd25 Qtr NP +90%"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_event_log": []
+    }
+  }
+}

@@ -1,0 +1,274 @@
+{
+  "gate_num": 1,
+  "gate_date": "2026-02-27",
+  "market": {
+    "as_of": "2026-02-27",
+    "nifty_close": 25178.7,
+    "nifty_vs_200dma_pct": -0.67,
+    "nifty_dd_from_52w_pct": -4.37,
+    "nifty_regime": "MILD BEAR",
+    "breadth_above_50dma_pct": 33.3,
+    "breadth_above_200dma_pct": 26.8,
+    "breadth_regime": "BEAR",
+    "engine_mode": "CAUTION",
+    "engine_trail_stop_pct": 12.0,
+    "india_vix": null,
+    "nifty_pe": 22.03,
+    "fii_idx_futures_long_pct": 18.4,
+    "fii_idx_126d_pctile": 79.0
+  },
+  "stocks": {
+    "ULTRACEMCO.NS": {
+      "ticker": "ULTRACEMCO.NS",
+      "price": 12677.0,
+      "ma50": 12399.1,
+      "ma200": 12128.74,
+      "vs_50dma_pct": 2.24,
+      "vs_200dma_pct": 4.52,
+      "vs_52w_high_pct": -3.3,
+      "rs": {
+        "rs1w": 0.84,
+        "rs1m": 0.43,
+        "rs3m": 13.19,
+        "rs6m": -1.52,
+        "comp_rs": 5.58
+      },
+      "dna_signal": "BUY",
+      "gate1": true,
+      "industry": {
+        "industry": "Cement & Cement Products",
+        "rank": 21,
+        "of": 54,
+        "score": 63.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 23.0,
+        "above_200_pct": 31.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "BEAR anchor",
+        "supply": "CLEAN AIR",
+        "signature": "",
+        "shakeout": false,
+        "adx": 13.3,
+        "pdi": 18.2,
+        "ndi": 23.2,
+        "rsi": 48.1,
+        "bbp": 26.2,
+        "gap": false,
+        "entry": 12677.0,
+        "stop": 12282.36,
+        "stop_pct": 3.11,
+        "half_size": false,
+        "t1_2r": 13466.29
+      },
+      "simba": {
+        "stage": 3,
+        "mtf": 2,
+        "g_active": false,
+        "m_active": false,
+        "m_since": 30.0,
+        "si_since": null,
+        "mrs": 5.01,
+        "vcp": false,
+        "caution": 0,
+        "dist_days": 1,
+        "trail_ema": 20
+      },
+      "microstructure": {
+        "deliv_pct": 56.9,
+        "deliv_avg20": 59.7,
+        "deliv_ratio": 0.95,
+        "vol20_ann_pct": 20.1,
+        "invvol20_w_mult": 1.5,
+        "liq_cr_day": 225.6
+      },
+      "business_pit": {
+        "verdict": "HEALTHY",
+        "score": 58.0,
+        "headline": "",
+        "hard_flags": [],
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 22.8,
+          "opm": 18.0,
+          "opm_chg": 2.0,
+          "np_yoy": 26.9,
+          "fii": 14.44,
+          "dii": 17.45,
+          "promoters": 59.28,
+          "inst_q": -0.09,
+          "inst_y": -0.24,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "status": "OK",
+        "rating": "HOLD",
+        "cmp_pct": 53.3,
+        "p25": 9852.8,
+        "p50": 12376.9,
+        "p75": 15476.3,
+        "to_p50_pct": -2.4,
+        "pe": 42.3,
+        "roce_pct": 13.0,
+        "de": 0.4,
+        "firmness": "SOFT",
+        "ladder": {
+          "accumulate": 11444.5,
+          "fair_hi": 14751.4,
+          "trim": 17798.0
+        }
+      },
+      "funnel_v3": {
+        "stages": {
+          "industry": false,
+          "trend": false,
+          "business": true,
+          "setup": false,
+          "value": true
+        },
+        "passes_default_4": false,
+        "score": 30.5,
+        "grade": "C",
+        "score_note": "Mom 14 \u00b7 Set 0 \u00b7 Str 3 \u00b7 Qual 13 \u00b7 Cat 0",
+        "pros": [
+          "\ud83d\udcc8 RS +5.6",
+          "\ud83d\udccf Tight 3.1% stop"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_gate_events": []
+    },
+    "KALYANKJIL.NS": {
+      "ticker": "KALYANKJIL.NS",
+      "price": 410.1,
+      "ma50": 437.18,
+      "ma200": 503.23,
+      "vs_50dma_pct": -6.19,
+      "vs_200dma_pct": -18.51,
+      "vs_52w_high_pct": -33.61,
+      "rs": {
+        "rs1w": 3.75,
+        "rs1m": 13.96,
+        "rs3m": -14.94,
+        "rs6m": -22.38,
+        "comp_rs": 1.38
+      },
+      "dna_signal": "AVOID",
+      "gate1": false,
+      "industry": {
+        "industry": "Consumer Durables",
+        "rank": 35,
+        "of": 54,
+        "score": 37.0,
+        "group": "LAGGING",
+        "status": "DOWNTREND",
+        "above_50_pct": 32.0,
+        "above_200_pct": 18.0
+      },
+      "forensics": {
+        "action": "WATCH",
+        "state": "GO",
+        "supply": "FAR OVERHANG",
+        "signature": "DISTRIBUTION",
+        "shakeout": false,
+        "adx": 15.6,
+        "pdi": 23.6,
+        "ndi": 22.7,
+        "rsi": 47.5,
+        "bbp": 69.0,
+        "gap": true,
+        "entry": 410.1,
+        "stop": 429.64,
+        "stop_pct": null,
+        "half_size": false,
+        "t1_2r": null
+      },
+      "simba": {
+        "stage": 4,
+        "mtf": 0,
+        "g_active": false,
+        "m_active": false,
+        "m_since": null,
+        "si_since": null,
+        "mrs": -18.85,
+        "vcp": false,
+        "caution": 3,
+        "dist_days": 0,
+        "trail_ema": 25
+      },
+      "microstructure": {
+        "deliv_pct": 39.5,
+        "deliv_avg20": 27.6,
+        "deliv_ratio": 1.43,
+        "vol20_ann_pct": 59.1,
+        "invvol20_w_mult": 0.602,
+        "liq_cr_day": 187.5
+      },
+      "business_pit": {
+        "verdict": "STRONG",
+        "score": 72.0,
+        "headline": "",
+        "hard_flags": [],
+        "quarterly": {
+          "quarter": "Dec 2025",
+          "sales_yoy": 42.1,
+          "opm": 7.0,
+          "opm_chg": 1.0,
+          "np_yoy": 90.0,
+          "fii": 14.11,
+          "dii": 15.23,
+          "promoters": 62.75,
+          "inst_q": 0.66,
+          "inst_y": -0.6,
+          "inst_label": "NEUTRAL"
+        }
+      },
+      "valuation_pit": {
+        "status": "OK",
+        "rating": "UNRATED (gate A, B)",
+        "cmp_pct": 0.4,
+        "p25": 858.2,
+        "p50": 1123.2,
+        "p75": 1397.8,
+        "to_p50_pct": 173.9,
+        "pe": 26.4,
+        "roce_pct": 21.0,
+        "de": 0.92,
+        "firmness": "FIRM",
+        "ladder": {
+          "accumulate": 1028.6,
+          "fair_hi": 1350.0,
+          "trim": 1527.0
+        }
+      },
+      "funnel_v3": {
+        "stages": {
+          "industry": false,
+          "trend": false,
+          "business": true,
+          "setup": false,
+          "value": true
+        },
+        "passes_default_4": false,
+        "score": 21.2,
+        "grade": "C",
+        "score_note": "Mom 7 \u00b7 Set 2 \u00b7 Str 0 \u00b7 Qual 11 \u00b7 Cat 2",
+        "pros": [
+          "\ud83d\udce6 Deliv 40% (1.4\u00d7)",
+          "\u26a1 Gap Up",
+          "\ud83c\udfe2 Biz 72 Strong",
+          "\ud83d\udd25 Qtr NP +90%"
+        ],
+        "cons": [
+          "\ud83d\udd34 WATCH (No BUY setup)"
+        ]
+      },
+      "inter_gate_events": []
+    }
+  }
+}

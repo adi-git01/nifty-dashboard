@@ -1,0 +1,32 @@
+{
+  "gate_num": 7,
+  "gate_date": "2026-10-30",
+  "orders": {
+    "ULTRACEMCO.NS": {
+      "action": "WAIT",
+      "target_pct": 0,
+      "trigger_px": null,
+      "stop_px": null,
+      "trail_pct": null,
+      "use_ma50_exit": false
+    },
+    "KALYANKJIL.NS": {
+      "action": "AVOID",
+      "target_pct": 0,
+      "trigger_px": null,
+      "stop_px": null,
+      "trail_pct": null,
+      "use_ma50_exit": false
+    }
+  },
+  "notes": {
+    "regime": "Broadening bearish deterioration: breadth >50DMA 16.4%, >200DMA 36.0% (MILD BEAR), Nifty -4.08% vs 200DMA, Nifty PE 19.30, FII longs 11.1% -> 100% cash.",
+    "ultracemco": "WAIT 0%: Broke back below 50DMA today after 4d fakeout, Cement 0.0% >200DMA (rank 51/54), Stage 4, 7 dist_days, NEAR OVERHANG (-6).",
+    "kalyankjil": "AVOID 0%: -12.89% below 50DMA, CompRS -13.98, ADX 27.2 downward (NDI 29.3 >> PDI 14.9), RSI 32.9, approaching 200DMA (465.6) ahead of Q2 earnings.",
+    "missing_signals": [
+      "Q2 FY27 (Sep 2026) earnings & Sep-2026 FII/DII shareholding updates",
+      "Oversold bottoming internals: India VIX, 52W New Lows, FII daily cash flows",
+      "200-DMA demand/supply microstructure (up-day vs down-day delivery & institutional block deals near Rs 465-500)"
+    ]
+  }
+}

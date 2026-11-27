@@ -1,0 +1,13 @@
+{
+  "monthly_quant": {
+    "from_date": "2026-10-30",
+    "to_date": "2026-11-20",
+    "orders": {
+      "LAURUSLABS.NS": {"action": "HOLD", "target_pct": 16, "stop_px": 2080.0, "trail_pct": 12},
+      "SSWL.NS": {"action": "TRIM", "target_pct": 12, "stop_px": 418.0, "trail_pct": 12},
+      "CUPID.NS": {"action": "BUY_NOW", "target_pct": 14, "stop_px": 292.8, "trail_pct": 13},
+      "SIGMAADV.NS": {"action": "PLACE_TRIGGER", "target_pct": 8, "trigger_px": 935.0, "stop_px": 841.7, "trail_pct": 13, "max_gap_pct": 5}
+    },
+    "notes": {"rationale": "Hold LAURUSLABS, trim SSWL, BUY CUPID (sole BUY NOW), arm SIGMAADV @ 935"}
+  }
+}
